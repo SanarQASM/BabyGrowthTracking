@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Baby Growth Tracking</string>
+
+    <!-- ✅ Google Sign-In Web Client ID (from google-services.json → oauth_client → client_type 3) -->
+    <string name="google_web_client_id">887110744705-jmptb1l01glacof0bt3iovj8mo76q3v3.apps.googleusercontent.com</string>
+    <string name="google_maps_api_key">AIzaSyCAdXRfi_q3VB2S5As-HIipyRQusSGRUqw</string>
+    <!-- Common -->
+    <string name="common_back">Back</string>
+</resources>

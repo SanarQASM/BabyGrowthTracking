@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baby Growth Track</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <!--
+        ✅ Firebase MUST be in <head> with no defer/async
+        so it executes before <body> scripts including composeApp.js
+    -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-analytics-compat.js"></script>
+
+    <script>
+        try {
+            const firebaseConfig = {
+                apiKey: "AIzaSyAIUFHXzCKuOVN23DjYALmNT17Yyt5s4a4",
+                authDomain: "babygrowthtracking-cfd66.firebaseapp.com",
+                projectId: "babygrowthtracking-cfd66",
+                storageBucket: "babygrowthtracking-cfd66.firebasestorage.app",
+                messagingSenderId: "887110744705",
+                appId: "1:887110744705:web:6372e4d47c402ac5062b80",
+                measurementId: "G-LVCEYYKNYB"
+            };
+            firebase.initializeApp(firebaseConfig);
+            firebase.analytics();
+            window.__firebaseReady = true;
+            console.log("✅ Firebase initialized successfully");
+        } catch(e) {
+            console.error("❌ Firebase initialization failed:", e);
+            window.__firebaseReady = false;
+        }
+    </script>
+
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+<div id="ComposeTarget"></div>
+<!--
+    webpack automatically injects skiko.js + composeApp.js
+    here at the end of body — Firebase is already ready by this point
+    because it was loaded synchronously in <head>
+-->
+</body>
+</html>
