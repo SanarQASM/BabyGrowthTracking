@@ -6,11 +6,9 @@ import androidx.compose.runtime.*
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.splash.CompleteSplashScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.HomeScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.AddBabyScreen
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.BabyProfileScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.AddMeasurementScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.AllMeasurementsScreen
-import org.example.project.babygrowthtrackingapplication.theme.BabyGrowthTheme
-import org.example.project.babygrowthtrackingapplication.theme.GenderTheme
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.BabyProfileScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.Language
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.PreferencesManager
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.onBoarding.OnboardingScreen
@@ -41,8 +39,9 @@ enum class Screen {
     Home,
     AddBaby,
     BabyProfile,
-    AddMeasurement,
-    AllMeasurements
+    EditBaby,           // ← AddBabyScreen pre-filled with existing baby data
+    AddMeasurement,     // ← AddMeasurementScreen for a specific baby
+    AllMeasurements     // ← AllMeasurementsScreen: full history list for a baby
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -62,17 +61,15 @@ fun AppNavigation(
     var resetCode  by remember { mutableStateOf("") }
 
     // ── Selected baby for profile screen ─────────────────────────────────────
-    // Nullable so we never show BabyProfileScreen with stale data.
-    var selectedBaby by remember { mutableStateOf<BabyResponse?>(null) }
-
-    // ── Measurement screen context ────────────────────────────────────────────
-    var measurementBabyId   by remember { mutableStateOf("") }
-    var measurementBabyName by remember { mutableStateOf("") }
-    var measurementIsFemale by remember { mutableStateOf(false) }
+    var selectedBaby    by remember { mutableStateOf<BabyResponse?>(null) }
+    // ── Baby for measurement screen ───────────────────────────────────────────
+    var measurementBaby by remember { mutableStateOf<BabyResponse?>(null) }
+    // ── Baby for all-measurements history screen ──────────────────────────────
+    var allMeasurementsBaby by remember { mutableStateOf<BabyResponse?>(null) }
 
     // ── Tab state hoisted here so back navigation can restore the correct tab ─
     var selectedTab by remember { mutableStateOf(NavigationTab.HOME) }
-    // Records which tab the user was on before going to AddBaby or BabyProfile
+    // Records which tab the user was on before going to a full-screen flow
     var originTab   by remember { mutableStateOf(NavigationTab.HOME) }
 
     val apiService = remember {
@@ -188,8 +185,9 @@ fun AppNavigation(
                                     animationSpec = tween(500, easing = FastOutSlowInEasing)
                                 ) + fadeOut(tween(500))
 
-                    // AddBaby slides up from the bottom — modal feel
-                    Screen.AddBaby ->
+                    // AddBaby / EditBaby slide up from the bottom — modal feel
+                    Screen.AddBaby,
+                    Screen.EditBaby ->
                         slideInVertically(
                             initialOffsetY = { it },
                             animationSpec  = tween(400, easing = FastOutSlowInEasing)
@@ -199,18 +197,10 @@ fun AppNavigation(
                                     animationSpec = tween(300, easing = FastOutSlowInEasing)
                                 ) + fadeOut(tween(200))
 
-                    // BabyProfile slides in from the right — standard push feel
-                    Screen.BabyProfile ->
-                        slideInHorizontally(
-                            initialOffsetX = { it },
-                            animationSpec  = tween(400, easing = FastOutSlowInEasing)
-                        ) + fadeIn(tween(300)) togetherWith
-                                slideOutHorizontally(
-                                    targetOffsetX = { it },
-                                    animationSpec = tween(300, easing = FastOutSlowInEasing)
-                                ) + fadeOut(tween(200))
-
-                    Screen.AddMeasurement, Screen.AllMeasurements ->
+                    // BabyProfile / AddMeasurement / AllMeasurements slide in from right
+                    Screen.BabyProfile,
+                    Screen.AddMeasurement,
+                    Screen.AllMeasurements ->
                         slideInHorizontally(
                             initialOffsetX = { it },
                             animationSpec  = tween(400, easing = FastOutSlowInEasing)
@@ -366,6 +356,7 @@ fun AppNavigation(
                 }
 
                 // ── Home ──────────────────────────────────────────────────────
+                // ── Home ──────────────────────────────────────────────────────
                 Screen.Home -> {
                     HomeScreen(
                         viewModel        = homeViewModel,
@@ -375,8 +366,8 @@ fun AppNavigation(
                             currentLanguage = newLanguage
                             onLanguageChange(newLanguage)
                         },
-                        selectedTab = selectedTab,
-                        onTabChange = { selectedTab = it },
+                        selectedTab  = selectedTab,
+                        onTabChange  = { selectedTab = it },
                         onAddBaby = {
                             originTab = selectedTab
                             addBabyViewModel.resetForm()
@@ -387,50 +378,84 @@ fun AppNavigation(
                             selectedBaby  = baby
                             currentScreen = Screen.BabyProfile
                         },
-                        onAddMeasurement = { babyId ->
-                            val baby = homeViewModel.uiState.babies.find { it.babyId == babyId }
-                            measurementBabyId   = babyId
-                            measurementBabyName = baby?.fullName ?: ""
-                            measurementIsFemale = baby?.gender?.let {
-                                it.equals("FEMALE", ignoreCase = true) ||
-                                        it.equals("GIRL",   ignoreCase = true)
-                            } ?: false
-                            originTab     = selectedTab
-                            currentScreen = Screen.AddMeasurement
+                        onEditDetails = { baby ->
+                            originTab = selectedTab
+                            addBabyViewModel.prefillFromBaby(baby)
+                            currentScreen = Screen.EditBaby
                         },
-                        onViewAllMeasurements = { babyId ->
-                            val baby = homeViewModel.uiState.babies.find { it.babyId == babyId }
-                            measurementBabyId   = babyId
-                            measurementBabyName = baby?.fullName ?: ""
-                            measurementIsFemale = baby?.gender?.let {
-                                it.equals("FEMALE", ignoreCase = true) ||
-                                        it.equals("GIRL",   ignoreCase = true)
-                            } ?: false
-                            originTab     = selectedTab
-                            currentScreen = Screen.AllMeasurements
+                        onAddMeasurement = { baby ->
+                            originTab       = selectedTab
+                            measurementBaby = baby
+                            currentScreen   = Screen.AddMeasurement
+                        },
+                        onViewGrowthChart = { _ ->
+                            selectedTab = NavigationTab.CHARTS
+                        },
+                        // ← renamed parameters
+                        onAddMeasurementById = { babyId ->
+                            val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
+                            if (baby != null) {
+                                originTab       = selectedTab
+                                measurementBaby = baby
+                                currentScreen   = Screen.AddMeasurement
+                            }
+                        },
+                        onViewAllMeasurementsById = { babyId ->
+                            originTab = selectedTab
+                            val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
+                            if (baby != null) {
+                                allMeasurementsBaby = baby
+                                currentScreen       = Screen.AllMeasurements
+                            }
                         }
                     )
                 }
 
-                // ── Add Baby ──────────────────────────────────────────────────
+                // ── Add Baby (new) ────────────────────────────────────────────
                 Screen.AddBaby -> {
                     AddBabyScreen(
                         viewModel = addBabyViewModel,
                         onBack    = {
-                            selectedTab   = originTab        // restore the tab we came from
+                            selectedTab   = originTab
                             currentScreen = Screen.Home
                         },
                         onSaved   = {
                             homeViewModel.loadHomeData()
-                            selectedTab   = originTab        // restore the tab we came from
+                            selectedTab   = originTab
                             currentScreen = Screen.Home
+                        }
+                    )
+                }
+
+                // ── Edit Baby (existing — pre-filled) ─────────────────────────
+                Screen.EditBaby -> {
+                    AddBabyScreen(
+                        viewModel = addBabyViewModel,
+                        onBack    = {
+                            if (selectedBaby != null) {
+                                currentScreen = Screen.BabyProfile
+                            } else {
+                                selectedTab   = originTab
+                                currentScreen = Screen.Home
+                            }
+                        },
+                        onSaved   = {
+                            homeViewModel.loadHomeData()
+                            selectedBaby = homeViewModel.uiState.babies
+                                .find { it.babyId == selectedBaby?.babyId }
+                                ?: selectedBaby
+                            if (selectedBaby != null && originTab == NavigationTab.BABY) {
+                                currentScreen = Screen.BabyProfile
+                            } else {
+                                selectedTab   = originTab
+                                currentScreen = Screen.Home
+                            }
                         }
                     )
                 }
 
                 // ── Baby Profile ──────────────────────────────────────────────
                 Screen.BabyProfile -> {
-                    // Guard: if selectedBaby is somehow null, go back to Home
                     val baby = selectedBaby
                     if (baby == null) {
                         currentScreen = Screen.Home
@@ -443,59 +468,90 @@ fun AppNavigation(
                                 .latestGrowthRecords[baby.babyId],
                             onBack = {
                                 selectedBaby  = null
-                                selectedTab   = originTab    // restore the tab we came from
+                                selectedTab   = originTab
                                 currentScreen = Screen.Home
                             },
                             onEditDetails = {
-                                // TODO: navigate to EditBabyScreen when available
+                                addBabyViewModel.prefillFromBaby(baby)
+                                currentScreen = Screen.EditBaby
                             },
                             onDeleteBaby = {
                                 homeViewModel.loadHomeData()
                                 selectedBaby  = null
-                                selectedTab   = originTab    // restore the tab we came from
-                                currentScreen = Screen.Home
-                            },
-                            onAddMeasurement  = { /* TODO */ },
-                            onViewGrowthChart = { /* TODO */ }
-                        )
-                    }
-                }
-
-                // ── Add Measurement ───────────────────────────────────────────
-                Screen.AddMeasurement -> {
-                    val genderTheme = if (measurementIsFemale) GenderTheme.GIRL else GenderTheme.BOY
-                    BabyGrowthTheme(genderTheme = genderTheme) {
-                        AddMeasurementScreen(
-                            babyId     = measurementBabyId,
-                            babyName   = measurementBabyName,
-                            isFemale   = measurementIsFemale,
-                            viewModel  = homeViewModel,
-                            apiService = apiService,
-                            userId     = homeViewModel.uiState.userId,
-                            onBack     = {
                                 selectedTab   = originTab
                                 currentScreen = Screen.Home
                             },
-                            onSaved    = {
-                                selectedTab   = originTab
+                            onAddMeasurement = {
+                                measurementBaby = baby
+                                currentScreen   = Screen.AddMeasurement
+                            },
+                            onViewGrowthChart = {
+                                selectedBaby  = null
+                                selectedTab   = NavigationTab.CHARTS
                                 currentScreen = Screen.Home
                             }
                         )
                     }
                 }
 
+                // ── Add Measurement ───────────────────────────────────────────
+                Screen.AddMeasurement -> {
+                    val baby = measurementBaby
+                    if (baby == null) {
+                        currentScreen = Screen.Home
+                    } else {
+                        AddMeasurementScreen(
+                            babyId             = baby.babyId,
+                            babyName           = baby.fullName,
+                            apiService         = apiService,
+                            preferencesManager = preferencesManager,
+                            onBack = {
+                                measurementBaby = null
+                                if (selectedBaby != null) {
+                                    currentScreen = Screen.BabyProfile
+                                } else {
+                                    selectedTab   = originTab
+                                    currentScreen = Screen.Home
+                                }
+                            },
+                            onSaved = {
+                                homeViewModel.loadHomeData()
+                                measurementBaby = null
+                                if (selectedBaby != null) {
+                                    currentScreen = Screen.BabyProfile
+                                } else {
+                                    selectedTab   = originTab
+                                    currentScreen = Screen.Home
+                                }
+                            }
+                        )
+                    }
+                }
+
                 // ── All Measurements ──────────────────────────────────────────
+                // Full history list for a specific baby (opened from "View All")
                 Screen.AllMeasurements -> {
-                    val genderTheme = if (measurementIsFemale) GenderTheme.GIRL else GenderTheme.BOY
-                    BabyGrowthTheme(genderTheme = genderTheme) {
+                    val baby = allMeasurementsBaby
+                    if (baby == null) {
+                        currentScreen = Screen.Home
+                    } else {
+                        val isFemale = baby.gender.equals("FEMALE", ignoreCase = true) ||
+                                baby.gender.equals("GIRL",   ignoreCase = true)
                         AllMeasurementsScreen(
-                            babyId    = measurementBabyId,
-                            babyName  = measurementBabyName,
-                            isFemale  = measurementIsFemale,
+                            babyId    = baby.babyId,
+                            babyName  = baby.fullName,
+                            isFemale  = isFemale,
                             viewModel = homeViewModel,
                             onBack    = {
-                                selectedTab   = originTab
-                                currentScreen = Screen.Home
+                                allMeasurementsBaby = null
+                                // Return to wherever View All was triggered from
+                                // (Charts tab inside Home, or Baby Profile)
+                                if (selectedBaby != null) {
+                                    currentScreen = Screen.BabyProfile
+                                } else {
+                                    selectedTab   = originTab
+                                    currentScreen = Screen.Home
+                                }
                             }
                         )
                     }

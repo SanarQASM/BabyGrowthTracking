@@ -339,7 +339,7 @@ fun BabyProfileScreen(
                             ProfileInfoRow(
                                 icon  = "📅",
                                 label = stringResource(Res.string.profile_recorded_on),
-                                value = formatProfileDate(growth.createdAt)
+                                value = growth.createdAt?.let { formatProfileDate(it) } ?: "—"  // ✅ handles null
                             )
                         }
                     }

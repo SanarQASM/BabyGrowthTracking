@@ -43,6 +43,12 @@ fun AddBabyScreen(
     val customColors = MaterialTheme.customColors
     val dimensions   = LocalDimensions.current
 
+    // Determine mode-dependent labels
+    val screenTitle  = if (state.isEditMode) "Edit Child Details"
+    else stringResource(Res.string.add_baby_title)
+    val saveLabel    = if (state.isEditMode) "Save Changes"
+    else stringResource(Res.string.add_baby_save_button)
+
     LaunchedEffect(state.isSaved) {
         if (state.isSaved) onSaved()
     }
@@ -52,7 +58,7 @@ fun AddBabyScreen(
 
     BabyGrowthTheme {
         Scaffold(
-            topBar         = { AddBabyTopBar(onBack = onBack) },
+            topBar         = { AddBabyTopBar(onBack = onBack, title = screenTitle) },
             containerColor = Color.Transparent
         ) { paddingValues ->
 
@@ -129,36 +135,73 @@ fun AddBabyScreen(
                                     isError       = state.dobError != null,
                                     errorMessage  = state.dobError,
                                     readOnly      = true,
-                                    onClick       = { showDatePicker = true },
-                                    trailingIcon  = {
+                                    // In edit mode date is shown but not changeable (backend constraint)
+                                    onClick       = if (state.isEditMode) null else ({ showDatePicker = true }),
+                                    trailingIcon  = if (state.isEditMode) null else ({
                                         Icon(
                                             Icons.Default.DateRange,
                                             contentDescription = stringResource(Res.string.add_baby_field_dob_pick),
                                             tint     = customColors.accentGradientEnd,
                                             modifier = Modifier.size(dimensions.iconMedium)
                                         )
-                                    }
+                                    })
                                 )
 
                                 Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
 
-                                GenderSelector(
-                                    selected = state.gender,
-                                    onSelect = viewModel::onGenderChange
-                                )
+                                // Gender selector — read-only in edit mode (backend constraint)
+                                if (state.isEditMode) {
+                                    // Display gender as a locked info row
+                                    Row(
+                                        modifier          = Modifier
+                                            .fillMaxWidth()
+                                            .padding(vertical = dimensions.spacingSmall),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text  = stringResource(Res.string.add_baby_gender_label),
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurface.copy(0.55f),
+                                            modifier = Modifier.width(dimensions.avatarMedium + dimensions.spacingMedium)
+                                        )
+                                        Text(
+                                            text  = if (state.gender.equals("GIRL", ignoreCase = true))
+                                                stringResource(Res.string.add_baby_gender_female)
+                                            else stringResource(Res.string.add_baby_gender_male),
+                                            style      = MaterialTheme.typography.bodyMedium,
+                                            fontWeight = FontWeight.SemiBold,
+                                            color      = customColors.accentGradientStart
+                                        )
+                                        Spacer(Modifier.width(dimensions.spacingSmall))
+                                        Text(
+                                            text  = "🔒",
+                                            style = MaterialTheme.typography.bodySmall
+                                        )
+                                    }
+                                } else {
+                                    GenderSelector(
+                                        selected = state.gender,
+                                        onSelect = viewModel::onGenderChange
+                                    )
+                                }
                             }
 
                             Spacer(Modifier.height(dimensions.spacingMedium))
 
+                            // Birth measurements — read-only in edit mode (backend constraint)
                             FormSectionCard(
-                                title = stringResource(Res.string.add_baby_section_measurements)
+                                title = if (state.isEditMode)
+                                    "BIRTH MEASUREMENTS (Read-only)"
+                                else
+                                    stringResource(Res.string.add_baby_section_measurements)
                             ) {
                                 FormTextField(
                                     value         = state.birthWeight,
                                     onValueChange = viewModel::onBirthWeightChange,
                                     placeholder   = stringResource(Res.string.add_baby_field_weight),
                                     keyboardType  = KeyboardType.Decimal,
-                                    trailingText  = stringResource(Res.string.add_baby_unit_kg)
+                                    trailingText  = stringResource(Res.string.add_baby_unit_kg),
+                                    readOnly      = state.isEditMode
                                 )
 
                                 Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
@@ -168,7 +211,8 @@ fun AddBabyScreen(
                                     onValueChange = viewModel::onBirthHeightChange,
                                     placeholder   = stringResource(Res.string.add_baby_field_height),
                                     keyboardType  = KeyboardType.Decimal,
-                                    trailingText  = stringResource(Res.string.add_baby_unit_cm)
+                                    trailingText  = stringResource(Res.string.add_baby_unit_cm),
+                                    readOnly      = state.isEditMode
                                 )
 
                                 Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
@@ -178,7 +222,8 @@ fun AddBabyScreen(
                                     onValueChange = viewModel::onHeadCircumferenceChange,
                                     placeholder   = stringResource(Res.string.add_baby_field_head),
                                     keyboardType  = KeyboardType.Decimal,
-                                    trailingText  = stringResource(Res.string.add_baby_unit_cm)
+                                    trailingText  = stringResource(Res.string.add_baby_unit_cm),
+                                    readOnly      = state.isEditMode
                                 )
                             }
 
@@ -187,12 +232,18 @@ fun AddBabyScreen(
                             SaveButton(
                                 isLoading        = state.isLoading,
                                 isUploadingImage = state.isUploadingImage,
+                                label            = saveLabel,
                                 onClick          = { viewModel.saveBaby() }
                             )
 
                             Spacer(Modifier.height(dimensions.spacingMedium))
 
-                            ResetButton(onClick = { viewModel.resetForm() })
+                            // In edit mode show a Cancel button instead of the clear-form button
+                            if (state.isEditMode) {
+                                CancelButton(onClick = onBack)
+                            } else {
+                                ResetButton(onClick = { viewModel.resetForm() })
+                            }
                         }
                     }
                 }
@@ -264,7 +315,7 @@ fun AddBabyScreen(
         )
     }
 
-    // ── Date picker dialog ────────────────────────────────────────────────────
+    // ── Date picker dialog (create mode only) ─────────────────────────────────
     if (showDatePicker) {
         BabyDatePickerDialog(
             onDateSelected = { dateString ->
@@ -277,17 +328,17 @@ fun AddBabyScreen(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TOP BAR
+// TOP BAR — accepts dynamic title for edit mode
 // ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AddBabyTopBar(onBack: () -> Unit) {
+private fun AddBabyTopBar(onBack: () -> Unit, title: String) {
     val customColors = MaterialTheme.customColors
     TopAppBar(
         title = {
             Text(
-                text       = stringResource(Res.string.add_baby_title),
+                text       = title,
                 fontWeight = FontWeight.SemiBold,
                 style      = MaterialTheme.typography.titleMedium,
                 color      = MaterialTheme.colorScheme.onBackground
@@ -309,13 +360,14 @@ private fun AddBabyTopBar(onBack: () -> Unit) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SAVE BUTTON
+// SAVE BUTTON — accepts dynamic label for edit mode
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun SaveButton(
     isLoading       : Boolean,
     isUploadingImage: Boolean,
+    label           : String,
     onClick         : () -> Unit
 ) {
     val dimensions   = LocalDimensions.current
@@ -411,7 +463,7 @@ private fun SaveButton(
                         modifier = Modifier.size(dimensions.iconMedium)
                     )
                     Text(
-                        text       = stringResource(Res.string.add_baby_save_button),
+                        text       = label,
                         color      = MaterialTheme.colorScheme.onPrimary,
                         fontWeight = FontWeight.Bold,
                         style      = MaterialTheme.typography.labelLarge
@@ -423,7 +475,7 @@ private fun SaveButton(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// RESET BUTTON
+// RESET BUTTON (create mode)
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -488,6 +540,54 @@ private fun ResetButton(onClick: () -> Unit) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// CANCEL BUTTON (edit mode)
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun CancelButton(onClick: () -> Unit) {
+    val dimensions   = LocalDimensions.current
+    val customColors = MaterialTheme.customColors
+
+    Button(
+        onClick        = onClick,
+        shape          = RoundedCornerShape(dimensions.buttonCornerRadius),
+        colors         = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+        contentPadding = PaddingValues(),
+        elevation      = ButtonDefaults.buttonElevation(0.dp, 0.dp, 0.dp),
+        modifier       = Modifier
+            .fillMaxWidth()
+            .height(dimensions.buttonHeight)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f),
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
+                        )
+                    ),
+                    shape = RoundedCornerShape(dimensions.buttonCornerRadius)
+                )
+                .border(
+                    1.dp,
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f),
+                    RoundedCornerShape(dimensions.buttonCornerRadius)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text       = "Cancel",
+                color      = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.SemiBold,
+                style      = MaterialTheme.typography.labelLarge
+            )
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // PHOTO SELECTOR
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -506,20 +606,18 @@ private fun PhotoSelectorSection(onPickImage: () -> Unit) {
             fontWeight    = FontWeight.Bold,
             color         = MaterialTheme.colorScheme.onPrimary,
             letterSpacing = MaterialTheme.typography.labelLarge.letterSpacing,
-            modifier      = Modifier
-                .fillMaxWidth()
-                .padding(bottom = dimensions.spacingMedium)
+            modifier      = Modifier.padding(bottom = dimensions.spacingSmall)
         )
 
         Box(
             modifier = Modifier
-                .size(dimensions.logoSize * 0.4f)
+                .size(dimensions.avatarLarge + dimensions.spacingMedium)
                 .clip(CircleShape)
-                .background(customColors.glassOverlay.copy(alpha = 0.15f))
+                .background(customColors.glassOverlay.copy(alpha = 0.22f))
                 .border(
-                    width = dimensions.spacingXSmall / 4,
-                    color = customColors.glassOverlay.copy(alpha = 0.4f),
-                    shape = CircleShape
+                    2.dp,
+                    customColors.glassOverlay.copy(alpha = 0.45f),
+                    CircleShape
                 )
                 .clickable { onPickImage() },
             contentAlignment = Alignment.Center
@@ -528,16 +626,16 @@ private fun PhotoSelectorSection(onPickImage: () -> Unit) {
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Text(
-                    "👶",
-                    fontSize = MaterialTheme.typography.displaySmall.fontSize
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = stringResource(Res.string.add_baby_photo_tap),
+                    tint     = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+                    modifier = Modifier.size(dimensions.iconLarge)
                 )
-                Spacer(Modifier.height(dimensions.spacingXSmall))
                 Text(
-                    text      = stringResource(Res.string.add_baby_photo_tap),
-                    style     = MaterialTheme.typography.labelSmall,
-                    color     = customColors.glassOverlay.copy(alpha = 0.7f),
-                    textAlign = TextAlign.Center
+                    text  = stringResource(Res.string.add_baby_photo_tap),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onPrimary.copy(0.7f)
                 )
             }
         }
@@ -545,19 +643,9 @@ private fun PhotoSelectorSection(onPickImage: () -> Unit) {
         Spacer(Modifier.height(dimensions.spacingSmall))
 
         Text(
-            text      = stringResource(Res.string.add_baby_photo_coming_soon),
-            style     = MaterialTheme.typography.labelSmall,
-            color     = customColors.glassOverlay.copy(alpha = 0.60f),
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(Modifier.height(dimensions.spacingSmall))
-
-        Text(
-            text       = stringResource(Res.string.app_name),
-            style      = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color      = MaterialTheme.colorScheme.onPrimary
+            text  = stringResource(Res.string.add_baby_photo_coming_soon),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onPrimary.copy(0.55f)
         )
     }
 }
@@ -624,39 +712,37 @@ private fun FormTextField(
     readOnly     : Boolean = false,
     onClick      : (() -> Unit)? = null
 ) {
-    val dimensions       = LocalDimensions.current
-    val textColor        = MaterialTheme.colorScheme.onSurface
-    val placeholderColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
-    val trailingColor    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+    val customColors = MaterialTheme.customColors
+    val dimensions   = LocalDimensions.current
+
+    val textColor      = MaterialTheme.colorScheme.onSurface
+    val trailingColor  = customColors.accentGradientEnd
+    val borderColor    = if (isError) MaterialTheme.colorScheme.error
+    else customColors.accentGradientStart.copy(alpha = 0.35f)
+    val bgAlpha        = if (readOnly) 0.07f else 0.13f
 
     Column(modifier = modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(dimensions.buttonHeight)
                 .background(
-                    MaterialTheme.colorScheme.surface.copy(alpha = 0.90f),
-                    RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
+                    MaterialTheme.colorScheme.surface.copy(alpha = bgAlpha),
+                    RoundedCornerShape(dimensions.buttonCornerRadius - 4.dp)
                 )
                 .border(
-                    width = dimensions.spacingXSmall / 4,
-                    color = if (isError)
-                        MaterialTheme.colorScheme.error
-                    else
-                        MaterialTheme.customColors.accentGradientStart.copy(alpha = 0.35f),
-                    shape = RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
+                    width = if (isError) dimensions.spacingXSmall / 2 else dimensions.spacingXSmall / 4,
+                    color = borderColor,
+                    shape = RoundedCornerShape(dimensions.buttonCornerRadius - 4.dp)
                 )
         ) {
             TextField(
                 value         = value,
-                onValueChange = onValueChange,
-                readOnly      = readOnly,
-                singleLine    = true,
+                onValueChange = if (readOnly) ({}) else onValueChange,
                 placeholder   = {
                     Text(
-                        text  = placeholder,
-                        color = placeholderColor,
-                        style = MaterialTheme.typography.bodyMedium
+                        placeholder,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
                     )
                 },
                 trailingIcon = trailingIcon ?: trailingText?.let { label ->

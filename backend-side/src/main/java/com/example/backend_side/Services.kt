@@ -309,7 +309,7 @@ class GrowthRecordServiceImpl(
         headCircumferencePercentile = headCircumferencePercentile,
         measuredByName = measuredBy?.fullName,
         notes = null,
-        createdAt = createdAt
+        createdAt = createdAt.toString()                   // ← LocalDateTime? → String?
     )
 }
 

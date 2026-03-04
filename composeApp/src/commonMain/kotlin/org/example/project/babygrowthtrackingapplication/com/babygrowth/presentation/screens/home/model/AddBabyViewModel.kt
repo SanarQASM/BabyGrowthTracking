@@ -34,8 +34,14 @@ data class AddBabyUiState(
 
     // Field-level validation errors
     val nameError          : String? = null,
-    val dobError           : String? = null
-)
+    val dobError           : String? = null,
+
+    // Edit mode — holds the babyId when editing an existing baby (null = create mode)
+    val editingBabyId      : String? = null
+) {
+    /** True when we are editing an existing baby rather than creating a new one. */
+    val isEditMode: Boolean get() = editingBabyId != null
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ViewModel
@@ -119,9 +125,35 @@ class AddBabyViewModel(
         uiState.selectedImageBytes?.let { onImageSelected(it) }
     }
 
-    // ── Save / Create ─────────────────────────────────────────────────────────
+    // ── Prefill for edit mode ─────────────────────────────────────────────────
 
+    /**
+     * Populate the form with an existing baby's data so the user can edit it.
+     * Calling this switches [uiState.isEditMode] to true.
+     */
+    fun prefillFromBaby(baby: BabyResponse) {
+        uiState = AddBabyUiState(
+            editingBabyId     = baby.babyId,
+            fullName          = baby.fullName,
+            dateOfBirth       = baby.dateOfBirth,          // already "YYYY-MM-DD" String
+            gender            = baby.gender.uppercase(),
+            birthWeight       = baby.birthWeight?.toString() ?: "",
+            birthHeight       = baby.birthHeight?.toString() ?: "",
+            headCircumference = baby.birthHeadCircumference?.toString() ?: "",
+            photoUrl          = baby.photoUrl
+        )
+    }
+
+    // ── Save dispatcher ───────────────────────────────────────────────────────
+
+    /** Dispatches to [createBaby] or [updateBaby] depending on [uiState.isEditMode]. */
     fun saveBaby() {
+        if (uiState.isEditMode) updateBaby() else createBaby()
+    }
+
+    // ── Create (new baby) ─────────────────────────────────────────────────────
+
+    private fun createBaby() {
         if (!validate()) return
 
         val parentId = preferencesManager.getUserId() ?: run {
@@ -140,8 +172,6 @@ class AddBabyViewModel(
                 birthWeight            = uiState.birthWeight.toDoubleOrNull(),
                 birthHeight            = uiState.birthHeight.toDoubleOrNull(),
                 birthHeadCircumference = uiState.headCircumference.toDoubleOrNull(),
-                // null is safe — photoUrl is nullable in both BabyCreateRequest
-                // (Dtos.kt) and the Baby entity (TEXT column, no @NotNull).
                 photoUrl               = uiState.photoUrl
             )
 
@@ -151,6 +181,41 @@ class AddBabyViewModel(
                         isLoading      = false,
                         isSaved        = true,
                         successMessage = "${result.data.fullName} added successfully 🎉"
+                    )
+                is ApiResult.Error ->
+                    uiState = uiState.copy(
+                        isLoading    = false,
+                        errorMessage = result.message
+                    )
+                else ->
+                    uiState = uiState.copy(isLoading = false)
+            }
+        }
+    }
+
+    // ── Update (edit existing baby) ───────────────────────────────────────────
+
+    private fun updateBaby() {
+        if (!validate()) return
+
+        val babyId = uiState.editingBabyId ?: return
+
+        scope.launch {
+            uiState = uiState.copy(isLoading = true, errorMessage = null)
+
+            // Backend BabyUpdateRequest only allows updating fullName and photoUrl.
+            // dateOfBirth, gender and birth measurements are immutable after creation.
+            val request = UpdateBabyRequest(
+                fullName = uiState.fullName.trim(),
+                photoUrl = uiState.photoUrl
+            )
+
+            when (val result = apiService.updateBaby(babyId, request)) {
+                is ApiResult.Success ->
+                    uiState = uiState.copy(
+                        isLoading      = false,
+                        isSaved        = true,
+                        successMessage = "${result.data.fullName} updated successfully ✅"
                     )
                 is ApiResult.Error ->
                     uiState = uiState.copy(

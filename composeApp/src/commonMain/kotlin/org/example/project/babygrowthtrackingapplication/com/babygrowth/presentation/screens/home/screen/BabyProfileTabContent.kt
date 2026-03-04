@@ -30,9 +30,12 @@ enum class BabyFilter { ALL, ACTIVE, ARCHIVED }
 
 @Composable
 fun BabyProfileTabContent(
-    viewModel    : HomeViewModel,
-    onAddBaby    : () -> Unit = {},
-    onSeeProfile : (BabyResponse) -> Unit = {}   // ← NEW: navigates to BabyProfileScreen
+    viewModel        : HomeViewModel,
+    onAddBaby        : () -> Unit = {},
+    onSeeProfile     : (BabyResponse) -> Unit = {},
+    onEditDetails    : (BabyResponse) -> Unit = {},
+    onAddMeasurement : (BabyResponse) -> Unit = {},
+    onViewGrowthChart: (BabyResponse) -> Unit = {}
 ) {
     val state        = viewModel.uiState
     val dimensions   = LocalDimensions.current
@@ -40,6 +43,10 @@ fun BabyProfileTabContent(
     var activeFilter by remember { mutableStateOf(BabyFilter.ALL) }
 
     val customColors = MaterialTheme.customColors
+
+    // ── Archive/Unarchive confirmation dialog state ───────────────────────────
+    var archiveConfirmBaby   by remember { mutableStateOf<BabyResponse?>(null) }
+    var unarchiveConfirmBaby by remember { mutableStateOf<BabyResponse?>(null) }
 
     val labelChild    = stringResource(Res.string.baby_count_child)
     val labelChildren = stringResource(Res.string.baby_count_children)
@@ -68,6 +75,100 @@ fun BabyProfileTabContent(
             BabyFilter.ACTIVE   -> "$count $labelActive $noun"
             BabyFilter.ARCHIVED -> "$count $labelArchived $noun"
         }
+    }
+
+    // ── Archive confirm dialog ────────────────────────────────────────────────
+    archiveConfirmBaby?.let { baby ->
+        AlertDialog(
+            onDismissRequest = { archiveConfirmBaby = null },
+            icon  = { Text("📦", fontSize = 36.sp) },
+            title = {
+                Text(
+                    text       = "Archive ${baby.fullName}?",
+                    fontWeight = FontWeight.Bold,
+                    textAlign  = TextAlign.Center,
+                    style      = MaterialTheme.typography.titleMedium
+                )
+            },
+            text  = {
+                Text(
+                    text      = "This child will be moved to the archived list. You can restore them at any time using the Archived filter.",
+                    textAlign = TextAlign.Center,
+                    style     = MaterialTheme.typography.bodyMedium,
+                    color     = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick  = { viewModel.archiveBaby(baby.babyId); archiveConfirmBaby = null },
+                    shape    = RoundedCornerShape(LocalDimensions.current.buttonCornerRadius),
+                    colors   = ButtonDefaults.buttonColors(
+                        containerColor = customColors.warning
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("📦  Archive", fontWeight = FontWeight.Bold, color = Color.White)
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick  = { archiveConfirmBaby = null },
+                    shape    = RoundedCornerShape(LocalDimensions.current.buttonCornerRadius),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Cancel")
+                }
+            },
+            shape          = RoundedCornerShape(LocalDimensions.current.cardCornerRadius),
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    }
+
+    // ── Unarchive confirm dialog ──────────────────────────────────────────────
+    unarchiveConfirmBaby?.let { baby ->
+        AlertDialog(
+            onDismissRequest = { unarchiveConfirmBaby = null },
+            icon  = { Text("♻️", fontSize = 36.sp) },
+            title = {
+                Text(
+                    text       = "Restore ${baby.fullName}?",
+                    fontWeight = FontWeight.Bold,
+                    textAlign  = TextAlign.Center,
+                    style      = MaterialTheme.typography.titleMedium
+                )
+            },
+            text  = {
+                Text(
+                    text      = "This child will be moved back to the active list.",
+                    textAlign = TextAlign.Center,
+                    style     = MaterialTheme.typography.bodyMedium,
+                    color     = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick  = { viewModel.unarchiveBaby(baby.babyId); unarchiveConfirmBaby = null },
+                    shape    = RoundedCornerShape(LocalDimensions.current.buttonCornerRadius),
+                    colors   = ButtonDefaults.buttonColors(
+                        containerColor = customColors.success
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("♻️  Restore", fontWeight = FontWeight.Bold, color = Color.White)
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick  = { unarchiveConfirmBaby = null },
+                    shape    = RoundedCornerShape(LocalDimensions.current.buttonCornerRadius),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Cancel")
+                }
+            },
+            shape          = RoundedCornerShape(LocalDimensions.current.cardCornerRadius),
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     }
 
     Column(
@@ -189,11 +290,13 @@ fun BabyProfileTabContent(
                                         vaccinations      = state.upcomingVaccinations[baby.babyId] ?: emptyList(),
                                         latestGrowth      = state.latestGrowthRecords[baby.babyId],
                                         onSeeProfile      = { onSeeProfile(baby) },
-                                        onArchive         = { viewModel.archiveBaby(baby.babyId) },
-                                        onUnarchive       = { viewModel.unarchiveBaby(baby.babyId) },
-                                        onEditDetails     = { /* navigate to edit baby */ },
-                                        onAddMeasurement  = { /* navigate to add measurement */ },
-                                        onViewGrowthChart = { /* navigate to growth chart */ }
+                                        // ── Archive/Unarchive: show confirm dialog ────────────
+                                        onArchive         = { archiveConfirmBaby   = baby },
+                                        onUnarchive       = { unarchiveConfirmBaby = baby },
+                                        // ── Wired to navigation callbacks ────────────────────
+                                        onEditDetails     = { onEditDetails(baby) },
+                                        onAddMeasurement  = { onAddMeasurement(baby) },
+                                        onViewGrowthChart = { onViewGrowthChart(baby) }
                                     )
                                 }
                             }
@@ -463,12 +566,12 @@ private fun BabyCard(
 
                 displayHeight?.let { h ->
                     val pct = if (heightPct != null) " (${heightPct}th %ile)" else ""
-                    BabyStatRow("📊", stringResource(Res.string.baby_stat_height, h.toString()) + pct)
+                    BabyStatRow("📊", stringResource(Res.string.baby_stat_height, h) + pct)
                 }
                 displayWeight?.let { w ->
                     Spacer(Modifier.height(3.dp))
                     val pct = if (weightPct != null) " (${weightPct}th %ile)" else ""
-                    BabyStatRow("📊", stringResource(Res.string.baby_stat_weight, w.toString()) + pct)
+                    BabyStatRow("📊", stringResource(Res.string.baby_stat_weight, w) + pct)
                 }
                 if (totalVaccines > 0) {
                     Spacer(Modifier.height(3.dp))
@@ -486,7 +589,7 @@ private fun BabyCard(
                 ) {
                     // ── See Profile button ────────────────────────────────────
                     OutlinedButton(
-                        onClick  = onSeeProfile,   // ← calls the wired lambda
+                        onClick  = onSeeProfile,
                         modifier = Modifier.weight(1f),
                         shape    = RoundedCornerShape(LocalDimensions.current.buttonCornerRadius),
                         colors   = ButtonDefaults.outlinedButtonColors(
@@ -746,7 +849,7 @@ private fun BabyCardSkeleton() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// HELPER — age formatter (Composable so it can call stringResource)
+// HELPER — age formatter
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable

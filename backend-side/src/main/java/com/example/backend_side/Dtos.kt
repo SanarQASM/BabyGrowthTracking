@@ -140,7 +140,8 @@ data class GrowthRecordResponse(
     val headCircumferencePercentile: Byte? = null,
     val measuredByName: String? = null,
     val notes: String? = null,
-    val createdAt: LocalDateTime? = null
+    val createdAt: String? = null,      // ← was LocalDateTime?
+    val updatedAt: String? = null // ← was LocalDateTime?
 )
 
 // ============================================================

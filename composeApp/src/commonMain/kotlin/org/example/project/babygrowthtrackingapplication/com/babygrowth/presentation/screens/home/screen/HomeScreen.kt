@@ -15,15 +15,20 @@ import org.example.project.babygrowthtrackingapplication.ui.components.Navigatio
 
 @Composable
 fun HomeScreen(
-    viewModel            : HomeViewModel,
-    currentLanguage      : Language = Language.ENGLISH,
-    onLanguageChange     : (Language) -> Unit = {},
-    selectedTab          : NavigationTab = NavigationTab.HOME,
-    onTabChange          : (NavigationTab) -> Unit = {},
-    onAddBaby            : () -> Unit = {},
-    onSeeProfile         : (BabyResponse) -> Unit = {},
-    onAddMeasurement     : (String) -> Unit = {},
-    onViewAllMeasurements: (String) -> Unit = {}
+    viewModel        : HomeViewModel,
+    currentLanguage  : Language = Language.ENGLISH,
+    onLanguageChange : (Language) -> Unit = {},
+    selectedTab      : NavigationTab = NavigationTab.HOME,
+    onTabChange      : (NavigationTab) -> Unit = {},
+    onAddBaby        : () -> Unit = {},
+    onSeeProfile     : (BabyResponse) -> Unit = {},
+    // ── Baby profile tab action callbacks ─────────────────────────────────────
+    onEditDetails    : (BabyResponse) -> Unit = {},
+    onAddMeasurement : (BabyResponse) -> Unit = {},
+    onViewGrowthChart: (BabyResponse) -> Unit = {},
+    // ── Charts tab action callbacks ───────────────────────────────────────────
+    onAddMeasurementById      : (String) -> Unit = {},
+    onViewAllMeasurementsById : (String) -> Unit = {}
 ) {
     val state = viewModel.uiState
 
@@ -53,16 +58,19 @@ fun HomeScreen(
 
                     NavigationTab.BABY ->
                         BabyProfileTabContent(
-                            viewModel    = viewModel,
-                            onAddBaby    = onAddBaby,
-                            onSeeProfile = onSeeProfile   // ← forwarded
+                            viewModel         = viewModel,
+                            onAddBaby         = onAddBaby,
+                            onSeeProfile      = onSeeProfile,
+                            onEditDetails     = onEditDetails,
+                            onAddMeasurement  = onAddMeasurement,
+                            onViewGrowthChart = onViewGrowthChart
                         )
 
                     NavigationTab.CHARTS ->
                         ChartsTabContent(
                             viewModel             = viewModel,
-                            onAddMeasurement      = onAddMeasurement,
-                            onViewAllMeasurements = onViewAllMeasurements
+                            onAddMeasurement      = onAddMeasurementById,
+                            onViewAllMeasurements = onViewAllMeasurementsById
                         )
 
                     NavigationTab.HEALTH_RECORD ->

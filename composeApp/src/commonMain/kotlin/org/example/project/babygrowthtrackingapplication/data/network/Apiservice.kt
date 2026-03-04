@@ -345,13 +345,24 @@ class ApiService(
     val heightPercentile: Int? = null, val headCircumferencePercentile: Int? = null
 )
 
+// ✅ Fixed
 @Serializable data class GrowthRecordResponse(
-    val recordId: String, val babyId: String, val babyName: String,
-    val measurementDate: String, val ageInMonths: Int,
-    val weight: Double? = null, val height: Double? = null,
-    val headCircumference: Double? = null, val weightPercentile: Int? = null,
-    val heightPercentile: Int? = null, val headCircumferencePercentile: Int? = null,
-    val createdAt: String, val updatedAt: String
+    val recordId          : String,
+    val babyId            : String,
+    val babyName          : String,
+    val measurementDate   : String,
+    val ageInMonths       : Int,
+    val ageInDays         : Int?    = null,
+    val weight            : Double? = null,
+    val height            : Double? = null,
+    val headCircumference : Double? = null,
+    val weightPercentile  : Int?    = null,
+    val heightPercentile  : Int?    = null,
+    val headCircumferencePercentile: Int? = null,
+    val measuredByName    : String? = null,
+    val notes             : String? = null,
+    val createdAt         : String? = null,  // ✅ nullable
+    val updatedAt         : String? = null   // ✅ nullable
 )
 
 // ── Vaccinations ──────────────────────────────────────────────────────────────
