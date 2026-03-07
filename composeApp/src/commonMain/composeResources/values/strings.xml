@@ -281,4 +281,79 @@
     <string name="month_oct">Oct</string>
     <string name="month_nov">Nov</string>
     <string name="month_dec">Dec</string>
+
+    <!-- ── Chart legend section headers (were hardcoded in ChartsTabContent) ── -->
+    <string name="chart_legend_parent_added">👪  Parent Added</string>
+    <string name="chart_legend_team_added">🏥  Team / Vaccination Added</string>
+    <string name="chart_legend_who_ref_weight">📊  WHO Reference (weight)</string>
+    <string name="chart_legend_who_avg">WHO Average (50th)</string>
+    <string name="chart_legend_baby_measurements">👤  Baby\'s Measurements</string>
+    <string name="chart_legend_who_standards">📊  WHO Growth Standards</string>
+
+    <!-- ── Legend row metric labels ── -->
+    <string name="chart_legend_weight_kg">Weight (kg)</string>
+    <string name="chart_legend_height_cm">Height (cm)</string>
+    <string name="chart_legend_head_cm">Head Circumference (cm)</string>
+
+    <!-- ── Legend row prefix labels (used in single-metric rows) ── -->
+    <string name="chart_legend_parent_prefix">Parent</string>
+    <string name="chart_legend_team_prefix">Team</string>
+
+    <!-- ── Age axis label (was hardcoded "Age (months)") ── -->
+    <string name="chart_age_months_label">Age (months)</string>
+
+    <!-- ── Delete measurement dialog (were hardcoded in MeasurementCard) ── -->
+    <string name="chart_delete_measurement_title">Delete Measurement</string>
+    <string name="chart_delete_measurement_desc">Remove measurement from %s?</string>
+
+    <!-- ── Empty measurement fallback values (were hardcoded "Weight: —" etc.) ── -->
+    <string name="chart_weight_empty">Weight: —</string>
+    <string name="chart_height_empty">Height: —</string>
+    <string name="chart_head_empty">Head Circumference: —</string>
+
+    <!-- Map screen -->
+    <string name="bench_map_title">Select Health Center</string>
+    <string name="bench_map_subtitle">for %1$s</string>
+    <string name="bench_map_loading">Loading health centers…</string>
+    <string name="bench_filter_all">All</string>
+    <string name="bench_filter_near">Near Me</string>
+    <string name="bench_search_hint">Search centers…</string>
+    <string name="bench_no_centers">No centers found nearby</string>
+    <string name="bench_centers_count">%1$d Centers</string>
+
+    <!-- Center detail -->
+    <string name="bench_detail_title">Center Details</string>
+    <string name="bench_assign_button">Select This Center</string>
+    <string name="bench_assign_for">Select for %1$s</string>
+    <string name="bench_change_hint">Tap to change center</string>
+    <string name="bench_assign_confirm_title">Confirm Assignment</string>
+    <string name="bench_assign_confirm_body">Assign %1$s to this health center? A vaccination schedule will be created automatically.</string>
+    <string name="bench_assign_confirm">Confirm</string>
+    <string name="bench_assign_cancel">Cancel</string>
+    <string name="bench_no_baby_hint">Add a baby first to select this center</string>
+
+    <!-- Health record tab -->
+    <string name="health_record_title">Health Records</string>
+    <string name="health_record_subtitle">Vaccination schedule &amp; health center</string>
+    <string name="health_assigned_center">ASSIGNED HEALTH CENTER</string>
+    <string name="health_no_assignment">No center assigned yet</string>
+    <string name="health_no_assignment_hint">Tap to select a nearby health center</string>
+    <string name="health_tap_to_change">Tap to change center</string>
+    <string name="health_open_map">Select Health Center</string>
+    <string name="health_select_child">SELECT CHILD</string>
+
+    <!-- Vaccination schedule -->
+    <string name="schedule_progress">Vaccination Progress</string>
+    <string name="schedule_section_overdue">Overdue — Needs Attention</string>
+    <string name="schedule_section_due_soon">Due Soon</string>
+    <string name="schedule_section_upcoming">Upcoming</string>
+    <string name="schedule_section_completed">Completed</string>
+    <string name="schedule_dose">Dose %1$d</string>
+    <string name="schedule_age_months">%1$d mo</string>
+    <string name="schedule_shift_days">+%1$dd adj.</string>
+    <string name="schedule_no_babies">Add a baby first</string>
+    <string name="schedule_no_assignment_title">No Health Center Assigned Yet</string>
+    <string name="schedule_no_assignment_body">Select a health center for %1$s to auto-generate their vaccination schedule</string>
+
+
 </resources>

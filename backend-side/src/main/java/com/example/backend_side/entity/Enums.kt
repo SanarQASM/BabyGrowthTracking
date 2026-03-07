@@ -19,7 +19,7 @@ abstract class LowercaseEnumConverter<E>(
 
 interface HasDbValue { val dbValue: String }
 
-// ── Update all enums to implement HasDbValue ──────────────────────────────────
+// ── Existing enums (unchanged) ────────────────────────────────────────────────
 
 enum class Gender(override val dbValue: String) : HasDbValue {
     BOY("boy"), GIRL("girl");
@@ -88,7 +88,48 @@ enum class InvestigationStatus(override val dbValue: String) : HasDbValue {
     override fun toString() = dbValue
 }
 
-// ── Converters (autoApply = true means no @Convert needed on entity fields) ──
+// ── NEW enums for Bench + Schedule feature ────────────────────────────────────
+
+enum class BenchType(override val dbValue: String) : HasDbValue {
+    PRIMARY_HEALTH_CENTER("primary_health_center"),
+    HOSPITAL("hospital"),
+    MOBILE_UNIT("mobile_unit"),
+    COMMUNITY_CENTER("community_center"),
+    CLINIC("clinic");
+    override fun toString() = dbValue
+}
+
+enum class ScheduleStatus(override val dbValue: String) : HasDbValue {
+    UPCOMING("upcoming"),
+    DUE_SOON("due_soon"),
+    OVERDUE("overdue"),
+    COMPLETED("completed"),
+    MISSED("missed"),
+    RESCHEDULED("rescheduled");
+    override fun toString() = dbValue
+}
+
+enum class ShiftReason(override val dbValue: String) : HasDbValue {
+    NONE("none"),
+    WEEKEND("weekend"),
+    HOLIDAY("holiday"),
+    BENCH_CLOSED("bench_closed"),
+    MISSED("missed"),
+    RESCHEDULED("rescheduled");
+    override fun toString() = dbValue
+}
+
+enum class AdjustmentReason(override val dbValue: String) : HasDbValue {
+    HOLIDAY("holiday"),
+    BENCH_CLOSED("bench_closed"),
+    PARENT_MISSED("parent_missed"),
+    PARENT_RESCHEDULED("parent_rescheduled"),
+    TEAM_RESCHEDULED("team_rescheduled"),
+    BENCH_CHANGED("bench_changed");
+    override fun toString() = dbValue
+}
+
+// ── All converters ─────────────────────────────────────────────────────────────
 
 @Converter(autoApply = true)
 class GenderConverter : LowercaseEnumConverter<Gender>(Gender::class.java)
@@ -125,3 +166,15 @@ class VisitOutcomeConverter : LowercaseEnumConverter<VisitOutcome>(VisitOutcome:
 
 @Converter(autoApply = true)
 class InvestigationStatusConverter : LowercaseEnumConverter<InvestigationStatus>(InvestigationStatus::class.java)
+
+@Converter(autoApply = true)
+class BenchTypeConverter : LowercaseEnumConverter<BenchType>(BenchType::class.java)
+
+@Converter(autoApply = true)
+class ScheduleStatusConverter : LowercaseEnumConverter<ScheduleStatus>(ScheduleStatus::class.java)
+
+@Converter(autoApply = true)
+class ShiftReasonConverter : LowercaseEnumConverter<ShiftReason>(ShiftReason::class.java)
+
+@Converter(autoApply = true)
+class AdjustmentReasonConverter : LowercaseEnumConverter<AdjustmentReason>(AdjustmentReason::class.java)

@@ -4,6 +4,8 @@ import jakarta.persistence.*
 import java.math.BigDecimal
 import java.time.LocalDate
 
+// Location: entity/Baby.kt  (UPDATED — added benchAssignments + vaccinationSchedules)
+
 @Entity
 @Table(name = "babies")
 data class Baby(
@@ -64,7 +66,14 @@ data class Baby(
     var appointments: MutableList<Appointment> = mutableListOf(),
 
     @OneToMany(mappedBy = "baby", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var notifications: MutableList<Notification> = mutableListOf()
+    var notifications: MutableList<Notification> = mutableListOf(),
+
+    // ── NEW ──────────────────────────────────────────────────────────────────
+    @OneToMany(mappedBy = "baby", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var benchAssignments: MutableList<BabyBenchAssignment> = mutableListOf(),
+
+    @OneToMany(mappedBy = "baby", cascade = [CascadeType.ALL], orphanRemoval = true)
+    var vaccinationSchedules: MutableList<VaccinationSchedule> = mutableListOf()
 
 ) : BaseEntity() {
     fun getAgeInMonths(): Int =
