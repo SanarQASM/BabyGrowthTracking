@@ -12,9 +12,22 @@ import org.example.project.babygrowthtrackingapplication.com.babygrowth.presenta
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.Language
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.PreferencesManager
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.onBoarding.OnboardingScreen
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.*
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.EnterCodeScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.EnterCodeViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.EnterNewPasswordScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.EnterNewPasswordViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.ForgotPasswordScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.ForgotPasswordViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.LoginScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.LoginViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.SignupScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.SignupViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.VerifyAccountScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.VerifyAccountViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.WelcomeScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.AddBabyViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HomeViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HealthRecordViewModel
 import org.example.project.babygrowthtrackingapplication.data.auth.SocialAuthManager
 import org.example.project.babygrowthtrackingapplication.data.auth.SocialLoginHelper
 import org.example.project.babygrowthtrackingapplication.data.network.ApiService
@@ -39,9 +52,9 @@ enum class Screen {
     Home,
     AddBaby,
     BabyProfile,
-    EditBaby,           // ← AddBabyScreen pre-filled with existing baby data
-    AddMeasurement,     // ← AddMeasurementScreen for a specific baby
-    AllMeasurements     // ← AllMeasurementsScreen: full history list for a baby
+    EditBaby,
+    AddMeasurement,
+    AllMeasurements
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -60,16 +73,13 @@ fun AppNavigation(
     var resetEmail by remember { mutableStateOf("") }
     var resetCode  by remember { mutableStateOf("") }
 
-    // ── Selected baby for profile screen ─────────────────────────────────────
-    var selectedBaby    by remember { mutableStateOf<BabyResponse?>(null) }
-    // ── Baby for measurement screen ───────────────────────────────────────────
-    var measurementBaby by remember { mutableStateOf<BabyResponse?>(null) }
-    // ── Baby for all-measurements history screen ──────────────────────────────
+    // ── Selected baby for profile / measurement screens ───────────────────────
+    var selectedBaby        by remember { mutableStateOf<BabyResponse?>(null) }
+    var measurementBaby     by remember { mutableStateOf<BabyResponse?>(null) }
     var allMeasurementsBaby by remember { mutableStateOf<BabyResponse?>(null) }
 
-    // ── Tab state hoisted here so back navigation can restore the correct tab ─
+    // ── Tab state hoisted here so back-navigation can restore correct tab ─────
     var selectedTab by remember { mutableStateOf(NavigationTab.HOME) }
-    // Records which tab the user was on before going to a full-screen flow
     var originTab   by remember { mutableStateOf(NavigationTab.HOME) }
 
     val apiService = remember {
@@ -88,6 +98,11 @@ fun AppNavigation(
 
     val addBabyViewModel = remember {
         AddBabyViewModel(apiService = apiService, preferencesManager = preferencesManager)
+    }
+
+    // ── NEW: HealthRecordViewModel ────────────────────────────────────────────
+    val healthRecordViewModel = remember {
+        HealthRecordViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
 
     val signupViewModel = remember {
@@ -118,6 +133,7 @@ fun AppNavigation(
             apiService.close()
             homeViewModel.onDestroy()
             addBabyViewModel.onDestroy()
+            healthRecordViewModel.onDestroy()   // ← NEW
             cleanupSocialAuth(socialAuthManager)
         }
     }
@@ -138,54 +154,22 @@ fun AppNavigation(
 
                     Screen.Welcome -> when (initialState) {
                         Screen.Login, Screen.Signup, Screen.VerifyAccount ->
-                            fadeIn(tween(600, easing = FastOutSlowInEasing)) togetherWith
-                                    fadeOut(tween(400, easing = FastOutSlowInEasing))
+                            fadeIn(tween(500)) togetherWith fadeOut(tween(300))
                         else ->
-                            fadeIn(tween(300)) togetherWith fadeOut(tween(300))
+                            slideInHorizontally(
+                                initialOffsetX = { -it },
+                                animationSpec  = tween(400, easing = FastOutSlowInEasing)
+                            ) + fadeIn(tween(300)) togetherWith
+                                    slideOutHorizontally(
+                                        targetOffsetX = { it },
+                                        animationSpec = tween(300, easing = FastOutSlowInEasing)
+                                    ) + fadeOut(tween(200))
                     }
 
-                    Screen.ForgotPassword ->
-                        slideInVertically(
-                            initialOffsetY = { it },
-                            animationSpec  = tween(400, easing = FastOutSlowInEasing)
-                        ) + fadeIn(tween(400)) togetherWith
-                                slideOutVertically(
-                                    targetOffsetY = { -it },
-                                    animationSpec = tween(400, easing = FastOutSlowInEasing)
-                                ) + fadeOut(tween(400))
-
-                    Screen.EnterCode,
-                    Screen.EnterNewPassword ->
-                        slideInHorizontally(
-                            initialOffsetX = { it },
-                            animationSpec  = tween(400, easing = FastOutSlowInEasing)
-                        ) + fadeIn(tween(400)) togetherWith
-                                slideOutHorizontally(
-                                    targetOffsetX = { -it },
-                                    animationSpec = tween(400, easing = FastOutSlowInEasing)
-                                ) + fadeOut(tween(400))
-
-                    Screen.Onboarding ->
-                        slideInVertically(
-                            initialOffsetY = { it },
-                            animationSpec  = tween(500, easing = FastOutSlowInEasing)
-                        ) + fadeIn(tween(500)) togetherWith
-                                slideOutVertically(
-                                    targetOffsetY = { -it },
-                                    animationSpec = tween(500, easing = FastOutSlowInEasing)
-                                ) + fadeOut(tween(500))
-
                     Screen.Home ->
-                        slideInHorizontally(
-                            initialOffsetX = { it },
-                            animationSpec  = tween(500, easing = FastOutSlowInEasing)
-                        ) + fadeIn(tween(500)) togetherWith
-                                slideOutHorizontally(
-                                    targetOffsetX = { -it },
-                                    animationSpec = tween(500, easing = FastOutSlowInEasing)
-                                ) + fadeOut(tween(500))
+                        fadeIn(tween(400, easing = FastOutSlowInEasing)) togetherWith
+                                fadeOut(tween(300, easing = FastOutSlowInEasing))
 
-                    // AddBaby / EditBaby slide up from the bottom — modal feel
                     Screen.AddBaby,
                     Screen.EditBaby ->
                         slideInVertically(
@@ -197,7 +181,6 @@ fun AppNavigation(
                                     animationSpec = tween(300, easing = FastOutSlowInEasing)
                                 ) + fadeOut(tween(200))
 
-                    // BabyProfile / AddMeasurement / AllMeasurements slide in from right
                     Screen.BabyProfile,
                     Screen.AddMeasurement,
                     Screen.AllMeasurements ->
@@ -356,19 +339,19 @@ fun AppNavigation(
                 }
 
                 // ── Home ──────────────────────────────────────────────────────
-                // ── Home ──────────────────────────────────────────────────────
                 Screen.Home -> {
                     HomeScreen(
-                        viewModel        = homeViewModel,
-                        currentLanguage  = currentLanguage,
-                        onLanguageChange = { newLanguage ->
+                        viewModel             = homeViewModel,
+                        healthRecordViewModel = healthRecordViewModel,
+                        currentLanguage       = currentLanguage,
+                        onLanguageChange      = { newLanguage ->
                             preferencesManager.setLanguage(newLanguage)
                             currentLanguage = newLanguage
                             onLanguageChange(newLanguage)
                         },
                         selectedTab  = selectedTab,
                         onTabChange  = { selectedTab = it },
-                        onAddBaby = {
+                        onAddBaby    = {
                             originTab = selectedTab
                             addBabyViewModel.resetForm()
                             currentScreen = Screen.AddBaby
@@ -391,7 +374,6 @@ fun AppNavigation(
                         onViewGrowthChart = { _ ->
                             selectedTab = NavigationTab.CHARTS
                         },
-                        // ← renamed parameters
                         onAddMeasurementById = { babyId ->
                             val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
                             if (baby != null) {
@@ -427,7 +409,7 @@ fun AppNavigation(
                     )
                 }
 
-                // ── Edit Baby (existing — pre-filled) ─────────────────────────
+                // ── Edit Baby (pre-filled) ────────────────────────────────────
                 Screen.EditBaby -> {
                     AddBabyScreen(
                         viewModel = addBabyViewModel,
@@ -529,14 +511,13 @@ fun AppNavigation(
                 }
 
                 // ── All Measurements ──────────────────────────────────────────
-                // Full history list for a specific baby (opened from "View All")
                 Screen.AllMeasurements -> {
                     val baby = allMeasurementsBaby
                     if (baby == null) {
                         currentScreen = Screen.Home
                     } else {
                         val isFemale = baby.gender.equals("FEMALE", ignoreCase = true) ||
-                                baby.gender.equals("GIRL",   ignoreCase = true)
+                                baby.gender.equals("GIRL", ignoreCase = true)
                         AllMeasurementsScreen(
                             babyId    = baby.babyId,
                             babyName  = baby.fullName,
@@ -544,8 +525,6 @@ fun AppNavigation(
                             viewModel = homeViewModel,
                             onBack    = {
                                 allMeasurementsBaby = null
-                                // Return to wherever View All was triggered from
-                                // (Charts tab inside Home, or Baby Profile)
                                 if (selectedBaby != null) {
                                     currentScreen = Screen.BabyProfile
                                 } else {

@@ -31,8 +31,8 @@ class PreferencesManager(private val settings: Settings) {
         private const val KEY_ONBOARDING_COMPLETE = "onboarding_complete"
 
         // Authentication State
-        private const val KEY_USER_LOGGED_IN  = "user_logged_in"
-        private const val KEY_IS_LOGGED_IN    = "is_logged_in"       // raw key used by repository
+        private const val KEY_USER_LOGGED_IN   = "user_logged_in"
+        private const val KEY_IS_LOGGED_IN     = "is_logged_in"       // raw key used by repository
         private const val KEY_ACCOUNT_VERIFIED = "account_verified"
 
         // User Profile
@@ -47,13 +47,13 @@ class PreferencesManager(private val settings: Settings) {
         private const val KEY_TOKEN_EXPIRY = "token_expiry"
 
         // Saved Login Credentials (optional — controlled by "Remember Me" checkbox)
-        private const val KEY_SAVED_EMAIL_OR_PHONE    = "saved_email_or_phone"
-        private const val KEY_SAVED_EMAIL             = "saved_email"          // legacy plain-email key
-        private const val KEY_SAVED_PASSWORD          = "saved_password"
-        private const val KEY_SAVE_PASSWORD_ENABLED   = "save_password_enabled"
+        private const val KEY_SAVED_EMAIL_OR_PHONE  = "saved_email_or_phone"
+        private const val KEY_SAVED_EMAIL           = "saved_email"        // legacy plain-email key
+        private const val KEY_SAVED_PASSWORD        = "saved_password"
+        private const val KEY_SAVE_PASSWORD_ENABLED = "save_password_enabled"
 
         // Gender Theme
-        private const val KEY_GENDER_THEME         = "gender_theme"
+        private const val KEY_GENDER_THEME          = "gender_theme"
         private const val KEY_BABY_GENDER_IS_FEMALE = "baby_gender_is_female"
     }
 
@@ -81,10 +81,15 @@ class PreferencesManager(private val settings: Settings) {
     /**
      * Sets BOTH the legacy "user_logged_in" key AND the "is_logged_in" key so
      * that AccountRepository.isLoggedIn() and any legacy checks both work.
+     *
+     * FIX: This is the single authoritative place that controls the auto-login
+     * flag. AccountRepository.saveUserSession() now calls this with the correct
+     * value based on rememberMe — so it is never accidentally set to true when
+     * the user did not check "Save Password".
      */
     fun setUserLoggedIn(isLoggedIn: Boolean) {
         settings.putBoolean(KEY_USER_LOGGED_IN, isLoggedIn)
-        settings.putBoolean(KEY_IS_LOGGED_IN, isLoggedIn)   // keep in sync with raw key
+        settings.putBoolean(KEY_IS_LOGGED_IN, isLoggedIn)   // keep both keys in sync
     }
 
     // ============================================================================
@@ -105,17 +110,17 @@ class PreferencesManager(private val settings: Settings) {
     // USER PROFILE DATA
     // ============================================================================
 
-    fun saveUserId(userId: String)           { settings.putString(KEY_USER_ID, userId) }
-    fun getUserId(): String?                 = settings.getStringOrNull(KEY_USER_ID)
+    fun saveUserId(userId: String)             { settings.putString(KEY_USER_ID, userId) }
+    fun getUserId(): String?                   = settings.getStringOrNull(KEY_USER_ID)
 
-    fun saveUserEmail(email: String)         { settings.putString(KEY_USER_EMAIL, email) }
-    fun getUserEmail(): String?              = settings.getStringOrNull(KEY_USER_EMAIL)
+    fun saveUserEmail(email: String)           { settings.putString(KEY_USER_EMAIL, email) }
+    fun getUserEmail(): String?                = settings.getStringOrNull(KEY_USER_EMAIL)
 
-    fun saveUserName(name: String)           { settings.putString(KEY_USER_NAME, name) }
-    fun getUserName(): String?               = settings.getStringOrNull(KEY_USER_NAME)
+    fun saveUserName(name: String)             { settings.putString(KEY_USER_NAME, name) }
+    fun getUserName(): String?                 = settings.getStringOrNull(KEY_USER_NAME)
 
-    fun saveUserPhone(phone: String)         { settings.putString(KEY_USER_PHONE, phone) }
-    fun getUserPhone(): String?              = settings.getStringOrNull(KEY_USER_PHONE)
+    fun saveUserPhone(phone: String)           { settings.putString(KEY_USER_PHONE, phone) }
+    fun getUserPhone(): String?                = settings.getStringOrNull(KEY_USER_PHONE)
 
     fun saveUserProfileImage(imageUrl: String) { settings.putString(KEY_USER_PROFILE_IMAGE, imageUrl) }
     fun getUserProfileImage(): String?         = settings.getStringOrNull(KEY_USER_PROFILE_IMAGE)
@@ -143,15 +148,13 @@ class PreferencesManager(private val settings: Settings) {
 
     /**
      * Returns true when:
-     *  - a token exists, AND
+     *  - a token exists AND is not blank, AND
      *  - either no expiry was set (backend doesn't provide one → treat as valid),
      *    or the stored expiry is in the future.
-     *
-     * This is the primary guard used by AccountRepository.isLoggedIn().
      */
     @OptIn(ExperimentalTime::class)
     fun isTokenValid(): Boolean {
-        val token  = getAuthToken() ?: return false
+        val token = getAuthToken() ?: return false
         if (token.isBlank()) return false
         val expiry = getTokenExpiry()
         return if (expiry > 0L) {
@@ -162,12 +165,18 @@ class PreferencesManager(private val settings: Settings) {
     }
 
     // ============================================================================
-    // SAVED LOGIN CREDENTIALS  ("Remember Me" feature)
+    // SAVED LOGIN CREDENTIALS  ("Remember Me" / "Save Password" feature)
     // ============================================================================
 
     /**
-     * Saves both email/phone AND password.
-     * Called by AccountRepository.login() when rememberMe = true.
+     * Saves email/phone + password AND sets the save_password_enabled flag to true.
+     *
+     * Only called by AccountRepository.login() when rememberMe = true.
+     * When this flag is true, the next launch will:
+     *   1. Find is_logged_in = true  (set by saveUserSession with rememberMe=true)
+     *   2. Find a valid token
+     *   3. Find save_password_enabled = true
+     *   → All three gates pass → user goes straight to Home.
      *
      * SECURITY NOTE: For production, consider:
      * - Android: EncryptedSharedPreferences / Jetpack Security
@@ -177,15 +186,14 @@ class PreferencesManager(private val settings: Settings) {
      */
     fun saveLoginCredentials(emailOrPhone: String, password: String) {
         settings.putString(KEY_SAVED_EMAIL_OR_PHONE, emailOrPhone)
-        settings.putString(KEY_SAVED_EMAIL, emailOrPhone)          // keep legacy key in sync
+        settings.putString(KEY_SAVED_EMAIL, emailOrPhone)   // keep legacy key in sync
         settings.putString(KEY_SAVED_PASSWORD, password)
         settings.putBoolean(KEY_SAVE_PASSWORD_ENABLED, true)
     }
 
     /**
-     * Returns the saved email/phone if "Save Password" was enabled,
-     * otherwise null.  Checks both the primary key and the legacy "saved_email"
-     * key so old installs continue to work after upgrade.
+     * Returns the saved email/phone ONLY if "Save Password" was enabled.
+     * Falls back to the legacy "saved_email" key for backwards compatibility.
      */
     fun getSavedEmailOrPhone(): String? {
         if (!settings.getBoolean(KEY_SAVE_PASSWORD_ENABLED, false)) return null
@@ -193,13 +201,22 @@ class PreferencesManager(private val settings: Settings) {
             ?: settings.getStringOrNull(KEY_SAVED_EMAIL)
     }
 
-    /** Returns saved password if "Save Password" was enabled, otherwise null. */
+    /**
+     * Returns saved password ONLY if "Save Password" was enabled, otherwise null.
+     */
     fun getSavedPassword(): String? {
         if (!settings.getBoolean(KEY_SAVE_PASSWORD_ENABLED, false)) return null
         return settings.getStringOrNull(KEY_SAVED_PASSWORD)
     }
 
-    /** Wipes all saved credential data and disables the feature flag. */
+    /**
+     * Wipes all saved credential data and sets save_password_enabled = false.
+     *
+     * FIX: After this call, isSavePasswordEnabled() returns false, which causes
+     * AccountRepository.isLoggedIn() to return false on the next launch, forcing
+     * the user back to the Login screen — even if is_logged_in was somehow left
+     * as true from a previous session.
+     */
     fun clearLoginCredentials() {
         settings.remove(KEY_SAVED_EMAIL_OR_PHONE)
         settings.remove(KEY_SAVED_EMAIL)
@@ -207,7 +224,10 @@ class PreferencesManager(private val settings: Settings) {
         settings.putBoolean(KEY_SAVE_PASSWORD_ENABLED, false)
     }
 
-    /** Returns true when the user previously checked "Save Password". */
+    /**
+     * Returns true ONLY when the user explicitly checked "Save Password" at login.
+     * This is used as the third gate in AccountRepository.isLoggedIn().
+     */
     fun isSavePasswordEnabled(): Boolean =
         settings.getBoolean(KEY_SAVE_PASSWORD_ENABLED, false)
 
@@ -220,10 +240,10 @@ class PreferencesManager(private val settings: Settings) {
     }
 
     fun getGenderTheme(): GenderTheme {
-        val themeName = settings.getStringOrNull(KEY_GENDER_THEME)
-        return if (themeName != null) {
-            try { GenderTheme.valueOf(themeName) } catch (e: IllegalArgumentException) { GenderTheme.NEUTRAL }
-        } else {
+        val themeName = settings.getStringOrNull(KEY_GENDER_THEME) ?: return GenderTheme.NEUTRAL
+        return try {
+            GenderTheme.valueOf(themeName)
+        } catch (e: IllegalArgumentException) {
             GenderTheme.NEUTRAL
         }
     }
@@ -250,17 +270,17 @@ class PreferencesManager(private val settings: Settings) {
     // GENERIC GETTERS / SETTERS
     // ============================================================================
 
-    fun putString(key: String, value: String)              { settings.putString(key, value) }
-    fun getString(key: String, defaultValue: String = "")  = settings.getString(key, defaultValue)
-    fun getStringOrNull(key: String): String?              = settings.getStringOrNull(key)
+    fun putString(key: String, value: String)                  { settings.putString(key, value) }
+    fun getString(key: String, defaultValue: String = "")      = settings.getString(key, defaultValue)
+    fun getStringOrNull(key: String): String?                  = settings.getStringOrNull(key)
 
-    fun putInt(key: String, value: Int)                    { settings.putInt(key, value) }
-    fun getInt(key: String, defaultValue: Int = 0)         = settings.getInt(key, defaultValue)
+    fun putInt(key: String, value: Int)                        { settings.putInt(key, value) }
+    fun getInt(key: String, defaultValue: Int = 0)             = settings.getInt(key, defaultValue)
 
-    fun putLong(key: String, value: Long)                  { settings.putLong(key, value) }
-    fun getLong(key: String, defaultValue: Long = 0L)      = settings.getLong(key, defaultValue)
+    fun putLong(key: String, value: Long)                      { settings.putLong(key, value) }
+    fun getLong(key: String, defaultValue: Long = 0L)          = settings.getLong(key, defaultValue)
 
-    fun putBoolean(key: String, value: Boolean)            { settings.putBoolean(key, value) }
+    fun putBoolean(key: String, value: Boolean)                { settings.putBoolean(key, value) }
     fun getBoolean(key: String, defaultValue: Boolean = false) = settings.getBoolean(key, defaultValue)
 
     fun remove(key: String) { settings.remove(key) }
@@ -274,7 +294,7 @@ class PreferencesManager(private val settings: Settings) {
      * Intentionally preserves saved credentials (email pre-fill) and gender theme.
      */
     fun logout() {
-        setUserLoggedIn(false)                    // clears both "user_logged_in" and "is_logged_in"
+        setUserLoggedIn(false)   // clears both "user_logged_in" and "is_logged_in"
         settings.remove(KEY_USER_ID)
         settings.remove(KEY_USER_EMAIL)
         settings.remove(KEY_USER_NAME)

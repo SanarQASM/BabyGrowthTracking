@@ -18,12 +18,14 @@ class AccountRepository(
         if (!validateRegistration(fullName, email, password))
             return ApiResult.Error("Please fill all required fields correctly")
 
-        val result = apiService.register(RegisterRequest(fullName, email, password, phone, city, address, profileImageUrl))
+        val result = apiService.register(
+            RegisterRequest(fullName, email, password, phone, city, address, profileImageUrl)
+        )
 
         if (result is ApiResult.Success) {
             saveToken(result.data.token)
             preferencesManager.putBoolean("needs_verification", true)
-            preferencesManager.putBoolean("is_logged_in", false)
+            preferencesManager.setUserLoggedIn(false)   // never auto-login after register
             preferencesManager.saveUserId(result.data.user.userId)
             preferencesManager.saveUserEmail(result.data.user.email)
             preferencesManager.saveUserName(result.data.user.fullName)
@@ -39,7 +41,11 @@ class AccountRepository(
 
     // ─── Login ──────────────────────────────────────────────────────────────────
 
-    suspend fun login(email: String, password: String, rememberMe: Boolean = false): ApiResult<UserResponse> {
+    suspend fun login(
+        email     : String,
+        password  : String,
+        rememberMe: Boolean = false
+    ): ApiResult<UserResponse> {
         if (!validateLogin(email, password))
             return ApiResult.Error("Please enter valid email/phone and password")
 
@@ -48,15 +54,19 @@ class AccountRepository(
         if (result is ApiResult.Success) {
             saveToken(result.data.token)
             preferencesManager.putString("auth_provider", "email")
+
+            // FIX: saveUserSession now receives rememberMe so it can decide
+            //      whether to set is_logged_in = true or false.
             saveUserSession(result.data.user, rememberMe, needsVerification = false)
-            // ── Save credentials for prefill if rememberMe is checked ──────────
+
             if (rememberMe) {
+                // Save both email/phone + password → enables full auto-login next launch
                 preferencesManager.saveLoginCredentials(email, password)
             } else {
-                // Only save email for prefill; clear any previously saved password
-                preferencesManager.putString("saved_email", email)
+                // Clear any previously saved password and disable auto-login flag.
+                // Keep email in "saved_email" only for field pre-fill convenience.
                 preferencesManager.clearLoginCredentials()
-                preferencesManager.putString("saved_email", email) // re-save email only after clear
+                preferencesManager.putString("saved_email", email)
             }
         }
 
@@ -69,12 +79,22 @@ class AccountRepository(
 
     // ─── Google Login ───────────────────────────────────────────────────────────
 
-    suspend fun loginWithGoogle(idToken: String, email: String, displayName: String, photoUrl: String?): ApiResult<UserResponse> {
-        val result = apiService.loginWithGoogle(GoogleAuthRequest(idToken, email, displayName, photoUrl))
+    suspend fun loginWithGoogle(
+        idToken    : String,
+        email      : String,
+        displayName: String,
+        photoUrl   : String?
+    ): ApiResult<UserResponse> {
+        val result = apiService.loginWithGoogle(
+            GoogleAuthRequest(idToken, email, displayName, photoUrl)
+        )
 
         if (result is ApiResult.Success) {
             saveToken(result.data.token)
             preferencesManager.putString("auth_provider", "google")
+            // Google login is always treated as "remember me" — user authenticated
+            // via Google so there is no password to remember; we set the flag so
+            // subsequent launches go straight to Home.
             saveUserSession(result.data.user, rememberMe = true, needsVerification = false)
         }
 
@@ -87,22 +107,34 @@ class AccountRepository(
 
     // ─── Account Verification ───────────────────────────────────────────────────
 
-    suspend fun sendVerificationCode(recipient: String, method: String): ApiResult<VerificationResponse> =
-        try { apiService.sendVerificationCode(SendVerificationCodeRequest(recipient, method)) }
-        catch (e: Exception) { ApiResult.Error("Failed to send verification code: ${e.message}") }
+    suspend fun sendVerificationCode(
+        recipient: String,
+        method   : String
+    ): ApiResult<VerificationResponse> =
+        try {
+            apiService.sendVerificationCode(SendVerificationCodeRequest(recipient, method))
+        } catch (e: Exception) {
+            ApiResult.Error("Failed to send verification code: ${e.message}")
+        }
 
-    suspend fun verifyAccount(code: String, method: String): ApiResult<VerificationResponse> =
+    suspend fun verifyAccount(
+        code  : String,
+        method: String
+    ): ApiResult<VerificationResponse> =
         try {
             val result = apiService.verifyAccount(VerifyAccountRequest(code, method))
-            if (result is ApiResult.Success) preferencesManager.putBoolean("account_verified", true)
+            if (result is ApiResult.Success)
+                preferencesManager.putBoolean("account_verified", true)
             result
-        } catch (e: Exception) { ApiResult.Error("Failed to verify account: ${e.message}") }
+        } catch (e: Exception) {
+            ApiResult.Error("Failed to verify account: ${e.message}")
+        }
 
-    // ─── Forgot Password ─────────────────────────────────────────────────────
+    // ─── Forgot Password ─────────────────────────────────────────────────────────
 
     suspend fun requestPasswordReset(email: String): ApiResult<VerificationResponse> {
-        if (email.isBlank())        return ApiResult.Error("Please enter your email address")
-        if (!email.contains("@"))   return ApiResult.Error("Please enter a valid email address")
+        if (email.isBlank())      return ApiResult.Error("Please enter your email address")
+        if (!email.contains("@")) return ApiResult.Error("Please enter a valid email address")
         return try {
             apiService.forgotPassword(ForgotPasswordRequest(email = email))
         } catch (e: Exception) {
@@ -111,8 +143,8 @@ class AccountRepository(
     }
 
     suspend fun verifyResetCode(email: String, code: String): ApiResult<VerificationResponse> {
-        if (email.isBlank())    return ApiResult.Error("Email is required")
-        if (code.length != 6)  return ApiResult.Error("Please enter the complete 6-digit code")
+        if (email.isBlank())   return ApiResult.Error("Email is required")
+        if (code.length != 6) return ApiResult.Error("Please enter the complete 6-digit code")
         return try {
             apiService.verifyResetCode(VerifyResetCodeRequest(email = email, code = code))
         } catch (e: Exception) {
@@ -120,47 +152,72 @@ class AccountRepository(
         }
     }
 
-    suspend fun resetPasswordWithCode(email: String, code: String, newPassword: String): ApiResult<VerificationResponse> {
-        if (email.isBlank())          return ApiResult.Error("Email is required")
-        if (code.length != 6)         return ApiResult.Error("Invalid verification code")
-        if (newPassword.length < 6)   return ApiResult.Error("Password must be at least 6 characters")
+    suspend fun resetPasswordWithCode(
+        email      : String,
+        code       : String,
+        newPassword: String
+    ): ApiResult<VerificationResponse> {
+        if (email.isBlank())        return ApiResult.Error("Email is required")
+        if (code.length != 6)       return ApiResult.Error("Invalid verification code")
+        if (newPassword.length < 6) return ApiResult.Error("Password must be at least 6 characters")
         return try {
-            apiService.resetPassword(ResetPasswordRequest(email = email, code = code, newPassword = newPassword))
+            apiService.resetPassword(
+                ResetPasswordRequest(email = email, code = code, newPassword = newPassword)
+            )
         } catch (e: Exception) {
             ApiResult.Error("Failed to reset password: ${e.message}")
         }
     }
 
-    // ─── Session ────────────────────────────────────────────────────────────────
+    // ─── Session ─────────────────────────────────────────────────────────────────
 
     private fun saveToken(token: String) {
-        preferencesManager.saveAuthToken(token)   // uses the named method — consistent with getAuthToken()
-        preferencesManager.putString("auth_token", token) // also write raw key so ApiService.getToken lambda works
+        preferencesManager.saveAuthToken(token)
+        preferencesManager.putString("auth_token", token) // raw key for ApiService.getToken lambda
     }
 
-    private fun saveUserSession(user: UserResponse, rememberMe: Boolean = false, needsVerification: Boolean = false) {
-        preferencesManager.setUserLoggedIn(!needsVerification)
+    /**
+     * Persists user profile data after a successful login/register/social-auth.
+     *
+     * FIX: The logged-in flag is now controlled by [rememberMe].
+     *   • rememberMe = true  → is_logged_in = true  → next launch goes straight to Home
+     *   • rememberMe = false → is_logged_in = false → next launch forces Login screen
+     *   • needsVerification overrides both: always sets is_logged_in = false
+     */
+    private fun saveUserSession(
+        user             : UserResponse,
+        rememberMe       : Boolean = false,
+        needsVerification: Boolean = false
+    ) {
+        // Only allow auto-login if rememberMe is true AND account is already verified.
+        val allowAutoLogin = rememberMe && !needsVerification
+        preferencesManager.setUserLoggedIn(allowAutoLogin)
+
         preferencesManager.putBoolean("needs_verification", needsVerification)
         preferencesManager.saveUserId(user.userId)
         preferencesManager.saveUserEmail(user.email)
         preferencesManager.saveUserName(user.fullName)
-        user.phone?.let { preferencesManager.saveUserPhone(it) }
+        user.phone?.let           { preferencesManager.saveUserPhone(it) }
         user.profileImageUrl?.let { preferencesManager.putString("user_profile_image", it) }
-        if (rememberMe) preferencesManager.putString("saved_email", user.email)
     }
 
-    // ─── Getters ─────────────────────────────────────────────────────────────────
+    // ─── Getters ──────────────────────────────────────────────────────────────────
 
     /**
-     * Returns true only when BOTH the logged-in flag is set AND a valid auth
-     * token exists.  A missing or expired token means the user must log in again
-     * even if the flag was never explicitly cleared (e.g. app reinstall on iOS,
-     * SharedPreferences wipe, token expiry).
+     * Returns true only when ALL THREE conditions hold:
+     *  1. The is_logged_in flag was set to true (only happens when rememberMe = true)
+     *  2. A valid auth token exists (not blank, not expired)
+     *  3. The "Save Password" feature flag is enabled
+     *
+     * FIX: Added isSavePasswordEnabled() check so that even if the flag was
+     * somehow left as true from an old install, the user is still sent to Login
+     * if they never checked "Save Password".
      */
     fun isLoggedIn(): Boolean {
         val flagSet    = preferencesManager.getBoolean("is_logged_in", false)
         val tokenValid = preferencesManager.isTokenValid()
-        return flagSet && tokenValid
+        val rememberMe = preferencesManager.isSavePasswordEnabled()
+        return flagSet && tokenValid && rememberMe
     }
 
     fun needsVerification()          = preferencesManager.getBoolean("needs_verification", false)
@@ -179,18 +236,32 @@ class AccountRepository(
     fun getSavedPassword()      = preferencesManager.getSavedPassword()
     fun isSavePasswordEnabled() = preferencesManager.isSavePasswordEnabled()
 
+    /**
+     * Standard logout.
+     *
+     * FIX: Explicitly sets is_logged_in = false via setUserLoggedIn() so the
+     * next launch never bypasses the Login screen.
+     * Saved credentials are preserved intentionally — if the user had "Save
+     * Password" enabled, they can still log back in without re-typing.
+     * Call logoutAndClearCredentials() to wipe everything.
+     */
     fun logout() {
-        preferencesManager.setUserLoggedIn(false)
+        preferencesManager.setUserLoggedIn(false)   // clears both "user_logged_in" and "is_logged_in"
         preferencesManager.putBoolean("needs_verification", false)
         preferencesManager.putBoolean("account_verified", false)
-        preferencesManager.clearAuthToken()          // clears "auth_token" + "token_expiry"
+        preferencesManager.clearAuthToken()
         preferencesManager.remove("auth_provider")
-        // Note: saved_email / saved credentials are intentionally kept so the
-        // login screen can pre-fill the email next time.
-        // Call preferencesManager.clearLoginCredentials() to wipe them too.
+        // Intentionally keep saved_email / saved credentials so the login
+        // screen can pre-fill them on next visit.
     }
 
-    // ─── Validation ──────────────────────────────────────────────────────────────
+    /** Logout + wipe all saved credentials (e.g. user explicitly signs out and clears data). */
+    fun logoutAndClearCredentials() {
+        logout()
+        preferencesManager.clearLoginCredentials()
+    }
+
+    // ─── Validation ───────────────────────────────────────────────────────────────
 
     private fun validateRegistration(fullName: String, email: String, password: String) =
         fullName.isNotBlank() && email.isNotBlank() && email.contains("@") &&

@@ -11,6 +11,7 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.*
 
 // ─────────────────────────────────────────────────────────────────────────────
 // API Result wrapper
@@ -74,10 +75,30 @@ class ApiService(
             fun preCheckInvestigationsByBaby(babyId: String) = "$PRE_CHECK_INVESTIGATIONS/baby/$babyId"
 
             const val HEALTH = "/v1/health"
+
+            // Benches
+            const val BENCHES = "/v1/benches"
+            const val BENCH_ASSIGNMENTS = "/v1/bench-assignments"
+            fun activeAssignment(babyId: String)  = "$BENCH_ASSIGNMENTS/baby/$babyId/active"
+            fun changeBench(babyId: String)        = "$BENCH_ASSIGNMENTS/baby/$babyId/change-bench"
+
+            // Vaccination schedules
+            const val VACCINATION_SCHEDULES = "/v1/vaccination-schedules"
+            fun babyVaccinationSchedule(babyId: String) = "$VACCINATION_SCHEDULES/baby/$babyId"
+
+            // Health issues
+            const val HEALTH_ISSUES = "/v1/health-issues"
+            fun healthIssuesByBaby(babyId: String) = "$HEALTH_ISSUES/baby/$babyId"
+            fun resolveHealthIssue(issueId: String) = "$HEALTH_ISSUES/$issueId/resolve"
+
+            // Appointments
+            const val APPOINTMENTS = "/v1/appointments"
+            fun appointmentsByBaby(babyId: String)   = "$APPOINTMENTS/baby/$babyId"
+            fun cancelAppointment(appointmentId: String) = "$APPOINTMENTS/$appointmentId/cancel"
         }
     }
 
-    private val client = HttpClient {
+    internal val client = HttpClient {
         install(ContentNegotiation) {
             json(Json { prettyPrint = true; isLenient = true; ignoreUnknownKeys = true })
         }
@@ -117,15 +138,12 @@ class ApiService(
 
     // ── Forgot Password (3 steps) ─────────────────────────────────────────────
 
-    // Step 1: check email exists + send reset code
     suspend fun forgotPassword(request: ForgotPasswordRequest): ApiResult<VerificationResponse> =
         makeRequest { client.post("$BASE_URL${Endpoints.AUTH_FORGOT_PASSWORD}") { setBody(request) } }
 
-    // Step 2: validate the 6-digit code
     suspend fun verifyResetCode(request: VerifyResetCodeRequest): ApiResult<VerificationResponse> =
         makeRequest { client.post("$BASE_URL${Endpoints.AUTH_VERIFY_RESET}") { setBody(request) } }
 
-    // Step 3: save new password
     suspend fun resetPassword(request: ResetPasswordRequest): ApiResult<VerificationResponse> =
         makeRequest { client.post("$BASE_URL${Endpoints.AUTH_RESET_PASSWORD}") { setBody(request) } }
 
@@ -185,13 +203,120 @@ class ApiService(
     suspend fun getUpcomingVaccinations(babyId: String): ApiResult<List<VaccinationResponse>> =
         makeRequest { client.get("$BASE_URL${Endpoints.upcomingVaccinations(babyId)}") }
 
-    // ── Health ────────────────────────────────────────────────────────────────
+    // ── Benches ───────────────────────────────────────────────────────────────
+
+    suspend fun getAllBenches(): ApiResult<List<VaccinationBenchUi>> =
+        safeCall {
+            val resp = client.get("$BASE_URL${Endpoints.BENCHES}")
+            resp.body<ApiListResponse<VaccinationBenchNet>>().data.map { it.toUi() }
+        }
+
+    suspend fun assignBench(babyId: String, benchId: String): ApiResult<BabyBenchAssignmentUi> =
+        safeCall {
+            val resp = client.post("$BASE_URL${Endpoints.BENCH_ASSIGNMENTS}") {
+                setBody(mapOf("babyId" to babyId, "benchId" to benchId))
+            }
+            resp.body<ApiSingleResponse<BabyBenchAssignmentNet>>().data!!.toUi()
+        }
+
+    suspend fun changeBench(babyId: String, benchId: String): ApiResult<BabyBenchAssignmentUi> =
+        safeCall {
+            val resp = client.put("$BASE_URL${Endpoints.changeBench(babyId)}") {
+                setBody(mapOf("babyId" to babyId, "benchId" to benchId))
+            }
+            resp.body<ApiSingleResponse<BabyBenchAssignmentNet>>().data!!.toUi()
+        }
+
+    suspend fun getActiveAssignment(babyId: String): ApiResult<BabyBenchAssignmentUi?> =
+        safeCall {
+            val resp = client.get("$BASE_URL${Endpoints.activeAssignment(babyId)}")
+            resp.body<ApiSingleResponse<BabyBenchAssignmentNet>>().data?.toUi()
+        }
+
+    // ── Vaccination Schedules ─────────────────────────────────────────────────
+
+    suspend fun getScheduleForBaby(babyId: String): ApiResult<List<VaccinationScheduleUi>> =
+        safeCall {
+            val resp = client.get("$BASE_URL${Endpoints.babyVaccinationSchedule(babyId)}")
+            resp.body<ApiListResponse<VaccinationScheduleNet>>().data.map { it.toUi() }
+        }
+
+    // ── Health Issues ─────────────────────────────────────────────────────────
+
+    suspend fun getHealthIssuesForBaby(babyId: String): ApiResult<List<HealthIssueUi>> =
+        safeCall {
+            val resp = client.get("$BASE_URL${Endpoints.healthIssuesByBaby(babyId)}")
+            resp.body<ApiListResponse<HealthIssueNet>>().data.map { it.toUi() }
+        }
+
+    suspend fun createHealthIssue(
+        babyId: String,
+        title: String,
+        description: String?,
+        severity: String?,
+        issueDate: String
+    ): ApiResult<HealthIssueUi> =
+        safeCall {
+            val body = buildMap<String, String?> {
+                put("babyId", babyId)
+                put("title", title)
+                description?.let { put("description", it) }
+                severity?.let { put("severity", it) }
+                put("issueDate", issueDate)
+            }
+            val resp = client.post("$BASE_URL${Endpoints.HEALTH_ISSUES}") { setBody(body) }
+            resp.body<ApiSingleResponse<HealthIssueNet>>().data!!.toUi()
+        }
+
+    suspend fun resolveHealthIssue(issueId: String): ApiResult<Unit> =
+        safeCall {
+            client.patch("$BASE_URL${Endpoints.resolveHealthIssue(issueId)}")
+        }
+
+    // ── Appointments ──────────────────────────────────────────────────────────
+
+    suspend fun getAppointmentsForBaby(babyId: String): ApiResult<List<AppointmentUi>> =
+        safeCall {
+            val resp = client.get("$BASE_URL${Endpoints.appointmentsByBaby(babyId)}")
+            resp.body<ApiListResponse<AppointmentNet>>().data.map { it.toUi() }
+        }
+
+    suspend fun createAppointment(
+        babyId: String,
+        type: String,
+        date: String,
+        time: String?,
+        doctorName: String?,
+        location: String?,
+        notes: String?
+    ): ApiResult<AppointmentUi> =
+        safeCall {
+            val body = buildMap<String, String?> {
+                put("babyId", babyId)
+                put("appointmentType", type)
+                put("scheduledDate", date)
+                time?.let { put("scheduledTime", it) }
+                doctorName?.let { put("doctorName", it) }
+                location?.let { put("location", it) }
+                notes?.let { put("notes", it) }
+            }
+            val resp = client.post("$BASE_URL${Endpoints.APPOINTMENTS}") { setBody(body) }
+            resp.body<ApiSingleResponse<AppointmentNet>>().data!!.toUi()
+        }
+
+    suspend fun cancelAppointment(appointmentId: String): ApiResult<Unit> =
+        safeCall {
+            client.patch("$BASE_URL${Endpoints.cancelAppointment(appointmentId)}")
+        }
+
+    // ── Health check ──────────────────────────────────────────────────────────
 
     suspend fun checkHealth(): ApiResult<HealthResponse> =
         makeRequest { client.get("$BASE_URL${Endpoints.HEALTH}") }
 
-    // ── Request helper ────────────────────────────────────────────────────────
+    // ── Request helpers ───────────────────────────────────────────────────────
 
+    /** Wraps structured backend responses (AuthApiResponse envelope). */
     private suspend inline fun <reified T> makeRequest(
         crossinline request: suspend () -> HttpResponse
     ): ApiResult<T> = try {
@@ -217,11 +342,39 @@ class ApiService(
         ApiResult.Error("Network error: ${e.message ?: "Unknown error"}")
     }
 
+    /** Lightweight wrapper for raw calls that map their own response bodies. */
+    private suspend fun <T> safeCall(block: suspend () -> T): ApiResult<T> = try {
+        ApiResult.Success(block())
+    } catch (e: HttpRequestTimeoutException) {
+        ApiResult.Error("Connection timeout. Check your internet.")
+    } catch (e: Exception) {
+        e.printStackTrace()
+        ApiResult.Error("Network error: ${e.message ?: "Unknown error"}")
+    }
+
     fun close() { client.close() }
 }
 
 // =============================================================================
-// DTOs — field names must match AuthController.kt exactly
+// Generic response wrappers
+// =============================================================================
+
+@Serializable
+data class ApiListResponse<T>(
+    val success: Boolean,
+    val message: String = "",
+    val data: List<T>
+)
+
+@Serializable
+data class ApiSingleResponse<T>(
+    val success: Boolean,
+    val message: String = "",
+    val data: T? = null
+)
+
+// =============================================================================
+// DTOs — field names must match backend exactly
 // =============================================================================
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
@@ -250,25 +403,13 @@ class ApiService(
 // ── Account Verification ──────────────────────────────────────────────────────
 
 @Serializable data class SendVerificationCodeRequest(val recipient: String, val method: String)
-
 @Serializable data class VerifyAccountRequest(val code: String, val method: String)
 
-// ── Forgot Password DTOs ──────────────────────────────────────────────────────
+// ── Forgot Password ───────────────────────────────────────────────────────────
 
-@Serializable data class ForgotPasswordRequest(
-    val email: String
-)
-
-@Serializable data class VerifyResetCodeRequest(
-    val email: String,
-    val code: String
-)
-
-@Serializable data class ResetPasswordRequest(
-    val email: String,
-    val code: String,
-    val newPassword: String
-)
+@Serializable data class ForgotPasswordRequest(val email: String)
+@Serializable data class VerifyResetCodeRequest(val email: String, val code: String)
+@Serializable data class ResetPasswordRequest(val email: String, val code: String, val newPassword: String)
 
 // ── Responses ─────────────────────────────────────────────────────────────────
 
@@ -322,7 +463,6 @@ class ApiService(
 )
 
 @Serializable data class UpdateBabyRequest(val fullName: String? = null, val photoUrl: String? = null)
-
 @Serializable data class ArchiveBabyRequest(val status: String)
 
 @Serializable data class BabyResponse(
@@ -331,9 +471,9 @@ class ApiService(
     val birthWeight: Double? = null, val birthHeight: Double? = null,
     val birthHeadCircumference: Double? = null, val ageInMonths: Int,
     val ageInDays: Long, val photoUrl: String? = null,
-    val isActive               : Boolean = true,   // ✅ default — survives missing field
-    val createdAt              : String? = null,   // ✅ nullable — backend sends LocalDateTime
-    val updatedAt              : String? = null    // ✅ nullable — backend sends LocalDateTime
+    val isActive: Boolean = true,
+    val createdAt: String? = null,
+    val updatedAt: String? = null
 )
 
 // ── Growth Records ────────────────────────────────────────────────────────────
@@ -345,24 +485,23 @@ class ApiService(
     val heightPercentile: Int? = null, val headCircumferencePercentile: Int? = null
 )
 
-// ✅ Fixed
 @Serializable data class GrowthRecordResponse(
-    val recordId          : String,
-    val babyId            : String,
-    val babyName          : String,
-    val measurementDate   : String,
-    val ageInMonths       : Int,
-    val ageInDays         : Int?    = null,
-    val weight            : Double? = null,
-    val height            : Double? = null,
-    val headCircumference : Double? = null,
-    val weightPercentile  : Int?    = null,
-    val heightPercentile  : Int?    = null,
+    val recordId: String,
+    val babyId: String,
+    val babyName: String,
+    val measurementDate: String,
+    val ageInMonths: Int,
+    val ageInDays: Int?    = null,
+    val weight: Double?    = null,
+    val height: Double?    = null,
+    val headCircumference: Double? = null,
+    val weightPercentile: Int?     = null,
+    val heightPercentile: Int?     = null,
     val headCircumferencePercentile: Int? = null,
-    val measuredByName    : String? = null,
-    val notes             : String? = null,
-    val createdAt         : String? = null,  // ✅ nullable
-    val updatedAt         : String? = null   // ✅ nullable
+    val measuredByName: String? = null,
+    val notes: String?     = null,
+    val createdAt: String? = null,
+    val updatedAt: String? = null
 )
 
 // ── Vaccinations ──────────────────────────────────────────────────────────────
@@ -377,4 +516,134 @@ class ApiService(
     val vaccineId: Int, val vaccineName: String, val scheduledDate: String,
     val administeredDate: String? = null, val status: String,
     val location: String? = null, val notes: String? = null, val createdAt: String
+)
+
+// ── Benches ───────────────────────────────────────────────────────────────────
+
+@Serializable data class VaccinationBenchNet(
+    val benchId: String,
+    val nameEn: String,
+    val nameAr: String,
+    val governorate: String,
+    val district: String,
+    val addressEn: String? = null,
+    val addressAr: String? = null,
+    val latitude: Double,
+    val longitude: Double,
+    val phone: String? = null,
+    val workingDays: List<String> = emptyList(),
+    val workingHoursStart: String = "08:00",
+    val workingHoursEnd: String = "14:00",
+    val vaccinationDays: List<String> = emptyList(),
+    val type: String = "",
+    val vaccinesAvailable: List<String> = emptyList(),
+    val isActive: Boolean = true
+)
+
+@Serializable data class BabyBenchAssignmentNet(
+    val assignmentId: String,
+    val babyId: String,
+    val babyName: String,
+    val benchId: String,
+    val benchNameEn: String,
+    val benchNameAr: String,
+    val governorate: String,
+    val isActive: Boolean
+)
+
+// ── Vaccination Schedules ─────────────────────────────────────────────────────
+
+@Serializable data class VaccinationScheduleNet(
+    val scheduleId: String,
+    val babyId: String,
+    val babyName: String,
+    val benchId: String,
+    val benchNameEn: String,
+    val benchNameAr: String,
+    val vaccineId: Int,
+    val vaccineName: String,
+    val doseNumber: Int,
+    val recommendedAgeMonths: Int,
+    val idealDate: String,
+    val scheduledDate: String,
+    val shiftReason: String = "NONE",
+    val shiftDays: Int = 0,
+    val status: String,
+    val completedDate: String? = null,
+    val completedByName: String? = null,
+    val isVisibleToParent: Boolean = true,
+    val isVisibleToTeam: Boolean = true
+)
+
+// ── Health Issues ─────────────────────────────────────────────────────────────
+
+@Serializable data class HealthIssueNet(
+    val issueId: String,
+    val babyId: String,
+    val title: String,
+    val description: String? = null,
+    val issueDate: String,
+    val severity: String? = null,
+    val isResolved: Boolean = false,
+    val resolutionDate: String? = null,
+    val resolvedNotes: String? = null
+)
+
+// ── Appointments ──────────────────────────────────────────────────────────────
+
+@Serializable data class AppointmentNet(
+    val appointmentId: String,
+    val babyId: String,
+    val babyName: String,
+    val appointmentType: String,
+    val scheduledDate: String,
+    val scheduledTime: String? = null,
+    val durationMinutes: Int = 30,
+    val status: String,
+    val doctorName: String? = null,
+    val location: String? = null,
+    val notes: String? = null
+)
+
+// =============================================================================
+// Net → UI mappers
+// =============================================================================
+
+fun VaccinationBenchNet.toUi() = VaccinationBenchUi(
+    benchId = benchId, nameEn = nameEn, nameAr = nameAr,
+    governorate = governorate, district = district,
+    addressEn = addressEn, addressAr = addressAr,
+    latitude = latitude, longitude = longitude,
+    phone = phone, workingDays = workingDays,
+    workingHoursStart = workingHoursStart, workingHoursEnd = workingHoursEnd,
+    vaccinationDays = vaccinationDays, type = type,
+    vaccinesAvailable = vaccinesAvailable, isActive = isActive
+)
+
+fun BabyBenchAssignmentNet.toUi() = BabyBenchAssignmentUi(
+    assignmentId = assignmentId, babyId = babyId, babyName = babyName,
+    benchId = benchId, benchNameEn = benchNameEn, benchNameAr = benchNameAr,
+    governorate = governorate, isActive = isActive
+)
+
+fun VaccinationScheduleNet.toUi() = VaccinationScheduleUi(
+    scheduleId = scheduleId, babyId = babyId, vaccineId = vaccineId,
+    vaccineName = vaccineName, doseNumber = doseNumber,
+    recommendedAgeMonths = recommendedAgeMonths, idealDate = idealDate,
+    scheduledDate = scheduledDate, shiftReason = shiftReason, shiftDays = shiftDays,
+    status = status, completedDate = completedDate, benchNameEn = benchNameEn,
+    isVisibleToParent = isVisibleToParent
+)
+
+fun HealthIssueNet.toUi() = HealthIssueUi(
+    issueId = issueId, babyId = babyId, title = title, description = description,
+    issueDate = issueDate, severity = severity, isResolved = isResolved,
+    resolutionDate = resolutionDate, resolvedNotes = resolvedNotes
+)
+
+fun AppointmentNet.toUi() = AppointmentUi(
+    appointmentId = appointmentId, babyId = babyId, babyName = babyName,
+    appointmentType = appointmentType, scheduledDate = scheduledDate,
+    scheduledTime = scheduledTime, durationMinutes = durationMinutes,
+    status = status, doctorName = doctorName, location = location, notes = notes
 )

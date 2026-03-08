@@ -7,6 +7,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.Language
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HealthRecordViewModel  // ← NEW
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HomeViewModel
 import org.example.project.babygrowthtrackingapplication.data.network.BabyResponse
 import org.example.project.babygrowthtrackingapplication.theme.BabyGrowthTheme
@@ -15,18 +16,19 @@ import org.example.project.babygrowthtrackingapplication.ui.components.Navigatio
 
 @Composable
 fun HomeScreen(
-    viewModel        : HomeViewModel,
-    currentLanguage  : Language = Language.ENGLISH,
-    onLanguageChange : (Language) -> Unit = {},
-    selectedTab      : NavigationTab = NavigationTab.HOME,
-    onTabChange      : (NavigationTab) -> Unit = {},
-    onAddBaby        : () -> Unit = {},
-    onSeeProfile     : (BabyResponse) -> Unit = {},
-    // ── Baby profile tab action callbacks ─────────────────────────────────────
-    onEditDetails    : (BabyResponse) -> Unit = {},
-    onAddMeasurement : (BabyResponse) -> Unit = {},
-    onViewGrowthChart: (BabyResponse) -> Unit = {},
-    // ── Charts tab action callbacks ───────────────────────────────────────────
+    viewModel             : HomeViewModel,
+    healthRecordViewModel : HealthRecordViewModel,              // ← NEW
+    currentLanguage       : Language = Language.ENGLISH,
+    onLanguageChange      : (Language) -> Unit = {},
+    selectedTab           : NavigationTab = NavigationTab.HOME,
+    onTabChange           : (NavigationTab) -> Unit = {},
+    onAddBaby             : () -> Unit = {},
+    onSeeProfile          : (BabyResponse) -> Unit = {},
+    // ── Baby profile tab callbacks ────────────────────────────────────────────
+    onEditDetails         : (BabyResponse) -> Unit = {},
+    onAddMeasurement      : (BabyResponse) -> Unit = {},
+    onViewGrowthChart     : (BabyResponse) -> Unit = {},
+    // ── Charts tab callbacks ──────────────────────────────────────────────────
     onAddMeasurementById      : (String) -> Unit = {},
     onViewAllMeasurementsById : (String) -> Unit = {}
 ) {
@@ -73,8 +75,12 @@ fun HomeScreen(
                             onViewAllMeasurements = onViewAllMeasurementsById
                         )
 
+                    // ── Health Record — fully wired ───────────────────────────
                     NavigationTab.HEALTH_RECORD ->
-                        HealthRecordTabContent()
+                        HealthRecordTabContent(
+                            viewModel = healthRecordViewModel,
+                            babies    = state.babies           // babies from HomeViewModel
+                        )
 
                     NavigationTab.BENCH ->
                         BenchTabContent()

@@ -355,5 +355,33 @@
     <string name="schedule_no_assignment_title">No Health Center Assigned Yet</string>
     <string name="schedule_no_assignment_body">Select a health center for %1$s to auto-generate their vaccination schedule</string>
 
+    <!-- Health Issues -->
+    <string name="health_issues_title">Health Issues</string>
+    <string name="health_issue_filter_all">All</string>
+    <string name="health_issue_filter_ongoing">Ongoing</string>
+    <string name="health_issue_filter_resolved">Resolved</string>
+    <string name="health_issue_add">Add New Health Issue</string>
+    <string name="health_issue_severity_mild">Mild</string>
+    <string name="health_issue_severity_moderate">Moderate</string>
+    <string name="health_issue_severity_severe">Severe</string>
+    <string name="health_issue_resolved">Resolved</string>
+    <string name="health_issue_mark_resolved">Mark Resolved</string>
+
+    <!-- Appointments -->
+    <string name="appointment_title">Appointments</string>
+    <string name="appointment_filter_all">All</string>
+    <string name="appointment_filter_upcoming">Upcoming</string>
+    <string name="appointment_filter_past">Past</string>
+    <string name="appointment_filter_cancelled">Cancelled</string>
+    <string name="appointment_add">Add New Appointments</string>
+    <string name="appointment_cancel">Cancel</string>
+    <string name="appointment_status_upcoming">Upcoming</string>
+
+    <!-- Reschedule -->
+    <string name="reschedule_title">Reschedule Vaccinations</string>
+    <string name="reschedule_confirm">This will regenerate the remaining vaccination schedule. Continue?</string>
+    <string name="reschedule_action">Reschedule</string>
+    <string name="reschedule_banner">%1$d vaccination(s) overdue. Tap to reschedule.</string>
+    <string name="reschedule_success">Schedule regenerated successfully.</string>
 
 </resources>
