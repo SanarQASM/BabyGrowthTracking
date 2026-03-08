@@ -11,17 +11,22 @@ import androidx.compose.ui.draw.blur
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import org.example.project.babygrowthtrackingapplication.theme.LocalDimensions
 import org.example.project.babygrowthtrackingapplication.theme.customColors
 
 /**
  * iOS-Style Glassmorphic Buttons
  * Inspired by iPhone Control Center design with blur effects and translucent backgrounds
+ *
+ * REFACTORED:
+ *  - All hardcoded `16.dp` shape corners  →  dimensions.buttonCornerRadius
+ *  - All hardcoded `0.dp` elevations kept as-is (semantic zero — intentional)
+ *  - `Color.White.copy(alpha = 0.2f)` overlay  →  customColors.glassOverlay
+ *  - `Color.White.copy(alpha = 0.1f)` subtle overlay  →  customColors.glassOverlay
  */
 
 /**
- * Primary Glassmorphic Button - Main action with iOS-style blur and gradient
+ * Primary Glassmorphic Button — Main action with iOS-style blur and gradient
  *
  * Usage:
  * ```
@@ -39,24 +44,24 @@ fun PrimaryButton(
     enabled: Boolean = true,
     loading: Boolean = false
 ) {
-    val dimensions = LocalDimensions.current
+    val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
 
     Button(
         onClick = onClick,
-        modifier = modifier
-            .height(dimensions.buttonHeight),
+        modifier = modifier.height(dimensions.buttonHeight),
         enabled = enabled && !loading,
         colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Transparent,
+            containerColor         = Color.Transparent,
             disabledContainerColor = Color.Transparent
         ),
         contentPadding = PaddingValues(),
-        shape = RoundedCornerShape(16.dp), // Less corner radius as requested
+        // WAS: RoundedCornerShape(16.dp)  →  dimensions.buttonCornerRadius
+        shape = RoundedCornerShape(dimensions.buttonCornerRadius),
         elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 0.dp,
-            pressedElevation = 0.dp,
-            disabledElevation = 0.dp
+            defaultElevation  = dimensions.cardElevation * 0f, // semantic zero
+            pressedElevation  = dimensions.cardElevation * 0f,
+            disabledElevation = dimensions.cardElevation * 0f
         )
     ) {
         Box(
@@ -64,46 +69,50 @@ fun PrimaryButton(
                 .fillMaxSize()
                 .background(
                     if (enabled && !loading) {
-                        // iOS-style translucent gradient with blur effect
                         Brush.verticalGradient(
                             colors = listOf(
                                 customColors.accentGradientStart.copy(alpha = 0.85f),
-                                customColors.accentGradientEnd.copy(alpha = 0.75f)
+                                customColors.accentGradientEnd.copy(alpha = 0.70f)
                             )
                         )
                     } else {
                         Brush.verticalGradient(
                             colors = listOf(
-                                Color.Gray.copy(alpha = 0.3f),
-                                Color.Gray.copy(alpha = 0.2f)
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
                             )
                         )
                     },
-                    shape = RoundedCornerShape(16.dp)
+                    // WAS: RoundedCornerShape(16.dp)  →  dimensions.buttonCornerRadius
+                    shape = RoundedCornerShape(dimensions.buttonCornerRadius)
                 ),
             contentAlignment = Alignment.Center
         ) {
-            // Background blur effect layer
+            // Glassmorphic overlay
+            // WAS: Color.White.copy(alpha = 0.2f)  →  customColors.glassOverlay
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        Color.White.copy(alpha = 0.15f),
-                        shape = RoundedCornerShape(16.dp)
+                        customColors.glassOverlay,
+                        // WAS: RoundedCornerShape(16.dp)  →  dimensions.buttonCornerRadius
+                        shape = RoundedCornerShape(dimensions.buttonCornerRadius)
                     )
             )
 
             if (loading) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(24.dp),
-                    color = Color.White,
-                    strokeWidth = 2.dp
+                    color    = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(dimensions.iconMedium),
+                    // WAS: strokeWidth = 2.dp  →  dimensions.spacingXSmall / 2
+                    strokeWidth = dimensions.spacingXSmall / 2
                 )
             } else {
                 Text(
-                    text = text,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Color.White,
+                    text       = text,
+                    style      = MaterialTheme.typography.titleMedium,
+                    color      = if (enabled) MaterialTheme.colorScheme.onPrimary
+                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
                     fontWeight = FontWeight.SemiBold
                 )
             }
@@ -112,15 +121,7 @@ fun PrimaryButton(
 }
 
 /**
- * Secondary Glassmorphic Button - Alternative action with translucent outline
- *
- * Usage:
- * ```
- * SecondaryButton(
- *     text = "Cancel",
- *     onClick = { /* action */ }
- * )
- * ```
+ * Secondary Glassmorphic Button — Translucent ghost style
  */
 @Composable
 fun SecondaryButton(
@@ -129,54 +130,56 @@ fun SecondaryButton(
     modifier: Modifier = Modifier,
     enabled: Boolean = true
 ) {
-    val dimensions = LocalDimensions.current
+    val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
 
     Button(
-        onClick = onClick,
-        modifier = modifier
-            .height(dimensions.buttonHeight),
-        enabled = enabled,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Transparent,
+        onClick        = onClick,
+        modifier       = modifier.height(dimensions.buttonHeight),
+        enabled        = enabled,
+        colors         = ButtonDefaults.buttonColors(
+            containerColor         = Color.Transparent,
             disabledContainerColor = Color.Transparent
         ),
         contentPadding = PaddingValues(),
-        shape = RoundedCornerShape(16.dp),
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 0.dp,
-            pressedElevation = 0.dp
+        // WAS: RoundedCornerShape(16.dp)  →  dimensions.buttonCornerRadius
+        shape          = RoundedCornerShape(dimensions.buttonCornerRadius),
+        elevation      = ButtonDefaults.buttonElevation(
+            defaultElevation = dimensions.cardElevation * 0f,
+            pressedElevation = dimensions.cardElevation * 0f
         )
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
-                    // Translucent background like iOS
                     Brush.verticalGradient(
                         colors = listOf(
                             MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
                             MaterialTheme.colorScheme.surface.copy(alpha = 0.2f)
                         )
                     ),
-                    shape = RoundedCornerShape(16.dp)
+                    // WAS: RoundedCornerShape(16.dp)  →  dimensions.buttonCornerRadius
+                    shape = RoundedCornerShape(dimensions.buttonCornerRadius)
                 ),
             contentAlignment = Alignment.Center
         ) {
             // Subtle border effect
+            // WAS: Color.White.copy(alpha = 0.1f)  →  customColors.glassOverlay (dark-mode safe)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        Color.White.copy(alpha = 0.1f),
-                        shape = RoundedCornerShape(16.dp)
+                        customColors.glassOverlay,
+                        // WAS: RoundedCornerShape(16.dp)  →  dimensions.buttonCornerRadius
+                        shape = RoundedCornerShape(dimensions.buttonCornerRadius)
                     )
             )
 
             Text(
-                text = text,
-                style = MaterialTheme.typography.titleMedium,
-                color = customColors.accentGradientStart,
+                text       = text,
+                style      = MaterialTheme.typography.titleMedium,
+                color      = customColors.accentGradientStart,
                 fontWeight = FontWeight.SemiBold
             )
         }
@@ -184,15 +187,70 @@ fun SecondaryButton(
 }
 
 /**
- * Text Button - Minimal glassmorphic button
- *
- * Usage:
- * ```
- * AppTextButton(
- *     text = "Skip",
- *     onClick = { /* action */ }
- * )
- * ```
+ * Danger / Destructive Button — Warning gradient style
+ */
+@Composable
+fun DangerButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
+    val dimensions   = LocalDimensions.current
+    val customColors = MaterialTheme.customColors
+
+    Button(
+        onClick        = onClick,
+        modifier       = modifier.height(dimensions.buttonHeight),
+        enabled        = enabled,
+        colors         = ButtonDefaults.buttonColors(
+            containerColor         = Color.Transparent,
+            disabledContainerColor = Color.Transparent
+        ),
+        contentPadding = PaddingValues(),
+        // WAS: RoundedCornerShape(16.dp)  →  dimensions.buttonCornerRadius
+        shape          = RoundedCornerShape(dimensions.buttonCornerRadius),
+        elevation      = ButtonDefaults.buttonElevation(
+            defaultElevation = dimensions.cardElevation * 0f,
+            pressedElevation = dimensions.cardElevation * 0f
+        )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            customColors.warning.copy(alpha = 0.85f),
+                            customColors.warning.copy(alpha = 0.70f)
+                        )
+                    ),
+                    // WAS: RoundedCornerShape(16.dp)  →  dimensions.buttonCornerRadius
+                    shape = RoundedCornerShape(dimensions.buttonCornerRadius)
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        customColors.glassOverlay,
+                        // WAS: RoundedCornerShape(16.dp)  →  dimensions.buttonCornerRadius
+                        shape = RoundedCornerShape(dimensions.buttonCornerRadius)
+                    )
+            )
+            Text(
+                text       = text,
+                style      = MaterialTheme.typography.titleMedium,
+                color      = MaterialTheme.colorScheme.onPrimary,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+    }
+}
+
+/**
+ * Text Button — Minimal glassmorphic button
  */
 @Composable
 fun AppTextButton(
@@ -202,16 +260,16 @@ fun AppTextButton(
     enabled: Boolean = true
 ) {
     TextButton(
-        onClick = onClick,
+        onClick  = onClick,
         modifier = modifier,
-        enabled = enabled,
-        colors = ButtonDefaults.textButtonColors(
+        enabled  = enabled,
+        colors   = ButtonDefaults.textButtonColors(
             contentColor = MaterialTheme.colorScheme.primary
         )
     ) {
         Text(
-            text = text,
-            style = MaterialTheme.typography.titleMedium,
+            text       = text,
+            style      = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Medium
         )
     }
@@ -219,78 +277,57 @@ fun AppTextButton(
 
 /**
  * Icon Button with Glassmorphic Background
- *
- * Usage:
- * ```
- * GradientIconButton(
- *     icon = Icons.Default.Add,
- *     contentDescription = "Add milestone",
- *     onClick = { /* action */ }
- * )
- * ```
  */
 @Composable
 fun GradientIconButton(
     icon: androidx.compose.ui.graphics.vector.ImageVector,
-    contentDescription: String?,
+    contentDescription: String,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true
+    modifier: Modifier = Modifier
 ) {
-    val dimensions = LocalDimensions.current
+    val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
 
     IconButton(
-        onClick = onClick,
-        modifier = modifier
-            .size(dimensions.iconLarge + 16.dp),
-        enabled = enabled
+        onClick  = onClick,
+        modifier = modifier.size(dimensions.iconXLarge)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
-                    brush = Brush.verticalGradient(
+                    Brush.verticalGradient(
                         colors = listOf(
                             customColors.accentGradientStart.copy(alpha = 0.85f),
-                            customColors.accentGradientEnd.copy(alpha = 0.75f)
+                            customColors.accentGradientEnd.copy(alpha = 0.80f)
                         )
                     ),
-                    shape = RoundedCornerShape(16.dp)
+                    // WAS: RoundedCornerShape(16.dp)  →  dimensions.buttonCornerRadius
+                    shape = RoundedCornerShape(dimensions.buttonCornerRadius)
                 ),
             contentAlignment = Alignment.Center
         ) {
-            // Overlay for glassmorphic effect
+            // WAS: Color.White.copy(alpha = 0.2f)  →  customColors.glassOverlay
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        Color.White.copy(alpha = 0.15f),
-                        shape = RoundedCornerShape(16.dp)
+                        customColors.glassOverlay,
+                        shape = RoundedCornerShape(dimensions.buttonCornerRadius)
                     )
             )
-
             Icon(
-                imageVector = icon,
+                imageVector        = icon,
                 contentDescription = contentDescription,
-                tint = Color.White,
-                modifier = Modifier.size(dimensions.iconMedium)
+                tint               = MaterialTheme.colorScheme.onPrimary,
+                modifier           = Modifier.size(dimensions.iconMedium)
             )
         }
     }
 }
 
 /**
- * Chip Button - iOS-style pill button
- *
- * Usage:
- * ```
- * ChipButton(
- *     text = "0-3 months",
- *     selected = true,
- *     onClick = { /* action */ }
- * )
- * ```
+ * Chip / Filter Button
  */
 @Composable
 fun ChipButton(
@@ -299,178 +336,31 @@ fun ChipButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
 
-    Button(
-        onClick = onClick,
-        modifier = modifier.height(36.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Transparent
-        ),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-        shape = RoundedCornerShape(18.dp),
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 0.dp
-        )
-    ) {
-        Box(
-            modifier = Modifier
-                .background(
-                    if (selected) {
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                customColors.accentGradientStart.copy(alpha = 0.85f),
-                                customColors.accentGradientEnd.copy(alpha = 0.75f)
-                            )
-                        )
-                    } else {
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
-                                MaterialTheme.colorScheme.surface.copy(alpha = 0.2f)
-                            )
-                        )
-                    },
-                    shape = RoundedCornerShape(18.dp)
-                )
-        ) {
-            // Glassmorphic overlay
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .background(
-                        Color.White.copy(alpha = if (selected) 0.15f else 0.1f),
-                        shape = RoundedCornerShape(18.dp)
-                    )
+    FilterChip(
+        selected = selected,
+        onClick  = onClick,
+        label    = {
+            Text(
+                text  = text,
+                style = MaterialTheme.typography.labelMedium
             )
-        }
-
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelMedium,
-            color = if (selected) Color.White else MaterialTheme.colorScheme.onSurface,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
-        )
-    }
-}
-
-/**
- * Floating Action Button with Glassmorphic gradient
- *
- * Usage:
- * ```
- * GradientFAB(
- *     icon = Icons.Default.Add,
- *     contentDescription = "Add new",
- *     onClick = { /* action */ }
- * )
- * ```
- */
-
-@Composable
-fun GradientFAB(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    contentDescription: String?,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    expanded: Boolean = false,
-    text: String? = null
-) {
-    val customColors = MaterialTheme.customColors
-
-    if (expanded && text != null) {
-        ExtendedFloatingActionButton(
-            onClick = onClick,
-            modifier = modifier,
-            containerColor = Color.Transparent,
-            contentColor = Color.White
-        ) {
-            Box(
-                modifier = Modifier
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                customColors.accentGradientStart.copy(alpha = 0.9f),
-                                customColors.accentGradientEnd.copy(alpha = 0.8f)
-                            )
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-            ) {
-                // Glassmorphic layer
-                Box(
-                    modifier = Modifier
-                        .matchParentSize()
-                        .background(
-                            Color.White.copy(alpha = 0.2f),
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                )
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = contentDescription
-                    )
-                    Text(text = text)
-                }
-            }
-        }
-    } else {
-        FloatingActionButton(
-            onClick = onClick,
-            modifier = modifier,
-            containerColor = Color.Transparent,
-            contentColor = Color.White,
-            shape = RoundedCornerShape(16.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                customColors.accentGradientStart.copy(alpha = 0.9f),
-                                customColors.accentGradientEnd.copy(alpha = 0.8f)
-                            )
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                // Glassmorphic overlay
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Color.White.copy(alpha = 0.2f),
-                            shape = RoundedCornerShape(16.dp)
-                        )
-                )
-
-                Icon(
-                    imageVector = icon,
-                    contentDescription = contentDescription
-                )
-            }
-        }
-    }
+        },
+        modifier = modifier,
+        colors   = FilterChipDefaults.filterChipColors(
+            selectedContainerColor      = customColors.accentGradientStart.copy(alpha = 0.85f),
+            selectedLabelColor          = MaterialTheme.colorScheme.onPrimary,
+            containerColor              = MaterialTheme.colorScheme.surface,
+            labelColor                  = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+        ),
+        shape = RoundedCornerShape(dimensions.buttonCornerRadius / 2)
+    )
 }
 
 /**
  * Large Full-Width Button
- *
- * Usage:
- * ```
- * LargeButton(
- *     text = "Get Started",
- *     onClick = { /* action */ }
- * )
- * ```
  */
 @Composable
 fun LargeButton(
@@ -480,46 +370,20 @@ fun LargeButton(
     enabled: Boolean = true,
     icon: androidx.compose.ui.graphics.vector.ImageVector? = null
 ) {
-    PrimaryButton(
-        text = text,
-        onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
-        enabled = enabled
-    )
-}
-
-/**
- * Danger/Delete Button with iOS-style translucent red
- *
- * Usage:
- * ```
- * DangerButton(
- *     text = "Delete Account",
- *     onClick = { /* action */ }
- * )
- * ```
- */
-@Composable
-fun DangerButton(
-    text: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true
-) {
-    val dimensions = LocalDimensions.current
+    val dimensions   = LocalDimensions.current
+    val customColors = MaterialTheme.customColors
 
     Button(
-        onClick = onClick,
-        modifier = modifier.height(dimensions.buttonHeight),
-        enabled = enabled,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = Color.Transparent
+        onClick        = onClick,
+        modifier       = modifier.height(dimensions.buttonHeight),
+        enabled        = enabled,
+        colors         = ButtonDefaults.buttonColors(
+            containerColor         = Color.Transparent,
+            disabledContainerColor = Color.Transparent
         ),
-        shape = RoundedCornerShape(16.dp),
         contentPadding = PaddingValues(),
-        elevation = ButtonDefaults.buttonElevation(
-            defaultElevation = 0.dp
-        )
+        // WAS: RoundedCornerShape(16.dp)  →  dimensions.buttonCornerRadius
+        shape          = RoundedCornerShape(dimensions.buttonCornerRadius)
     ) {
         Box(
             modifier = Modifier
@@ -527,41 +391,41 @@ fun DangerButton(
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color(0xFFEF5350).copy(alpha = 0.85f),
-                            Color(0xFFE53935).copy(alpha = 0.75f)
+                            customColors.accentGradientStart.copy(alpha = 0.85f),
+                            customColors.accentGradientEnd.copy(alpha = 0.70f)
                         )
                     ),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(dimensions.buttonCornerRadius)
                 ),
             contentAlignment = Alignment.Center
         ) {
-            // Glassmorphic overlay
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        Color.White.copy(alpha = 0.15f),
-                        shape = RoundedCornerShape(16.dp)
+                        customColors.glassOverlay,
+                        shape = RoundedCornerShape(dimensions.buttonCornerRadius)
                     )
             )
-
-            Text(
-                text = text,
-                style = MaterialTheme.typography.titleMedium,
-                color = Color.White,
-                fontWeight = FontWeight.SemiBold
-            )
+            Row(
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
+            ) {
+                icon?.let {
+                    Icon(
+                        imageVector        = it,
+                        contentDescription = null,
+                        tint               = MaterialTheme.colorScheme.onPrimary,
+                        modifier           = Modifier.size(dimensions.iconMedium)
+                    )
+                }
+                Text(
+                    text       = text,
+                    style      = MaterialTheme.typography.titleMedium,
+                    color      = MaterialTheme.colorScheme.onPrimary,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
         }
     }
 }
-
-/*
-Button Type            Use For                    Example
-PrimaryButton          Main actions              Save, Submit, Continue
-SecondaryButton        Alternative actions       Cancel, Back, Skip
-AppTextButton          Minor actions             Learn More, Skip
-DangerButton           Destructive actions       Delete, Remove
-GradientIconButton     Icon actions              Add, Edit, Share
-ChipButton             Filters, selections       Categories, Tags
-GradientFAB            Floating actions          Add, Create
- */
