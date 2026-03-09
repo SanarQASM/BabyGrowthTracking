@@ -16,6 +16,9 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.*
+import babygrowthtrackingapplication.composeapp.generated.resources.Res
+import babygrowthtrackingapplication.composeapp.generated.resources.add_measure_title
+import babygrowthtrackingapplication.composeapp.generated.resources.common_back
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
@@ -23,6 +26,7 @@ import org.example.project.babygrowthtrackingapplication.com.babygrowth.presenta
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.AddMeasurementViewModel
 import org.example.project.babygrowthtrackingapplication.data.network.ApiService
 import org.example.project.babygrowthtrackingapplication.theme.*
+import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
@@ -89,20 +93,21 @@ fun AddMeasurementScreen(
 
     BabyGrowthTheme {
         Scaffold(
+
             topBar = {
                 TopAppBar(
                     title = {
                         Column {
                             Text(
-                                text       = "Add Measurement",
+                                text       = stringResource(Res.string.add_measure_title),
                                 fontWeight = FontWeight.Bold,
                                 style      = MaterialTheme.typography.titleMedium,
-                                color      = MaterialTheme.colorScheme.onBackground
+                                color      = customColors.accentGradientStart   // FIX: was onBackground
                             )
                             Text(
                                 text  = babyName,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onBackground.copy(0.6f)
+                                color = customColors.accentGradientStart.copy(0.6f)   // FIX: was onBackground
                             )
                         }
                     },
@@ -110,13 +115,15 @@ fun AddMeasurementScreen(
                         IconButton(onClick = onBack) {
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Back",
-                                tint = MaterialTheme.colorScheme.onBackground
+                                contentDescription = stringResource(Res.string.common_back),
+                                tint = customColors.accentGradientStart   // FIX: was onBackground
                             )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = customColors.accentGradientStart.copy(alpha = 0.15f)
+                        containerColor             = customColors.accentGradientStart.copy(alpha = 0.15f),
+                        titleContentColor          = customColors.accentGradientStart,   // FIX: added
+                        navigationIconContentColor = customColors.accentGradientStart    // FIX: added
                     )
                 )
             },

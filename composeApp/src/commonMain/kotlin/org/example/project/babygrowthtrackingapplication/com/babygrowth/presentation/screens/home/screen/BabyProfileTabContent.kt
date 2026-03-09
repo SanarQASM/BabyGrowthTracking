@@ -3,8 +3,7 @@ package org.example.project.babygrowthtrackingapplication.com.babygrowth.present
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -12,7 +11,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.font.FontWeight
@@ -28,6 +28,10 @@ import babygrowthtrackingapplication.composeapp.generated.resources.*
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HomeViewModel
 
 enum class BabyFilter { ALL, ACTIVE, ARCHIVED }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BabyProfileTabContent
+// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 fun BabyProfileTabContent(
@@ -228,6 +232,7 @@ fun BabyProfileTabContent(
                             }
 
                             item {
+                                // ── Count label row + Add baby button ─────────
                                 Row(
                                     modifier              = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -239,16 +244,18 @@ fun BabyProfileTabContent(
                                         fontWeight = FontWeight.SemiBold,
                                         color      = MaterialTheme.colorScheme.onBackground
                                     )
+
+                                    // ── FIX 3: Add text label below the + button ──
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         Box(
                                             modifier = Modifier
                                                 .size(dimensions.addButtonSize)                   // WAS: 36.dp
                                                 .background(
                                                     customColors.accentGradientStart.copy(0.15f),
-                                                    RoundedCornerShape(dimensions.chipCornerRadius) // WAS: spacingSmall + 2.dp
+                                                    RoundedCornerShape(dimensions.chipCornerRadius)
                                                 )
                                                 .border(
-                                                    dimensions.borderWidthThin,                   // WAS: 1.dp
+                                                    dimensions.borderWidthThin,
                                                     customColors.accentGradientStart.copy(0.3f),
                                                     RoundedCornerShape(dimensions.chipCornerRadius)
                                                 )
@@ -257,31 +264,36 @@ fun BabyProfileTabContent(
                                         ) {
                                             Icon(
                                                 Icons.Default.Add,
-                                                contentDescription = stringResource(Res.string.baby_add_more_child),
+                                                contentDescription = stringResource(Res.string.home_add_more_child),
                                                 tint     = customColors.accentGradientStart,
                                                 modifier = Modifier.size(dimensions.iconMedium)
                                             )
                                         }
-                                        Spacer(Modifier.height(dimensions.borderWidthMedium))     // WAS: 2.dp
+                                        // ← NEW: label below the + button (matches HomeTab UX)
+                                        Spacer(Modifier.height(dimensions.spacingXSmall - dimensions.borderWidthThin))
                                         Text(
-                                            text      = stringResource(Res.string.baby_add_more_child),
+                                            text      = stringResource(Res.string.home_add_more_child),
                                             style     = MaterialTheme.typography.labelSmall,
-                                            color     = MaterialTheme.colorScheme.onBackground.copy(0.55f),
+                                            color     = MaterialTheme.colorScheme.onBackground.copy(0.65f),
                                             textAlign = TextAlign.Center,
-                                            fontSize  = dimensions.homeSmallTextSize              // WAS: 9.sp
+                                            maxLines  = 2,
+                                            fontSize  = dimensions.homeSmallTextSize,
+                                            lineHeight= dimensions.homeSmallLineHeight,
+                                            modifier  = Modifier.widthIn(max = dimensions.addButtonSize + dimensions.spacingMedium)
                                         )
                                     }
                                 }
-                                Spacer(Modifier.height(dimensions.spacingSmall / 2))
+                                Spacer(Modifier.height(dimensions.spacingSmall))
                             }
 
                             if (displayedBabies.isEmpty()) {
                                 item { EmptyFilterResult(filter = activeFilter) }
                             } else {
-                                items(items = displayedBabies, key = { it.babyId }) { baby ->
+                                items(displayedBabies) { baby ->
                                     BabyCard(
-                                        baby              = baby,
-                                        vaccinations      = state.upcomingVaccinations[baby.babyId] ?: emptyList(),
+                                        baby             = baby,
+                                        vaccinations     = state.upcomingVaccinations[baby.babyId]
+                                            ?: emptyList(),
                                         latestGrowth      = state.latestGrowthRecords[baby.babyId],
                                         onSeeProfile      = { onSeeProfile(baby) },
                                         onArchive         = { archiveConfirmBaby   = baby },
@@ -325,33 +337,34 @@ private fun BabySearchBar(
         modifier = modifier
             .background(
                 MaterialTheme.colorScheme.surface,
-                RoundedCornerShape(dimensions.chipCornerRadius)  // WAS: logoSize * 0.07f
+                RoundedCornerShape(dimensions.chipCornerRadius)
             )
             .border(
-                dimensions.borderWidthThin,                      // WAS: 1.dp
+                dimensions.borderWidthThin,
                 customColors.accentGradientStart.copy(0.2f),
                 RoundedCornerShape(dimensions.chipCornerRadius)
             )
-            .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingSmall / 2),
+            .padding(
+                horizontal = dimensions.spacingMedium,
+                vertical   = dimensions.spacingSmall + dimensions.spacingXSmall
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             Icons.Default.Search,
-            contentDescription = hint,
-            tint     = MaterialTheme.colorScheme.onSurface.copy(0.45f),
-            modifier = Modifier.size(dimensions.iconMedium)
+            contentDescription = null,
+            tint               = customColors.accentGradientStart.copy(0.6f),
+            modifier           = Modifier.size(dimensions.iconMedium)
         )
         Spacer(Modifier.width(dimensions.spacingSmall))
         BasicTextField(
             value         = query,
             onValueChange = onQueryChange,
-            modifier      = Modifier
-                .weight(1f)
-                .padding(vertical = dimensions.profileSectionCardVertPad), // WAS: spacingSmall + 2.dp
-            singleLine    = true,
+            modifier      = Modifier.weight(1f),
             textStyle     = MaterialTheme.typography.bodyMedium.copy(
                 color = MaterialTheme.colorScheme.onSurface
             ),
+            singleLine    = true,
             decorationBox = { inner ->
                 if (query.isEmpty()) {
                     Text(
@@ -369,10 +382,9 @@ private fun BabySearchBar(
                 modifier = Modifier.size(dimensions.iconMedium)
             ) {
                 Icon(
-                    Icons.Default.Close,
+                    Icons.Default.Clear,
                     contentDescription = null,
-                    tint     = MaterialTheme.colorScheme.onSurface.copy(0.5f),
-                    modifier = Modifier.size(dimensions.iconMedium - 4.dp)
+                    tint = MaterialTheme.colorScheme.onSurface.copy(0.5f)
                 )
             }
         }
@@ -405,7 +417,7 @@ private fun BabyFilterTabs(selected: BabyFilter, onSelect: (BabyFilter) -> Unit)
                     .background(
                         if (isSelected) customColors.accentGradientStart.copy(0.18f)
                         else MaterialTheme.colorScheme.surfaceVariant.copy(0.5f),
-                        RoundedCornerShape(dimensions.filterTabCorner)   // WAS: 20.dp
+                        RoundedCornerShape(dimensions.filterTabCorner)
                     )
                     .border(
                         width = if (isSelected) dimensions.borderWidthThin + 0.5.dp else dimensions.borderWidthThin,
@@ -448,8 +460,8 @@ private fun BabyCard(
     onAddMeasurement : () -> Unit,
     onViewGrowthChart: () -> Unit
 ) {
-    val customColors      = MaterialTheme.customColors
-    val dimensions        = LocalDimensions.current
+    val customColors        = MaterialTheme.customColors
+    val dimensions          = LocalDimensions.current
     var quickActionExpanded by remember { mutableStateOf(false) }
 
     val isFemale = baby.gender.equals("FEMALE", ignoreCase = true) ||
@@ -480,11 +492,20 @@ private fun BabyCard(
 
     val doneVaccines  = vaccinations.count { it.status.equals("ADMINISTERED", ignoreCase = true) }
     val totalVaccines = vaccinations.size
-    val displayHeight = latestGrowth?.height ?: baby.birthHeight
-    val displayWeight = latestGrowth?.weight ?: baby.birthWeight
-    val heightPct     = latestGrowth?.heightPercentile
-    val weightPct     = latestGrowth?.weightPercentile
 
+    // ── FIX 2: measurement priority — same as HomeTab ────────────────────────
+    // Birth measurement first, then latest growth, then null (hidden if both absent)
+    val displayWeight = baby.birthWeight ?: latestGrowth?.weight
+    val displayHeight = baby.birthHeight ?: latestGrowth?.height
+    val displayHead   = baby.birthHeadCircumference ?: latestGrowth?.headCircumference
+
+    val heightPct = latestGrowth?.heightPercentile
+    val weightPct = latestGrowth?.weightPercentile
+
+    // ── FIX 1: use ONE clip — Card shape matches Box background shape ─────────
+    // The old code had Card(shape=18.dp) wrapping Box(clip=18.dp hardcoded),
+    // creating a double-clip that showed a sharp inner rectangle.
+    // Fix: remove the inner clip entirely — Card already clips its content.
     Card(
         modifier  = Modifier.fillMaxWidth(),
         shape     = RoundedCornerShape(dimensions.chartCardCornerRadius),   // WAS: 18.dp
@@ -494,13 +515,16 @@ private fun BabyCard(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(18.dp))
+                // ← FIX 1: NO .clip() here — Card already clips with chartCardCornerRadius.
+                // The old .clip(RoundedCornerShape(18.dp)) was hardcoded and mismatched
+                // the Card's RoundedCornerShape(dimensions.chartCardCornerRadius),
+                // causing a visible rectangular inner border on non-compact screens.
                 .background(cardBg)
                 .padding(dimensions.babyCardInnerPadding)                   // WAS: 16.dp
         ) {
             Column {
+                // ── Header: avatar + name + archived badge + 3-dot menu ───────
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    // Avatar
                     Box(
                         modifier = Modifier
                             .size(dimensions.babyCardAvatarSize)             // WAS: 52.dp
@@ -534,17 +558,39 @@ private fun BabyCard(
                                     modifier = Modifier
                                         .background(
                                             customColors.glassOverlay,
-                                            RoundedCornerShape(dimensions.babyCardInlineBadgeCorner) // WAS: 6.dp
+                                            RoundedCornerShape(dimensions.babyCardInlineBadgeCorner)
                                         )
                                         .padding(
-                                            horizontal = dimensions.babyCardInlineBadgePaddingH, // WAS: 6.dp
-                                            vertical   = dimensions.babyCardInlineBadgePaddingV  // WAS: 2.dp
+                                            horizontal = dimensions.babyCardInlineBadgePaddingH,
+                                            vertical   = dimensions.babyCardInlineBadgePaddingV
                                         )
                                 ) {
                                     Text(
                                         text       = stringResource(Res.string.baby_status_archived),
                                         style      = MaterialTheme.typography.labelSmall,
                                         color      = MaterialTheme.colorScheme.onPrimary,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            }
+                            // Auto-archived badge (baby ≥ 6 years)
+                            if (!baby.isActive && baby.ageInMonths >= 72) {
+                                Spacer(Modifier.width(dimensions.spacingXSmall))
+                                Box(
+                                    modifier = Modifier
+                                        .background(
+                                            MaterialTheme.colorScheme.error.copy(0.15f),
+                                            RoundedCornerShape(dimensions.babyCardInlineBadgeCorner)
+                                        )
+                                        .padding(
+                                            horizontal = dimensions.babyCardInlineBadgePaddingH,
+                                            vertical   = dimensions.babyCardInlineBadgePaddingV
+                                        )
+                                ) {
+                                    Text(
+                                        text       = "6+ yrs",
+                                        style      = MaterialTheme.typography.labelSmall,
+                                        color      = MaterialTheme.colorScheme.error,
                                         fontWeight = FontWeight.Medium
                                     )
                                 }
@@ -580,6 +626,7 @@ private fun BabyCard(
 
                 Spacer(Modifier.height(dimensions.babyCardSpacerAfterAvatar)) // WAS: 10.dp
 
+                // Gender + age row
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text  = if (isFemale) "♀" else "♂",
@@ -599,21 +646,66 @@ private fun BabyCard(
 
                 Spacer(Modifier.height(dimensions.babyCardSpacerAfterAvatar)) // WAS: 10.dp
 
-                displayHeight?.let { h ->
-                    val pct = if (heightPct != null) " (${heightPct}th %ile)" else ""
-                    BabyStatRow("📊", stringResource(Res.string.baby_stat_height, h) + pct)
+                // ── FIX 2: 3 measurement chips — same style as HomeTab ────────
+                // Old code used BabyStatRow with stringResource(%s format) which showed "%scm".
+                // New code uses inline chip Row matching HomeTabContent's BabyStatChip pattern.
+                Row(
+                    modifier              = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
+                ) {
+                    MeasurementChip(
+                        icon        = "⚖️",
+                        label       = stringResource(Res.string.baby_birth_weight),
+                        value       = displayWeight?.let { "$it kg" } ?: "—",
+                        accentColor = MaterialTheme.colorScheme.onPrimary,
+                        modifier    = Modifier.weight(1f)
+                    )
+                    MeasurementChip(
+                        icon        = "📏",
+                        label       = stringResource(Res.string.baby_birth_height),
+                        value       = displayHeight?.let { "$it cm" } ?: "—",
+                        accentColor = MaterialTheme.colorScheme.onPrimary,
+                        modifier    = Modifier.weight(1f)
+                    )
+                    MeasurementChip(
+                        icon        = "🔵",
+                        label       = stringResource(Res.string.add_measure_head),
+                        value       = displayHead?.let { "$it cm" } ?: "—",
+                        accentColor = MaterialTheme.colorScheme.onPrimary,
+                        modifier    = Modifier.weight(1f)
+                    )
                 }
-                displayWeight?.let { w ->
-                    Spacer(Modifier.height(dimensions.babyCardStatSpacer))     // WAS: 3.dp
-                    val pct = if (weightPct != null) " (${weightPct}th %ile)" else ""
-                    BabyStatRow("", stringResource(Res.string.baby_stat_weight, w) + pct)
-                }
+
+                // Vaccine row (only if there are vaccines)
                 if (totalVaccines > 0) {
                     Spacer(Modifier.height(dimensions.babyCardStatSpacer))     // WAS: 3.dp
                     BabyStatRow(
                         "💉",
                         stringResource(Res.string.baby_stat_vaccines, doneVaccines, totalVaccines)
                     )
+                }
+
+                // Percentile sub-row (only if available)
+                if (heightPct != null || weightPct != null) {
+                    Spacer(Modifier.height(dimensions.babyCardStatSpacer))
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
+                    ) {
+                        heightPct?.let {
+                            Text(
+                                "📊 Height: ${it}th %ile",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimary.copy(0.7f)
+                            )
+                        }
+                        weightPct?.let {
+                            Text(
+                                "⚖️ Weight: ${it}th %ile",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimary.copy(0.7f)
+                            )
+                        }
+                    }
                 }
 
                 Spacer(Modifier.height(dimensions.babyCardBottomSpacer))       // WAS: 14.dp
@@ -658,6 +750,52 @@ private fun BabyCard(
                     }
                 }
             }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MEASUREMENT CHIP  (FIX 2 — matches HomeTab BabyStatChip exactly)
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun MeasurementChip(
+    icon       : String,
+    label      : String,
+    value      : String,
+    accentColor: Color,
+    modifier   : Modifier = Modifier
+) {
+    val dimensions = LocalDimensions.current
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(dimensions.spacingSmall))
+            .background(accentColor.copy(0.15f))
+            .padding(
+                horizontal = dimensions.spacingSmall,
+                vertical   = dimensions.spacingXSmall + 1.dp
+            ),
+        verticalAlignment     = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
+    ) {
+        Text(icon, fontSize = (dimensions.iconSmall.value - 4).sp)
+        Column {
+            Text(
+                label,
+                style    = MaterialTheme.typography.labelSmall,
+                color    = accentColor.copy(0.6f),
+                fontSize = dimensions.homeSmallTextSize,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                value,
+                style      = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.SemiBold,
+                color      = accentColor,
+                maxLines   = 1,
+                overflow   = TextOverflow.Ellipsis
+            )
         }
     }
 }
@@ -719,7 +857,7 @@ private fun QuickActionItem(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// STAT ROW
+// STAT ROW  (kept for vaccines row — text format only, no Double formatting)
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable

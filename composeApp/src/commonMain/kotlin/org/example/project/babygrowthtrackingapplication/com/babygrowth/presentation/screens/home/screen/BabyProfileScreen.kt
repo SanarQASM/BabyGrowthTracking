@@ -217,9 +217,9 @@ fun BabyProfileScreen(
                         )
                         ProfileInfoDivider()
                         ProfileInfoRow(
-                            icon  = "📅",
-                            label = stringResource(Res.string.profile_age),
-                            value = formatProfileAge(baby.ageInMonths)
+                            icon  = "🗓️",
+                            label = stringResource(Res.string.profile_days_old),
+                            value = stringResource(Res.string.profile_days_old_value, baby.ageInDays.toInt())
                         )
                         ProfileInfoDivider()
                         ProfileInfoRow(
@@ -238,50 +238,65 @@ fun BabyProfileScreen(
 
                     // BIRTH MEASUREMENTS
                     ProfileSectionCard(title = stringResource(Res.string.profile_section_birth_measurements)) {
-                        baby.birthWeight?.let { w ->
-                            ProfileInfoRow(
-                                icon  = "⚖️",
-                                label = stringResource(Res.string.chart_legend_weight_kg),
-                                value = stringResource(Res.string.profile_weight_value, w.toString())
-                            )
-                            ProfileInfoDivider()
-                        }
-                        baby.birthHeight?.let { h ->
-                            ProfileInfoRow(
-                                icon  = "📏",
-                                label = stringResource(Res.string.chart_legend_height_cm),
-                                value = stringResource(Res.string.profile_height_value, h.toString())
-                            )
-                        }
+                        ProfileInfoRow(
+                            icon  = "⚖️",
+                            label = stringResource(Res.string.chart_legend_weight_kg),
+                            value = if (baby.birthWeight != null && baby.birthWeight > 0.0)
+                                stringResource(Res.string.profile_weight_value, baby.birthWeight.toString())
+                            else
+                                stringResource(Res.string.profile_not_recorded)   // "Not recorded"
+                        )
+                        ProfileInfoDivider()
+                        ProfileInfoRow(
+                            icon  = "📏",
+                            label = stringResource(Res.string.chart_legend_height_cm),
+                            value = if (baby.birthHeight != null && baby.birthHeight > 0.0)
+                                stringResource(Res.string.profile_height_value, baby.birthHeight.toString())
+                            else
+                                stringResource(Res.string.profile_not_recorded)   // "Not recorded"
+                        )
                     }
 
                     // LATEST GROWTH RECORD
                     latestGrowth?.let { growth ->
                         ProfileSectionCard(title = stringResource(Res.string.profile_section_latest_growth)) {
-                            growth.weight?.let { w ->
-                                val pct = growth.weightPercentile
+                            // Weight row
+                            val weightPct = growth.weightPercentile
+                            ProfileInfoRow(
+                                icon  = "⚖️",
+                                label = stringResource(Res.string.chart_legend_weight_kg),
+                                value = when {
+                                    growth.weight == null -> stringResource(Res.string.profile_not_recorded)
+                                    weightPct != null     -> stringResource(Res.string.profile_weight_percentile, growth.weight.toString(), weightPct)
+                                    else                  -> stringResource(Res.string.profile_weight_value, growth.weight.toString())
+                                }
+                            )
+                            ProfileInfoDivider()
+
+                            // Height row
+                            val heightPct = growth.heightPercentile
+                            ProfileInfoRow(
+                                icon  = "📏",
+                                label = stringResource(Res.string.chart_legend_height_cm),
+                                value = when {
+                                    growth.height == null -> stringResource(Res.string.profile_not_recorded)
+                                    heightPct != null     -> stringResource(Res.string.profile_height_percentile, growth.height.toString(), heightPct)
+                                    else                  -> stringResource(Res.string.profile_height_value, growth.height.toString())
+                                }
+                            )
+                            ProfileInfoDivider()
+
+                            // Head circumference row (bonus — also guarded)
+                            growth.headCircumference?.let { hc ->
                                 ProfileInfoRow(
-                                    icon  = "⚖️",
-                                    label = stringResource(Res.string.chart_legend_weight_kg),
-                                    value = if (pct != null)
-                                        stringResource(Res.string.profile_weight_percentile, w.toString(), pct)
-                                    else
-                                        stringResource(Res.string.profile_weight_value, w.toString())
+                                    icon  = "🔵",
+                                    label = stringResource(Res.string.chart_legend_head_cm),
+                                    value = stringResource(Res.string.chart_head_unit, hc.toString())
                                 )
                                 ProfileInfoDivider()
                             }
-                            growth.height?.let { h ->
-                                val pct = growth.heightPercentile
-                                ProfileInfoRow(
-                                    icon  = "📏",
-                                    label = stringResource(Res.string.chart_legend_height_cm),
-                                    value = if (pct != null)
-                                        stringResource(Res.string.profile_height_percentile, h.toString(), pct)
-                                    else
-                                        stringResource(Res.string.profile_height_value, h.toString())
-                                )
-                                ProfileInfoDivider()
-                            }
+
+                            // Recorded on
                             ProfileInfoRow(
                                 icon  = "📅",
                                 label = stringResource(Res.string.profile_recorded_on),
@@ -289,6 +304,17 @@ fun BabyProfileScreen(
                             )
                         }
                     }
+// If no growth record at all, show a placeholder card:
+                        ?: ProfileSectionCard(title = stringResource(Res.string.profile_section_latest_growth)) {
+                            ProfileInfoRow(
+                                icon  = "📊",
+                                label = stringResource(Res.string.profile_section_latest_growth),
+                                value = stringResource(Res.string.chart_no_measurement)   // "No measurement yet"
+                            )
+                        }
+
+
+
 
                     // VACCINATIONS
                     if (vaccinations.isNotEmpty()) {

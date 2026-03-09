@@ -59,6 +59,23 @@ class HomeViewModel(
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Q4 auto-archive threshold:
+    // A baby aged 6 years (72 months) or older has graduated beyond the app's
+    // primary tracking window.  On every data load we silently move any still-
+    // active baby that has reached this age to the archived list.
+    //
+    // Which entity / attribute?
+    //   Entity    : Baby (backend) / BabyResponse (client)
+    //   Attribute : ageInMonths  — computed by the backend from dateOfBirth each
+    //               request, so it is always current without any client-side date math.
+    //   Threshold : ageInMonths >= AUTO_ARCHIVE_MONTHS  (i.e. 72 = 6 × 12)
+    //   Triggered : inside loadHomeData(), after the baby list arrives.
+    //   Mechanism : calls archiveBaby(babyId) via the existing PATCH /status endpoint,
+    //               so the isActive flag is persisted server-side — not just a local filter.
+    // ─────────────────────────────────────────────────────────────────────────
+    private val AUTO_ARCHIVE_MONTHS = 72   // 6 years
+
     init { loadHomeData() }
 
     // ── Initial load ──────────────────────────────────────────────────────────
@@ -73,9 +90,21 @@ class HomeViewModel(
 
             when (val result = apiService.getBabiesByParent(userId)) {
                 is ApiResult.Success -> {
-                    uiState = uiState.copy(babies = result.data, isLoading = false)
+                    val babies = result.data
+                    uiState = uiState.copy(babies = babies, isLoading = false)
+
+                    // ── Auto-archive babies ≥ 6 years ─────────────────────────
+                    // Check every active baby: if ageInMonths >= 72, silently
+                    // archive them. This uses the backend-computed ageInMonths
+                    // field (from Baby.getAgeInMonths()) so no client date math.
+                    babies
+                        .filter { it.isActive && it.ageInMonths >= AUTO_ARCHIVE_MONTHS }
+                        .forEach { baby ->
+                            launch { autoArchiveBaby(baby.babyId) }
+                        }
+
                     // Load vaccinations + growth records in parallel for all babies
-                    result.data.forEach { baby ->
+                    babies.forEach { baby ->
                         launch { loadVaccinationsForBaby(baby.babyId) }
                         launch { loadLatestGrowthForBaby(baby.babyId) }
                         launch { loadAllGrowthForBaby(baby.babyId) }
@@ -86,6 +115,29 @@ class HomeViewModel(
                 else ->
                     uiState = uiState.copy(isLoading = false)
             }
+        }
+    }
+
+    // ── Auto-archive (silent — no snackbar, no user prompt) ──────────────────
+    // Called only by loadHomeData() for babies who have reached 6 years.
+    // Unlike archiveBaby() this does NOT show a snackbar — it's automatic.
+
+    private suspend fun autoArchiveBaby(babyId: String) {
+        when (val result = apiService.updateBabyStatus(babyId, "ARCHIVED")) {
+            is ApiResult.Success -> {
+                // Update the local list so the UI reflects the new isActive=false immediately
+                val updated = uiState.babies.map { b ->
+                    if (b.babyId == babyId) result.data else b
+                }
+                val newIndex = if (uiState.selectedBaby?.babyId == babyId) 0
+                else uiState.selectedBabyIndex
+                uiState = uiState.copy(
+                    babies            = updated,
+                    selectedBabyIndex = newIndex
+                    // No actionMessage — this is a silent background operation
+                )
+            }
+            else -> Unit // Silently ignore errors for auto-archive
         }
     }
 
@@ -151,17 +203,15 @@ class HomeViewModel(
         uiState = uiState.copy(selectedBabyIndex = index)
     }
 
-    // ── Archive / Unarchive ───────────────────────────────────────────────────
+    // ── Archive / Unarchive (manual — shows snackbar) ─────────────────────────
 
     fun archiveBaby(babyId: String) {
         scope.launch {
             when (val result = apiService.updateBabyStatus(babyId, "ARCHIVED")) {
                 is ApiResult.Success -> {
-                    // Update the local list without a full reload
                     val updated = uiState.babies.map { b ->
                         if (b.babyId == babyId) result.data else b
                     }
-                    // If the selected baby was archived, reset selection
                     val newIndex = if (uiState.selectedBaby?.babyId == babyId) 0
                     else uiState.selectedBabyIndex
                     uiState = uiState.copy(

@@ -341,7 +341,7 @@ private fun AddBabyTopBar(onBack: () -> Unit, title: String) {
                 text       = title,
                 fontWeight = FontWeight.SemiBold,
                 style      = MaterialTheme.typography.titleMedium,
-                color      = MaterialTheme.colorScheme.onBackground
+                color      = customColors.accentGradientStart   // FIX: was onBackground (black on girl)
             )
         },
         navigationIcon = {
@@ -349,12 +349,14 @@ private fun AddBabyTopBar(onBack: () -> Unit, title: String) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = stringResource(Res.string.common_back),
-                    tint               = MaterialTheme.colorScheme.onBackground
+                    tint               = customColors.accentGradientStart   // FIX: was onBackground
                 )
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = customColors.accentGradientStart.copy(alpha = 0.15f)
+            containerColor          = customColors.accentGradientStart.copy(alpha = 0.15f),
+            titleContentColor       = customColors.accentGradientStart,   // FIX: added
+            navigationIconContentColor = customColors.accentGradientStart // FIX: added
         )
     )
 }
