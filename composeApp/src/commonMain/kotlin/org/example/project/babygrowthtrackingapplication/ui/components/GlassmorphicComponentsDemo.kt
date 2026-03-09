@@ -3,6 +3,7 @@ package org.example.project.babygrowthtrackingapplication.ui.components
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -288,11 +289,14 @@ fun GlassmorphicComponentsDemo() {
                 .padding(16.dp),
             contentAlignment = Alignment.BottomEnd
         ) {
-            GradientFAB(
-                icon = Icons.Default.Add,
-                contentDescription = "Add",
-                onClick = { }
-            )
+            FloatingActionButton(
+                onClick = { },
+                shape = CircleShape,
+                containerColor = MaterialTheme.customColors.accentGradientStart,
+                contentColor = Color.White
+            ) {
+                Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
+            }
         }
     }
 }
@@ -556,11 +560,14 @@ fun ButtonsShowcase() {
                 .padding(16.dp),
             contentAlignment = Alignment.BottomEnd
         ) {
-            GradientFAB(
-                icon = Icons.Default.Add,
-                contentDescription = "Add",
-                onClick = { }
-            )
+            FloatingActionButton(
+                onClick = { },
+                shape = CircleShape,
+                containerColor = MaterialTheme.customColors.accentGradientStart,
+                contentColor = Color.White
+            ) {
+                Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
+            }
         }
     }
 }

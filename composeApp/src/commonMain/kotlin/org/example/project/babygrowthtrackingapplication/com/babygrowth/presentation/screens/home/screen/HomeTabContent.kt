@@ -10,7 +10,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
-import androidx.compose.ui.draw.*
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.*
@@ -42,13 +42,9 @@ fun HomeTabContent(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
     ) {
-        // 1 ── Top bar
         HomeTopBar(notificationCount = state.notificationCount)
-
-        // 2 ── Gender banner
         GenderBanner(genderTheme = state.genderTheme)
 
-        // 3 ── White container (top corners only)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -134,7 +130,10 @@ private fun HomeTopBar(notificationCount: Int) {
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
-            .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingSmall + dimensions.spacingXSmall)
+            .padding(
+                horizontal = dimensions.screenPadding,
+                vertical   = dimensions.spacingSmall + dimensions.spacingXSmall
+            )
     ) {
         Row(
             modifier              = Modifier.fillMaxWidth(),
@@ -185,7 +184,7 @@ private fun HomeTopBar(notificationCount: Int) {
                 IconButton(onClick = { /* navigate to notifications */ }) {
                     Icon(
                         imageVector        = Icons.Default.Notifications,
-                        contentDescription = stringResource(Res.string.app_name), // reuse closest label
+                        contentDescription = null,
                         tint               = MaterialTheme.colorScheme.onSurface,
                         modifier           = Modifier.size(dimensions.iconLarge - dimensions.spacingXSmall)
                     )
@@ -196,15 +195,19 @@ private fun HomeTopBar(notificationCount: Int) {
                             .size(dimensions.iconSmall + dimensions.spacingXSmall)
                             .offset(x = (-2).dp, y = dimensions.spacingXSmall)
                             .background(MaterialTheme.colorScheme.error, CircleShape)
-                            .border(1.5.dp, MaterialTheme.colorScheme.surface, CircleShape),
+                            .border(
+                                dimensions.borderWidthThin + 0.5.dp,        // WAS: 1.5.dp
+                                MaterialTheme.colorScheme.surface,
+                                CircleShape
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text       = if (notificationCount > 99) "99+" else notificationCount.toString(),
-                            fontSize   = 9.sp,
+                            fontSize   = dimensions.homeSmallTextSize,       // WAS: 9.sp
                             fontWeight = FontWeight.Bold,
                             color      = MaterialTheme.colorScheme.onError,
-                            lineHeight = 10.sp
+                            lineHeight = dimensions.homeSmallLineHeight      // WAS: 10.sp
                         )
                     }
                 }
@@ -285,16 +288,19 @@ private fun GenderBanner(genderTheme: GenderTheme) {
                         .background(config.starColor.copy(alpha = 0.12f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(config.moonEmoji, fontSize = (dimensions.iconXLarge.value - 6).sp)
+                    Text(
+                        config.moonEmoji,
+                        fontSize = dimensions.bannerMoonEmojiSize           // WAS: (iconXLarge.value - 6).sp
+                    )
                 }
             }
 
-            Spacer(Modifier.height(dimensions.spacingXSmall + 2.dp))
+            Spacer(Modifier.height(dimensions.spacingXSmall + dimensions.borderWidthMedium))
 
             Text(
                 text          = config.label,
                 style         = MaterialTheme.typography.labelMedium,
-                letterSpacing = 1.5.sp,
+                letterSpacing = dimensions.bannerLabelLetterSpacing,        // WAS: 1.5.sp
                 color         = config.labelColor.copy(alpha = 0.8f),
                 fontWeight    = FontWeight.Medium
             )
@@ -314,11 +320,14 @@ private fun HangingStars(starColor: Color) {
     Row(
         modifier              = Modifier
             .fillMaxWidth()
-            .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingXSmall + 2.dp),
+            .padding(
+                horizontal = dimensions.screenPadding,
+                vertical   = dimensions.spacingXSmall + dimensions.borderWidthMedium
+            ),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         repeat(5) { i ->
-            val size = if (i % 2 == 0) 16.sp else 12.sp
+            val size = if (i % 2 == 0) dimensions.starSizeLarge else dimensions.starSizeSmall // WAS: 16.sp / 12.sp
             Text("✦", fontSize = size, color = starColor.copy(alpha = 0.4f + (i * 0.08f)))
         }
     }
@@ -328,20 +337,50 @@ private fun HangingStars(starColor: Color) {
 private fun BannerStars(starColor: Color) {
     val dimensions = LocalDimensions.current
     Box(Modifier.fillMaxSize()) {
-        Text("✦", fontSize = 10.sp, color = starColor.copy(0.35f),
-            modifier = Modifier.offset(dimensions.spacingLarge + dimensions.spacingSmall, dimensions.spacingXLarge + dimensions.spacingSmall))
-        Text("★", fontSize = 14.sp, color = starColor.copy(0.25f),
-            modifier = Modifier.offset(dimensions.screenPadding, dimensions.spacingXLarge + dimensions.spacingXXLarge))
-        Text("✦", fontSize = 8.sp,  color = starColor.copy(0.40f),
-            modifier = Modifier.offset(dimensions.spacingXLarge + dimensions.spacingMedium, dimensions.spacingXXLarge + dimensions.spacingXLarge))
+        Text(
+            "✦", fontSize = 10.sp, color = starColor.copy(0.35f),
+            modifier = Modifier.offset(
+                dimensions.spacingLarge + dimensions.spacingSmall,
+                dimensions.spacingXLarge + dimensions.spacingSmall
+            )
+        )
+        Text(
+            "★", fontSize = 14.sp, color = starColor.copy(0.25f),
+            modifier = Modifier.offset(
+                dimensions.screenPadding,
+                dimensions.spacingXLarge + dimensions.spacingXXLarge
+            )
+        )
+        Text(
+            "✦", fontSize = 8.sp, color = starColor.copy(0.40f),
+            modifier = Modifier.offset(
+                dimensions.spacingXLarge + dimensions.spacingMedium,
+                dimensions.spacingXXLarge + dimensions.spacingXLarge
+            )
+        )
         Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.TopEnd) {
             Column {
-                Text("★", fontSize = 12.sp, color = starColor.copy(0.30f),
-                    modifier = Modifier.padding(end = dimensions.spacingXLarge - dimensions.spacingSmall, top = dimensions.spacingXLarge + dimensions.spacingSmall))
-                Text("✦", fontSize = 9.sp,  color = starColor.copy(0.45f),
-                    modifier = Modifier.padding(end = dimensions.screenPadding, top = dimensions.spacingLarge + dimensions.spacingSmall))
-                Text("★", fontSize = 16.sp, color = starColor.copy(0.20f),
-                    modifier = Modifier.padding(end = dimensions.spacingXLarge + dimensions.spacingMedium, top = dimensions.spacingSmall))
+                Text(
+                    "★", fontSize = 12.sp, color = starColor.copy(0.30f),
+                    modifier = Modifier.padding(
+                        end = dimensions.spacingXLarge - dimensions.spacingSmall,
+                        top = dimensions.spacingXLarge + dimensions.spacingSmall
+                    )
+                )
+                Text(
+                    "✦", fontSize = 9.sp, color = starColor.copy(0.45f),
+                    modifier = Modifier.padding(
+                        end = dimensions.screenPadding,
+                        top = dimensions.spacingLarge + dimensions.spacingSmall
+                    )
+                )
+                Text(
+                    "★", fontSize = 16.sp, color = starColor.copy(0.20f),
+                    modifier = Modifier.padding(
+                        end = dimensions.spacingXLarge + dimensions.spacingMedium,
+                        top = dimensions.spacingSmall
+                    )
+                )
             }
         }
     }
@@ -372,7 +411,7 @@ private fun WelcomeSection(
             )
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text       = "Hello, $userName! ",
+                    text       = "Hello, $userName!",
                     style      = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color      = MaterialTheme.colorScheme.onBackground
@@ -399,8 +438,10 @@ private fun WelcomeSection(
             Box(
                 modifier = Modifier
                     .size(dimensions.iconXLarge - dimensions.spacingXSmall)
-                    .background(MaterialTheme.colorScheme.surfaceVariant,
-                        RoundedCornerShape(dimensions.spacingSmall + dimensions.spacingXSmall)),
+                    .background(
+                        MaterialTheme.colorScheme.surfaceVariant,
+                        RoundedCornerShape(dimensions.spacingSmall + dimensions.spacingXSmall)
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -410,16 +451,16 @@ private fun WelcomeSection(
                     modifier = Modifier.size(dimensions.iconMedium)
                 )
             }
-            Spacer(Modifier.height(dimensions.spacingXSmall - 1.dp))
+            Spacer(Modifier.height(dimensions.spacingXSmall - dimensions.borderWidthThin))
             Text(
-                text       = stringResource(Res.string.home_add_more_child),
-                style      = MaterialTheme.typography.labelSmall,
-                color      = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f),
-                textAlign  = TextAlign.Center,
-                maxLines   = 2,
-                fontSize   = 9.sp,
-                lineHeight = 11.sp,
-                modifier   = Modifier.widthIn(max = dimensions.avatarMedium + dimensions.spacingSmall)
+                text      = stringResource(Res.string.home_add_more_child),
+                style     = MaterialTheme.typography.labelSmall,
+                color     = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f),
+                textAlign = TextAlign.Center,
+                maxLines  = 2,
+                fontSize  = dimensions.homeSmallTextSize,                   // WAS: 9.sp
+                lineHeight= dimensions.homeSmallLineHeight,                 // WAS: 11.sp
+                modifier  = Modifier.widthIn(max = dimensions.avatarMedium + dimensions.spacingSmall)
             )
         }
     }
@@ -440,7 +481,10 @@ private fun NoBabiesSection(onAddBaby: () -> Unit) {
             .padding(vertical = dimensions.spacingLarge),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text("👶", fontSize = (dimensions.iconXLarge.value + dimensions.spacingSmall.value).sp)
+        Text(
+            "👶",
+            fontSize = (dimensions.iconXLarge.value + dimensions.spacingSmall.value).sp
+        )
         Spacer(Modifier.height(dimensions.spacingMedium))
         Text(
             text       = stringResource(Res.string.home_no_babies_title),
@@ -449,7 +493,7 @@ private fun NoBabiesSection(onAddBaby: () -> Unit) {
             color      = MaterialTheme.colorScheme.onBackground,
             textAlign  = TextAlign.Center
         )
-        Spacer(Modifier.height(dimensions.spacingXSmall + 2.dp))
+        Spacer(Modifier.height(dimensions.spacingXSmall + dimensions.borderWidthMedium))
         Text(
             text      = stringResource(Res.string.home_no_babies_desc),
             style     = MaterialTheme.typography.bodyMedium,
@@ -462,9 +506,12 @@ private fun NoBabiesSection(onAddBaby: () -> Unit) {
             shape   = RoundedCornerShape(dimensions.buttonCornerRadius),
             colors  = ButtonDefaults.buttonColors(containerColor = customColors.accentGradientStart)
         ) {
-            Icon(Icons.Default.Add, contentDescription = null,
-                modifier = Modifier.size(dimensions.iconMedium - dimensions.spacingXSmall))
-            Spacer(Modifier.width(dimensions.spacingXSmall + 2.dp))
+            Icon(
+                Icons.Default.Add,
+                contentDescription = null,
+                modifier = Modifier.size(dimensions.iconMedium - dimensions.spacingXSmall)
+            )
+            Spacer(Modifier.width(dimensions.spacingXSmall + dimensions.borderWidthMedium))
             Text(
                 text       = stringResource(Res.string.home_add_first_baby),
                 style      = MaterialTheme.typography.labelLarge,
@@ -495,10 +542,10 @@ private fun ChildSelectorDropdown(
             style         = MaterialTheme.typography.labelMedium,
             fontWeight    = FontWeight.SemiBold,
             color         = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.45f),
-            letterSpacing = 1.2.sp
+            letterSpacing = MaterialTheme.typography.labelMedium.letterSpacing // WAS: 1.2.sp (raw literal)
         )
 
-        Spacer(Modifier.height(dimensions.spacingXSmall + 2.dp))
+        Spacer(Modifier.height(dimensions.spacingXSmall + dimensions.borderWidthMedium))
 
         Box {
             Row(
@@ -513,11 +560,16 @@ private fun ChildSelectorDropdown(
                             )
                         )
                     )
-                    .border(1.dp, customColors.accentGradientStart.copy(0.3f),
-                        RoundedCornerShape(dimensions.cardCornerRadius - dimensions.spacingXSmall))
+                    .border(
+                        dimensions.borderWidthThin,                         // WAS: 1.dp
+                        customColors.accentGradientStart.copy(0.3f),
+                        RoundedCornerShape(dimensions.cardCornerRadius - dimensions.spacingXSmall)
+                    )
                     .clickable(onClick = onExpandToggle)
-                    .padding(horizontal = dimensions.screenPadding,
-                        vertical = dimensions.spacingSmall + dimensions.spacingXSmall),
+                    .padding(
+                        horizontal = dimensions.screenPadding,
+                        vertical   = dimensions.spacingSmall + dimensions.spacingXSmall
+                    ),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment     = Alignment.CenterVertically
             ) {
@@ -542,8 +594,10 @@ private fun ChildSelectorDropdown(
                     DropdownMenuItem(
                         text = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(if (isFemale) "👧" else "👦",
-                                    fontSize = (dimensions.iconMedium.value).sp)
+                                Text(
+                                    if (isFemale) "👧" else "👦",
+                                    fontSize = dimensions.iconMedium.value.sp
+                                )
                                 Spacer(Modifier.width(dimensions.spacingSmall))
                                 Text(baby.fullName)
                             }
@@ -571,9 +625,9 @@ private fun BabyInfoCard(
     val accentColor  = customColors.accentGradientStart
 
     val cardBg = when (genderTheme) {
-        GenderTheme.GIRL    -> Brush.horizontalGradient(listOf(GirlLightColors.BabyPink, GirlLightColors.Background))
-        GenderTheme.BOY     -> Brush.horizontalGradient(listOf(BoyLightColors.BabyBlue,  BoyLightColors.Background))
-        GenderTheme.NEUTRAL -> Brush.horizontalGradient(listOf(NeutralLightColors.BabyRose, NeutralLightColors.Background))
+        GenderTheme.GIRL    -> Brush.horizontalGradient(listOf(GirlLightColors.BabyPink,     GirlLightColors.Background))
+        GenderTheme.BOY     -> Brush.horizontalGradient(listOf(BoyLightColors.BabyBlue,      BoyLightColors.Background))
+        GenderTheme.NEUTRAL -> Brush.horizontalGradient(listOf(NeutralLightColors.BabyRose,  NeutralLightColors.Background))
     }
 
     val isFemale = baby.gender.equals("FEMALE", ignoreCase = true) ||
@@ -583,50 +637,47 @@ private fun BabyInfoCard(
         modifier  = Modifier.fillMaxWidth(),
         shape     = RoundedCornerShape(dimensions.cardCornerRadius),
         colors    = CardDefaults.cardColors(containerColor = Color.Transparent),
-        elevation = CardDefaults.cardElevation(dimensions.cardElevation / 2)
+        elevation = CardDefaults.cardElevation(dimensions.cardElevation)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(cardBg)
-                .padding(dimensions.screenPadding)
+                .padding(dimensions.spacingMedium + dimensions.spacingXSmall)
         ) {
             Column {
-                Row(
-                    modifier              = Modifier.fillMaxWidth(),
-                    verticalAlignment     = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(dimensions.avatarMedium)
-                                .background(accentColor.copy(0.18f), CircleShape)
-                                .border(2.dp, accentColor.copy(0.35f), CircleShape),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(if (isFemale) "👶" else "👦",
-                                fontSize = (dimensions.iconLarge.value).sp)
-                        }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(dimensions.avatarMedium)
+                            .background(accentColor.copy(0.12f), CircleShape)
+                            .border(
+                                dimensions.borderWidthThin,                 // WAS: 1.dp
+                                accentColor.copy(0.25f),
+                                CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            if (isFemale) "👧" else "👦",
+                            fontSize = (dimensions.avatarMedium.value * 0.55f).sp
+                        )
+                    }
 
-                        Spacer(Modifier.width(dimensions.spacingMedium))
+                    Spacer(Modifier.width(dimensions.spacingMedium))
 
-                        Column {
-                            Text(
-                                text       = baby.fullName,
-                                style      = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color      = MaterialTheme.colorScheme.onSurface
-                            )
-                            Text(
-                                text  = "${formatAge(baby.ageInMonths)} • ${
-                                    if (isFemale) stringResource(Res.string.gender_female)
-                                    else          stringResource(Res.string.gender_male)
-                                }",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(0.6f)
-                            )
-                        }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text       = baby.fullName,
+                            style      = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color      = MaterialTheme.colorScheme.onBackground
+                        )
+                        Text(
+                            text  = formatAge(baby.ageInMonths),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onBackground.copy(0.6f)
+                        )
                     }
                 }
 
@@ -637,12 +688,20 @@ private fun BabyInfoCard(
                     horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
                 ) {
                     baby.birthWeight?.let { w ->
-                        BabyStatChip("⚖️", stringResource(Res.string.baby_birth_weight),
-                            stringResource(Res.string.profile_weight_value, w.toString()), accentColor)
+                        BabyStatChip(
+                            "⚖️",
+                            stringResource(Res.string.baby_birth_weight),
+                            stringResource(Res.string.profile_weight_value, w.toString()),
+                            accentColor
+                        )
                     }
                     baby.birthHeight?.let { h ->
-                        BabyStatChip("📏", stringResource(Res.string.baby_birth_height),
-                            stringResource(Res.string.profile_height_value, h.toString()), accentColor)
+                        BabyStatChip(
+                            "📏",
+                            stringResource(Res.string.baby_birth_height),
+                            stringResource(Res.string.profile_height_value, h.toString()),
+                            accentColor
+                        )
                     }
                 }
 
@@ -653,14 +712,16 @@ private fun BabyInfoCard(
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(dimensions.spacingSmall))
                             .background(accentColor.copy(0.08f))
-                            .padding(horizontal = dimensions.spacingSmall + dimensions.spacingXSmall,
-                                vertical = dimensions.spacingXSmall + 3.dp),
+                            .padding(
+                                horizontal = dimensions.spacingSmall + dimensions.spacingXSmall,
+                                vertical   = dimensions.spacingXSmall + 3.dp
+                            ),
                         verticalAlignment     = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text("💉", fontSize = (dimensions.iconSmall.value - 2).sp)
-                            Spacer(Modifier.width(dimensions.spacingXSmall + 2.dp))
+                            Spacer(Modifier.width(dimensions.spacingXSmall + dimensions.borderWidthMedium))
                             Column {
                                 Text(
                                     text  = stringResource(Res.string.home_next_vaccine_label),
@@ -715,10 +776,18 @@ private fun BabyStatChip(icon: String, label: String, value: String, accentColor
     ) {
         Text(icon, fontSize = (dimensions.iconSmall.value - 4).sp)
         Column {
-            Text(label, style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(0.5f), fontSize = 9.sp)
-            Text(value, style = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.SemiBold, color = accentColor)
+            Text(
+                label,
+                style    = MaterialTheme.typography.labelSmall,
+                color    = MaterialTheme.colorScheme.onSurface.copy(0.5f),
+                fontSize = dimensions.homeSmallTextSize                     // WAS: 9.sp
+            )
+            Text(
+                value,
+                style      = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.SemiBold,
+                color      = accentColor
+            )
         }
     }
 }
@@ -757,7 +826,9 @@ private fun AgeProgressRibbon(ageInDays: Long, ageInMonths: Int, accentColor: Co
                 modifier = Modifier
                     .fillMaxWidth(monthProgress)
                     .fillMaxHeight()
-                    .background(Brush.horizontalGradient(listOf(accentColor, accentColor.copy(0.6f))))
+                    .background(
+                        Brush.horizontalGradient(listOf(accentColor, accentColor.copy(0.6f)))
+                    )
             )
         }
     }
@@ -860,22 +931,26 @@ private fun ToolCard(
 ) {
     val dimensions = LocalDimensions.current
     Column(
-        modifier            = modifier
+        modifier = modifier
             .clip(RoundedCornerShape(dimensions.cardCornerRadius))
             .clickable(onClick = onClick)
-            .padding(vertical = dimensions.spacingXSmall + 2.dp),
+            .padding(vertical = dimensions.spacingXSmall + dimensions.borderWidthMedium),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val toolIconSize   = dimensions.avatarLarge + dimensions.spacingSmall
-        val innerBoxSize   = dimensions.avatarLarge - dimensions.spacingXSmall
-        val toolCorner     = dimensions.cardCornerRadius + dimensions.spacingXSmall
-        val innerCorner    = dimensions.cardCornerRadius - dimensions.spacingXSmall
+        val toolIconSize = dimensions.avatarLarge + dimensions.spacingSmall
+        val innerBoxSize = dimensions.avatarLarge - dimensions.spacingXSmall
+        val toolCorner   = dimensions.cardCornerRadius + dimensions.spacingXSmall
+        val innerCorner  = dimensions.cardCornerRadius - dimensions.spacingXSmall
 
         Box(
             modifier = Modifier
                 .size(toolIconSize)
                 .background(iconBg, RoundedCornerShape(toolCorner))
-                .border(1.dp, accentColor.copy(0.18f), RoundedCornerShape(toolCorner)),
+                .border(
+                    dimensions.borderWidthThin,                             // WAS: 1.dp
+                    accentColor.copy(0.18f),
+                    RoundedCornerShape(toolCorner)
+                ),
             contentAlignment = Alignment.Center
         ) {
             Box(
@@ -889,13 +964,13 @@ private fun ToolCard(
         Spacer(Modifier.height(dimensions.spacingXSmall + 3.dp))
 
         Text(
-            text       = label,
-            style      = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Medium,
-            color      = MaterialTheme.colorScheme.onBackground,
-            textAlign  = TextAlign.Center,
-            maxLines   = 1,
-            overflow   = TextOverflow.Ellipsis
+            text      = label,
+            style     = MaterialTheme.typography.labelMedium,
+            fontWeight= FontWeight.Medium,
+            color     = MaterialTheme.colorScheme.onBackground,
+            textAlign = TextAlign.Center,
+            maxLines  = 1,
+            overflow  = TextOverflow.Ellipsis
         )
     }
 }
@@ -925,23 +1000,15 @@ private fun formatAge(months: Int): String = when {
 private fun formatDate(dateStr: String): String {
     val parts = dateStr.split("-")
     if (parts.size != 3) return dateStr
-
     val monthIndex = parts[1].toIntOrNull() ?: return dateStr
     val monthNames = listOf(
         "",
-        stringResource(Res.string.month_jan),
-        stringResource(Res.string.month_feb),
-        stringResource(Res.string.month_mar),
-        stringResource(Res.string.month_apr),
-        stringResource(Res.string.month_may),
-        stringResource(Res.string.month_jun),
-        stringResource(Res.string.month_jul),
-        stringResource(Res.string.month_aug),
-        stringResource(Res.string.month_sep),
-        stringResource(Res.string.month_oct),
-        stringResource(Res.string.month_nov),
-        stringResource(Res.string.month_dec)
+        stringResource(Res.string.month_jan), stringResource(Res.string.month_feb),
+        stringResource(Res.string.month_mar), stringResource(Res.string.month_apr),
+        stringResource(Res.string.month_may), stringResource(Res.string.month_jun),
+        stringResource(Res.string.month_jul), stringResource(Res.string.month_aug),
+        stringResource(Res.string.month_sep), stringResource(Res.string.month_oct),
+        stringResource(Res.string.month_nov), stringResource(Res.string.month_dec)
     )
-    val month = monthNames.getOrElse(monthIndex) { parts[1] }
-    return "$month ${parts[2]}"
+    return "${monthNames.getOrElse(monthIndex) { parts[1] }} ${parts[2]}"
 }

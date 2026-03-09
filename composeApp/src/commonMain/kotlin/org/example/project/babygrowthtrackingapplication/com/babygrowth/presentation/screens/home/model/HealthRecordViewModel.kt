@@ -2,7 +2,6 @@ package org.example.project.babygrowthtrackingapplication.com.babygrowth.present
 
 import androidx.compose.runtime.*
 import kotlinx.coroutines.*
-import kotlinx.serialization.json.*
 import org.example.project.babygrowthtrackingapplication.data.network.ApiResult
 import org.example.project.babygrowthtrackingapplication.data.network.ApiService
 import org.example.project.babygrowthtrackingapplication.data.network.BabyResponse

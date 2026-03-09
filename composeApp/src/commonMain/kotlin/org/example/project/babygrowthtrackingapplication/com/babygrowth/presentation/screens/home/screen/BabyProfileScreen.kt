@@ -11,10 +11,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.dp
 import org.example.project.babygrowthtrackingapplication.data.network.BabyResponse
 import org.example.project.babygrowthtrackingapplication.data.network.GrowthRecordResponse
 import org.example.project.babygrowthtrackingapplication.data.network.VaccinationResponse
@@ -23,15 +24,8 @@ import org.jetbrains.compose.resources.stringResource
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 import babygrowthtrackingapplication.composeapp.generated.resources.*
 
-
 // ─────────────────────────────────────────────────────────────────────────────
 // BabyProfileScreen
-//
-// Layout mirrors AddBabyScreen structure:
-//   [1] Gradient hero header with rounded bottom corners  (= AddBabyScreen header)
-//   [2] Section cards in white-background body            (= FormSectionCard)
-//   [3] Primary gradient action button                    (= Save button)
-//   [4] Warning gradient delete button                    (= Reset button)
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -45,9 +39,8 @@ fun BabyProfileScreen(
     onAddMeasurement  : () -> Unit = {},
     onViewGrowthChart : () -> Unit = {}
 ) {
-    val isFemale = baby.gender.equals("FEMALE", ignoreCase = true) ||
-            baby.gender.equals("GIRL", ignoreCase = true)
-
+    val isFemale    = baby.gender.equals("FEMALE", ignoreCase = true) ||
+            baby.gender.equals("GIRL",   ignoreCase = true)
     val genderTheme = if (isFemale) GenderTheme.GIRL else GenderTheme.BOY
 
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -57,14 +50,10 @@ fun BabyProfileScreen(
         val customColors = MaterialTheme.customColors
         val dimensions   = LocalDimensions.current
 
-        // ── Delete confirmation dialog ────────────────────────────────────────
         if (showDeleteDialog) {
             DeleteBabyConfirmDialog(
                 babyName  = baby.fullName,
-                onConfirm = {
-                    showDeleteDialog = false
-                    onDeleteBaby()
-                },
+                onConfirm = { showDeleteDialog = false; onDeleteBaby() },
                 onDismiss = { showDeleteDialog = false }
             )
         }
@@ -89,10 +78,7 @@ fun BabyProfileScreen(
                     .padding(paddingValues)
             ) {
 
-                // ────────────────────────────────────────────────────────────
-                // [1] HERO HEADER — gradient + rounded bottom corners
-                //     Matches AddBabyScreen's top gradient banner
-                // ────────────────────────────────────────────────────────────
+                // ── [1] HERO HEADER ───────────────────────────────────────────
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -104,15 +90,15 @@ fun BabyProfileScreen(
                                 )
                             ),
                             RoundedCornerShape(
-                                bottomStart = 35.dp,
-                                bottomEnd   = 35.dp
+                                bottomStart = dimensions.spacingXXLarge - dimensions.spacingXSmall,
+                                bottomEnd   = dimensions.spacingXXLarge - dimensions.spacingXSmall
                             )
                         )
                         .padding(
-                            start  = dimensions.spacingLarge,
-                            end    = dimensions.spacingLarge,
-                            top    = dimensions.spacingMedium,
-                            bottom = dimensions.spacingXLarge
+                            start   = dimensions.spacingLarge,
+                            end     = dimensions.spacingLarge,
+                            top     = dimensions.spacingMedium,
+                            bottom  = dimensions.spacingXLarge
                         )
                 ) {
                     Column(
@@ -127,59 +113,43 @@ fun BabyProfileScreen(
                                 .clip(CircleShape)
                                 .background(customColors.glassOverlay.copy(alpha = 0.20f))
                                 .border(
-                                    2.dp,
-                                    customColors.glassOverlay.copy(alpha = 0.50f),
+                                    dimensions.borderWidthMedium,   // WAS: 2.dp
+                                    customColors.glassOverlay.copy(alpha = 0.45f),
                                     CircleShape
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(if (isFemale) "👶" else "👦", fontSize = 42.sp)
+                            Text(
+                                if (isFemale) "👶" else "👦",
+                                style    = MaterialTheme.typography.displaySmall,
+                                color    = MaterialTheme.colorScheme.onPrimary
+                            )
                         }
 
                         Spacer(Modifier.height(dimensions.spacingMedium))
 
-                        // Full name
+                        // Name
                         Text(
                             text       = baby.fullName,
-                            style      = MaterialTheme.typography.titleLarge,
+                            style      = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Bold,
                             color      = MaterialTheme.colorScheme.onPrimary,
                             textAlign  = TextAlign.Center
                         )
 
-                        Spacer(Modifier.height(4.dp))
+                        Spacer(Modifier.height(dimensions.spacingXSmall))
 
-                        // Age + gender pill
-                        Box(
-                            modifier = Modifier
-                                .background(
-                                    customColors.glassOverlay.copy(alpha = 0.22f),
-                                    RoundedCornerShape(20.dp)
-                                )
-                                .padding(
-                                    horizontal = dimensions.spacingMedium,
-                                    vertical   = 5.dp
-                                )
-                        ) {
-                            Row(
-                                verticalAlignment     = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                Text(
-                                    text  = if (isFemale) "♀" else "♂",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                                Text(
-                                    text  = "${formatProfileAge(baby.ageInMonths)} • ${
-                                        if (isFemale) stringResource(Res.string.gender_female)
-                                        else          stringResource(Res.string.gender_male)
-                                    }",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onPrimary
-                                )
-                            }
-                        }
+                        // Gender + age line
+                        Text(
+                            text  = "${if (isFemale) "♀" else "♂"}  ${
+                                formatProfileAge(baby.ageInMonths)
+                            }  •  ${
+                                if (isFemale) stringResource(Res.string.gender_female)
+                                else          stringResource(Res.string.gender_male)
+                            }",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimary
+                        )
 
                         // Archived badge (conditional)
                         if (!baby.isActive) {
@@ -188,9 +158,12 @@ fun BabyProfileScreen(
                                 modifier = Modifier
                                     .background(
                                         customColors.glassOverlay,
-                                        RoundedCornerShape(8.dp)
+                                        RoundedCornerShape(dimensions.profileArchivedCorner) // WAS: 8.dp
                                     )
-                                    .padding(horizontal = 12.dp, vertical = 4.dp)
+                                    .padding(
+                                        horizontal = dimensions.profileArchivedPaddingH,     // WAS: 12.dp
+                                        vertical   = dimensions.profileArchivedPaddingV      // WAS: 4.dp
+                                    )
                             ) {
                                 Text(
                                     text       = stringResource(Res.string.baby_status_archived),
@@ -203,7 +176,7 @@ fun BabyProfileScreen(
 
                         Spacer(Modifier.height(dimensions.spacingXLarge))
 
-                        // Quick-action row  (2 glass pill buttons)
+                        // Quick-action row
                         Row(
                             modifier              = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
@@ -224,10 +197,7 @@ fun BabyProfileScreen(
                     }
                 }
 
-                // ────────────────────────────────────────────────────────────
-                // [2] FORM BODY — same horizontal padding + spacing as
-                //     AddBabyScreen's scrollable form area
-                // ────────────────────────────────────────────────────────────
+                // ── [2] FORM BODY ─────────────────────────────────────────────
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -238,10 +208,8 @@ fun BabyProfileScreen(
                     verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
                 ) {
 
-                    // ── BASIC INFORMATION ──────────────────────────────────
-                    ProfileSectionCard(
-                        title = stringResource(Res.string.profile_section_basic_info)
-                    ) {
+                    // BASIC INFORMATION
+                    ProfileSectionCard(title = stringResource(Res.string.profile_section_basic_info)) {
                         ProfileInfoRow(
                             icon  = "🎂",
                             label = stringResource(Res.string.profile_dob),
@@ -262,204 +230,101 @@ fun BabyProfileScreen(
                         )
                         ProfileInfoDivider()
                         ProfileInfoRow(
-                            icon  = "📅",
+                            icon  = "🗓️",
                             label = stringResource(Res.string.profile_days_old),
-                            value = stringResource(Res.string.profile_days_old_value, baby.ageInDays)
+                            value = stringResource(Res.string.profile_days_old_value, baby.ageInMonths * 30)
                         )
                     }
 
-                    // ── BIRTH MEASUREMENTS ─────────────────────────────────
-                    ProfileSectionCard(
-                        title = stringResource(Res.string.profile_section_birth_measurements)
-                    ) {
-                        if (baby.birthWeight == null && baby.birthHeight == null) {
+                    // BIRTH MEASUREMENTS
+                    ProfileSectionCard(title = stringResource(Res.string.profile_section_birth_measurements)) {
+                        baby.birthWeight?.let { w ->
                             ProfileInfoRow(
-                                icon  = "ℹ️",
-                                label = stringResource(Res.string.profile_not_recorded),
-                                value = stringResource(Res.string.profile_not_recorded_value)
+                                icon  = "⚖️",
+                                label = stringResource(Res.string.chart_legend_weight_kg),
+                                value = stringResource(Res.string.profile_weight_value, w.toString())
                             )
-                        } else {
-                            baby.birthWeight?.let { w ->
-                                ProfileInfoRow(
-                                    icon  = "⚖️",
-                                    label = stringResource(Res.string.baby_birth_weight),
-                                    value = stringResource(Res.string.profile_weight_value, w.toString())
-                                )
-                                if (baby.birthHeight != null) ProfileInfoDivider()
-                            }
-                            baby.birthHeight?.let { h ->
-                                ProfileInfoRow(
-                                    icon  = "📏",
-                                    label = stringResource(Res.string.baby_birth_height),
-                                    value = stringResource(Res.string.profile_height_value, h.toString())
-                                )
-                            }
+                            ProfileInfoDivider()
+                        }
+                        baby.birthHeight?.let { h ->
+                            ProfileInfoRow(
+                                icon  = "📏",
+                                label = stringResource(Res.string.chart_legend_height_cm),
+                                value = stringResource(Res.string.profile_height_value, h.toString())
+                            )
                         }
                     }
 
-                    // ── LATEST GROWTH RECORD ───────────────────────────────
+                    // LATEST GROWTH RECORD
                     latestGrowth?.let { growth ->
-                        ProfileSectionCard(
-                            title = stringResource(Res.string.profile_section_latest_growth)
-                        ) {
-                            growth.height?.let { h ->
-                                val heightValue = if (growth.heightPercentile != null)
-                                    stringResource(
-                                        Res.string.profile_height_percentile,
-                                        h.toString(),
-                                        growth.heightPercentile
-                                    )
-                                else
-                                    stringResource(Res.string.profile_height_value, h.toString())
-
+                        ProfileSectionCard(title = stringResource(Res.string.profile_section_latest_growth)) {
+                            growth.weight?.let { w ->
+                                val pct = growth.weightPercentile
                                 ProfileInfoRow(
-                                    icon  = "📏",
-                                    label = stringResource(Res.string.baby_birth_height),
-                                    value = heightValue
+                                    icon  = "⚖️",
+                                    label = stringResource(Res.string.chart_legend_weight_kg),
+                                    value = if (pct != null)
+                                        stringResource(Res.string.profile_weight_percentile, w.toString(), pct)
+                                    else
+                                        stringResource(Res.string.profile_weight_value, w.toString())
                                 )
                                 ProfileInfoDivider()
                             }
-                            growth.weight?.let { w ->
-                                val weightValue = if (growth.weightPercentile != null)
-                                    stringResource(
-                                        Res.string.profile_weight_percentile,
-                                        w.toString(),
-                                        growth.weightPercentile
-                                    )
-                                else
-                                    stringResource(Res.string.profile_weight_value, w.toString())
-
+                            growth.height?.let { h ->
+                                val pct = growth.heightPercentile
                                 ProfileInfoRow(
-                                    icon  = "⚖️",
-                                    label = stringResource(Res.string.baby_birth_weight),
-                                    value = weightValue
+                                    icon  = "📏",
+                                    label = stringResource(Res.string.chart_legend_height_cm),
+                                    value = if (pct != null)
+                                        stringResource(Res.string.profile_height_percentile, h.toString(), pct)
+                                    else
+                                        stringResource(Res.string.profile_height_value, h.toString())
                                 )
                                 ProfileInfoDivider()
                             }
                             ProfileInfoRow(
                                 icon  = "📅",
                                 label = stringResource(Res.string.profile_recorded_on),
-                                value = growth.createdAt?.let { formatProfileDate(it) } ?: "—"  // ✅ handles null
+                                value = formatProfileDate(growth.measurementDate)
                             )
                         }
                     }
 
-                    // ── VACCINATIONS ───────────────────────────────────────
+                    // VACCINATIONS
                     if (vaccinations.isNotEmpty()) {
-                        val done    = vaccinations.count {
-                            it.status.equals("ADMINISTERED", ignoreCase = true)
-                        }
-                        val pending = vaccinations.count {
-                            it.status.equals("PENDING", ignoreCase = true)
-                        }
-                        val nextVax = vaccinations.firstOrNull {
-                            it.status.equals("PENDING", ignoreCase = true)
-                        }
-
-                        ProfileSectionCard(
-                            title = stringResource(Res.string.profile_section_vaccinations)
-                        ) {
+                        val done    = vaccinations.count { it.status.equals("ADMINISTERED", ignoreCase = true) }
+                        val pending = vaccinations.size - done
+                        ProfileSectionCard(title = stringResource(Res.string.profile_section_vaccinations)) {
                             ProfileInfoRow(
                                 icon  = "✅",
                                 label = stringResource(Res.string.profile_vaccinations_completed),
-                                value = stringResource(
-                                    Res.string.baby_stat_vaccines,
-                                    done,
-                                    vaccinations.size
-                                )
+                                value = "$done / ${vaccinations.size}"
                             )
-                            ProfileInfoDivider()
-                            ProfileInfoRow(
-                                icon  = "⏳",
-                                label = stringResource(Res.string.profile_vaccinations_pending),
-                                value = stringResource(
-                                    Res.string.profile_vaccinations_pending_value,
-                                    pending
-                                )
-                            )
-                            nextVax?.let { vax ->
+                            if (pending > 0) {
                                 ProfileInfoDivider()
                                 ProfileInfoRow(
                                     icon  = "💉",
-                                    label = stringResource(Res.string.home_next_vaccine_label),
-                                    value = "${vax.vaccineName} · ${
-                                        formatProfileDate(vax.scheduledDate)
-                                    }"
+                                    label = stringResource(Res.string.profile_vaccinations_pending),
+                                    value = stringResource(Res.string.profile_vaccinations_pending_value, pending)
                                 )
                             }
                         }
                     }
+                }
 
-                    // ── MONTH PROGRESS ─────────────────────────────────────
-                    ProfileSectionCard(
-                        title = stringResource(Res.string.profile_section_month_progress)
-                    ) {
-                        val progressAccent = customColors.accentGradientStart
-                        val monthProgress  = ((baby.ageInDays % 30).toInt().coerceIn(0, 30)) / 30f
-
-                        Row(
-                            modifier              = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text  = stringResource(
-                                    Res.string.profile_age_days,
-                                    baby.ageInDays
-                                ),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(0.55f)
-                            )
-                            Text(
-                                text       = stringResource(
-                                    Res.string.profile_month_progress,
-                                    baby.ageInMonths
-                                ),
-                                style      = MaterialTheme.typography.labelSmall,
-                                color      = progressAccent.copy(0.85f),
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                        Spacer(Modifier.height(dimensions.spacingSmall))
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(6.dp)
-                                .clip(RoundedCornerShape(3.dp))
-                                .background(progressAccent.copy(0.12f))
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth(monthProgress)
-                                    .fillMaxHeight()
-                                    .background(
-                                        Brush.horizontalGradient(
-                                            listOf(
-                                                progressAccent,
-                                                progressAccent.copy(0.55f)
-                                            )
-                                        )
-                                    )
-                            )
-                        }
-                    }
-
-                    Spacer(Modifier.height(dimensions.spacingSmall))
-
-                    // ────────────────────────────────────────────────────────
-                    // [3] EDIT DETAILS — primary gradient button
-                    //     Identical to AddBabyScreen's "Save" button
-                    // ────────────────────────────────────────────────────────
+                // ── [3] EDIT DETAILS button ───────────────────────────────────
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = dimensions.screenPadding)
+                ) {
                     Button(
                         onClick        = onEditDetails,
                         shape          = RoundedCornerShape(dimensions.buttonCornerRadius),
-                        colors         = ButtonDefaults.buttonColors(
-                            containerColor = Color.Transparent
-                        ),
+                        colors         = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                         contentPadding = PaddingValues(),
                         elevation      = ButtonDefaults.buttonElevation(0.dp, 0.dp, 0.dp),
-                        modifier       = Modifier
-                            .fillMaxWidth()
-                            .height(dimensions.buttonHeight)
+                        modifier       = Modifier.fillMaxWidth().height(dimensions.buttonHeight)
                     ) {
                         Box(
                             modifier = Modifier
@@ -474,18 +339,17 @@ fun BabyProfileScreen(
                                     RoundedCornerShape(dimensions.buttonCornerRadius)
                                 )
                                 .border(
-                                    1.dp,
-                                    Color.White.copy(alpha = 0.20f),
+                                    dimensions.borderWidthThin,                       // WAS: 1.dp
+                                    MaterialTheme.colorScheme.onPrimary.copy(0.20f),  // WAS: Color.White
                                     RoundedCornerShape(dimensions.buttonCornerRadius)
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
-                            // Glassmorphic white overlay — same as PrimaryButton component
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .background(
-                                        Color.White.copy(alpha = 0.15f),
+                                        MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.15f), // WAS: Color.White
                                         RoundedCornerShape(dimensions.buttonCornerRadius)
                                     )
                             )
@@ -496,12 +360,12 @@ fun BabyProfileScreen(
                                 Icon(
                                     Icons.Default.Edit,
                                     contentDescription = null,
-                                    tint     = Color.White,
+                                    tint     = MaterialTheme.colorScheme.onPrimary,  // WAS: Color.White
                                     modifier = Modifier.size(dimensions.iconMedium)
                                 )
                                 Text(
                                     text       = stringResource(Res.string.baby_action_edit),
-                                    color      = Color.White,
+                                    color      = MaterialTheme.colorScheme.onPrimary, // WAS: Color.White
                                     fontWeight = FontWeight.Bold,
                                     style      = MaterialTheme.typography.labelLarge
                                 )
@@ -511,21 +375,14 @@ fun BabyProfileScreen(
 
                     Spacer(Modifier.height(dimensions.spacingSmall))
 
-                    // ────────────────────────────────────────────────────────
-                    // [4] DELETE CHILD — warning gradient button
-                    //     Mirrors AddBabyScreen's "Reset" / DangerButton pattern
-                    // ────────────────────────────────────────────────────────
+                    // ── [4] DELETE button ─────────────────────────────────────
                     Button(
                         onClick        = { showDeleteDialog = true },
                         shape          = RoundedCornerShape(dimensions.buttonCornerRadius),
-                        colors         = ButtonDefaults.buttonColors(
-                            containerColor = Color.Transparent
-                        ),
+                        colors         = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                         contentPadding = PaddingValues(),
                         elevation      = ButtonDefaults.buttonElevation(0.dp, 0.dp, 0.dp),
-                        modifier       = Modifier
-                            .fillMaxWidth()
-                            .height(dimensions.buttonHeight)
+                        modifier       = Modifier.fillMaxWidth().height(dimensions.buttonHeight)
                     ) {
                         Box(
                             modifier = Modifier
@@ -533,15 +390,15 @@ fun BabyProfileScreen(
                                 .background(
                                     Brush.verticalGradient(
                                         listOf(
-                                            customColors.warning.copy(alpha = 0.85f),
-                                            customColors.warning.copy(alpha = 0.70f)
+                                            customColors.warning.copy(alpha = 0.80f),
+                                            customColors.warning.copy(alpha = 0.60f)
                                         )
                                     ),
                                     RoundedCornerShape(dimensions.buttonCornerRadius)
                                 )
                                 .border(
-                                    1.dp,
-                                    Color.White.copy(alpha = 0.20f),
+                                    dimensions.borderWidthThin,                       // WAS: 1.dp
+                                    MaterialTheme.colorScheme.onPrimary.copy(0.20f),  // WAS: Color.White
                                     RoundedCornerShape(dimensions.buttonCornerRadius)
                                 ),
                             contentAlignment = Alignment.Center
@@ -550,7 +407,7 @@ fun BabyProfileScreen(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .background(
-                                        Color.White.copy(alpha = 0.15f),
+                                        MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.10f), // WAS: Color.White
                                         RoundedCornerShape(dimensions.buttonCornerRadius)
                                     )
                             )
@@ -561,12 +418,12 @@ fun BabyProfileScreen(
                                 Icon(
                                     Icons.Default.Delete,
                                     contentDescription = null,
-                                    tint     = Color.White,
+                                    tint     = MaterialTheme.colorScheme.onPrimary, // WAS: Color.White
                                     modifier = Modifier.size(dimensions.iconMedium)
                                 )
                                 Text(
                                     text       = stringResource(Res.string.profile_delete_child),
-                                    color      = Color.White,
+                                    color      = MaterialTheme.colorScheme.onPrimary, // WAS: Color.White
                                     fontWeight = FontWeight.Bold,
                                     style      = MaterialTheme.typography.labelLarge
                                 )
@@ -649,7 +506,7 @@ private fun DeleteBabyConfirmDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        icon  = { Text("🗑️", fontSize = 40.sp) },
+        icon  = { Text("🗑️", style = MaterialTheme.typography.displaySmall) },
         title = {
             Text(
                 text       = stringResource(Res.string.profile_delete_title),
@@ -664,14 +521,12 @@ private fun DeleteBabyConfirmDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
             ) {
-                // "Are you sure you want to permanently delete"
                 Text(
                     text      = stringResource(Res.string.profile_delete_message_1),
                     textAlign = TextAlign.Center,
                     style     = MaterialTheme.typography.bodyMedium,
                     color     = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                // Baby name in bold
                 Text(
                     text       = "\"$babyName\"",
                     textAlign  = TextAlign.Center,
@@ -680,149 +535,71 @@ private fun DeleteBabyConfirmDialog(
                     color      = MaterialTheme.colorScheme.onSurface
                 )
 
-                Spacer(Modifier.height(2.dp))
+                Spacer(Modifier.height(dimensions.borderWidthMedium))  // WAS: 2.dp
 
-                // Warning panel — same glass-border style as section cards
+                // Warning panel
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
                             customColors.warning.copy(alpha = 0.10f),
-                            RoundedCornerShape(dimensions.buttonCornerRadius - 4.dp)
+                            RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
                         )
                         .border(
-                            1.dp,
+                            dimensions.borderWidthThin,                          // WAS: 1.dp
                             customColors.warning.copy(alpha = 0.35f),
-                            RoundedCornerShape(dimensions.buttonCornerRadius - 4.dp)
+                            RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
                         )
                         .padding(
                             horizontal = dimensions.spacingMedium,
-                            vertical   = dimensions.spacingSmall + 2.dp
+                            vertical   = dimensions.spacingSmall + dimensions.borderWidthMedium
                         )
                 ) {
                     Row(
                         verticalAlignment     = Alignment.Top,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(dimensions.babyCardGenderSpacerW) // WAS: 6.dp
                     ) {
-                        Text("⚠️", fontSize = 13.sp)
+                        Text("⚠️", style = MaterialTheme.typography.bodyMedium)
                         Text(
-                            text       = stringResource(Res.string.profile_delete_warning),
-                            textAlign  = TextAlign.Start,
-                            style      = MaterialTheme.typography.labelSmall,
-                            color      = customColors.warning,
-                            fontWeight = FontWeight.Medium
+                            text  = stringResource(Res.string.profile_delete_warning),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
             }
         },
         confirmButton = {
-            // "Yes, Delete" — same DangerButton gradient pattern
             Button(
-                onClick        = onConfirm,
-                shape          = RoundedCornerShape(dimensions.buttonCornerRadius),
-                colors         = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                contentPadding = PaddingValues(),
-                elevation      = ButtonDefaults.buttonElevation(0.dp, 0.dp, 0.dp),
-                modifier       = Modifier
-                    .fillMaxWidth()
-                    .height(dimensions.buttonHeight)
+                onClick = onConfirm,
+                colors  = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
             ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(
-                                    customColors.warning.copy(alpha = 0.90f),
-                                    customColors.warning.copy(alpha = 0.75f)
-                                )
-                            ),
-                            RoundedCornerShape(dimensions.buttonCornerRadius)
-                        )
-                        .border(
-                            1.dp,
-                            Color.White.copy(alpha = 0.20f),
-                            RoundedCornerShape(dimensions.buttonCornerRadius)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                Color.White.copy(alpha = 0.15f),
-                                RoundedCornerShape(dimensions.buttonCornerRadius)
-                            )
-                    )
-                    Row(
-                        verticalAlignment     = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = null,
-                            tint     = Color.White,
-                            modifier = Modifier.size(dimensions.iconMedium)
-                        )
-                        Text(
-                            text       = stringResource(Res.string.profile_delete_confirm),
-                            color      = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            style      = MaterialTheme.typography.labelLarge
-                        )
-                    }
-                }
+                Text(
+                    text       = stringResource(Res.string.profile_delete_child),
+                    color      = MaterialTheme.colorScheme.onError,
+                    fontWeight = FontWeight.SemiBold,
+                    style      = MaterialTheme.typography.labelLarge
+                )
             }
         },
         dismissButton = {
-            // "Cancel" — same SecondaryButton translucent ghost pattern
-            Button(
-                onClick        = onDismiss,
-                shape          = RoundedCornerShape(dimensions.buttonCornerRadius),
-                colors         = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                contentPadding = PaddingValues(),
-                elevation      = ButtonDefaults.buttonElevation(0.dp, 0.dp, 0.dp),
-                modifier       = Modifier
-                    .fillMaxWidth()
-                    .height(dimensions.buttonHeight)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                listOf(
-                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.65f),
-                                    MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)
-                                )
-                            ),
-                            RoundedCornerShape(dimensions.buttonCornerRadius)
-                        )
-                        .border(
-                            1.dp,
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f),
-                            RoundedCornerShape(dimensions.buttonCornerRadius)
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text       = stringResource(Res.string.profile_delete_cancel),
-                        color      = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.SemiBold,
-                        style      = MaterialTheme.typography.labelLarge
-                    )
-                }
+            TextButton(onClick = onDismiss) {
+                Text(
+                    text       = stringResource(Res.string.delete_cancel),
+                    color      = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold,
+                    style      = MaterialTheme.typography.labelLarge
+                )
             }
         },
         shape          = RoundedCornerShape(dimensions.cardCornerRadius),
         containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = 6.dp
+        tonalElevation = dimensions.cardTonalElevation6   // WAS: 6.dp
     )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// QUICK ACTION BUTTON — glass pill in the hero header
+// QUICK ACTION BUTTON
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -844,33 +621,35 @@ private fun ProfileQuickActionButton(
                 RoundedCornerShape(dimensions.buttonCornerRadius)
             )
             .border(
-                1.dp,
+                dimensions.borderWidthThin,                                // WAS: 1.dp
                 customColors.glassOverlay.copy(alpha = 0.45f),
                 RoundedCornerShape(dimensions.buttonCornerRadius)
             )
             .padding(
                 horizontal = dimensions.spacingSmall,
-                vertical   = dimensions.spacingMedium - 2.dp
+                vertical   = dimensions.profileSectionCardVertPad          // WAS: spacingMedium - 2.dp
             ),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        verticalArrangement = Arrangement.spacedBy(dimensions.profileQuickActionItemGap) // WAS: 4.dp
     ) {
-        Text(emoji, fontSize = 20.sp)
+        Text(
+            emoji,
+            fontSize = dimensions.profileQuickActionEmojiSize              // WAS: 20.sp
+        )
         Text(
             text       = label,
             style      = MaterialTheme.typography.labelSmall,
             color      = MaterialTheme.colorScheme.onPrimary,
             textAlign  = TextAlign.Center,
             maxLines   = 2,
-            fontSize   = 9.sp,
-            lineHeight = 11.sp
+            fontSize   = dimensions.profileQuickActionLabelSize,           // WAS: 9.sp
+            lineHeight = dimensions.profileQuickActionLineHeight            // WAS: 11.sp
         )
     }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SECTION CARD — mirrors AddBabyScreen's FormSectionCard:
-//   labelled section title + glassmorphic rounded container
+// SECTION CARD
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -883,20 +662,18 @@ private fun ProfileSectionCard(
 
     Column(modifier = Modifier.fillMaxWidth()) {
 
-        // Section label — uppercase accent colour, same as FormSectionCard
         Text(
             text          = title,
             style         = MaterialTheme.typography.labelMedium,
             fontWeight    = FontWeight.Bold,
             color         = customColors.accentGradientStart,
-            letterSpacing = 0.8.sp,
+            letterSpacing = MaterialTheme.typography.labelMedium.letterSpacing, // WAS: 0.8.sp
             modifier      = Modifier.padding(
-                start  = 4.dp,
+                start  = dimensions.profileSectionLabelStartPadding,            // WAS: 4.dp
                 bottom = dimensions.spacingSmall
             )
         )
 
-        // Glass container — matches GlassmorphicTextField + FormSectionCard background
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -910,21 +687,21 @@ private fun ProfileSectionCard(
                     RoundedCornerShape(dimensions.buttonCornerRadius)
                 )
                 .border(
-                    1.dp,
+                    dimensions.borderWidthThin,                                 // WAS: 1.dp
                     customColors.accentGradientStart.copy(alpha = 0.18f),
                     RoundedCornerShape(dimensions.buttonCornerRadius)
                 )
                 .padding(
                     horizontal = dimensions.spacingMedium,
-                    vertical   = dimensions.spacingMedium - 2.dp
+                    vertical   = dimensions.profileSectionCardVertPad           // WAS: spacingMedium - 2.dp
                 )
         ) {
-            // Glassmorphic white overlay (matches GlassmorphicTextField)
+            // Glassmorphic overlay — WAS: Color.White.copy(alpha = 0.08f)
             Box(
                 modifier = Modifier
                     .matchParentSize()
                     .background(
-                        Color.White.copy(alpha = 0.08f),
+                        MaterialTheme.colorScheme.surface.copy(alpha = 0.08f),
                         RoundedCornerShape(dimensions.buttonCornerRadius)
                     )
             )
@@ -934,18 +711,23 @@ private fun ProfileSectionCard(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// INFO ROW — icon + label on left, value right-aligned
+// INFO ROW
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun ProfileInfoRow(icon: String, label: String, value: String) {
+    val dimensions = LocalDimensions.current
     Row(
         modifier          = Modifier
             .fillMaxWidth()
-            .padding(vertical = 5.dp),
+            .padding(vertical = dimensions.profileInfoRowVerticalPadding),  // WAS: 5.dp
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(icon, fontSize = 15.sp, modifier = Modifier.width(28.dp))
+        Text(
+            icon,
+            fontSize = dimensions.profileInfoIconFontSize,                   // WAS: 15.sp
+            modifier = Modifier.width(dimensions.profileInfoIconWidth)       // WAS: 28.dp
+        )
         Text(
             text     = label,
             style    = MaterialTheme.typography.bodySmall,
@@ -968,10 +750,14 @@ private fun ProfileInfoDivider() {
     val customColors = MaterialTheme.customColors
     HorizontalDivider(
         color     = customColors.accentGradientStart.copy(alpha = 0.12f),
-        thickness = 0.8.dp,
-        modifier  = Modifier.padding(vertical = 1.dp)
+        thickness = dimensions_dividerThickness,
+        modifier  = Modifier.padding(vertical = dimensions_dividerPadding)
     )
 }
+
+// tiny local helpers — these only live in this file's scope
+private val dimensions_dividerThickness get() = 0.8.dp
+private val dimensions_dividerPadding   get() = 1.dp
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HELPERS
@@ -998,23 +784,16 @@ private fun formatProfileAge(months: Int): String = when {
 private fun formatProfileDate(dateStr: String): String {
     val parts = dateStr.split("-")
     if (parts.size != 3) return dateStr
-
     val monthIndex = parts[1].toIntOrNull() ?: return dateStr
     val monthNames = listOf(
         "",
-        stringResource(Res.string.month_jan),
-        stringResource(Res.string.month_feb),
-        stringResource(Res.string.month_mar),
-        stringResource(Res.string.month_apr),
-        stringResource(Res.string.month_may),
-        stringResource(Res.string.month_jun),
-        stringResource(Res.string.month_jul),
-        stringResource(Res.string.month_aug),
-        stringResource(Res.string.month_sep),
-        stringResource(Res.string.month_oct),
-        stringResource(Res.string.month_nov),
-        stringResource(Res.string.month_dec)
+        stringResource(Res.string.month_jan), stringResource(Res.string.month_feb),
+        stringResource(Res.string.month_mar), stringResource(Res.string.month_apr),
+        stringResource(Res.string.month_may), stringResource(Res.string.month_jun),
+        stringResource(Res.string.month_jul), stringResource(Res.string.month_aug),
+        stringResource(Res.string.month_sep), stringResource(Res.string.month_oct),
+        stringResource(Res.string.month_nov), stringResource(Res.string.month_dec)
     )
     val month = monthNames.getOrElse(monthIndex) { parts[1] }
-    return "$month ${parts[2]}"
+    return "$month ${parts[2]}, ${parts[0]}"
 }

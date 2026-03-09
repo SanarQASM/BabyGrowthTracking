@@ -383,5 +383,37 @@
     <string name="reschedule_action">Reschedule</string>
     <string name="reschedule_banner">%1$d vaccination(s) overdue. Tap to reschedule.</string>
     <string name="reschedule_success">Schedule regenerated successfully.</string>
+    <string name="nav_tab_home">Home</string>
+    <string name="nav_tab_baby">Baby</string>
+    <string name="nav_tab_charts">Charts</string>
+    <string name="nav_tab_health">Health</string>
+    <string name="nav_tab_bench">Bench</string>
+    <string name="nav_tab_settings">Settings</string>
+
+    <!-- BenchDetailScreen — section headers -->
+    <string name="bench_section_location">📍 Location</string>
+    <string name="bench_section_contact">📞 Contact</string>
+    <string name="bench_section_hours">🕐 Working Hours</string>
+    <string name="bench_section_services">💉 Vaccination Days</string>
+    <string name="bench_section_staff">👨‍⚕️ Staff</string>
+
+    <!-- BenchDetailScreen — field labels -->
+    <string name="bench_label_governorate">Governorate</string>
+    <string name="bench_label_district">District</string>
+    <string name="bench_label_address">Address</string>
+    <string name="bench_label_directions">Directions</string>
+    <string name="bench_label_phone">Phone</string>
+    <string name="bench_label_hours">Hours</string>
+    <string name="bench_label_days">Working Days</string>
+    <string name="bench_label_vax_days">Vaccination Days</string>
+    <string name="bench_label_vaccines">Available Vaccines</string>
+    <string name="bench_no_phone">No phone number available</string>
+    <string name="bench_not_specified">Not specified</string>
+
+    <!-- BenchDetailScreen — distance chip -->
+    <string name="bench_distance_km">%.1f km away</string>
+
+    <!-- Delete dialog -->
+    <string name="delete_cancel">Cancel</string>
 
 </resources>
