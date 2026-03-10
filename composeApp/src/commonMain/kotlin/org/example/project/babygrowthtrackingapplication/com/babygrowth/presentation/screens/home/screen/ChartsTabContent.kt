@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -1170,6 +1171,105 @@ private fun EmptyChartBox(
             Text(emoji, style = MaterialTheme.typography.displaySmall)
             Text(title,    style = MaterialTheme.typography.titleSmall,  fontWeight = FontWeight.Bold,  color = MaterialTheme.colorScheme.onSurface.copy(0.7f), textAlign = TextAlign.Center)
             Text(subtitle, style = MaterialTheme.typography.bodySmall,   color = MaterialTheme.colorScheme.onSurface.copy(0.45f), textAlign = TextAlign.Center)
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ALL MEASUREMENTS SCREEN
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+fun AllMeasurementsScreen(
+    babyId   : String,
+    babyName : String,
+    isFemale : Boolean,
+    viewModel: HomeViewModel,
+    onBack   : () -> Unit
+) {
+    val customColors = MaterialTheme.customColors
+    val dimensions   = LocalDimensions.current
+    val accentStart  = customColors.accentGradientStart
+    val accentEnd    = customColors.accentGradientEnd
+    val state        = viewModel.uiState
+    val records      = (state.allGrowthRecords[babyId] ?: emptyList())
+        .sortedByDescending { it.measurementDate }
+
+    Scaffold(
+        topBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Brush.horizontalGradient(listOf(accentStart, accentEnd)))
+                    .padding(
+                        horizontal = dimensions.spacingSmall,
+                        vertical   = dimensions.spacingSmall
+                    )
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
+                    }
+                    Text(
+                        stringResource(Res.string.all_measures_title),
+                        style      = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color      = Color.White,
+                        modifier   = Modifier.weight(1f)
+                    )
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                Color.White.copy(0.22f),
+                                RoundedCornerShape(dimensions.buttonCornerRadius)
+                            )
+                            .padding(
+                                horizontal = dimensions.spacingSmall + dimensions.spacingXSmall,
+                                vertical   = dimensions.spacingXSmall
+                            )
+                    ) {
+                        Text(
+                            "${if (isFemale) "👶" else "👦"} $babyName",
+                            style      = MaterialTheme.typography.labelSmall,
+                            color      = Color.White,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { pad ->
+        if (records.isEmpty()) {
+            Box(Modifier.fillMaxSize().padding(pad), Alignment.Center) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("📏", style = MaterialTheme.typography.displayMedium)
+                    Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
+                    Text(
+                        stringResource(Res.string.all_measures_empty),
+                        style     = MaterialTheme.typography.bodyLarge,
+                        color     = MaterialTheme.colorScheme.onBackground.copy(0.55f),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        } else {
+            LazyColumn(
+                modifier       = Modifier.fillMaxSize().padding(pad),
+                contentPadding = PaddingValues(
+                    horizontal = dimensions.screenPadding,
+                    vertical   = dimensions.spacingMedium
+                ),
+                verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
+            ) {
+                items(records, key = { it.recordId }) { record ->
+                    MeasurementCard(
+                        record      = record,
+                        accentStart = accentStart,
+                        onDelete    = { viewModel.deleteGrowthRecord(babyId, record.recordId) }
+                    )
+                }
+            }
         }
     }
 }

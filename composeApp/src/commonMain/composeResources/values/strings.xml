@@ -304,7 +304,8 @@
 
     <!-- ── Delete measurement dialog (were hardcoded in MeasurementCard) ── -->
     <string name="chart_delete_measurement_title">Delete Measurement</string>
-    <string name="chart_delete_measurement_desc">Remove measurement from %s?</string>
+    <string name="chart_delete_measurement_desc">Remove measurement from %1$s?</string>
+
 
     <!-- ── Empty measurement fallback values (were hardcoded "Weight: —" etc.) ── -->
     <string name="chart_weight_empty">Weight: —</string>

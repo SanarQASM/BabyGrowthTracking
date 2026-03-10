@@ -27,6 +27,7 @@ import org.example.project.babygrowthtrackingapplication.com.babygrowth.presenta
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.AddBabyViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HomeViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HealthRecordViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.AllMeasurementsScreen
 import org.example.project.babygrowthtrackingapplication.data.auth.SocialAuthManager
 import org.example.project.babygrowthtrackingapplication.data.auth.SocialLoginHelper
 import org.example.project.babygrowthtrackingapplication.data.network.ApiService
@@ -540,16 +541,6 @@ fun AppNavigation(
     } // end SharedTransitionLayout
 }
 
-@Composable
-fun AllMeasurementsScreen(
-    babyId: String,
-    babyName: String,
-    isFemale: Boolean,
-    viewModel: HomeViewModel,
-    onBack: () -> Unit
-) {
-    TODO("Not yet implemented")
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Platform expectations
