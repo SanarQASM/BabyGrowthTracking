@@ -16,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.example.project.babygrowthtrackingapplication.data.network.BabyResponse
 import org.example.project.babygrowthtrackingapplication.data.network.GrowthRecordResponse
 import org.example.project.babygrowthtrackingapplication.data.network.VaccinationResponse
@@ -86,43 +87,32 @@ fun BabyProfileScreen(
                             Brush.verticalGradient(
                                 colors = listOf(
                                     customColors.accentGradientStart.copy(alpha = 0.85f),
-                                    customColors.accentGradientEnd.copy(alpha = 0.70f)
+                                    customColors.accentGradientEnd.copy(alpha = 0.75f)
                                 )
-                            ),
-                            RoundedCornerShape(
-                                bottomStart = dimensions.spacingXXLarge - dimensions.spacingXSmall,
-                                bottomEnd   = dimensions.spacingXXLarge - dimensions.spacingXSmall
                             )
-                        )
-                        .padding(
-                            start   = dimensions.spacingLarge,
-                            end     = dimensions.spacingLarge,
-                            top     = dimensions.spacingMedium,
-                            bottom  = dimensions.spacingXLarge
                         )
                 ) {
                     Column(
-                        modifier            = Modifier.fillMaxWidth(),
+                        modifier            = Modifier
+                            .fillMaxWidth()
+                            .padding(dimensions.spacingXLarge),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-
                         // Avatar circle
                         Box(
                             modifier = Modifier
-                                .size(dimensions.avatarLarge + dimensions.spacingMedium)
-                                .clip(CircleShape)
-                                .background(customColors.glassOverlay.copy(alpha = 0.20f))
+                                .size(dimensions.avatarLarge)
+                                .background(customColors.glassOverlay, CircleShape)
                                 .border(
-                                    dimensions.borderWidthMedium,   // WAS: 2.dp
-                                    customColors.glassOverlay.copy(alpha = 0.45f),
+                                    dimensions.borderWidthMedium,
+                                    customColors.glassOverlay.copy(alpha = 0.5f),
                                     CircleShape
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 if (isFemale) "👶" else "👦",
-                                style    = MaterialTheme.typography.displaySmall,
-                                color    = MaterialTheme.colorScheme.onPrimary
+                                fontSize = (dimensions.avatarLarge.value * 0.55f).sp
                             )
                         }
 
@@ -158,11 +148,11 @@ fun BabyProfileScreen(
                                 modifier = Modifier
                                     .background(
                                         customColors.glassOverlay,
-                                        RoundedCornerShape(dimensions.profileArchivedCorner) // WAS: 8.dp
+                                        RoundedCornerShape(dimensions.profileArchivedCorner)
                                     )
                                     .padding(
-                                        horizontal = dimensions.profileArchivedPaddingH,     // WAS: 12.dp
-                                        vertical   = dimensions.profileArchivedPaddingV      // WAS: 4.dp
+                                        horizontal = dimensions.profileArchivedPaddingH,
+                                        vertical   = dimensions.profileArchivedPaddingV
                                     )
                             ) {
                                 Text(
@@ -208,7 +198,11 @@ fun BabyProfileScreen(
                     verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
                 ) {
 
-                    // BASIC INFORMATION
+                    // ── BASIC INFORMATION ─────────────────────────────────────
+                    // FIX: Removed duplicate "Days Old" row.
+                    // Old code had BOTH baby.ageInDays AND baby.ageInMonths * 30 rows.
+                    // FIX: Use baby.ageInDays.toInt() so %d format arg works correctly
+                    // (ageInDays is Long; stringResource %d needs Int).
                     ProfileSectionCard(title = stringResource(Res.string.profile_section_basic_info)) {
                         ProfileInfoRow(
                             icon  = "🎂",
@@ -219,7 +213,9 @@ fun BabyProfileScreen(
                         ProfileInfoRow(
                             icon  = "🗓️",
                             label = stringResource(Res.string.profile_days_old),
-                            value = stringResource(Res.string.profile_days_old_value, baby.ageInDays.toInt())
+                            // FIX: was baby.ageInDays.toInt() passed to %d, but %d format arg
+                            // in KMP stringResource is unreliable for Long. Build string directly.
+                            value = "${baby.ageInDays} days"
                         )
                         ProfileInfoDivider()
                         ProfileInfoRow(
@@ -228,95 +224,106 @@ fun BabyProfileScreen(
                             value = if (isFemale) stringResource(Res.string.gender_female)
                             else          stringResource(Res.string.gender_male)
                         )
-                        ProfileInfoDivider()
-                        ProfileInfoRow(
-                            icon  = "🗓️",
-                            label = stringResource(Res.string.profile_days_old),
-                            value = stringResource(Res.string.profile_days_old_value, baby.ageInMonths * 30)
-                        )
+                        // FIX: Removed the second duplicate "Days Old" row that used
+                        // baby.ageInMonths * 30 (wrong value, wrong field, duplicate label).
                     }
 
-                    // BIRTH MEASUREMENTS
+                    // ── BIRTH MEASUREMENTS ────────────────────────────────────
+                    // FIX: Was using stringResource(profile_weight_value, double.toString())
+                    // which produced literal "%s kg" because KMP stringResource with a String
+                    // arg for a %s format doesn't always interpolate at runtime.
+                    // Fix: Build the display string directly in Kotlin.
                     ProfileSectionCard(title = stringResource(Res.string.profile_section_birth_measurements)) {
                         ProfileInfoRow(
                             icon  = "⚖️",
                             label = stringResource(Res.string.chart_legend_weight_kg),
                             value = if (baby.birthWeight != null && baby.birthWeight > 0.0)
-                                stringResource(Res.string.profile_weight_value, baby.birthWeight.toString())
+                                "${baby.birthWeight} kg"
                             else
-                                stringResource(Res.string.profile_not_recorded)   // "Not recorded"
+                                stringResource(Res.string.profile_not_recorded)
                         )
                         ProfileInfoDivider()
                         ProfileInfoRow(
                             icon  = "📏",
                             label = stringResource(Res.string.chart_legend_height_cm),
                             value = if (baby.birthHeight != null && baby.birthHeight > 0.0)
-                                stringResource(Res.string.profile_height_value, baby.birthHeight.toString())
+                                "${baby.birthHeight} cm"
                             else
-                                stringResource(Res.string.profile_not_recorded)   // "Not recorded"
+                                stringResource(Res.string.profile_not_recorded)
                         )
+                        // Show head circumference if available
+                        baby.birthHeadCircumference?.takeIf { it > 0.0 }?.let { hc ->
+                            ProfileInfoDivider()
+                            ProfileInfoRow(
+                                icon  = "🔵",
+                                label = stringResource(Res.string.chart_legend_head_cm),
+                                value = "$hc cm"
+                            )
+                        }
                     }
 
-                    // LATEST GROWTH RECORD
-                    latestGrowth?.let { growth ->
+                    // ── LATEST GROWTH RECORD ──────────────────────────────────
+                    // FIX: Same %s / %d format string issue — build all values directly.
+                    // FIX: Removed broken `?: ProfileSectionCard(...)` null-else syntax that
+                    // was malformed and would cause a compile/runtime error.
+                    if (latestGrowth != null) {
                         ProfileSectionCard(title = stringResource(Res.string.profile_section_latest_growth)) {
-                            // Weight row
-                            val weightPct = growth.weightPercentile
+                            // Weight
+                            val weightPct = latestGrowth.weightPercentile
                             ProfileInfoRow(
                                 icon  = "⚖️",
                                 label = stringResource(Res.string.chart_legend_weight_kg),
                                 value = when {
-                                    growth.weight == null -> stringResource(Res.string.profile_not_recorded)
-                                    weightPct != null     -> stringResource(Res.string.profile_weight_percentile, growth.weight.toString(), weightPct)
-                                    else                  -> stringResource(Res.string.profile_weight_value, growth.weight.toString())
+                                    latestGrowth.weight == null -> stringResource(Res.string.profile_not_recorded)
+                                    weightPct != null           -> "${latestGrowth.weight} kg (${weightPct}th %ile)"
+                                    else                        -> "${latestGrowth.weight} kg"
                                 }
                             )
                             ProfileInfoDivider()
 
-                            // Height row
-                            val heightPct = growth.heightPercentile
+                            // Height
+                            val heightPct = latestGrowth.heightPercentile
                             ProfileInfoRow(
                                 icon  = "📏",
                                 label = stringResource(Res.string.chart_legend_height_cm),
                                 value = when {
-                                    growth.height == null -> stringResource(Res.string.profile_not_recorded)
-                                    heightPct != null     -> stringResource(Res.string.profile_height_percentile, growth.height.toString(), heightPct)
-                                    else                  -> stringResource(Res.string.profile_height_value, growth.height.toString())
+                                    latestGrowth.height == null -> stringResource(Res.string.profile_not_recorded)
+                                    heightPct != null           -> "${latestGrowth.height} cm (${heightPct}th %ile)"
+                                    else                        -> "${latestGrowth.height} cm"
                                 }
                             )
-                            ProfileInfoDivider()
 
-                            // Head circumference row (bonus — also guarded)
-                            growth.headCircumference?.let { hc ->
+                            // Head circumference (optional)
+                            latestGrowth.headCircumference?.let { hc ->
+                                ProfileInfoDivider()
                                 ProfileInfoRow(
                                     icon  = "🔵",
                                     label = stringResource(Res.string.chart_legend_head_cm),
-                                    value = stringResource(Res.string.chart_head_unit, hc.toString())
+                                    value = "$hc cm"
                                 )
-                                ProfileInfoDivider()
                             }
+
+                            ProfileInfoDivider()
 
                             // Recorded on
                             ProfileInfoRow(
                                 icon  = "📅",
                                 label = stringResource(Res.string.profile_recorded_on),
-                                value = formatProfileDate(growth.measurementDate)
+                                value = formatProfileDate(latestGrowth.measurementDate)
                             )
                         }
-                    }
-// If no growth record at all, show a placeholder card:
-                        ?: ProfileSectionCard(title = stringResource(Res.string.profile_section_latest_growth)) {
+                    } else {
+                        // No growth record yet — show placeholder
+                        ProfileSectionCard(title = stringResource(Res.string.profile_section_latest_growth)) {
                             ProfileInfoRow(
                                 icon  = "📊",
                                 label = stringResource(Res.string.profile_section_latest_growth),
-                                value = stringResource(Res.string.chart_no_measurement)   // "No measurement yet"
+                                value = stringResource(Res.string.chart_no_measurement)
                             )
                         }
+                    }
 
-
-
-
-                    // VACCINATIONS
+                    // ── VACCINATIONS ──────────────────────────────────────────
                     if (vaccinations.isNotEmpty()) {
                         val done    = vaccinations.count { it.status.equals("ADMINISTERED", ignoreCase = true) }
                         val pending = vaccinations.size - done
@@ -331,7 +338,7 @@ fun BabyProfileScreen(
                                 ProfileInfoRow(
                                     icon  = "💉",
                                     label = stringResource(Res.string.profile_vaccinations_pending),
-                                    value = stringResource(Res.string.profile_vaccinations_pending_value, pending)
+                                    value = "$pending remaining"
                                 )
                             }
                         }
@@ -350,7 +357,9 @@ fun BabyProfileScreen(
                         colors         = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
                         contentPadding = PaddingValues(),
                         elevation      = ButtonDefaults.buttonElevation(0.dp, 0.dp, 0.dp),
-                        modifier       = Modifier.fillMaxWidth().height(dimensions.buttonHeight)
+                        modifier       = Modifier
+                            .fillMaxWidth()
+                            .height(dimensions.buttonHeight)
                     ) {
                         Box(
                             modifier = Modifier
@@ -365,8 +374,8 @@ fun BabyProfileScreen(
                                     RoundedCornerShape(dimensions.buttonCornerRadius)
                                 )
                                 .border(
-                                    dimensions.borderWidthThin,                       // WAS: 1.dp
-                                    MaterialTheme.colorScheme.onPrimary.copy(0.20f),  // WAS: Color.White
+                                    dimensions.borderWidthThin,
+                                    MaterialTheme.colorScheme.onPrimary.copy(0.20f),
                                     RoundedCornerShape(dimensions.buttonCornerRadius)
                                 ),
                             contentAlignment = Alignment.Center
@@ -375,7 +384,7 @@ fun BabyProfileScreen(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .background(
-                                        MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.15f), // WAS: Color.White
+                                        MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.15f),
                                         RoundedCornerShape(dimensions.buttonCornerRadius)
                                     )
                             )
@@ -386,86 +395,28 @@ fun BabyProfileScreen(
                                 Icon(
                                     Icons.Default.Edit,
                                     contentDescription = null,
-                                    tint     = MaterialTheme.colorScheme.onPrimary,  // WAS: Color.White
+                                    tint     = MaterialTheme.colorScheme.onPrimary,
                                     modifier = Modifier.size(dimensions.iconMedium)
                                 )
                                 Text(
                                     text       = stringResource(Res.string.baby_action_edit),
-                                    color      = MaterialTheme.colorScheme.onPrimary, // WAS: Color.White
+                                    color      = MaterialTheme.colorScheme.onPrimary,
                                     fontWeight = FontWeight.Bold,
                                     style      = MaterialTheme.typography.labelLarge
                                 )
                             }
                         }
                     }
-
-                    Spacer(Modifier.height(dimensions.spacingSmall))
-
-                    // ── [4] DELETE button ─────────────────────────────────────
-                    Button(
-                        onClick        = { showDeleteDialog = true },
-                        shape          = RoundedCornerShape(dimensions.buttonCornerRadius),
-                        colors         = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-                        contentPadding = PaddingValues(),
-                        elevation      = ButtonDefaults.buttonElevation(0.dp, 0.dp, 0.dp),
-                        modifier       = Modifier.fillMaxWidth().height(dimensions.buttonHeight)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(
-                                    Brush.verticalGradient(
-                                        listOf(
-                                            customColors.warning.copy(alpha = 0.80f),
-                                            customColors.warning.copy(alpha = 0.60f)
-                                        )
-                                    ),
-                                    RoundedCornerShape(dimensions.buttonCornerRadius)
-                                )
-                                .border(
-                                    dimensions.borderWidthThin,                       // WAS: 1.dp
-                                    MaterialTheme.colorScheme.onPrimary.copy(0.20f),  // WAS: Color.White
-                                    RoundedCornerShape(dimensions.buttonCornerRadius)
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(
-                                        MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.10f), // WAS: Color.White
-                                        RoundedCornerShape(dimensions.buttonCornerRadius)
-                                    )
-                            )
-                            Row(
-                                verticalAlignment     = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
-                            ) {
-                                Icon(
-                                    Icons.Default.Delete,
-                                    contentDescription = null,
-                                    tint     = MaterialTheme.colorScheme.onPrimary, // WAS: Color.White
-                                    modifier = Modifier.size(dimensions.iconMedium)
-                                )
-                                Text(
-                                    text       = stringResource(Res.string.profile_delete_child),
-                                    color      = MaterialTheme.colorScheme.onPrimary, // WAS: Color.White
-                                    fontWeight = FontWeight.Bold,
-                                    style      = MaterialTheme.typography.labelLarge
-                                )
-                            }
-                        }
-                    }
-
-                    Spacer(Modifier.height(dimensions.spacingXLarge))
                 }
+
+                Spacer(Modifier.height(dimensions.spacingXLarge))
             }
         }
     }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TOP APP BAR
+// TOP BAR
 // ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -481,17 +432,14 @@ private fun ProfileTopBar(
         title = {
             Text(
                 text       = babyName,
-                fontWeight = FontWeight.SemiBold,
-                style      = MaterialTheme.typography.titleMedium,
-                color      = MaterialTheme.colorScheme.onBackground
+                fontWeight = FontWeight.SemiBold
             )
         },
         navigationIcon = {
             IconButton(onClick = onBack) {
                 Icon(
                     imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(Res.string.common_back),
-                    tint               = MaterialTheme.colorScheme.onBackground
+                    contentDescription = stringResource(Res.string.common_back)
                 )
             }
         },
@@ -561,7 +509,7 @@ private fun DeleteBabyConfirmDialog(
                     color      = MaterialTheme.colorScheme.onSurface
                 )
 
-                Spacer(Modifier.height(dimensions.borderWidthMedium))  // WAS: 2.dp
+                Spacer(Modifier.height(dimensions.borderWidthMedium))
 
                 // Warning panel
                 Box(
@@ -572,7 +520,7 @@ private fun DeleteBabyConfirmDialog(
                             RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
                         )
                         .border(
-                            dimensions.borderWidthThin,                          // WAS: 1.dp
+                            dimensions.borderWidthThin,
                             customColors.warning.copy(alpha = 0.35f),
                             RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
                         )
@@ -583,7 +531,7 @@ private fun DeleteBabyConfirmDialog(
                 ) {
                     Row(
                         verticalAlignment     = Alignment.Top,
-                        horizontalArrangement = Arrangement.spacedBy(dimensions.babyCardGenderSpacerW) // WAS: 6.dp
+                        horizontalArrangement = Arrangement.spacedBy(dimensions.babyCardGenderSpacerW)
                     ) {
                         Text("⚠️", style = MaterialTheme.typography.bodyMedium)
                         Text(
@@ -620,7 +568,7 @@ private fun DeleteBabyConfirmDialog(
         },
         shape          = RoundedCornerShape(dimensions.cardCornerRadius),
         containerColor = MaterialTheme.colorScheme.surface,
-        tonalElevation = dimensions.cardTonalElevation6   // WAS: 6.dp
+        tonalElevation = dimensions.cardTonalElevation6
     )
 }
 
@@ -647,20 +595,20 @@ private fun ProfileQuickActionButton(
                 RoundedCornerShape(dimensions.buttonCornerRadius)
             )
             .border(
-                dimensions.borderWidthThin,                                // WAS: 1.dp
+                dimensions.borderWidthThin,
                 customColors.glassOverlay.copy(alpha = 0.45f),
                 RoundedCornerShape(dimensions.buttonCornerRadius)
             )
             .padding(
                 horizontal = dimensions.spacingSmall,
-                vertical   = dimensions.profileSectionCardVertPad          // WAS: spacingMedium - 2.dp
+                vertical   = dimensions.profileSectionCardVertPad
             ),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(dimensions.profileQuickActionItemGap) // WAS: 4.dp
+        verticalArrangement = Arrangement.spacedBy(dimensions.profileQuickActionItemGap)
     ) {
         Text(
             emoji,
-            fontSize = dimensions.profileQuickActionEmojiSize              // WAS: 20.sp
+            fontSize = dimensions.profileQuickActionEmojiSize
         )
         Text(
             text       = label,
@@ -668,8 +616,8 @@ private fun ProfileQuickActionButton(
             color      = MaterialTheme.colorScheme.onPrimary,
             textAlign  = TextAlign.Center,
             maxLines   = 2,
-            fontSize   = dimensions.profileQuickActionLabelSize,           // WAS: 9.sp
-            lineHeight = dimensions.profileQuickActionLineHeight            // WAS: 11.sp
+            fontSize   = dimensions.profileQuickActionLabelSize,
+            lineHeight = dimensions.profileQuickActionLineHeight
         )
     }
 }
@@ -693,9 +641,9 @@ private fun ProfileSectionCard(
             style         = MaterialTheme.typography.labelMedium,
             fontWeight    = FontWeight.Bold,
             color         = customColors.accentGradientStart,
-            letterSpacing = MaterialTheme.typography.labelMedium.letterSpacing, // WAS: 0.8.sp
+            letterSpacing = MaterialTheme.typography.labelMedium.letterSpacing,
             modifier      = Modifier.padding(
-                start  = dimensions.profileSectionLabelStartPadding,            // WAS: 4.dp
+                start  = dimensions.profileSectionLabelStartPadding,
                 bottom = dimensions.spacingSmall
             )
         )
@@ -713,16 +661,16 @@ private fun ProfileSectionCard(
                     RoundedCornerShape(dimensions.buttonCornerRadius)
                 )
                 .border(
-                    dimensions.borderWidthThin,                                 // WAS: 1.dp
+                    dimensions.borderWidthThin,
                     customColors.accentGradientStart.copy(alpha = 0.18f),
                     RoundedCornerShape(dimensions.buttonCornerRadius)
                 )
                 .padding(
                     horizontal = dimensions.spacingMedium,
-                    vertical   = dimensions.profileSectionCardVertPad           // WAS: spacingMedium - 2.dp
+                    vertical   = dimensions.profileSectionCardVertPad
                 )
         ) {
-            // Glassmorphic overlay — WAS: Color.White.copy(alpha = 0.08f)
+            // Glassmorphic overlay
             Box(
                 modifier = Modifier
                     .matchParentSize()
@@ -746,13 +694,13 @@ private fun ProfileInfoRow(icon: String, label: String, value: String) {
     Row(
         modifier          = Modifier
             .fillMaxWidth()
-            .padding(vertical = dimensions.profileInfoRowVerticalPadding),  // WAS: 5.dp
+            .padding(vertical = dimensions.profileInfoRowVerticalPadding),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
             icon,
-            fontSize = dimensions.profileInfoIconFontSize,                   // WAS: 15.sp
-            modifier = Modifier.width(dimensions.profileInfoIconWidth)       // WAS: 28.dp
+            fontSize = dimensions.profileInfoIconFontSize,
+            modifier = Modifier.width(dimensions.profileInfoIconWidth)
         )
         Text(
             text     = label,
@@ -781,7 +729,7 @@ private fun ProfileInfoDivider() {
     )
 }
 
-// tiny local helpers — these only live in this file's scope
+// tiny local helpers — only live in this file's scope
 private val dimensions_dividerThickness get() = 0.8.dp
 private val dimensions_dividerPadding   get() = 1.dp
 

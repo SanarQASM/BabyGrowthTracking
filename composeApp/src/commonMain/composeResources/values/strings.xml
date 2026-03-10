@@ -37,7 +37,7 @@
 
     <string name="forgot_password_title">forget password</string>
     <string name="forgot_password_send_code">send code</string>
-    <string name="forgot_password_description">Enter your email address and we'll send you a 6-digit code to reset your password.</string>
+    <string name="forgot_password_description">Enter your email address and we\'ll send you a 6-digit code to reset your password.</string>
     <string name="forgot_password_email_placeholder">Email address</string>
     <string name="forgot_password_email_icon_description">Email icon</string>
 
@@ -51,18 +51,18 @@
     <string name="new_password_button">update password</string>
 
     <string name="verify_account_title">Verify Your Account</string>
-    <string name="verify_account_subtitle">To ensure your account is protected, we need to verify it's you</string>
+    <string name="verify_account_subtitle">To ensure your account is protected, we need to verify it\'s you</string>
     <string name="verify_logo_description">Verification animation</string>
     <string name="verify_select_method">Step 1: Choose Verification Method</string>
     <string name="verify_enter_code">Step 2: Enter Verification Code</string>
-    <string name="verify_method_description">We'll send you a verification code to confirm your account</string>
+    <string name="verify_method_description">We\'ll send you a verification code to confirm your account</string>
     <string name="verify_email_title">Email Verification</string>
     <string name="verify_sms_title">SMS Verification</string>
     <string name="verify_send_code">Send Code</string>
     <string name="verify_code_sent_to">Enter the 6-digit code sent to: %s</string>
     <string name="verify_code_placeholder">Enter 6-digit code</string>
     <string name="verify_code_icon_description">Verification code icon</string>
-    <string name="verify_didnt_receive">Didn't receive the code?</string>
+    <string name="verify_didnt_receive">Didn\'t receive the code?</string>
     <string name="verify_resend">Resend</string>
     <string name="verify_resend_in">Resend in %d seconds</string>
     <string name="verify_account_button">Verify Account</string>
@@ -79,8 +79,8 @@
     <string name="onboarding_skip">Skip</string>
     <string name="onboarding_next">Next</string>
     <string name="onboarding_get_started">Get Started</string>
-    <string name="onboarding_title_1">Track Your Baby's Growth Journey</string>
-    <string name="onboarding_desc_1">Monitor weight, height, and head circumference. Visualize your baby's development with beautiful growth charts and compare with WHO standards.</string>
+    <string name="onboarding_title_1">Track Your Baby\'s Growth Journey</string>
+    <string name="onboarding_desc_1">Monitor weight, height, and head circumference. Visualize your baby\'s development with beautiful growth charts and compare with WHO standards.</string>
     <string name="onboarding_title_2">Never Miss a Feeding or Sleep Time</string>
     <string name="onboarding_desc_2">Log feedings, diaper changes, and sleep patterns. Get smart reminders and insights to establish healthy routines for your little one.</string>
     <string name="onboarding_title_3">Get Personalized Tips &amp; Guidance</string>
@@ -96,13 +96,13 @@
     <string name="chart_filter_height">Height</string>
     <string name="chart_filter_head">Head Circum.</string>
     <string name="chart_legend_title">Legend:</string>
-    <string name="chart_legend_baby_weight">%s's weight</string>
+    <string name="chart_legend_baby_weight">%s\'s weight</string>
     <string name="chart_legend_who97">High range (WHO 97th)</string>
     <string name="chart_legend_who50">Average (WHO 50th)</string>
     <string name="chart_legend_who3">Low range (WHO 3rd)</string>
     <string name="chart_latest_measurement">LATEST MEASUREMENT:</string>
     <string name="chart_no_measurement">No measurement yet</string>
-    <string name="chart_no_measurement_desc">Tap "Add Measurement" to record your baby's first growth data.</string>
+    <string name="chart_no_measurement_desc">Tap "Add Measurement" to record your baby\'s first growth data.</string>
     <string name="chart_no_baby">No baby selected</string>
     <string name="chart_no_baby_desc">Add a baby first to start tracking growth.</string>
     <string name="chart_view_all">View All</string>
@@ -141,13 +141,13 @@
     <string name="tab_settings">Settings</string>
 
     <string name="home_welcome">Welcome Back! 👋</string>
-    <string name="home_subtitle">Track your baby's growth and milestones</string>
+    <string name="home_subtitle">Track your baby\'s growth and milestones</string>
     <string name="home_welcome_title">Welcome</string>
     <string name="home_add_more_child">Add More Child</string>
     <string name="home_children_count_one">You have 1 child</string>
     <string name="home_children_count_other">You have %d children</string>
     <string name="home_no_babies_title">No babies added yet</string>
-    <string name="home_no_babies_desc">You don't have any baby yet.\nTap below to add your first one!</string>
+    <string name="home_no_babies_desc">You don\'t have any baby yet.\nTap below to add your first one!</string>
     <string name="home_add_first_baby">Add Your First Baby</string>
     <string name="home_select_child">SELECT CHILD</string>
     <string name="home_select_child_hint">Select a child…</string>
@@ -158,9 +158,9 @@
     <string name="home_tool_feeding">Feeding Guide</string>
     <string name="home_tool_memory">Memory</string>
     <string name="home_tool_add_baby">Add Baby</string>
-    <string name="banner_boy_label">IT'S A HANDSOME</string>
+    <string name="banner_boy_label">IT\'S A HANDSOME</string>
     <string name="banner_boy_sub">Baby Boy</string>
-    <string name="banner_girl_label">IT'S A BEAUTIFUL</string>
+    <string name="banner_girl_label">IT\'S A BEAUTIFUL</string>
     <string name="banner_girl_sub">Baby Girl</string>
     <string name="banner_neutral_label">WELCOME TO</string>
     <string name="banner_neutral_sub">Baby Growth Track</string>
@@ -257,7 +257,7 @@
     <string name="add_baby_clear_button">Clear Form</string>
     <string name="add_baby_dismiss">Dismiss</string>
     <string name="add_baby_photo_dialog_title">Feature Coming Soon</string>
-    <string name="add_baby_photo_dialog_message">Baby photo upload will be available in a future update. Stay tuned — we're working on it! 🍼</string>
+    <string name="add_baby_photo_dialog_message">Baby photo upload will be available in a future update. Stay tuned — we\'re working on it! 🍼</string>
     <string name="add_baby_photo_dialog_confirm">Got it!</string>
     <string name="add_baby_date_ok">OK</string>
     <string name="add_baby_date_cancel">Cancel</string>
@@ -287,7 +287,7 @@
     <string name="chart_legend_team_added">🏥  Team / Vaccination Added</string>
     <string name="chart_legend_who_ref_weight">📊  WHO Reference (weight)</string>
     <string name="chart_legend_who_avg">WHO Average (50th)</string>
-    <string name="chart_legend_baby_measurements">👤  Baby's Measurements</string>
+    <string name="chart_legend_baby_measurements">👤  Baby\'s Measurements</string>
     <string name="chart_legend_who_standards">📊  WHO Growth Standards</string>
 
     <!-- ── Legend row metric labels ── -->
@@ -310,6 +310,37 @@
     <string name="chart_weight_empty">Weight: —</string>
     <string name="chart_height_empty">Height: —</string>
     <string name="chart_head_empty">Head Circumference: —</string>
+
+    <!-- ────────────────────────────────────────────────────────────────────────
+         NEW strings extracted from previously hardcoded values in ChartsTabContent
+         ──────────────────────────────────────────────────────────────────────── -->
+
+    <!-- Standalone unit labels reused across chart value display -->
+    <!-- NOTE: add_baby_unit_kg / add_baby_unit_cm already exist and are reused;
+         the entries below are kept for semantic clarity in chart-specific contexts. -->
+
+    <!-- Percentile row suffix shown next to a numeric percentile value
+         e.g. "50th %ile"  (%%ile → %ile after resource unescaping) -->
+    <string name="chart_percentile_suffix">th %%ile</string>
+
+    <!-- Emoji prefix for the date row in the Latest Measurement card -->
+    <string name="chart_date_prefix_emoji">📅</string>
+
+    <!-- Measurement value templates used in Latest Measurement and History cards.
+         These combine the emoji icon + a numeric value + unit into one string,
+         constructed in Kotlin as:  "$value ${stringResource(unit)}"
+         The emoji prefix lives in these label strings so it is localisable. -->
+    <string name="chart_measurement_weight_icon">⚖️</string>
+    <string name="chart_measurement_height_icon">📏</string>
+    <string name="chart_measurement_head_icon">🔵</string>
+
+    <!-- Percentile chip icons (kept separate so they can be localised independently) -->
+    <string name="chart_percentile_weight_icon">⚖️</string>
+    <string name="chart_percentile_height_icon">📏</string>
+
+    <!-- Fallback dash shown when a day part of a date string is unavailable
+         (re-uses the existing profile_not_recorded_value "—" symbol) -->
+    <!-- No new entry needed — profile_not_recorded_value ("—") is reused directly. -->
 
     <!-- Map screen -->
     <string name="bench_map_title">Select Health Center</string>
@@ -415,5 +446,24 @@
 
     <!-- Delete dialog -->
     <string name="delete_cancel">Cancel</string>
+
+    <!-- ────────────────────────────────────────────────────────────────────────
+         AddMeasurementScreen — previously hardcoded strings
+         ──────────────────────────────────────────────────────────────────────── -->
+
+    <!-- Section card titles (were "MEASUREMENT DATE" and "MEASUREMENTS") -->
+    <string name="add_measure_date_section_title">MEASUREMENT DATE</string>
+    <string name="add_measure_measurements_section_title">MEASUREMENTS</string>
+
+    <!-- Date field placeholder (was "YYYY-MM-DD") -->
+    <string name="add_measure_date_placeholder">YYYY-MM-DD</string>
+
+    <!-- Measurement field placeholders (were "Weight", "Height", "Head Circumference") -->
+    <string name="add_measure_weight_placeholder">Weight</string>
+    <string name="add_measure_height_placeholder">Height</string>
+    <string name="add_measure_head_placeholder">Head Circumference</string>
+
+    <!-- Save button label — includes emoji prefix (was "💾  Save Measurement") -->
+    <string name="add_measure_save_button">💾  Save Measurement</string>
 
 </resources>

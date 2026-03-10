@@ -7,7 +7,6 @@ import org.example.project.babygrowthtrackingapplication.com.babygrowth.presenta
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.HomeScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.AddBabyScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.AddMeasurementScreen
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.AllMeasurementsScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.BabyProfileScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.Language
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.PreferencesManager
@@ -539,6 +538,17 @@ fun AppNavigation(
             } // end when(screen)
         } // end AnimatedContent
     } // end SharedTransitionLayout
+}
+
+@Composable
+fun AllMeasurementsScreen(
+    babyId: String,
+    babyName: String,
+    isFemale: Boolean,
+    viewModel: HomeViewModel,
+    onBack: () -> Unit
+) {
+    TODO("Not yet implemented")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

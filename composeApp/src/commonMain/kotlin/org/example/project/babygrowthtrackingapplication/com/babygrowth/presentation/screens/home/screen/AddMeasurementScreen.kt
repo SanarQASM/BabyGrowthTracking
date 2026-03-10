@@ -17,8 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.*
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
-import babygrowthtrackingapplication.composeapp.generated.resources.add_measure_title
-import babygrowthtrackingapplication.composeapp.generated.resources.common_back
+import babygrowthtrackingapplication.composeapp.generated.resources.*
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
@@ -52,6 +51,22 @@ fun AddMeasurementScreen(
 
     var showDatePicker by remember { mutableStateOf(false) }
 
+    // ── Localised strings ─────────────────────────────────────────────────────
+    val strDateSectionTitle   = stringResource(Res.string.add_measure_date_section_title)
+    val strMeasureSectionTitle = stringResource(Res.string.add_measure_measurements_section_title)
+    val strDatePlaceholder    = stringResource(Res.string.add_measure_date_placeholder)
+    val strPickDate           = stringResource(Res.string.add_baby_field_dob_pick)
+    val strWeightPlaceholder  = stringResource(Res.string.add_measure_weight_placeholder)
+    val strHeightPlaceholder  = stringResource(Res.string.add_measure_height_placeholder)
+    val strHeadPlaceholder    = stringResource(Res.string.add_measure_head_placeholder)
+    val strUnitKg             = stringResource(Res.string.add_baby_unit_kg)
+    val strUnitCm             = stringResource(Res.string.add_baby_unit_cm)
+    val strSaving             = stringResource(Res.string.add_measure_saving)
+    val strSaveButton         = stringResource(Res.string.add_measure_save_button)
+    val strCancelButton       = stringResource(Res.string.add_measure_cancel)
+    val strDatePickOk         = stringResource(Res.string.add_baby_date_ok)
+    val strDatePickCancel     = stringResource(Res.string.add_baby_date_cancel)
+
     // ✅ Trigger onSaved once after successful save, then destroy the ViewModel
     LaunchedEffect(state.isSaved) {
         if (state.isSaved) {
@@ -80,20 +95,19 @@ fun AddMeasurementScreen(
                     },
                     shape  = RoundedCornerShape(dimensions.buttonCornerRadius),
                     colors = ButtonDefaults.buttonColors(containerColor = customColors.accentGradientStart)
-                ) { Text("OK", fontWeight = FontWeight.SemiBold) }
+                ) { Text(strDatePickOk, fontWeight = FontWeight.SemiBold) }
             },
             dismissButton = {
                 OutlinedButton(
                     onClick = { showDatePicker = false },
                     shape   = RoundedCornerShape(dimensions.buttonCornerRadius)
-                ) { Text("Cancel") }
+                ) { Text(strDatePickCancel) }
             }
         ) { DatePicker(state = datePickerState, showModeToggle = true) }
     }
 
     BabyGrowthTheme {
         Scaffold(
-
             topBar = {
                 TopAppBar(
                     title = {
@@ -102,12 +116,12 @@ fun AddMeasurementScreen(
                                 text       = stringResource(Res.string.add_measure_title),
                                 fontWeight = FontWeight.Bold,
                                 style      = MaterialTheme.typography.titleMedium,
-                                color      = customColors.accentGradientStart   // FIX: was onBackground
+                                color      = customColors.accentGradientStart
                             )
                             Text(
                                 text  = babyName,
                                 style = MaterialTheme.typography.bodySmall,
-                                color = customColors.accentGradientStart.copy(0.6f)   // FIX: was onBackground
+                                color = customColors.accentGradientStart.copy(0.6f)
                             )
                         }
                     },
@@ -116,14 +130,14 @@ fun AddMeasurementScreen(
                             Icon(
                                 Icons.AutoMirrored.Filled.ArrowBack,
                                 contentDescription = stringResource(Res.string.common_back),
-                                tint = customColors.accentGradientStart   // FIX: was onBackground
+                                tint = customColors.accentGradientStart
                             )
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
                         containerColor             = customColors.accentGradientStart.copy(alpha = 0.15f),
-                        titleContentColor          = customColors.accentGradientStart,   // FIX: added
-                        navigationIconContentColor = customColors.accentGradientStart    // FIX: added
+                        titleContentColor          = customColors.accentGradientStart,
+                        navigationIconContentColor = customColors.accentGradientStart
                     )
                 )
             },
@@ -178,17 +192,17 @@ fun AddMeasurementScreen(
                         ) {
 
                             // ── Date field ────────────────────────────────────
-                            MeasureSectionCard(title = "MEASUREMENT DATE") {
+                            MeasureSectionCard(title = strDateSectionTitle) {
                                 MeasureTextField(
                                     value         = state.measurementDate,
                                     onValueChange = {},
-                                    placeholder   = "YYYY-MM-DD",
+                                    placeholder   = strDatePlaceholder,
                                     readOnly      = true,
                                     trailingIcon  = {
                                         IconButton(onClick = { showDatePicker = true }) {
                                             Icon(
                                                 Icons.Default.DateRange,
-                                                contentDescription = "Pick date",
+                                                contentDescription = strPickDate,
                                                 tint     = customColors.accentGradientEnd,
                                                 modifier = Modifier.size(dimensions.iconMedium)
                                             )
@@ -198,31 +212,31 @@ fun AddMeasurementScreen(
                             }
 
                             // ── Measurements ──────────────────────────────────
-                            MeasureSectionCard(title = "MEASUREMENTS") {
+                            MeasureSectionCard(title = strMeasureSectionTitle) {
                                 MeasureTextField(
                                     value         = state.weight,
                                     onValueChange = viewModel::onWeightChange,
-                                    placeholder   = "Weight",
+                                    placeholder   = strWeightPlaceholder,
                                     keyboardType  = KeyboardType.Decimal,
-                                    trailingText  = "kg",
+                                    trailingText  = strUnitKg,
                                     leadingEmoji  = "⚖️"
                                 )
                                 Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
                                 MeasureTextField(
                                     value         = state.height,
                                     onValueChange = viewModel::onHeightChange,
-                                    placeholder   = "Height",
+                                    placeholder   = strHeightPlaceholder,
                                     keyboardType  = KeyboardType.Decimal,
-                                    trailingText  = "cm",
+                                    trailingText  = strUnitCm,
                                     leadingEmoji  = "📏"
                                 )
                                 Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
                                 MeasureTextField(
                                     value         = state.headCircumference,
                                     onValueChange = viewModel::onHeadChange,
-                                    placeholder   = "Head Circumference",
+                                    placeholder   = strHeadPlaceholder,
                                     keyboardType  = KeyboardType.Decimal,
-                                    trailingText  = "cm",
+                                    trailingText  = strUnitCm,
                                     leadingEmoji  = "🔵"
                                 )
                             }
@@ -256,8 +270,6 @@ fun AddMeasurementScreen(
 
                             // ── Save button ───────────────────────────────────
                             Button(
-                                // ✅ onClick guard: isLoading checked in ViewModel too,
-                                //    but also disable the button in the UI for clarity
                                 onClick        = { viewModel.saveMeasurement(babyId) },
                                 enabled        = !state.isLoading,
                                 shape          = RoundedCornerShape(dimensions.buttonCornerRadius),
@@ -316,7 +328,7 @@ fun AddMeasurementScreen(
                                                 strokeWidth = dimensions.spacingXSmall / 2
                                             )
                                             Text(
-                                                "Saving…",
+                                                strSaving,
                                                 color      = MaterialTheme.colorScheme.onPrimary,
                                                 fontWeight = FontWeight.SemiBold,
                                                 style      = MaterialTheme.typography.labelLarge
@@ -324,7 +336,7 @@ fun AddMeasurementScreen(
                                         }
                                     } else {
                                         Text(
-                                            "💾  Save Measurement",
+                                            strSaveButton,
                                             color      = MaterialTheme.colorScheme.onPrimary,
                                             fontWeight = FontWeight.Bold,
                                             style      = MaterialTheme.typography.labelLarge
@@ -367,7 +379,7 @@ fun AddMeasurementScreen(
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        "Cancel",
+                                        strCancelButton,
                                         color      = MaterialTheme.colorScheme.onSurface,
                                         fontWeight = FontWeight.SemiBold,
                                         style      = MaterialTheme.typography.labelLarge
@@ -461,14 +473,17 @@ private fun MeasureTextField(
             value         = value,
             onValueChange = if (readOnly) ({}) else onValueChange,
             placeholder   = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    leadingEmoji?.let { Text(it, modifier = Modifier.padding(end = 6.dp)) }
-                    Text(
-                        placeholder,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(0.45f)
-                    )
-                }
+                // ── BUG FIX: duplicate icon ───────────────────────────────────
+                // Previously the placeholder Row re-rendered the leadingEmoji
+                // alongside the hint text, while `leadingIcon` also rendered it —
+                // causing the icon to appear twice in the field.
+                // Fix: the placeholder now shows ONLY the hint text; the emoji
+                // is displayed exclusively through the `leadingIcon` slot.
+                Text(
+                    placeholder,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(0.45f)
+                )
             },
             leadingIcon  = leadingEmoji?.let { emoji ->
                 { Text(emoji, style = MaterialTheme.typography.bodyLarge) }

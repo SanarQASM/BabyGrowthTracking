@@ -508,9 +508,9 @@ private fun BabyCard(
     // Fix: remove the inner clip entirely — Card already clips its content.
     Card(
         modifier  = Modifier.fillMaxWidth(),
-        shape     = RoundedCornerShape(dimensions.chartCardCornerRadius),   // WAS: 18.dp
+        shape     = RoundedCornerShape(dimensions.chartCardCornerRadius),
         colors    = CardDefaults.cardColors(containerColor = Color.Transparent),
-        elevation = CardDefaults.cardElevation(dimensions.spacingXSmall - 1.dp)
+        elevation = CardDefaults.cardElevation(0.dp)  // ← FIXED: no tonal overlay rectangle
     ) {
         Box(
             modifier = Modifier

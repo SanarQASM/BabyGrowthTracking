@@ -60,25 +60,17 @@ class HomeViewModel(
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Q4 auto-archive threshold:
-    // A baby aged 6 years (72 months) or older has graduated beyond the app's
-    // primary tracking window.  On every data load we silently move any still-
-    // active baby that has reached this age to the archived list.
-    //
-    // Which entity / attribute?
-    //   Entity    : Baby (backend) / BabyResponse (client)
-    //   Attribute : ageInMonths  — computed by the backend from dateOfBirth each
-    //               request, so it is always current without any client-side date math.
-    //   Threshold : ageInMonths >= AUTO_ARCHIVE_MONTHS  (i.e. 72 = 6 × 12)
-    //   Triggered : inside loadHomeData(), after the baby list arrives.
-    //   Mechanism : calls archiveBaby(babyId) via the existing PATCH /status endpoint,
-    //               so the isActive flag is persisted server-side — not just a local filter.
+    // Auto-archive threshold: babies aged ≥ 6 years (72 months) are silently
+    // archived on every data load. The ageInMonths field is computed server-side
+    // so no client-side date math is needed.
     // ─────────────────────────────────────────────────────────────────────────
     private val AUTO_ARCHIVE_MONTHS = 72   // 6 years
 
     init { loadHomeData() }
 
-    // ── Initial load ──────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // Initial load
+    // ─────────────────────────────────────────────────────────────────────────
 
     fun loadHomeData() {
         scope.launch {
@@ -93,10 +85,7 @@ class HomeViewModel(
                     val babies = result.data
                     uiState = uiState.copy(babies = babies, isLoading = false)
 
-                    // ── Auto-archive babies ≥ 6 years ─────────────────────────
-                    // Check every active baby: if ageInMonths >= 72, silently
-                    // archive them. This uses the backend-computed ageInMonths
-                    // field (from Baby.getAgeInMonths()) so no client date math.
+                    // Auto-archive babies ≥ 6 years (silent — no snackbar)
                     babies
                         .filter { it.isActive && it.ageInMonths >= AUTO_ARCHIVE_MONTHS }
                         .forEach { baby ->
@@ -118,14 +107,14 @@ class HomeViewModel(
         }
     }
 
-    // ── Auto-archive (silent — no snackbar, no user prompt) ──────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // Auto-archive (silent — no snackbar, no user prompt)
     // Called only by loadHomeData() for babies who have reached 6 years.
-    // Unlike archiveBaby() this does NOT show a snackbar — it's automatic.
+    // ─────────────────────────────────────────────────────────────────────────
 
     private suspend fun autoArchiveBaby(babyId: String) {
         when (val result = apiService.updateBabyStatus(babyId, "ARCHIVED")) {
             is ApiResult.Success -> {
-                // Update the local list so the UI reflects the new isActive=false immediately
                 val updated = uiState.babies.map { b ->
                     if (b.babyId == babyId) result.data else b
                 }
@@ -141,7 +130,9 @@ class HomeViewModel(
         }
     }
 
-    // ── Per-baby loaders ──────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // Per-baby loaders
+    // ─────────────────────────────────────────────────────────────────────────
 
     private suspend fun loadVaccinationsForBaby(babyId: String) {
         when (val v = apiService.getUpcomingVaccinations(babyId)) {
@@ -190,68 +181,114 @@ class HomeViewModel(
                     refreshGrowthForBaby(babyId)
                     uiState = uiState.copy(actionMessage = "Measurement deleted")
                 }
-                is ApiResult.Error   ->
+                is ApiResult.Error ->
                     uiState = uiState.copy(actionMessage = "Failed to delete measurement")
                 else -> Unit
             }
         }
     }
 
-    // ── Child selection ───────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // Child selection
+    // ─────────────────────────────────────────────────────────────────────────
 
     fun selectBaby(index: Int) {
         uiState = uiState.copy(selectedBabyIndex = index)
     }
 
-    // ── Archive / Unarchive (manual — shows snackbar) ─────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // Archive / Unarchive (manual — shows snackbar)
+    //
+    // FIX: Uses OPTIMISTIC UPDATE pattern so the UI moves the baby
+    //      to the correct list immediately without waiting for the network.
+    //
+    //  1. Flip baby.isActive locally right away  → UI updates instantly
+    //  2. Call PATCH /v1/babies/{id}/status in background
+    //  3. On success  → replace optimistic copy with server-confirmed response
+    //  4. On error    → roll back to the original list + show error message
+    // ─────────────────────────────────────────────────────────────────────────
 
     fun archiveBaby(babyId: String) {
+        // Step 1: Optimistic update — mark baby inactive immediately
+        val originalBabies = uiState.babies
+        val optimistic = originalBabies.map { b ->
+            if (b.babyId == babyId) b.copy(isActive = false) else b
+        }
+        val newIndex = if (uiState.selectedBaby?.babyId == babyId) 0
+        else uiState.selectedBabyIndex
+        uiState = uiState.copy(
+            babies            = optimistic,
+            selectedBabyIndex = newIndex,
+            actionMessage     = "Child archived successfully"
+        )
+
+        // Step 2: Persist to backend — replace or roll back depending on result
         scope.launch {
             when (val result = apiService.updateBabyStatus(babyId, "ARCHIVED")) {
                 is ApiResult.Success -> {
-                    val updated = uiState.babies.map { b ->
+                    // Replace the optimistic entry with the server-confirmed BabyResponse
+                    val confirmed = uiState.babies.map { b ->
                         if (b.babyId == babyId) result.data else b
                     }
-                    val newIndex = if (uiState.selectedBaby?.babyId == babyId) 0
-                    else uiState.selectedBabyIndex
+                    uiState = uiState.copy(babies = confirmed)
+                }
+                is ApiResult.Error -> {
+                    // Roll back and surface the error
                     uiState = uiState.copy(
-                        babies            = updated,
-                        selectedBabyIndex = newIndex,
-                        actionMessage     = "Child archived successfully"
+                        babies        = originalBabies,
+                        actionMessage = "Failed to archive: ${result.message}"
                     )
                 }
-                is ApiResult.Error ->
-                    uiState = uiState.copy(actionMessage = "Failed to archive: ${result.message}")
                 else -> Unit
             }
         }
     }
 
     fun unarchiveBaby(babyId: String) {
+        // Step 1: Optimistic update — mark baby active immediately
+        val originalBabies = uiState.babies
+        val optimistic = originalBabies.map { b ->
+            if (b.babyId == babyId) b.copy(isActive = true) else b
+        }
+        uiState = uiState.copy(
+            babies        = optimistic,
+            actionMessage = "Child restored successfully"
+        )
+
+        // Step 2: Persist to backend — replace or roll back depending on result
         scope.launch {
             when (val result = apiService.updateBabyStatus(babyId, "ACTIVE")) {
                 is ApiResult.Success -> {
-                    val updated = uiState.babies.map { b ->
+                    // Replace the optimistic entry with the server-confirmed BabyResponse
+                    val confirmed = uiState.babies.map { b ->
                         if (b.babyId == babyId) result.data else b
                     }
+                    uiState = uiState.copy(babies = confirmed)
+                }
+                is ApiResult.Error -> {
+                    // Roll back and surface the error
                     uiState = uiState.copy(
-                        babies        = updated,
-                        actionMessage = "Child restored successfully"
+                        babies        = originalBabies,
+                        actionMessage = "Failed to restore: ${result.message}"
                     )
                 }
-                is ApiResult.Error ->
-                    uiState = uiState.copy(actionMessage = "Failed to restore: ${result.message}")
                 else -> Unit
             }
         }
     }
 
-    /** Clear snackbar message after it has been shown */
+    // ─────────────────────────────────────────────────────────────────────────
+    // Snackbar / message helpers
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /** Call this after the snackbar has been shown to clear the message. */
     fun clearActionMessage() {
         uiState = uiState.copy(actionMessage = null)
     }
 
-    // ── Cleanup ───────────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────────────────
+    // Cleanup
+    // ─────────────────────────────────────────────────────────────────────────
 
     fun onDestroy() { scope.cancel() }
 }
