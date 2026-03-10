@@ -42,7 +42,6 @@ enum class NavigationTab {
     BABY,
     CHARTS,
     HEALTH_RECORD,
-    BENCH,
     SETTINGS
 }
 
@@ -67,7 +66,6 @@ fun BottomNavigationBar(
         NavigationItem(NavigationTab.BABY,          "👶",  stringResource(Res.string.nav_tab_baby)),
         NavigationItem(NavigationTab.CHARTS,        "📊",  stringResource(Res.string.nav_tab_charts)),
         NavigationItem(NavigationTab.HEALTH_RECORD, "⚕️", stringResource(Res.string.nav_tab_health)),
-        NavigationItem(NavigationTab.BENCH,         "🏥",  stringResource(Res.string.nav_tab_bench)),
         NavigationItem(NavigationTab.SETTINGS,      "⚙️", stringResource(Res.string.nav_tab_settings)),
     )
 

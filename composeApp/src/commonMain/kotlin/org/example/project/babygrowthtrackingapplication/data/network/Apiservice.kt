@@ -158,6 +158,10 @@ class ApiService(
     suspend fun getAllUsers(page: Int = 0, size: Int = 10): ApiResult<PageResponse<UserResponse>> =
         makeRequest { client.get("$BASE_URL${Endpoints.USERS}") { parameter("page", page); parameter("size", size) } }
 
+    // ✅ NEW: Delete user account
+    suspend fun deleteUser(userId: String): ApiResult<Unit> =
+        makeRequest { client.delete("$BASE_URL${Endpoints.user(userId)}") }
+
     // ── Babies ────────────────────────────────────────────────────────────────
 
     suspend fun createBaby(parentUserId: String, request: CreateBabyRequest): ApiResult<BabyResponse> =
@@ -328,6 +332,11 @@ class ApiService(
                     ApiResult.Success(apiResponse.data)
                 else
                     ApiResult.Error(apiResponse.message ?: "Unknown error")
+            }
+            // ✅ NEW: Handle 204 No Content (e.g. DELETE endpoints)
+            HttpStatusCode.NoContent -> {
+                @Suppress("UNCHECKED_CAST")
+                ApiResult.Success(Unit as T)
             }
             HttpStatusCode.BadRequest   -> ApiResult.Error(response.body<AuthApiResponse<T>>().message ?: "Bad request")
             HttpStatusCode.Unauthorized -> ApiResult.Error(response.body<AuthApiResponse<T>>().message ?: "Invalid credentials", 401)

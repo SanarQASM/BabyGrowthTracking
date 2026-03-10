@@ -27,6 +27,7 @@ import org.example.project.babygrowthtrackingapplication.com.babygrowth.presenta
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.AddBabyViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HomeViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HealthRecordViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.SettingsViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.AllMeasurementsScreen
 import org.example.project.babygrowthtrackingapplication.data.auth.SocialAuthManager
 import org.example.project.babygrowthtrackingapplication.data.auth.SocialLoginHelper
@@ -100,9 +101,18 @@ fun AppNavigation(
         AddBabyViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
 
-    // ── NEW: HealthRecordViewModel ────────────────────────────────────────────
+    // ── HealthRecordViewModel ─────────────────────────────────────────────────
     val healthRecordViewModel = remember {
         HealthRecordViewModel(apiService = apiService, preferencesManager = preferencesManager)
+    }
+
+    // ── NEW: SettingsViewModel ────────────────────────────────────────────────
+    val settingsViewModel = remember {
+        SettingsViewModel(
+            apiService         = apiService,
+            preferencesManager = preferencesManager,
+            accountRepository  = repository,
+        )
     }
 
     val signupViewModel = remember {
@@ -133,7 +143,8 @@ fun AppNavigation(
             apiService.close()
             homeViewModel.onDestroy()
             addBabyViewModel.onDestroy()
-            healthRecordViewModel.onDestroy()   // ← NEW
+            healthRecordViewModel.onDestroy()
+            settingsViewModel.onDestroy()       // ← NEW
             cleanupSocialAuth(socialAuthManager)
         }
     }
@@ -343,6 +354,7 @@ fun AppNavigation(
                     HomeScreen(
                         viewModel             = homeViewModel,
                         healthRecordViewModel = healthRecordViewModel,
+                        settingsViewModel     = settingsViewModel,          // ← NEW
                         currentLanguage       = currentLanguage,
                         onLanguageChange      = { newLanguage ->
                             preferencesManager.setLanguage(newLanguage)
@@ -389,7 +401,10 @@ fun AppNavigation(
                                 allMeasurementsBaby = baby
                                 currentScreen       = Screen.AllMeasurements
                             }
-                        }
+                        },
+                        onNavigateToWelcome = {                             // ← NEW
+                            currentScreen = Screen.Welcome
+                        },
                     )
                 }
 
