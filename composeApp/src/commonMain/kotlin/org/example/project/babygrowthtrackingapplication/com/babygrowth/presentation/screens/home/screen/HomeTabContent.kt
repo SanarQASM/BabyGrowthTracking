@@ -1,10 +1,14 @@
 package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen
 
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -12,9 +16,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.*
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import org.example.project.babygrowthtrackingapplication.data.network.BabyResponse
 import org.example.project.babygrowthtrackingapplication.data.network.GrowthRecordResponse
@@ -100,7 +106,6 @@ fun HomeTabContent(
                                 baby            = baby,
                                 nextVaccination = state.nextVaccination,
                                 genderTheme     = state.genderTheme,
-                                // ── FIX: pass latest growth record ──────────
                                 latestGrowth    = state.latestGrowthRecords[baby.babyId]
                             )
                         }
@@ -200,7 +205,7 @@ private fun HomeTopBar(notificationCount: Int) {
                             .offset(x = (-2).dp, y = dimensions.spacingXSmall)
                             .background(MaterialTheme.colorScheme.error, CircleShape)
                             .border(
-                                dimensions.borderWidthThin + 0.5.dp,        // WAS: 1.5.dp
+                                dimensions.borderWidthThin + 0.5.dp,
                                 MaterialTheme.colorScheme.surface,
                                 CircleShape
                             ),
@@ -208,10 +213,10 @@ private fun HomeTopBar(notificationCount: Int) {
                     ) {
                         Text(
                             text       = if (notificationCount > 99) "99+" else notificationCount.toString(),
-                            fontSize   = dimensions.homeSmallTextSize,       // WAS: 9.sp
+                            fontSize   = dimensions.homeSmallTextSize,
                             fontWeight = FontWeight.Bold,
                             color      = MaterialTheme.colorScheme.onError,
-                            lineHeight = dimensions.homeSmallLineHeight      // WAS: 10.sp
+                            lineHeight = dimensions.homeSmallLineHeight
                         )
                     }
                 }
@@ -294,7 +299,7 @@ private fun GenderBanner(genderTheme: GenderTheme) {
                 ) {
                     Text(
                         config.moonEmoji,
-                        fontSize = dimensions.bannerMoonEmojiSize           // WAS: (iconXLarge.value - 6).sp
+                        fontSize = dimensions.bannerMoonEmojiSize
                     )
                 }
             }
@@ -304,7 +309,7 @@ private fun GenderBanner(genderTheme: GenderTheme) {
             Text(
                 text          = config.label,
                 style         = MaterialTheme.typography.labelMedium,
-                letterSpacing = dimensions.bannerLabelLetterSpacing,        // WAS: 1.5.sp
+                letterSpacing = dimensions.bannerLabelLetterSpacing,
                 color         = config.labelColor.copy(alpha = 0.8f),
                 fontWeight    = FontWeight.Medium
             )
@@ -331,7 +336,7 @@ private fun HangingStars(starColor: Color) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         repeat(5) { i ->
-            val size = if (i % 2 == 0) dimensions.starSizeLarge else dimensions.starSizeSmall // WAS: 16.sp / 12.sp
+            val size = if (i % 2 == 0) dimensions.starSizeLarge else dimensions.starSizeSmall
             Text("✦", fontSize = size, color = starColor.copy(alpha = 0.4f + (i * 0.08f)))
         }
     }
@@ -421,389 +426,37 @@ private fun WelcomeSection(userName: String, childCount: Int, onAddChild: () -> 
                     modifier = Modifier.size(dimensions.iconMedium)
                 )
             }
-            Spacer(Modifier.height(dimensions.spacingXSmall - dimensions.borderWidthThin))
+            Spacer(Modifier.height(dimensions.spacingXSmall))
             Text(
-                text      = stringResource(Res.string.home_add_more_child),
-                style     = MaterialTheme.typography.labelSmall,
-                color     = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f),
-                textAlign = TextAlign.Center,
-                maxLines  = 2,
-                fontSize  = dimensions.homeSmallTextSize,                   // WAS: 9.sp
-                lineHeight= dimensions.homeSmallLineHeight,                 // WAS: 11.sp
-                modifier  = Modifier.widthIn(max = dimensions.avatarMedium + dimensions.spacingSmall)
-            )
-        }
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// CHILD SELECTOR DROPDOWN
-// ─────────────────────────────────────────────────────────────────────────────
-
-@Composable
-private fun ChildSelectorDropdown(
-    babies        : List<BabyResponse>,
-    selectedIndex : Int,
-    expanded      : Boolean,
-    onExpandToggle: () -> Unit,
-    onSelect      : (Int) -> Unit
-) {
-    val customColors = MaterialTheme.customColors
-    val dimensions   = LocalDimensions.current
-    val selectedBaby = babies.getOrNull(selectedIndex)
-
-    Box(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(dimensions.spacingSmall + dimensions.spacingXSmall))
-                .background(MaterialTheme.colorScheme.surfaceVariant.copy(0.5f))
-                .clickable(onClick = onExpandToggle)
-                .padding(
-                    horizontal = dimensions.spacingMedium,
-                    vertical   = dimensions.spacingSmall + dimensions.borderWidthMedium
-                ),
-            verticalAlignment     = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text  = stringResource(Res.string.home_select_child),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
-            )
-            Spacer(Modifier.width(dimensions.spacingSmall))
-            Text(
-                text     = selectedBaby?.fullName ?: stringResource(Res.string.home_select_child_hint),
-                style    = MaterialTheme.typography.bodyMedium,
-                color    = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f)
-            )
-            Icon(
-                imageVector        = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                contentDescription = null,
-                tint               = customColors.accentGradientStart,
-                modifier           = Modifier.size(dimensions.iconMedium)
-            )
-        }
-
-        DropdownMenu(expanded = expanded, onDismissRequest = onExpandToggle) {
-            babies.forEachIndexed { index, baby ->
-                val isFemale = baby.gender.equals("FEMALE", ignoreCase = true) ||
-                        baby.gender.equals("GIRL", ignoreCase = true)
-                DropdownMenuItem(
-                    text = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                if (isFemale) "👧" else "👦",
-                                fontSize = dimensions.iconMedium.value.sp
-                            )
-                            Spacer(Modifier.width(dimensions.spacingSmall))
-                            Text(baby.fullName)
-                        }
-                    },
-                    onClick = { onSelect(index) }
-                )
-            }
-        }
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// BABY INFO CARD
-// ─────────────────────────────────────────────────────────────────────────────
-
-@Composable
-private fun BabyInfoCard(
-    baby           : BabyResponse,
-    nextVaccination: VaccinationResponse?,
-    genderTheme    : GenderTheme,
-    latestGrowth   : GrowthRecordResponse?   // ← NEW
-) {
-    val customColors = MaterialTheme.customColors
-    val dimensions   = LocalDimensions.current
-    val accentColor  = customColors.accentGradientStart
-
-    val cardBg = when (genderTheme) {
-        GenderTheme.GIRL    -> Brush.horizontalGradient(listOf(GirlLightColors.BabyPink,     GirlLightColors.Background))
-        GenderTheme.BOY     -> Brush.horizontalGradient(listOf(BoyLightColors.BabyBlue,      BoyLightColors.Background))
-        GenderTheme.NEUTRAL -> Brush.horizontalGradient(listOf(NeutralLightColors.BabyRose,  NeutralLightColors.Background))
-    }
-
-    val isFemale = baby.gender.equals("FEMALE", ignoreCase = true) ||
-            baby.gender.equals("GIRL", ignoreCase = true)
-
-    // ── Measurement priority ──────────────────────────────────────────────────
-    // 1st: birth measurement (entered when adding baby — optional field)
-    // 2nd: latest growth record (from measurements screen)
-    // 3rd: 0.0  (shown as "0.0 kg" / "0.0 cm" when both are absent)
-    val displayWeight : Double = baby.birthWeight
-        ?: latestGrowth?.weight
-        ?: 0.0
-    val displayHeight : Double = baby.birthHeight
-        ?: latestGrowth?.height
-        ?: 0.0
-    val displayHead   : Double = baby.birthHeadCircumference
-        ?: latestGrowth?.headCircumference
-        ?: 0.0
-
-    Card(
-        modifier  = Modifier.fillMaxWidth(),
-        shape     = RoundedCornerShape(dimensions.cardCornerRadius),
-        colors    = CardDefaults.cardColors(containerColor = Color.Transparent),
-        elevation = CardDefaults.cardElevation(dimensions.cardElevation)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(cardBg)
-                .padding(dimensions.spacingMedium + dimensions.spacingXSmall)
-        ) {
-            Column {
-                // ── Header: avatar + name + age ───────────────────────────────
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(dimensions.avatarMedium)
-                            .background(accentColor.copy(0.12f), CircleShape)
-                            .border(
-                                dimensions.borderWidthThin,                 // WAS: 1.dp
-                                accentColor.copy(0.25f),
-                                CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            if (isFemale) "👧" else "👦",
-                            fontSize = (dimensions.avatarMedium.value * 0.55f).sp
-                        )
-                    }
-
-                    Spacer(Modifier.width(dimensions.spacingMedium))
-
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text       = baby.fullName,
-                            style      = MaterialTheme.typography.titleSmall,
-                            fontWeight = FontWeight.Bold,
-                            color      = MaterialTheme.colorScheme.onBackground
-                        )
-                        Text(
-                            text  = formatAge(baby.ageInMonths),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onBackground.copy(0.6f)
-                        )
-                    }
-                }
-
-                Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
-
-                // ── 3 measurement chips — ALWAYS visible ─────────────────────
-                // Priority: birth measurement → latest growth → 0.0
-                Row(
-                    modifier              = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
-                ) {
-                    BabyStatChip(
-                        icon        = "⚖️",
-                        label       = stringResource(Res.string.baby_birth_weight),
-                        value       = "$displayWeight kg",
-                        accentColor = accentColor,
-                        modifier    = Modifier.weight(1f)
-                    )
-                    BabyStatChip(
-                        icon        = "📏",
-                        label       = stringResource(Res.string.baby_birth_height),
-                        value       = "$displayHeight cm",
-                        accentColor = accentColor,
-                        modifier    = Modifier.weight(1f)
-                    )
-                    // Head circumference — was completely missing before
-                    BabyStatChip(
-                        icon        = "🔵",
-                        label       = stringResource(Res.string.add_measure_head),
-                        value       = "$displayHead cm",
-                        accentColor = accentColor,
-                        modifier    = Modifier.weight(1f)
-                    )
-                }
-
-                // ── Next vaccination ──────────────────────────────────────────
-                if (nextVaccination != null) {
-                    Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(dimensions.spacingSmall))
-                            .background(accentColor.copy(0.08f))
-                            .padding(
-                                horizontal = dimensions.spacingSmall + dimensions.spacingXSmall,
-                                vertical   = dimensions.spacingXSmall + 3.dp
-                            ),
-                        verticalAlignment     = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("💉", fontSize = (dimensions.iconSmall.value - 2).sp)
-                            Spacer(Modifier.width(dimensions.spacingXSmall + dimensions.borderWidthMedium))
-                            Column {
-                                Text(
-                                    text  = stringResource(Res.string.home_next_vaccine_label),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
-                                )
-                                Text(
-                                    text       = nextVaccination.vaccineName,
-                                    style      = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color      = accentColor
-                                )
-                            }
-                        }
-                        Column(horizontalAlignment = Alignment.End) {
-                            Text(
-                                text  = stringResource(Res.string.home_scheduled_label),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
-                            )
-                            Text(
-                                text       = formatDate(nextVaccination.scheduledDate),
-                                style      = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color      = MaterialTheme.colorScheme.onSurface.copy(0.75f)
-                            )
-                        }
-                    }
-                }
-
-                Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
-                AgeProgressRibbon(
-                    ageInDays   = baby.ageInDays,
-                    ageInMonths = baby.ageInMonths,
-                    accentColor = accentColor
-                )
-            }
-        }
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// BABY STAT CHIP
-// ─────────────────────────────────────────────────────────────────────────────
-
-@Composable
-private fun BabyStatChip(
-    icon       : String,
-    label      : String,
-    value      : String,
-    accentColor: Color,
-    modifier   : Modifier = Modifier          // ← accepts weight(1f) from parent Row
-) {
-    val dimensions = LocalDimensions.current
-    Row(
-        modifier = modifier
-            .clip(RoundedCornerShape(dimensions.spacingSmall))
-            .background(accentColor.copy(0.1f))
-            .padding(horizontal = dimensions.spacingSmall, vertical = dimensions.spacingXSmall + 1.dp),
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
-    ) {
-        Text(icon, fontSize = (dimensions.iconSmall.value - 4).sp)
-        Column {
-            Text(
-                label,
-                style    = MaterialTheme.typography.labelSmall,
-                color    = MaterialTheme.colorScheme.onSurface.copy(0.5f),
-                fontSize = dimensions.homeSmallTextSize,                    // WAS: 9.sp
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                value,
+                text       = stringResource(Res.string.home_add_more_child),
                 style      = MaterialTheme.typography.labelSmall,
-                fontWeight = FontWeight.SemiBold,
-                color      = accentColor,
-                maxLines   = 1,
-                overflow   = TextOverflow.Ellipsis
+                color      = MaterialTheme.colorScheme.onBackground.copy(0.65f),
+                textAlign  = TextAlign.Center,
+                maxLines   = 2,
+                fontSize   = dimensions.homeSmallTextSize,
+                lineHeight = dimensions.homeSmallLineHeight,
+                modifier   = Modifier.widthIn(max = dimensions.iconXLarge + dimensions.spacingMedium)
             )
         }
     }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// AGE PROGRESS RIBBON
-// ─────────────────────────────────────────────────────────────────────────────
-
-@Composable
-private fun AgeProgressRibbon(ageInDays: Long, ageInMonths: Int, accentColor: Color) {
-    val dimensions    = LocalDimensions.current
-    val monthProgress = ((ageInDays % 30).toInt().coerceIn(0, 30)) / 30f
-
-    Column {
-        Row(
-            modifier              = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Text(
-                text  = "📅 $ageInDays days old",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(0.55f)
-            )
-            Text(
-                text       = "Month $ageInMonths progress",
-                style      = MaterialTheme.typography.labelSmall,
-                color      = accentColor.copy(0.8f),
-                fontWeight = FontWeight.Medium
-            )
-        }
-        Spacer(Modifier.height(dimensions.spacingXSmall))
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(dimensions.spacingXSmall + 1.dp)
-                .clip(RoundedCornerShape(dimensions.spacingXSmall / 2))
-                .background(accentColor.copy(0.12f))
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(monthProgress)
-                    .fillMaxHeight()
-                    .background(
-                        Brush.horizontalGradient(listOf(accentColor, accentColor.copy(0.6f)))
-                    )
-            )
-        }
-    }
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// LOADING SKELETON
+// LOADING / EMPTY
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun LoadingSection() {
-    val dimensions   = LocalDimensions.current
-    val shimmerAlpha by rememberInfiniteTransition(label = "shimmer").animateFloat(
-        initialValue  = 0.3f,
-        targetValue   = 0.7f,
-        animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse),
-        label         = "shimmer_alpha"
-    )
-    Column(verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall + dimensions.spacingXSmall)) {
-        repeat(2) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(dimensions.avatarLarge + dimensions.spacingMedium)
-                    .clip(RoundedCornerShape(dimensions.cardCornerRadius))
-                    .background(MaterialTheme.colorScheme.onBackground.copy(alpha = shimmerAlpha))
-            )
-        }
+    val dimensions = LocalDimensions.current
+    Box(
+        modifier         = Modifier
+            .fillMaxWidth()
+            .padding(vertical = dimensions.spacingXLarge),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator()
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// NO BABIES STATE
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun NoBabiesSection(onAddBaby: () -> Unit) {
@@ -935,7 +588,7 @@ private fun ToolCard(
                 .size(toolIconSize)
                 .background(iconBg, RoundedCornerShape(toolCorner))
                 .border(
-                    dimensions.borderWidthThin,                             // WAS: 1.dp
+                    dimensions.borderWidthThin,
                     accentColor.copy(0.18f),
                     RoundedCornerShape(toolCorner)
                 ),
@@ -959,6 +612,342 @@ private fun ToolCard(
             textAlign = TextAlign.Center,
             maxLines  = 1,
             overflow  = TextOverflow.Ellipsis
+        )
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CHILD SELECTOR DROPDOWN
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun ChildSelectorDropdown(
+    babies        : List<BabyResponse>,
+    selectedIndex : Int,
+    expanded      : Boolean,
+    onExpandToggle: () -> Unit,
+    onSelect      : (Int) -> Unit
+) {
+    val customColors = MaterialTheme.customColors
+    val dimensions   = LocalDimensions.current
+    val selectedBaby = babies.getOrNull(selectedIndex)
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(dimensions.cardCornerRadius))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .clickable(onClick = onExpandToggle)
+            .padding(
+                horizontal = dimensions.spacingMedium,
+                vertical   = dimensions.spacingSmall + dimensions.spacingXSmall
+            )
+    ) {
+        Row(
+            verticalAlignment     = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
+        ) {
+            val isFemale = selectedBaby?.gender?.let {
+                it.equals("FEMALE", ignoreCase = true) || it.equals("GIRL", ignoreCase = true)
+            } ?: false
+            Text(
+                if (selectedBaby != null) (if (isFemale) "👧" else "👦") else "👶",
+                fontSize = dimensions.iconMedium.value.sp
+            )
+            Text(
+                text     = selectedBaby?.fullName ?: stringResource(Res.string.home_select_child_hint),
+                style    = MaterialTheme.typography.bodyMedium,
+                color    = MaterialTheme.colorScheme.onSurface,
+                modifier = Modifier.weight(1f)
+            )
+            Icon(
+                imageVector        = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                contentDescription = null,
+                tint               = customColors.accentGradientStart,
+                modifier           = Modifier.size(dimensions.iconMedium)
+            )
+        }
+
+        DropdownMenu(expanded = expanded, onDismissRequest = onExpandToggle) {
+            babies.forEachIndexed { index, baby ->
+                val isFemale = baby.gender.equals("FEMALE", ignoreCase = true) ||
+                        baby.gender.equals("GIRL", ignoreCase = true)
+                DropdownMenuItem(
+                    text = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                if (isFemale) "👧" else "👦",
+                                fontSize = dimensions.iconMedium.value.sp
+                            )
+                            Spacer(Modifier.width(dimensions.spacingSmall))
+                            Text(baby.fullName)
+                        }
+                    },
+                    onClick = { onSelect(index) }
+                )
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BABY INFO CARD
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun BabyInfoCard(
+    baby           : BabyResponse,
+    nextVaccination: VaccinationResponse?,
+    genderTheme    : GenderTheme,
+    latestGrowth   : GrowthRecordResponse?
+) {
+    val customColors = MaterialTheme.customColors
+    val dimensions   = LocalDimensions.current
+    val accentColor  = customColors.accentGradientStart
+    val isDark       = LocalIsDarkTheme.current
+
+    // ── BUG FIX: Use theme-aware card background ──────────────────────────────
+    // OLD (broken): hardcoded GirlLightColors.BabyPink / BoyLightColors.BabyBlue /
+    //               NeutralLightColors.BabyRose for ALL three gender cases, plus
+    //               a hardcoded ...Background endpoint — these are always light-mode
+    //               static objects, so in dark theme the card showed a bright
+    //               pink/blue wash on a dark background.
+    //
+    // FIX: derive the gradient entirely from the current theme's customColors and
+    //      MaterialTheme.colorScheme.surface, which already track both
+    //      gender-theme and dark/light mode correctly.
+    val cardBg = Brush.horizontalGradient(
+        listOf(
+            customColors.accentGradientStart.copy(alpha = if (isDark) 0.25f else 0.18f),
+            customColors.accentGradientEnd.copy(alpha   = if (isDark) 0.12f else 0.08f),
+            MaterialTheme.colorScheme.surface
+        )
+    )
+
+    val isFemale = baby.gender.equals("FEMALE", ignoreCase = true) ||
+            baby.gender.equals("GIRL", ignoreCase = true)
+
+    // ── Measurement priority ──────────────────────────────────────────────────
+    val displayWeight : Double = baby.birthWeight        ?: latestGrowth?.weight        ?: 0.0
+    val displayHeight : Double = baby.birthHeight        ?: latestGrowth?.height        ?: 0.0
+    val displayHead   : Double = baby.birthHeadCircumference ?: latestGrowth?.headCircumference ?: 0.0
+
+    Card(
+        modifier  = Modifier.fillMaxWidth(),
+        shape     = RoundedCornerShape(dimensions.cardCornerRadius),
+        colors    = CardDefaults.cardColors(containerColor = Color.Transparent),
+        elevation = CardDefaults.cardElevation(dimensions.cardElevation)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(cardBg)
+                .padding(dimensions.spacingMedium + dimensions.spacingXSmall)
+        ) {
+            Column {
+                // ── Header: avatar + name + age ───────────────────────────────
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(dimensions.avatarMedium)
+                            .background(accentColor.copy(0.12f), CircleShape)
+                            .border(
+                                dimensions.borderWidthThin,
+                                accentColor.copy(0.25f),
+                                CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            if (isFemale) "👧" else "👦",
+                            fontSize = (dimensions.avatarMedium.value * 0.55f).sp
+                        )
+                    }
+
+                    Spacer(Modifier.width(dimensions.spacingMedium))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text       = baby.fullName,
+                            style      = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color      = MaterialTheme.colorScheme.onBackground
+                        )
+                        Text(
+                            text  = formatAge(baby.ageInMonths),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onBackground.copy(0.6f)
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
+
+                // ── 3 measurement chips ───────────────────────────────────────
+                Row(
+                    modifier              = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
+                ) {
+                    BabyStatChip(
+                        icon        = "⚖️",
+                        label       = stringResource(Res.string.baby_birth_weight),
+                        value       = "$displayWeight kg",
+                        accentColor = accentColor,
+                        modifier    = Modifier.weight(1f)
+                    )
+                    BabyStatChip(
+                        icon        = "📏",
+                        label       = stringResource(Res.string.baby_birth_height),
+                        value       = "$displayHeight cm",
+                        accentColor = accentColor,
+                        modifier    = Modifier.weight(1f)
+                    )
+                    BabyStatChip(
+                        icon        = "🔵",
+                        label       = stringResource(Res.string.add_measure_head),
+                        value       = "$displayHead cm",
+                        accentColor = accentColor,
+                        modifier    = Modifier.weight(1f)
+                    )
+                }
+
+                // ── Next vaccination ──────────────────────────────────────────
+                if (nextVaccination != null) {
+                    Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(dimensions.spacingSmall))
+                            .background(accentColor.copy(0.08f))
+                            .padding(
+                                horizontal = dimensions.spacingSmall + dimensions.spacingXSmall,
+                                vertical   = dimensions.spacingXSmall + 3.dp
+                            ),
+                        verticalAlignment     = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("💉", fontSize = (dimensions.iconSmall.value - 2).sp)
+                            Spacer(Modifier.width(dimensions.spacingXSmall + dimensions.borderWidthMedium))
+                            Column {
+                                Text(
+                                    text  = stringResource(Res.string.home_next_vaccine_label),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
+                                )
+                                Text(
+                                    text       = nextVaccination.vaccineName,
+                                    style      = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color      = accentColor
+                                )
+                            }
+                        }
+                        Column(horizontalAlignment = Alignment.End) {
+                            Text(
+                                text  = stringResource(Res.string.home_scheduled_label),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
+                            )
+                            Text(
+                                text       = formatDate(nextVaccination.scheduledDate),
+                                style      = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color      = MaterialTheme.colorScheme.onSurface.copy(0.75f)
+                            )
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
+                AgeProgressRibbon(
+                    ageInDays   = baby.ageInDays,
+                    ageInMonths = baby.ageInMonths,
+                    accentColor = accentColor
+                )
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BABY STAT CHIP
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun BabyStatChip(
+    icon       : String,
+    label      : String,
+    value      : String,
+    accentColor: Color,
+    modifier   : Modifier = Modifier
+) {
+    val dimensions = LocalDimensions.current
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(dimensions.spacingSmall))
+            .background(accentColor.copy(0.1f))
+            .padding(horizontal = dimensions.spacingSmall, vertical = dimensions.spacingXSmall + 1.dp),
+        verticalAlignment     = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
+    ) {
+        Text(icon, fontSize = (dimensions.iconSmall.value - 4).sp)
+        Column {
+            Text(
+                label,
+                style    = MaterialTheme.typography.labelSmall,
+                color    = MaterialTheme.colorScheme.onSurface.copy(0.5f),
+                fontSize = dimensions.homeSmallTextSize,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                value,
+                style      = MaterialTheme.typography.labelSmall,
+                fontWeight = FontWeight.SemiBold,
+                color      = accentColor,
+                maxLines   = 1,
+                overflow   = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AGE PROGRESS RIBBON
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun AgeProgressRibbon(ageInDays: Long, ageInMonths: Int, accentColor: Color) {
+    val dimensions    = LocalDimensions.current
+    val monthProgress = ((ageInDays % 30).toInt().coerceIn(0, 30)) / 30f
+
+    Column {
+        Row(
+            modifier              = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text  = "📅 $ageInDays days old",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(0.55f)
+            )
+            Text(
+                text       = formatAge(ageInMonths),
+                style      = MaterialTheme.typography.labelSmall,
+                color      = accentColor,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+        Spacer(Modifier.height(dimensions.spacingXSmall))
+        LinearProgressIndicator(
+            progress   = { monthProgress },
+            modifier   = Modifier
+                .fillMaxWidth()
+                .height(dimensions.spacingXSmall + 2.dp)
+                .clip(RoundedCornerShape(dimensions.spacingXSmall)),
+            color      = accentColor,
+            trackColor = accentColor.copy(0.15f)
         )
     }
 }

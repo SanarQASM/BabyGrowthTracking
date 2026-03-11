@@ -42,13 +42,13 @@ fun HomeScreen(
     // FIX: Removed `BabyGrowthTheme(genderTheme = state.genderTheme) { ... }` wrapper.
     //
     // WHY IT WAS BROKEN:
-    //   This wrapper spawned a completely new theme scope for the entire Home section
-    //   (every screen the user sees after login). It only passed `genderTheme` and
-    //   omitted `darkTheme`, so darkTheme defaulted to `isSystemInDarkTheme()` — the
-    //   OS setting — which never changes when the user toggles dark mode in Settings.
-    //   It also made the gender theme selection in Settings have no effect, because
-    //   this wrapper always re-applied `state.genderTheme` from HomeViewModel (which
-    //   is a separate copy) on top of whatever App.kt had set.
+    //   This wrapper spawned a completely new theme scope for the entire Home section.
+    //   It only passed `genderTheme` and omitted `darkTheme`, so darkTheme defaulted
+    //   to `isSystemInDarkTheme()` — the OS setting — which never changes when the
+    //   user toggles dark mode in Settings. It also made the gender theme selection
+    //   in Settings have no effect, because this wrapper always re-applied
+    //   `state.genderTheme` from HomeViewModel (which is a separate copy) on top of
+    //   whatever App.kt had set.
     //
     // THE FIX:
     //   Remove the wrapper entirely. HomeScreen is already a descendant of the root
@@ -81,10 +81,14 @@ fun HomeScreen(
 
                 NavigationTab.BABY ->
                     BabyProfileTabContent(
-                        viewModel        = viewModel,
-                        onSeeProfile     = onSeeProfile,
-                        onEditDetails    = onEditDetails,
-                        onAddMeasurement = onAddMeasurement,
+                        viewModel         = viewModel,
+                        // BUG FIX: onAddBaby was missing here — the "+" button in the Baby tab
+                        // was a no-op because BabyProfileTabContent defaulted to {} when called
+                        // without this parameter, even though HomeScreen received onAddBaby.
+                        onAddBaby         = onAddBaby,
+                        onSeeProfile      = onSeeProfile,
+                        onEditDetails     = onEditDetails,
+                        onAddMeasurement  = onAddMeasurement,
                         onViewGrowthChart = onViewGrowthChart
                     )
 
