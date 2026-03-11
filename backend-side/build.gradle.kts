@@ -39,6 +39,14 @@ kotlin {
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
+configurations.all {
+    resolutionStrategy.eachDependency {
+        if (requested.group.startsWith("com.fasterxml.jackson")) {
+            useVersion("2.17.2")
+            because("Align Jackson versions to fix jjwt-jackson ServiceLoader failure")
+        }
+    }
+}
 
 // =============================================================================
 // 📦 DEPENDENCIES
@@ -70,8 +78,8 @@ dependencies {
 
     // ─── JWT (Security) ───────────────────────────────────────────────────────
     implementation(libs.spring.security.jwt)
-    runtimeOnly(libs.spring.security.jwt.impl)
-    runtimeOnly(libs.spring.security.jwt.jackson)
+    implementation(libs.spring.security.jwt.impl)
+    implementation(libs.spring.security.jwt.jackson)
 
     // ─── Database ─────────────────────────────────────────────────────────────
     runtimeOnly("com.mysql:mysql-connector-j")

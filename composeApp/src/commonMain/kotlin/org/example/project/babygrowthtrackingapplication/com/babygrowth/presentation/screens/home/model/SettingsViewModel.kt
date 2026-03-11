@@ -1,12 +1,9 @@
 package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.Language
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.PreferencesManager
@@ -17,38 +14,33 @@ import org.example.project.babygrowthtrackingapplication.data.repository.Account
 import org.example.project.babygrowthtrackingapplication.theme.GenderTheme
 
 // =============================================================================
-// UI State
+// UiState
 // =============================================================================
 
 data class SettingsUiState(
-    // Account info
-    val userName  : String = "",
-    val userEmail : String = "",
-    val userPhone : String = "",
-    val userId    : String = "",
+    val userName             : String      = "",
+    val userEmail            : String      = "",
+    val userPhone            : String      = "",
+    val userId               : String      = "",
+    val currentLanguage      : Language    = Language.ENGLISH,
+    val isDarkMode           : Boolean     = false,
+    val genderTheme          : GenderTheme = GenderTheme.NEUTRAL,
 
-    // Preferences
-    val currentLanguage : Language    = Language.ENGLISH,
-    val isDarkMode      : Boolean     = false,
-    val genderTheme     : GenderTheme = GenderTheme.NEUTRAL,
+    // Save Password — only meaningful for email/password logins.
+    // For Google logins this is always false and the toggle is hidden in the UI.
+    val savePasswordEnabled  : Boolean     = false,
+    val isEmailLogin         : Boolean     = false,   // drives whether the toggle is visible
 
-    // Notifications (local prefs — FCM integration future work)
-    val notificationsEnabled : Boolean = true,
-    val vaccinationReminders : Boolean = true,
-    val growthAlerts         : Boolean = true,
-    val appointmentReminders : Boolean = true,
-    val reminderDaysBefore   : Int     = 3,
+    val notificationsEnabled : Boolean     = true,
+    val vaccinationReminders : Boolean     = true,
+    val growthAlerts         : Boolean     = true,
+    val appointmentReminders : Boolean     = true,
+    val reminderDaysBefore   : Int         = 3,
 
-    // Security
-    val savePasswordEnabled : Boolean = false,
-
-    // Async feedback
-    val isLoading      : Boolean = false,
-    val successMessage : String? = null,
-    val errorMessage   : String? = null,
-
-    // Navigation signal (true → navigate to Welcome screen)
-    val navigateToWelcome : Boolean = false,
+    val isLoading            : Boolean     = false,
+    val successMessage       : String?     = null,
+    val errorMessage         : String?     = null,
+    val navigateToWelcome    : Boolean     = false,
 )
 
 // =============================================================================
@@ -68,10 +60,11 @@ class SettingsViewModel(
     init { loadFromPreferences() }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // INIT — load everything from local prefs
+    // INIT
     // ─────────────────────────────────────────────────────────────────────────
 
     private fun loadFromPreferences() {
+        val isEmail = accountRepository.isEmailLogin()
         uiState = uiState.copy(
             userName             = preferencesManager.getUserName()  ?: "",
             userEmail            = preferencesManager.getUserEmail() ?: "",
@@ -80,7 +73,9 @@ class SettingsViewModel(
             currentLanguage      = preferencesManager.getCurrentLanguage(),
             isDarkMode           = preferencesManager.getBoolean("dark_mode", false),
             genderTheme          = preferencesManager.getGenderTheme(),
-            savePasswordEnabled  = preferencesManager.isSavePasswordEnabled(),
+            // Save Password is only shown and active for email logins
+            isEmailLogin         = isEmail,
+            savePasswordEnabled  = if (isEmail) preferencesManager.isSavePasswordEnabled() else false,
             notificationsEnabled = preferencesManager.getBoolean("notif_enabled",     true),
             vaccinationReminders = preferencesManager.getBoolean("notif_vaccination", true),
             growthAlerts         = preferencesManager.getBoolean("notif_growth",      true),
@@ -100,21 +95,15 @@ class SettingsViewModel(
         }
         scope.launch {
             uiState = uiState.copy(isLoading = true, errorMessage = null)
-            when (val result = apiService.updateUser(
-                userId  = userId,
-                request = UpdateUserRequest(
-                    fullName = name.trim().ifBlank { null },
-                    phone    = phone.trim().ifBlank { null }
-                )
-            )) {
+            when (val result = apiService.updateUser(userId, UpdateUserRequest(fullName = name, phone = phone))) {
                 is ApiResult.Success -> {
-                    preferencesManager.saveUserName(result.data.fullName)
-                    result.data.phone?.let { preferencesManager.saveUserPhone(it) }
+                    preferencesManager.saveUserName(name)
+                    preferencesManager.saveUserPhone(phone)
                     uiState = uiState.copy(
                         isLoading      = false,
-                        userName       = result.data.fullName,
-                        userPhone      = result.data.phone ?: "",
-                        successMessage = "Profile updated successfully ✓"
+                        userName       = name,
+                        userPhone      = phone,
+                        successMessage = "Profile updated ✓"
                     )
                 }
                 is ApiResult.Error   -> uiState = uiState.copy(isLoading = false, errorMessage = result.message)
@@ -124,18 +113,12 @@ class SettingsViewModel(
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // ACCOUNT — Change Password  (3-step forgot-password flow reused in-app)
-    //   Step 1: POST /auth/forgot-password  → sends 6-digit code to email
-    //   Step 2: POST /auth/verify-reset-code
-    //   Step 3: POST /auth/reset-password
+    // CHANGE PASSWORD (3-step)
     // ─────────────────────────────────────────────────────────────────────────
 
-    /** Step 1 — request a reset code sent to the user's registered email */
+    /** Step 1 — send reset code to user's email */
     fun sendPasswordResetCode(onCodeSent: () -> Unit) {
-        val email = uiState.userEmail.ifBlank {
-            uiState = uiState.copy(errorMessage = "No email on file. Please log in again.")
-            return
-        }
+        val email = uiState.userEmail.ifBlank { return }
         scope.launch {
             uiState = uiState.copy(isLoading = true, errorMessage = null)
             when (val result = accountRepository.requestPasswordReset(email)) {
@@ -175,10 +158,14 @@ class SettingsViewModel(
         scope.launch {
             uiState = uiState.copy(isLoading = true, errorMessage = null)
             when (val result = accountRepository.resetPasswordWithCode(email, verifiedCode, newPassword)) {
-                is ApiResult.Success -> uiState = uiState.copy(
-                    isLoading      = false,
-                    successMessage = "Password changed successfully ✓"
-                )
+                is ApiResult.Success -> {
+                    // If "Save Password" is enabled, update the stored password to the new one
+                    if (uiState.savePasswordEnabled) {
+                        val emailOrPhone = preferencesManager.getSavedEmailOrPhone() ?: email
+                        preferencesManager.saveLoginCredentials(emailOrPhone, newPassword)
+                    }
+                    uiState = uiState.copy(isLoading = false, successMessage = "Password changed successfully ✓")
+                }
                 is ApiResult.Error   -> uiState = uiState.copy(isLoading = false, errorMessage = result.message)
                 is ApiResult.Loading -> uiState = uiState.copy(isLoading = false)
             }
@@ -234,16 +221,34 @@ class SettingsViewModel(
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // SECURITY
+    // SECURITY — Save Password toggle
+    //
+    // Only reachable for email login users (isEmailLogin = true).
+    // The UI hides the toggle entirely for Google users so this method is
+    // never called for them.
+    //
+    // ON  → store email + password in prefs (same key as LoginScreen checkbox)
+    // OFF → clear stored credentials
+    //
+    // Both directions update the same KEY_SAVE_PASSWORD_ENABLED flag that
+    // LoginScreen reads on startup, so the two are always in sync.
     // ─────────────────────────────────────────────────────────────────────────
 
     fun setSavePassword(on: Boolean) {
         if (on) {
-            val email = preferencesManager.getUserEmail() ?: ""
-            val pwd   = preferencesManager.getSavedPassword() ?: ""
-            if (email.isNotBlank() && pwd.isNotBlank()) {
-                preferencesManager.saveLoginCredentials(email, pwd)
+            val email    = preferencesManager.getUserEmail() ?: ""
+            // Use the already-stored password if available; if the user has never
+            // saved before there is no password in prefs, so we cannot enable this.
+            val password = preferencesManager.getSavedPassword() ?: ""
+
+            if (email.isBlank() || password.isBlank()) {
+                uiState = uiState.copy(
+                    errorMessage = "To enable this, please log out and log in again with 'Save Password' checked."
+                )
+                // Do NOT update the toggle — leave it as false
+                return
             }
+            preferencesManager.saveLoginCredentials(email, password)
         } else {
             preferencesManager.clearLoginCredentials()
         }
@@ -254,18 +259,11 @@ class SettingsViewModel(
     // ACCOUNT ACTIONS
     // ─────────────────────────────────────────────────────────────────────────
 
-    /** Standard logout — preserves saved credentials for pre-fill */
     fun logout() {
         accountRepository.logout()
         uiState = uiState.copy(navigateToWelcome = true)
     }
 
-    /**
-     * Delete account:
-     *  1. DELETE /v1/users/{userId}  →  backend removes user + all children (cascade)
-     *  2. clearAllData()             →  wipe all local prefs / token
-     *  3. navigateToWelcome = true   →  Navigation.kt sends user to WelcomeScreen
-     */
     fun deleteAccount() {
         val userId = uiState.userId.ifBlank {
             uiState = uiState.copy(errorMessage = "Cannot identify account. Please log in again.")
@@ -275,7 +273,7 @@ class SettingsViewModel(
             uiState = uiState.copy(isLoading = true, errorMessage = null)
             when (val result = apiService.deleteUser(userId)) {
                 is ApiResult.Success -> {
-                    preferencesManager.clearAllData()
+                    accountRepository.logoutAndClearCredentials()
                     uiState = uiState.copy(isLoading = false, navigateToWelcome = true)
                 }
                 is ApiResult.Error   -> uiState = uiState.copy(isLoading = false, errorMessage = result.message)
@@ -285,12 +283,14 @@ class SettingsViewModel(
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // HELPERS
+    // LIFECYCLE
     // ─────────────────────────────────────────────────────────────────────────
 
     fun clearMessages() {
         uiState = uiState.copy(successMessage = null, errorMessage = null)
     }
 
-    fun onDestroy() { scope.cancel() }
+    fun onDestroy() {
+        scope.coroutineContext[kotlinx.coroutines.Job]?.cancel()
+    }
 }

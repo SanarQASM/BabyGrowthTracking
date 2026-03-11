@@ -8,7 +8,7 @@ class AccountRepository(
     private val preferencesManager : PreferencesManager
 ) {
 
-    // ─── Register ──────────────────────────────────────────────────────────────
+    // ─── Register ─────────────────────────────────────────────────────────────
 
     suspend fun register(
         fullName: String, email: String, password: String,
@@ -25,7 +25,7 @@ class AccountRepository(
         if (result is ApiResult.Success) {
             saveToken(result.data.token)
             preferencesManager.putBoolean("needs_verification", true)
-            preferencesManager.setUserLoggedIn(false)   // never auto-login after register
+            preferencesManager.setUserLoggedIn(false)
             preferencesManager.saveUserId(result.data.user.userId)
             preferencesManager.saveUserEmail(result.data.user.email)
             preferencesManager.saveUserName(result.data.user.fullName)
@@ -39,7 +39,7 @@ class AccountRepository(
         }
     }
 
-    // ─── Login ──────────────────────────────────────────────────────────────────
+    // ─── Email/Password Login ─────────────────────────────────────────────────
 
     suspend fun login(
         email     : String,
@@ -54,17 +54,15 @@ class AccountRepository(
         if (result is ApiResult.Success) {
             saveToken(result.data.token)
             preferencesManager.putString("auth_provider", "email")
-
-            // FIX: saveUserSession now receives rememberMe so it can decide
-            //      whether to set is_logged_in = true or false.
             saveUserSession(result.data.user, rememberMe, needsVerification = false)
 
             if (rememberMe) {
-                // Save both email/phone + password → enables full auto-login next launch
+                // User checked "Save Password" → store credentials and set the flag
                 preferencesManager.saveLoginCredentials(email, password)
             } else {
-                // Clear any previously saved password and disable auto-login flag.
-                // Keep email in "saved_email" only for field pre-fill convenience.
+                // User did NOT check "Save Password" → clear any previously stored
+                // credentials and set the flag to false.
+                // Keep only email for field pre-fill convenience on next login.
                 preferencesManager.clearLoginCredentials()
                 preferencesManager.putString("saved_email", email)
             }
@@ -77,7 +75,7 @@ class AccountRepository(
         }
     }
 
-    // ─── Google Login ───────────────────────────────────────────────────────────
+    // ─── Google Login ─────────────────────────────────────────────────────────
 
     suspend fun loginWithGoogle(
         idToken    : String,
@@ -92,10 +90,12 @@ class AccountRepository(
         if (result is ApiResult.Success) {
             saveToken(result.data.token)
             preferencesManager.putString("auth_provider", "google")
-            // Google login is always treated as "remember me" — user authenticated
-            // via Google so there is no password to remember; we set the flag so
-            // subsequent launches go straight to Home.
+            // Google login has no password — mark as logged-in WITHOUT touching the
+            // save_password_enabled flag so the Settings toggle stays irrelevant.
             saveUserSession(result.data.user, rememberMe = true, needsVerification = false)
+            // Explicitly ensure the password flag is NOT set for Google users so
+            // there is no ambiguity if they switch to email login later.
+            preferencesManager.putBoolean("save_password_enabled", false)
         }
 
         return when (result) {
@@ -105,7 +105,7 @@ class AccountRepository(
         }
     }
 
-    // ─── Account Verification ───────────────────────────────────────────────────
+    // ─── Account Verification ─────────────────────────────────────────────────
 
     suspend fun sendVerificationCode(
         recipient: String,
@@ -130,7 +130,7 @@ class AccountRepository(
             ApiResult.Error("Failed to verify account: ${e.message}")
         }
 
-    // ─── Forgot Password ─────────────────────────────────────────────────────────
+    // ─── Forgot Password ──────────────────────────────────────────────────────
 
     suspend fun requestPasswordReset(email: String): ApiResult<VerificationResponse> {
         if (email.isBlank())      return ApiResult.Error("Please enter your email address")
@@ -169,30 +169,20 @@ class AccountRepository(
         }
     }
 
-    // ─── Session ─────────────────────────────────────────────────────────────────
+    // ─── Session ──────────────────────────────────────────────────────────────
 
     private fun saveToken(token: String) {
         preferencesManager.saveAuthToken(token)
-        preferencesManager.putString("auth_token", token) // raw key for ApiService.getToken lambda
+        preferencesManager.putString("auth_token", token)
     }
 
-    /**
-     * Persists user profile data after a successful login/register/social-auth.
-     *
-     * FIX: The logged-in flag is now controlled by [rememberMe].
-     *   • rememberMe = true  → is_logged_in = true  → next launch goes straight to Home
-     *   • rememberMe = false → is_logged_in = false → next launch forces Login screen
-     *   • needsVerification overrides both: always sets is_logged_in = false
-     */
     private fun saveUserSession(
         user             : UserResponse,
         rememberMe       : Boolean = false,
         needsVerification: Boolean = false
     ) {
-        // Only allow auto-login if rememberMe is true AND account is already verified.
         val allowAutoLogin = rememberMe && !needsVerification
         preferencesManager.setUserLoggedIn(allowAutoLogin)
-
         preferencesManager.putBoolean("needs_verification", needsVerification)
         preferencesManager.saveUserId(user.userId)
         preferencesManager.saveUserEmail(user.email)
@@ -201,23 +191,26 @@ class AccountRepository(
         user.profileImageUrl?.let { preferencesManager.putString("user_profile_image", it) }
     }
 
-    // ─── Getters ──────────────────────────────────────────────────────────────────
+    // ─── Getters ──────────────────────────────────────────────────────────────
 
     /**
-     * Returns true only when ALL THREE conditions hold:
-     *  1. The is_logged_in flag was set to true (only happens when rememberMe = true)
-     *  2. A valid auth token exists (not blank, not expired)
-     *  3. The "Save Password" feature flag is enabled
+     * Returns true when the user has an active session.
      *
-     * FIX: Added isSavePasswordEnabled() check so that even if the flag was
-     * somehow left as true from an old install, the user is still sent to Login
-     * if they never checked "Save Password".
+     * For EMAIL login:  requires is_logged_in=true + valid token + save_password_enabled=true
+     * For GOOGLE login: requires is_logged_in=true + valid token only
+     *                   (no password flag — Google users are always "remembered" by token)
      */
     fun isLoggedIn(): Boolean {
         val flagSet    = preferencesManager.getBoolean("is_logged_in", false)
         val tokenValid = preferencesManager.isTokenValid()
-        val rememberMe = preferencesManager.isSavePasswordEnabled()
-        return flagSet && tokenValid && rememberMe
+        if (!flagSet || !tokenValid) return false
+
+        // Google users bypass the save-password gate
+        val isGoogleUser = preferencesManager.getString("auth_provider") == "google"
+        if (isGoogleUser) return true
+
+        // Email users only auto-login if they checked "Save Password" at login
+        return preferencesManager.isSavePasswordEnabled()
     }
 
     fun needsVerification()          = preferencesManager.getBoolean("needs_verification", false)
@@ -231,37 +224,28 @@ class AccountRepository(
     fun getAuthProvider()            = preferencesManager.getString("auth_provider")
     fun getAuthToken()               = preferencesManager.getAuthToken()
 
-    // ── Credential helpers forwarded from PreferencesManager ──────────────────
     fun getSavedEmailOrPhone()  = preferencesManager.getSavedEmailOrPhone()
     fun getSavedPassword()      = preferencesManager.getSavedPassword()
     fun isSavePasswordEnabled() = preferencesManager.isSavePasswordEnabled()
 
-    /**
-     * Standard logout.
-     *
-     * FIX: Explicitly sets is_logged_in = false via setUserLoggedIn() so the
-     * next launch never bypasses the Login screen.
-     * Saved credentials are preserved intentionally — if the user had "Save
-     * Password" enabled, they can still log back in without re-typing.
-     * Call logoutAndClearCredentials() to wipe everything.
-     */
+    /** Returns true only for email/password login sessions (not Google). */
+    fun isEmailLogin() = preferencesManager.getString("auth_provider") == "email"
+
     fun logout() {
-        preferencesManager.setUserLoggedIn(false)   // clears both "user_logged_in" and "is_logged_in"
+        preferencesManager.setUserLoggedIn(false)
         preferencesManager.putBoolean("needs_verification", false)
         preferencesManager.putBoolean("account_verified", false)
         preferencesManager.clearAuthToken()
         preferencesManager.remove("auth_provider")
-        // Intentionally keep saved_email / saved credentials so the login
-        // screen can pre-fill them on next visit.
+        // Intentionally keep saved credentials so login screen can pre-fill email
     }
 
-    /** Logout + wipe all saved credentials (e.g. user explicitly signs out and clears data). */
     fun logoutAndClearCredentials() {
         logout()
         preferencesManager.clearLoginCredentials()
     }
 
-    // ─── Validation ───────────────────────────────────────────────────────────────
+    // ─── Validation ───────────────────────────────────────────────────────────
 
     private fun validateRegistration(fullName: String, email: String, password: String) =
         fullName.isNotBlank() && email.isNotBlank() && email.contains("@") &&

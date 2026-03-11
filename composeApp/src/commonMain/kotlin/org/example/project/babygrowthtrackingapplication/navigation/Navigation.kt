@@ -34,6 +34,7 @@ import org.example.project.babygrowthtrackingapplication.data.auth.SocialLoginHe
 import org.example.project.babygrowthtrackingapplication.data.network.ApiService
 import org.example.project.babygrowthtrackingapplication.data.network.BabyResponse
 import org.example.project.babygrowthtrackingapplication.data.repository.AccountRepository
+import org.example.project.babygrowthtrackingapplication.theme.GenderTheme
 import org.example.project.babygrowthtrackingapplication.ui.components.NavigationTab
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -65,21 +66,23 @@ enum class Screen {
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AppNavigation(
-    onLanguageChange: (Language) -> Unit = {}
+    // FIX: receive language from App.kt — eliminates the duplicate state bug
+    currentLanguage     : Language              = Language.ENGLISH,
+    onLanguageChange    : (Language) -> Unit    = {},
+    // FIX: new callbacks so App.kt BabyGrowthTheme actually re-composes
+    onDarkModeChange    : (Boolean) -> Unit     = {},
+    onGenderThemeChange : (GenderTheme) -> Unit = {},
 ) {
     val preferencesManager = rememberPreferencesManager()
     var currentScreen by remember { mutableStateOf(Screen.Splash) }
 
-    // ── Password-reset multi-step state ───────────────────────────────────────
     var resetEmail by remember { mutableStateOf("") }
     var resetCode  by remember { mutableStateOf("") }
 
-    // ── Selected baby for profile / measurement screens ───────────────────────
     var selectedBaby        by remember { mutableStateOf<BabyResponse?>(null) }
     var measurementBaby     by remember { mutableStateOf<BabyResponse?>(null) }
     var allMeasurementsBaby by remember { mutableStateOf<BabyResponse?>(null) }
 
-    // ── Tab state hoisted here so back-navigation can restore correct tab ─────
     var selectedTab by remember { mutableStateOf(NavigationTab.HOME) }
     var originTab   by remember { mutableStateOf(NavigationTab.HOME) }
 
@@ -91,8 +94,6 @@ fun AppNavigation(
     val socialAuthManager = remember { SocialAuthManager() }
     val socialLoginHelper = remember { SocialLoginHelper(repository) }
 
-    // ── ViewModels hoisted to AppNavigation scope ─────────────────────────────
-
     val homeViewModel = remember {
         HomeViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
@@ -101,12 +102,10 @@ fun AppNavigation(
         AddBabyViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
 
-    // ── HealthRecordViewModel ─────────────────────────────────────────────────
     val healthRecordViewModel = remember {
         HealthRecordViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
 
-    // ── NEW: SettingsViewModel ────────────────────────────────────────────────
     val settingsViewModel = remember {
         SettingsViewModel(
             apiService         = apiService,
@@ -135,7 +134,7 @@ fun AppNavigation(
         EnterNewPasswordViewModel(authRepository = repository)
     }
 
-    var currentLanguage by remember { mutableStateOf(preferencesManager.getCurrentLanguage()) }
+    // FIX: removed duplicate `var currentLanguage` — now received as a parameter from App.kt
 
     InitializeSocialAuth(socialAuthManager)
     DisposableEffect(Unit) {
@@ -144,19 +143,16 @@ fun AppNavigation(
             homeViewModel.onDestroy()
             addBabyViewModel.onDestroy()
             healthRecordViewModel.onDestroy()
-            settingsViewModel.onDestroy()       // ← NEW
+            settingsViewModel.onDestroy()
             cleanupSocialAuth(socialAuthManager)
         }
     }
-
-    // ── Screen transitions ────────────────────────────────────────────────────
 
     SharedTransitionLayout {
         AnimatedContent(
             targetState = currentScreen,
             transitionSpec = {
                 when (targetState) {
-
                     Screen.Login,
                     Screen.Signup,
                     Screen.VerifyAccount ->
@@ -354,13 +350,14 @@ fun AppNavigation(
                     HomeScreen(
                         viewModel             = homeViewModel,
                         healthRecordViewModel = healthRecordViewModel,
-                        settingsViewModel     = settingsViewModel,          // ← NEW
+                        settingsViewModel     = settingsViewModel,
                         currentLanguage       = currentLanguage,
                         onLanguageChange      = { newLanguage ->
                             preferencesManager.setLanguage(newLanguage)
-                            currentLanguage = newLanguage
-                            onLanguageChange(newLanguage)
+                            onLanguageChange(newLanguage)   // FIX: bubble to App.kt, no duplicate state
                         },
+                        onDarkModeChange    = onDarkModeChange,     // FIX: wired through
+                        onGenderThemeChange = onGenderThemeChange,  // FIX: wired through
                         selectedTab  = selectedTab,
                         onTabChange  = { selectedTab = it },
                         onAddBaby    = {
@@ -402,7 +399,7 @@ fun AppNavigation(
                                 currentScreen       = Screen.AllMeasurements
                             }
                         },
-                        onNavigateToWelcome = {                             // ← NEW
+                        onNavigateToWelcome = {
                             currentScreen = Screen.Welcome
                         },
                     )
@@ -555,7 +552,6 @@ fun AppNavigation(
         } // end AnimatedContent
     } // end SharedTransitionLayout
 }
-
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Platform expectations

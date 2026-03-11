@@ -537,4 +537,31 @@
     <string name="settings_delete_message">This will permanently delete your account and all baby records. This cannot be undone.</string>
     <string name="settings_delete_confirm">Delete Forever</string>
 
+    <!-- ── EditProfileDialog field labels (were hardcoded "Name" / "Phone") ── -->
+    <string name="settings_field_name">Name</string>
+    <string name="settings_field_phone">Phone</string>
+
+    <!-- ── ContactSupportDialog body strings ── -->
+    <string name="settings_contact_support_intro">Have a question or found a bug? We\'d love to hear from you.</string>
+    <string name="settings_support_email">support@babygrowth.com</string>
+    <string name="settings_support_response_time">We typically respond within 24–48 hours.</string>
+
+    <!-- ── Privacy Policy dialog body ── -->
+    <string name="settings_privacy_policy_body">Baby Growth Tracker is committed to protecting your privacy.\n\n
+• We collect only the information needed to provide the app's features (baby profiles, growth records, vaccination schedules).\n
+• Your data is stored securely on our servers and is never sold to third parties.\n
+• You may delete your account at any time, which permanently removes all associated data.\n
+• We use industry-standard encryption for all data in transit and at rest.\n
+• Analytics data is anonymised and used only to improve the app.\n\n
+For questions, contact support@babygrowth.com.</string>
+
+    <!-- ── Terms of Use dialog body ── -->
+    <string name="settings_terms_body">By using Baby Growth Tracker you agree to the following terms:\n\n
+1. You are responsible for the accuracy of the information you enter.\n
+2. The app is intended as a tracking aid, not a medical diagnostic tool. Always consult a qualified healthcare professional for medical advice.\n
+3. You must not misuse the service or attempt to access data belonging to other users.\n
+4. We reserve the right to update these terms. Continued use after changes constitutes acceptance.\n
+5. The app is provided "as is" without warranties of any kind.\n\n
+Last updated: 2025.</string>
+
 </resources>

@@ -54,6 +54,7 @@ maps-compose                    = "4.3.3"
 # ─── Multiplatform Utilities ──────────────────────────────────────────────────
 multiplatform-settings          = "1.3.0"
 napier                          = "2.7.1"
+slf4jSimple = "2.0.17"
 uuid                            = "0.8.4"
 
 # ─── Backend — Spring Boot ────────────────────────────────────────────────────
@@ -140,6 +141,7 @@ multiplatform-settings-coroutines = { module = "com.russhwolf:multiplatform-sett
 napier                          = { module = "io.github.aakira:napier",                 version.ref = "napier" }
 
 # ─── UUID ─────────────────────────────────────────────────────────────────────
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4jSimple" }
 uuid                            = { module = "com.benasher44:uuid",                     version.ref = "uuid" }
 
 # ─── Firebase (Android only) ──────────────────────────────────────────────────

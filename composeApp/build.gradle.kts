@@ -154,6 +154,7 @@ kotlin {
                 implementation(libs.ktor.client.cio)
                 implementation(libs.androidx.datastore.preferences.core)
                 implementation(libs.kotlinx.coroutines.swing)
+                implementation(libs.slf4j.simple)
             }
         }
 
