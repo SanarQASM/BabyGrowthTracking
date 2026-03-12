@@ -15,7 +15,11 @@ import org.example.project.babygrowthtrackingapplication.theme.GenderTheme
 import org.example.project.babygrowthtrackingapplication.ui.components.BottomNavigationBar
 import org.example.project.babygrowthtrackingapplication.ui.components.NavigationTab
 
-// NOTE: BabyGrowthTheme import intentionally removed — see fix comment below.
+// NOTE: BabyGrowthTheme import intentionally removed.
+// HomeScreen is already a descendant of the root BabyGrowthTheme in App.kt,
+// which correctly holds both `genderTheme` and `isDarkMode`. Adding another
+// wrapper here would break dark-mode toggling and gender-theme changes made
+// in Settings.
 
 @Composable
 fun HomeScreen(
@@ -38,23 +42,6 @@ fun HomeScreen(
     onNavigateToWelcome       : () -> Unit = {},
 ) {
     val state = viewModel.uiState
-
-    // FIX: Removed `BabyGrowthTheme(genderTheme = state.genderTheme) { ... }` wrapper.
-    //
-    // WHY IT WAS BROKEN:
-    //   This wrapper spawned a completely new theme scope for the entire Home section.
-    //   It only passed `genderTheme` and omitted `darkTheme`, so darkTheme defaulted
-    //   to `isSystemInDarkTheme()` — the OS setting — which never changes when the
-    //   user toggles dark mode in Settings. It also made the gender theme selection
-    //   in Settings have no effect, because this wrapper always re-applied
-    //   `state.genderTheme` from HomeViewModel (which is a separate copy) on top of
-    //   whatever App.kt had set.
-    //
-    // THE FIX:
-    //   Remove the wrapper entirely. HomeScreen is already a descendant of the root
-    //   BabyGrowthTheme in App.kt, which correctly holds both `genderTheme` and
-    //   `isDarkMode` as mutable state driven by PreferencesManager. Removing this
-    //   inner wrapper lets those values flow through to every tab naturally.
 
     Scaffold(
         bottomBar = {
@@ -82,10 +69,7 @@ fun HomeScreen(
                 NavigationTab.BABY ->
                     BabyProfileTabContent(
                         viewModel         = viewModel,
-                        // BUG FIX: onAddBaby was missing here — the "+" button in the Baby tab
-                        // was a no-op because BabyProfileTabContent defaulted to {} when called
-                        // without this parameter, even though HomeScreen received onAddBaby.
-                        onAddBaby         = onAddBaby,
+                        onAddBaby         = onAddBaby,        // FIX: was missing → "+" button was a no-op
                         onSeeProfile      = onSeeProfile,
                         onEditDetails     = onEditDetails,
                         onAddMeasurement  = onAddMeasurement,

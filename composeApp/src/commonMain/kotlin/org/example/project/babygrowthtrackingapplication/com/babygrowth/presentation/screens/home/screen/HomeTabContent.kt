@@ -154,55 +154,40 @@ private fun HomeTopBar(notificationCount: Int) {
                     modifier = Modifier
                         .size(dimensions.iconXLarge - dimensions.spacingXSmall)
                         .background(
-                            brush = Brush.radialGradient(
-                                listOf(
-                                    customColors.accentGradientStart.copy(alpha = 0.3f),
-                                    customColors.accentGradientEnd.copy(alpha = 0.15f)
-                                )
-                            ),
-                            shape = CircleShape
+                            customColors.accentGradientStart.copy(0.12f),
+                            RoundedCornerShape(dimensions.spacingSmall)
                         ),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
                         painter            = painterResource(Res.drawable.application_logo_without_background),
                         contentDescription = stringResource(Res.string.app_logo_description),
-                        modifier           = Modifier.size(dimensions.iconLarge - dimensions.spacingXSmall)
+                        modifier           = Modifier.size(dimensions.iconLarge)
                     )
                 }
-
-                Spacer(Modifier.width(dimensions.spacingSmall + dimensions.spacingXSmall))
-
-                Column {
-                    Text(
-                        text       = stringResource(Res.string.app_name),
-                        style      = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color      = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text  = stringResource(Res.string.tab_home),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = customColors.accentGradientStart
-                    )
-                }
+                Spacer(Modifier.width(dimensions.spacingSmall))
+                Text(
+                    text       = stringResource(Res.string.app_name),
+                    style      = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color      = MaterialTheme.colorScheme.onSurface
+                )
             }
 
-            // Notification bell + badge
-            Box(contentAlignment = Alignment.TopEnd) {
-                IconButton(onClick = { /* navigate to notifications */ }) {
+            Box {
+                IconButton(onClick = { /* notifications */ }) {
                     Icon(
-                        imageVector        = Icons.Default.Notifications,
+                        Icons.Default.Notifications,
                         contentDescription = null,
-                        tint               = MaterialTheme.colorScheme.onSurface,
-                        modifier           = Modifier.size(dimensions.iconLarge - dimensions.spacingXSmall)
+                        tint     = customColors.accentGradientStart,
+                        modifier = Modifier.size(dimensions.iconMedium)
                     )
                 }
                 if (notificationCount > 0) {
                     Box(
                         modifier = Modifier
-                            .size(dimensions.iconSmall + dimensions.spacingXSmall)
-                            .offset(x = (-2).dp, y = dimensions.spacingXSmall)
+                            .align(Alignment.TopEnd)
+                            .size(dimensions.spacingSmall + dimensions.spacingXSmall)
                             .background(MaterialTheme.colorScheme.error, CircleShape)
                             .border(
                                 dimensions.borderWidthThin + 0.5.dp,
@@ -514,7 +499,6 @@ private fun UsefulToolsSection(
     val customColors = MaterialTheme.customColors
     val dimensions   = LocalDimensions.current
 
-    // Gender-aware icon background — matches original exactly
     val iconBg = when (genderTheme) {
         GenderTheme.GIRL    -> GirlLightColors.Primary.copy(0.15f)
         GenderTheme.BOY     -> BoyLightColors.Primary.copy(0.15f)
@@ -538,7 +522,6 @@ private fun UsefulToolsSection(
 
         Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
 
-        // 2×2 grid: row 0→[0,1], row 1→[2,3]
         Column(verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)) {
             listOf(0, 2).forEach { rowStart ->
                 Row(
@@ -706,20 +689,11 @@ private fun BabyInfoCard(
     val accentColor  = customColors.accentGradientStart
     val isDark       = LocalIsDarkTheme.current
 
-    // ── BUG FIX: Use theme-aware card background ──────────────────────────────
-    // OLD (broken): hardcoded GirlLightColors.BabyPink / BoyLightColors.BabyBlue /
-    //               NeutralLightColors.BabyRose for ALL three gender cases, plus
-    //               a hardcoded ...Background endpoint — these are always light-mode
-    //               static objects, so in dark theme the card showed a bright
-    //               pink/blue wash on a dark background.
-    //
-    // FIX: derive the gradient entirely from the current theme's customColors and
-    //      MaterialTheme.colorScheme.surface, which already track both
-    //      gender-theme and dark/light mode correctly.
+    // Same low-opacity theme-aware gradient as BabyProfileTabContent's BabyCard
     val cardBg = Brush.horizontalGradient(
         listOf(
             customColors.accentGradientStart.copy(alpha = if (isDark) 0.25f else 0.18f),
-            customColors.accentGradientEnd.copy(alpha   = if (isDark) 0.12f else 0.08f),
+            customColors.accentGradientEnd  .copy(alpha = if (isDark) 0.12f else 0.08f),
             MaterialTheme.colorScheme.surface
         )
     )
@@ -727,16 +701,18 @@ private fun BabyInfoCard(
     val isFemale = baby.gender.equals("FEMALE", ignoreCase = true) ||
             baby.gender.equals("GIRL", ignoreCase = true)
 
-    // ── Measurement priority ──────────────────────────────────────────────────
-    val displayWeight : Double = baby.birthWeight        ?: latestGrowth?.weight        ?: 0.0
-    val displayHeight : Double = baby.birthHeight        ?: latestGrowth?.height        ?: 0.0
+    val displayWeight : Double = baby.birthWeight            ?: latestGrowth?.weight            ?: 0.0
+    val displayHeight : Double = baby.birthHeight            ?: latestGrowth?.height            ?: 0.0
     val displayHead   : Double = baby.birthHeadCircumference ?: latestGrowth?.headCircumference ?: 0.0
 
+    // ── FIX: match BabyProfileTabContent card shape and elevation exactly ─────
+    // OLD: shape = cardCornerRadius, elevation = cardElevation (non-zero tonal overlay)
+    // NEW: shape = chartCardCornerRadius, elevation = 0.dp  ← same as BabyCard
     Card(
         modifier  = Modifier.fillMaxWidth(),
-        shape     = RoundedCornerShape(dimensions.cardCornerRadius),
+        shape     = RoundedCornerShape(dimensions.chartCardCornerRadius),
         colors    = CardDefaults.cardColors(containerColor = Color.Transparent),
-        elevation = CardDefaults.cardElevation(dimensions.cardElevation)
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Box(
             modifier = Modifier
@@ -777,6 +753,26 @@ private fun BabyInfoCard(
                             text  = formatAge(baby.ageInMonths),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onBackground.copy(0.6f)
+                        )
+                    }
+
+                    // Gender badge
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                accentColor.copy(0.12f),
+                                RoundedCornerShape(dimensions.spacingSmall)
+                            )
+                            .padding(
+                                horizontal = dimensions.spacingSmall,
+                                vertical   = dimensions.spacingXSmall
+                            )
+                    ) {
+                        Text(
+                            text  = if (isFemale) "♀" else "♂",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = accentColor,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
@@ -821,41 +817,31 @@ private fun BabyInfoCard(
                             .background(accentColor.copy(0.08f))
                             .padding(
                                 horizontal = dimensions.spacingSmall + dimensions.spacingXSmall,
-                                vertical   = dimensions.spacingXSmall + 3.dp
+                                vertical   = dimensions.spacingSmall
                             ),
                         verticalAlignment     = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("💉", fontSize = (dimensions.iconSmall.value - 2).sp)
-                            Spacer(Modifier.width(dimensions.spacingXSmall + dimensions.borderWidthMedium))
-                            Column {
-                                Text(
-                                    text  = stringResource(Res.string.home_next_vaccine_label),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
-                                )
-                                Text(
-                                    text       = nextVaccination.vaccineName,
-                                    style      = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color      = accentColor
-                                )
-                            }
-                        }
-                        Column(horizontalAlignment = Alignment.End) {
+                        Text("💉", fontSize = dimensions.iconSmall.value.sp)
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text  = stringResource(Res.string.home_scheduled_label),
+                                text  = stringResource(Res.string.home_next_vaccine_label),
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
+                                color = accentColor.copy(0.6f),
+                                fontSize = dimensions.homeSmallTextSize
                             )
                             Text(
-                                text       = formatDate(nextVaccination.scheduledDate),
+                                text       = nextVaccination.vaccineName,
                                 style      = MaterialTheme.typography.labelMedium,
                                 fontWeight = FontWeight.SemiBold,
-                                color      = MaterialTheme.colorScheme.onSurface.copy(0.75f)
+                                color      = accentColor
                             )
                         }
+                        Text(
+                            text  = formatDate(nextVaccination.scheduledDate),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = accentColor.copy(0.7f)
+                        )
                     }
                 }
 
@@ -896,7 +882,9 @@ private fun BabyStatChip(
             Text(
                 label,
                 style    = MaterialTheme.typography.labelSmall,
-                color    = MaterialTheme.colorScheme.onSurface.copy(0.5f),
+                // FIX: was onSurface.copy(0.5f) — now matches BabyProfileTabContent's
+                //      MeasurementChip which uses accentColor.copy(0.6f)
+                color    = accentColor.copy(0.6f),
                 fontSize = dimensions.homeSmallTextSize,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

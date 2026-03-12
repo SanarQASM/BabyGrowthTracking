@@ -14,28 +14,36 @@ val LocalAppLanguage = compositionLocalOf { Language.ENGLISH }
 
 /**
  * Simple boolean so any composable can know "am I in an RTL language?"
- * without triggering a layout flip.
+ * without needing to check LocalLayoutDirection.
  */
 val LocalIsRTL = compositionLocalOf { false }
 
 /**
- * LanguageProvider — sets the active language for the entire app subtree.
+ * LanguageProvider — sets the active language AND layout direction for the
+ * entire app subtree.
  *
- * FIX: `key(language)` added around the CompositionLocalProvider block.
+ * HOW RTL/LTR WORKS:
+ * `LocalLayoutDirection` is provided globally here so that ALL Compose
+ * layout primitives (Row, padding, Arrangement.Start/End, etc.) automatically
+ * respect the reading direction:
+ *   • Kurdish / Arabic  → LayoutDirection.Rtl  → UI flows right-to-left
+ *   • English           → LayoutDirection.Ltr  → UI flows left-to-right
  *
- * WHY THIS FIX IS NEEDED:
- * `rememberCurrentLocale()` calls platform APIs (AppCompatDelegate on
- * Android, NSUserDefaults on iOS, Locale.setDefault on Desktop) to change
- * the locale. However, Compose's `stringResource()` is backed by the
- * `Resources` object that was resolved at composition time — it does NOT
- * automatically re-read after a SideEffect fires. Without `key(language)`,
- * every Text/Button/label that uses `stringResource()` keeps displaying
- * the OLD language until the whole Activity is recreated.
+ * This is the standard Compose Multiplatform approach for full RTL support.
+ * Rows reverse their children order, Start/End padding swaps sides, and
+ * text aligns correctly — exactly what RTL users expect.
  *
- * `key(language)` tells Compose: "whenever `language` changes, throw away
- * the entire subtree and build it fresh." This forces every `stringResource()`
- * call inside the tree to re-execute against the newly-set locale, so
- * all UI text updates instantly without an app restart.
+ * WHAT ABOUT ICONS FLIPPING?
+ * Only icons using `Icons.AutoMirrored.*` will mirror in RTL — that is
+ * intentional (e.g. ArrowBack becomes ArrowForward in RTL navigation).
+ * Regular icons (Home, Settings, Close, etc.) do NOT mirror because they
+ * are not in the AutoMirrored set.
+ *
+ * WHY `key(language)` IS STILL NEEDED:
+ * `rememberCurrentLocale()` calls platform APIs to change the locale, but
+ * `stringResource()` resolves strings at composition time. `key(language)`
+ * forces a full subtree rebuild so every `stringResource()` re-executes
+ * with the new locale — giving instant string updates without a restart.
  */
 @Composable
 fun LanguageProvider(
@@ -45,47 +53,35 @@ fun LanguageProvider(
     // Push the locale to the platform (Android / iOS / Desktop / Web)
     rememberCurrentLocale(language)
 
-    // FIX: key(language) forces a full subtree rebuild when the language changes,
-    //      which makes stringResource() pick up the new locale immediately.
+    // key(language) forces a full subtree rebuild on language change,
+    // making stringResource() pick up the new locale immediately.
     key(language) {
-        // ✅ Do NOT provide LocalLayoutDirection here globally.
-        //
-        //    THE ROOT CAUSE OF "EVERYTHING FLIPS":
-        //    Setting `LocalLayoutDirection provides LayoutDirection.Rtl` globally
-        //    means EVERY composable in the entire app tree inherits RTL, because
-        //    LocalLayoutDirection is consumed by:
-        //      - Row        → reverses children order
-        //      - Padding    → swaps left/right
-        //      - Icon       → mirrors horizontally
-        //      - Image      → mirrors horizontally
-        //      - Button     → mirrors content
-        //      - Card       → mirrors content
-        //      - Arrangement.Start/End → flips sides
-        //    ...basically every single layout primitive in Compose.
-        //
-        //    The fix: expose only LocalIsRTL (a plain Boolean).
-        //    Individual composables that NEED RTL behaviour opt-in explicitly.
+        val layoutDirection = if (language.isRTL) LayoutDirection.Rtl else LayoutDirection.Ltr
+
         CompositionLocalProvider(
-            LocalAppLanguage provides language,
-            LocalIsRTL       provides language.isRTL
+            LocalAppLanguage     provides language,
+            LocalIsRTL           provides language.isRTL,
+            LocalLayoutDirection provides layoutDirection,  // ← applies RTL/LTR to whole UI
         ) {
             content()
         }
     }
 }
 
-// ─── Opt-in RTL helpers ────────────────────────────────────────────────────────
-// Use these ONLY on the specific composables that need RTL-aware behaviour.
-// Never wrap an entire screen or the app root with RTLAwareContent.
+// ─── RTL helpers (kept for backwards compatibility) ───────────────────────────
+// These are no longer required for layout direction — the global
+// LocalLayoutDirection handles that. They remain useful if you ever need to
+// selectively OVERRIDE direction for a specific subtree (e.g. a code block
+// that must always be LTR inside an RTL screen).
 
 /**
- * Applies RTL layout direction to a specific subtree ONLY.
- * Use this on individual text blocks or list containers where Arabic/Kurdish
- * text should flow right-to-left.
+ * Wraps a subtree with an explicit layout direction based on the current
+ * language. Useful if you need to override a specific section back to a
+ * fixed direction.
  *
- * Example — a paragraph of Arabic body text:
- *   RTLAwareContent {
- *       Text(text = arabicParagraph)
+ * Example — force a code snippet to always be LTR inside an RTL screen:
+ *   CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+ *       CodeBlock(...)
  *   }
  */
 @Composable
@@ -99,6 +95,7 @@ fun RTLAwareContent(content: @Composable () -> Unit) {
 
 /**
  * Returns the correct text alignment for the current language's reading direction.
+ * Useful for Text composables that need explicit TextAlign (e.g. multiline body text).
  *
  * Example:
  *   Text(

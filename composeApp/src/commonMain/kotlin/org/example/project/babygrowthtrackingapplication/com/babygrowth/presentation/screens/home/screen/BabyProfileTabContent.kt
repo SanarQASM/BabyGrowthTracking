@@ -186,7 +186,7 @@ fun BabyProfileTabContent(
                 .background(
                     MaterialTheme.colorScheme.background,
                     RoundedCornerShape(
-                        topStart = dimensions.spacingXXLarge - dimensions.spacingXSmall,  // WAS: 35.dp
+                        topStart = dimensions.spacingXXLarge - dimensions.spacingXSmall,
                         topEnd   = dimensions.spacingXXLarge - dimensions.spacingXSmall
                     )
                 )
@@ -245,11 +245,10 @@ fun BabyProfileTabContent(
                                         color      = MaterialTheme.colorScheme.onBackground
                                     )
 
-                                    // ── FIX 3: Add text label below the + button ──
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         Box(
                                             modifier = Modifier
-                                                .size(dimensions.addButtonSize)                   // WAS: 36.dp
+                                                .size(dimensions.addButtonSize)
                                                 .background(
                                                     customColors.accentGradientStart.copy(0.15f),
                                                     RoundedCornerShape(dimensions.chipCornerRadius)
@@ -269,7 +268,6 @@ fun BabyProfileTabContent(
                                                 modifier = Modifier.size(dimensions.iconMedium)
                                             )
                                         }
-                                        // ← NEW: label below the + button (matches HomeTab UX)
                                         Spacer(Modifier.height(dimensions.spacingXSmall - dimensions.borderWidthThin))
                                         Text(
                                             text      = stringResource(Res.string.home_add_more_child),
@@ -294,13 +292,13 @@ fun BabyProfileTabContent(
                                         baby             = baby,
                                         vaccinations     = state.upcomingVaccinations[baby.babyId]
                                             ?: emptyList(),
-                                        latestGrowth      = state.latestGrowthRecords[baby.babyId],
-                                        onSeeProfile      = { onSeeProfile(baby) },
-                                        onArchive         = { archiveConfirmBaby   = baby },
-                                        onUnarchive       = { unarchiveConfirmBaby = baby },
-                                        onEditDetails     = { onEditDetails(baby) },
-                                        onAddMeasurement  = { onAddMeasurement(baby) },
-                                        onViewGrowthChart = { onViewGrowthChart(baby) }
+                                        latestGrowth     = state.latestGrowthRecords[baby.babyId],
+                                        onSeeProfile     = { onSeeProfile(baby) },
+                                        onArchive        = { archiveConfirmBaby = baby },
+                                        onUnarchive      = { unarchiveConfirmBaby = baby },
+                                        onEditDetails    = { onEditDetails(baby) },
+                                        onAddMeasurement = { onAddMeasurement(baby) },
+                                        onViewGrowthChart= { onViewGrowthChart(baby) }
                                     )
                                 }
                             }
@@ -308,9 +306,7 @@ fun BabyProfileTabContent(
 
                         SnackbarHost(
                             hostState = snackbarHostState,
-                            modifier  = Modifier
-                                .align(Alignment.BottomCenter)
-                                .padding(bottom = dimensions.screenPadding)
+                            modifier  = Modifier.align(Alignment.BottomCenter)
                         )
                     }
                 }
@@ -332,40 +328,23 @@ private fun BabySearchBar(
 ) {
     val customColors = MaterialTheme.customColors
     val dimensions   = LocalDimensions.current
-
-    Row(
+    Box(
         modifier = modifier
             .background(
-                MaterialTheme.colorScheme.surface,
-                RoundedCornerShape(dimensions.chipCornerRadius)
+                MaterialTheme.colorScheme.surfaceVariant,
+                RoundedCornerShape(dimensions.buttonCornerRadius)
             )
-            .border(
-                dimensions.borderWidthThin,
-                customColors.accentGradientStart.copy(0.2f),
-                RoundedCornerShape(dimensions.chipCornerRadius)
-            )
-            .padding(
-                horizontal = dimensions.spacingMedium,
-                vertical   = dimensions.spacingSmall + dimensions.spacingXSmall
-            ),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(horizontal = dimensions.spacingMedium, vertical = dimensions.spacingSmall)
     ) {
-        Icon(
-            Icons.Default.Search,
-            contentDescription = null,
-            tint               = customColors.accentGradientStart.copy(0.6f),
-            modifier           = Modifier.size(dimensions.iconMedium)
-        )
-        Spacer(Modifier.width(dimensions.spacingSmall))
-        BasicTextField(
-            value         = query,
-            onValueChange = onQueryChange,
-            modifier      = Modifier.weight(1f),
-            textStyle     = MaterialTheme.typography.bodyMedium.copy(
-                color = MaterialTheme.colorScheme.onSurface
-            ),
-            singleLine    = true,
-            decorationBox = { inner ->
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Icon(
+                Icons.Default.Search,
+                contentDescription = null,
+                tint     = customColors.accentGradientStart.copy(0.6f),
+                modifier = Modifier.size(dimensions.iconSmall)
+            )
+            Spacer(Modifier.width(dimensions.spacingSmall))
+            Box(modifier = Modifier.weight(1f)) {
                 if (query.isEmpty()) {
                     Text(
                         hint,
@@ -373,19 +352,28 @@ private fun BabySearchBar(
                         color = MaterialTheme.colorScheme.onSurface.copy(0.4f)
                     )
                 }
-                inner()
-            }
-        )
-        if (query.isNotEmpty()) {
-            IconButton(
-                onClick  = { onQueryChange("") },
-                modifier = Modifier.size(dimensions.iconMedium)
-            ) {
-                Icon(
-                    Icons.Default.Clear,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurface.copy(0.5f)
+                BasicTextField(
+                    value         = query,
+                    onValueChange = onQueryChange,
+                    singleLine    = true,
+                    textStyle     = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurface
+                    ),
+                    modifier = Modifier.fillMaxWidth()
                 )
+            }
+            if (query.isNotEmpty()) {
+                IconButton(
+                    onClick  = { onQueryChange("") },
+                    modifier = Modifier.size(dimensions.iconSmall + dimensions.spacingXSmall)
+                ) {
+                    Icon(
+                        Icons.Default.Clear,
+                        contentDescription = null,
+                        tint     = MaterialTheme.colorScheme.onSurface.copy(0.5f),
+                        modifier = Modifier.size(dimensions.iconSmall)
+                    )
+                }
             }
         }
     }
@@ -396,44 +384,41 @@ private fun BabySearchBar(
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun BabyFilterTabs(selected: BabyFilter, onSelect: (BabyFilter) -> Unit) {
+private fun BabyFilterTabs(
+    selected: BabyFilter,
+    onSelect: (BabyFilter) -> Unit
+) {
     val customColors = MaterialTheme.customColors
     val dimensions   = LocalDimensions.current
-
-    val labels = mapOf(
-        BabyFilter.ALL      to stringResource(Res.string.baby_filter_all),
-        BabyFilter.ACTIVE   to stringResource(Res.string.baby_filter_active),
-        BabyFilter.ARCHIVED to stringResource(Res.string.baby_filter_archived)
-    )
-
     Row(
         modifier              = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall + dimensions.borderWidthMedium)
+        horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
     ) {
         BabyFilter.entries.forEach { filter ->
             val isSelected = filter == selected
             Box(
                 modifier = Modifier
+                    .weight(1f)
                     .background(
-                        if (isSelected) customColors.accentGradientStart.copy(0.18f)
-                        else MaterialTheme.colorScheme.surfaceVariant.copy(0.5f),
+                        if (isSelected) customColors.accentGradientStart.copy(0.15f)
+                        else MaterialTheme.colorScheme.surfaceVariant,
                         RoundedCornerShape(dimensions.filterTabCorner)
                     )
                     .border(
-                        width = if (isSelected) dimensions.borderWidthThin + 0.5.dp else dimensions.borderWidthThin,
-                        color = if (isSelected) customColors.accentGradientStart.copy(0.5f)
-                        else MaterialTheme.colorScheme.onSurface.copy(0.15f),
-                        shape = RoundedCornerShape(dimensions.filterTabCorner)
+                        dimensions.borderWidthThin,
+                        if (isSelected) customColors.accentGradientStart.copy(0.4f)
+                        else            MaterialTheme.colorScheme.outline.copy(0.2f),
+                        RoundedCornerShape(dimensions.filterTabCorner)
                     )
                     .clickable { onSelect(filter) }
                     .padding(
-                        horizontal = dimensions.spacingLarge - dimensions.borderWidthMedium,
-                        vertical   = dimensions.spacingSmall + dimensions.borderWidthThin
+                        horizontal = dimensions.spacingSmall,
+                        vertical   = dimensions.spacingXSmall + 2.dp
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text       = labels[filter] ?: filter.name,
+                    text       = filter.name,
                     style      = MaterialTheme.typography.labelMedium,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                     color      = if (isSelected) customColors.accentGradientStart
@@ -467,82 +452,75 @@ private fun BabyCard(
     val isFemale = baby.gender.equals("FEMALE", ignoreCase = true) ||
             baby.gender.equals("GIRL",   ignoreCase = true)
 
-    val cardBg: Brush = when {
-        !baby.isActive && isFemale ->
-            Brush.horizontalGradient(listOf(
-                customColors.accentGradientStart.copy(alpha = 0.15f),
-                customColors.accentGradientEnd.copy(alpha = 0.20f)
-            ))
-        !baby.isActive ->
-            Brush.horizontalGradient(listOf(
-                MaterialTheme.colorScheme.surfaceVariant,
-                MaterialTheme.colorScheme.surface
-            ))
-        isFemale ->
-            Brush.horizontalGradient(listOf(
-                customColors.accentGradientStart.copy(alpha = 0.8f),
-                customColors.accentGradientEnd.copy(alpha = 0.7f)
-            ))
-        else ->
-            Brush.horizontalGradient(listOf(
-                customColors.accentGradientEnd.copy(alpha = 0.7f),
-                customColors.accentGradientStart.copy(alpha = 0.6f)
-            ))
+    // ── FIX: theme-aware gradient matching HomeTabContent's BabyInfoCard ─────
+    // OLD: hardcoded 0.8f/0.7f opacity — always vivid, ignores dark mode,
+    //      and used opposite gradient directions for girl vs boy.
+    // NEW: same low-opacity approach as HomeTabContent so both screens look
+    //      consistent, and the alpha adapts to dark/light mode correctly.
+    val isDark  = LocalIsDarkTheme.current
+    val cardBg: Brush = if (!baby.isActive) {
+        // Archived: neutral surface — clearly visually de-emphasised
+        Brush.horizontalGradient(listOf(
+            MaterialTheme.colorScheme.surfaceVariant,
+            MaterialTheme.colorScheme.surface
+        ))
+    } else {
+        // Active: subtle tinted gradient driven entirely by the current theme
+        Brush.horizontalGradient(listOf(
+            customColors.accentGradientStart.copy(alpha = if (isDark) 0.25f else 0.18f),
+            customColors.accentGradientEnd  .copy(alpha = if (isDark) 0.12f else 0.08f),
+            MaterialTheme.colorScheme.surface
+        ))
     }
+
+    // Text color that works on the new low-opacity background
+    val contentColor = MaterialTheme.colorScheme.onBackground
 
     val doneVaccines  = vaccinations.count { it.status.equals("ADMINISTERED", ignoreCase = true) }
     val totalVaccines = vaccinations.size
 
-    // ── FIX 2: measurement priority — same as HomeTab ────────────────────────
-    // Birth measurement first, then latest growth, then null (hidden if both absent)
-    val displayWeight = baby.birthWeight ?: latestGrowth?.weight
-    val displayHeight = baby.birthHeight ?: latestGrowth?.height
+    val displayWeight = baby.birthWeight            ?: latestGrowth?.weight
+    val displayHeight = baby.birthHeight            ?: latestGrowth?.height
     val displayHead   = baby.birthHeadCircumference ?: latestGrowth?.headCircumference
+    val heightPct     = latestGrowth?.heightPercentile
+    val weightPct     = latestGrowth?.weightPercentile
 
-    val heightPct = latestGrowth?.heightPercentile
-    val weightPct = latestGrowth?.weightPercentile
-
-    // ── FIX 1: use ONE clip — Card shape matches Box background shape ─────────
-    // The old code had Card(shape=18.dp) wrapping Box(clip=18.dp hardcoded),
-    // creating a double-clip that showed a sharp inner rectangle.
-    // Fix: remove the inner clip entirely — Card already clips its content.
     Card(
         modifier  = Modifier.fillMaxWidth(),
         shape     = RoundedCornerShape(dimensions.chartCardCornerRadius),
         colors    = CardDefaults.cardColors(containerColor = Color.Transparent),
-        elevation = CardDefaults.cardElevation(0.dp)  // ← FIXED: no tonal overlay rectangle
+        elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                // ← FIX 1: NO .clip() here — Card already clips with chartCardCornerRadius.
-                // The old .clip(RoundedCornerShape(18.dp)) was hardcoded and mismatched
-                // the Card's RoundedCornerShape(dimensions.chartCardCornerRadius),
-                // causing a visible rectangular inner border on non-compact screens.
                 .background(cardBg)
-                .padding(dimensions.babyCardInnerPadding)                   // WAS: 16.dp
+                .padding(dimensions.babyCardInnerPadding)
         ) {
             Column {
                 // ── Header: avatar + name + archived badge + 3-dot menu ───────
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
-                            .size(dimensions.babyCardAvatarSize)             // WAS: 52.dp
-                            .background(customColors.glassOverlay, CircleShape)
+                            .size(dimensions.babyCardAvatarSize)
+                            .background(
+                                customColors.accentGradientStart.copy(alpha = 0.15f),
+                                CircleShape
+                            )
                             .border(
-                                dimensions.borderWidthMedium,                // WAS: 2.dp
-                                customColors.glassOverlay.copy(alpha = 0.5f),
+                                dimensions.borderWidthMedium,
+                                customColors.accentGradientStart.copy(alpha = 0.3f),
                                 CircleShape
                             ),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
                             if (isFemale) "👶" else "👦",
-                            fontSize = dimensions.babyCardEmojiSize          // WAS: 26.sp
+                            fontSize = dimensions.babyCardEmojiSize
                         )
                     }
 
-                    Spacer(Modifier.width(dimensions.babyCardAvatarNameGap)) // WAS: 12.dp
+                    Spacer(Modifier.width(dimensions.babyCardAvatarNameGap))
 
                     Column(modifier = Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -550,14 +528,14 @@ private fun BabyCard(
                                 text       = baby.fullName,
                                 style      = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
-                                color      = MaterialTheme.colorScheme.onPrimary
+                                color      = contentColor
                             )
                             if (!baby.isActive) {
-                                Spacer(Modifier.width(dimensions.babyCardNameBadgeGap)) // WAS: 8.dp
+                                Spacer(Modifier.width(dimensions.babyCardNameBadgeGap))
                                 Box(
                                     modifier = Modifier
                                         .background(
-                                            customColors.glassOverlay,
+                                            MaterialTheme.colorScheme.outline.copy(alpha = 0.15f),
                                             RoundedCornerShape(dimensions.babyCardInlineBadgeCorner)
                                         )
                                         .padding(
@@ -568,7 +546,7 @@ private fun BabyCard(
                                     Text(
                                         text       = stringResource(Res.string.baby_status_archived),
                                         style      = MaterialTheme.typography.labelSmall,
-                                        color      = MaterialTheme.colorScheme.onPrimary,
+                                        color      = MaterialTheme.colorScheme.onSurface.copy(0.6f),
                                         fontWeight = FontWeight.Medium
                                     )
                                 }
@@ -604,7 +582,7 @@ private fun BabyCard(
                             Icon(
                                 Icons.Default.MoreVert,
                                 contentDescription = stringResource(Res.string.baby_quick_action),
-                                tint = MaterialTheme.colorScheme.onPrimary
+                                tint = contentColor.copy(0.7f)
                             )
                         }
                         DropdownMenu(
@@ -624,31 +602,29 @@ private fun BabyCard(
                     }
                 }
 
-                Spacer(Modifier.height(dimensions.babyCardSpacerAfterAvatar)) // WAS: 10.dp
+                Spacer(Modifier.height(dimensions.babyCardSpacerAfterAvatar))
 
                 // Gender + age row
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text  = if (isFemale) "♀" else "♂",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimary.copy(0.9f)
+                        color = contentColor.copy(0.7f)
                     )
-                    Spacer(Modifier.width(dimensions.babyCardGenderSpacerW))   // WAS: 6.dp
+                    Spacer(Modifier.width(dimensions.babyCardGenderSpacerW))
                     Text(
                         text  = "${formatAgeBaby(baby.ageInMonths)} • ${
                             if (isFemale) stringResource(Res.string.gender_female)
                             else          stringResource(Res.string.gender_male)
                         }",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimary.copy(0.9f)
+                        color = contentColor.copy(0.7f)
                     )
                 }
 
-                Spacer(Modifier.height(dimensions.babyCardSpacerAfterAvatar)) // WAS: 10.dp
+                Spacer(Modifier.height(dimensions.babyCardSpacerAfterAvatar))
 
-                // ── FIX 2: 3 measurement chips — same style as HomeTab ────────
-                // Old code used BabyStatRow with stringResource(%s format) which showed "%scm".
-                // New code uses inline chip Row matching HomeTabContent's BabyStatChip pattern.
+                // 3 measurement chips
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
@@ -657,58 +633,57 @@ private fun BabyCard(
                         icon        = "⚖️",
                         label       = stringResource(Res.string.baby_birth_weight),
                         value       = displayWeight?.let { "$it kg" } ?: "—",
-                        accentColor = MaterialTheme.colorScheme.onPrimary,
+                        accentColor = customColors.accentGradientStart,
                         modifier    = Modifier.weight(1f)
                     )
                     MeasurementChip(
                         icon        = "📏",
                         label       = stringResource(Res.string.baby_birth_height),
                         value       = displayHeight?.let { "$it cm" } ?: "—",
-                        accentColor = MaterialTheme.colorScheme.onPrimary,
+                        accentColor = customColors.accentGradientStart,
                         modifier    = Modifier.weight(1f)
                     )
                     MeasurementChip(
                         icon        = "🔵",
                         label       = stringResource(Res.string.add_measure_head),
                         value       = displayHead?.let { "$it cm" } ?: "—",
-                        accentColor = MaterialTheme.colorScheme.onPrimary,
+                        accentColor = customColors.accentGradientStart,
                         modifier    = Modifier.weight(1f)
                     )
                 }
 
-                // Vaccine row (only if there are vaccines)
+                // Vaccine row
                 if (totalVaccines > 0) {
-                    Spacer(Modifier.height(dimensions.babyCardStatSpacer))     // WAS: 3.dp
+                    Spacer(Modifier.height(dimensions.babyCardStatSpacer))
                     BabyStatRow(
                         "💉",
-                        stringResource(Res.string.baby_stat_vaccines, doneVaccines, totalVaccines)
+                        stringResource(Res.string.baby_stat_vaccines, doneVaccines, totalVaccines),
+                        contentColor
                     )
                 }
 
-                // Percentile sub-row (only if available)
+                // Percentile sub-row
                 if (heightPct != null || weightPct != null) {
                     Spacer(Modifier.height(dimensions.babyCardStatSpacer))
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
-                    ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
                         heightPct?.let {
                             Text(
                                 "📊 Height: ${it}th %ile",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onPrimary.copy(0.7f)
+                                color = customColors.accentGradientStart.copy(0.8f)
                             )
                         }
                         weightPct?.let {
                             Text(
                                 "⚖️ Weight: ${it}th %ile",
                                 style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onPrimary.copy(0.7f)
+                                color = customColors.accentGradientStart.copy(0.8f)
                             )
                         }
                     }
                 }
 
-                Spacer(Modifier.height(dimensions.babyCardBottomSpacer))       // WAS: 14.dp
+                Spacer(Modifier.height(dimensions.babyCardBottomSpacer))
 
                 // Action row
                 Row(
@@ -719,11 +694,11 @@ private fun BabyCard(
                         onClick  = onSeeProfile,
                         shape    = RoundedCornerShape(dimensions.buttonCornerRadius),
                         border   = BorderStroke(
-                            dimensions.borderWidthThin,                        // WAS: 1.dp
-                            MaterialTheme.colorScheme.onPrimary.copy(0.5f)
+                            dimensions.borderWidthThin,
+                            customColors.accentGradientStart.copy(0.5f)
                         ),
                         colors   = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.onPrimary
+                            contentColor = customColors.accentGradientStart
                         ),
                         modifier = Modifier.weight(1f)
                     ) {
@@ -737,8 +712,8 @@ private fun BabyCard(
                         onClick  = onAddMeasurement,
                         shape    = RoundedCornerShape(dimensions.buttonCornerRadius),
                         colors   = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.onPrimary.copy(0.15f),
-                            contentColor   = MaterialTheme.colorScheme.onPrimary
+                            containerColor = customColors.accentGradientStart.copy(0.15f),
+                            contentColor   = customColors.accentGradientStart
                         ),
                         modifier = Modifier.weight(1f)
                     ) {
@@ -755,7 +730,7 @@ private fun BabyCard(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MEASUREMENT CHIP  (FIX 2 — matches HomeTab BabyStatChip exactly)
+// MEASUREMENT CHIP
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -770,7 +745,7 @@ private fun MeasurementChip(
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(dimensions.spacingSmall))
-            .background(accentColor.copy(0.15f))
+            .background(accentColor.copy(0.10f))
             .padding(
                 horizontal = dimensions.spacingSmall,
                 vertical   = dimensions.spacingXSmall + 1.dp
@@ -857,19 +832,19 @@ private fun QuickActionItem(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// STAT ROW  (kept for vaccines row — text format only, no Double formatting)
+// STAT ROW
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun BabyStatRow(icon: String, text: String) {
+private fun BabyStatRow(icon: String, text: String, textColor: Color) {
     val dimensions = LocalDimensions.current
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(icon, style = MaterialTheme.typography.bodyMedium)
-        Spacer(Modifier.width(dimensions.babyCardGenderSpacerW))  // WAS: 6.dp
+        Spacer(Modifier.width(dimensions.babyCardGenderSpacerW))
         Text(
             text,
             style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onPrimary.copy(0.9f)
+            color = textColor.copy(0.75f)
         )
     }
 }
@@ -887,7 +862,7 @@ private fun NoBabiesBabyTab(onAddBaby: () -> Unit) {
             modifier            = Modifier.padding(dimensions.spacingXLarge),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("👶", fontSize = dimensions.noBabiesEmojiSize)              // WAS: 64.sp
+            Text("👶", fontSize = dimensions.noBabiesEmojiSize)
             Spacer(Modifier.height(dimensions.spacingMedium))
             Text(
                 text       = stringResource(Res.string.home_no_babies_title),
@@ -910,7 +885,7 @@ private fun NoBabiesBabyTab(onAddBaby: () -> Unit) {
                 colors  = ButtonDefaults.buttonColors(containerColor = customColors.accentGradientStart)
             ) {
                 Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(dimensions.iconMedium))
-                Spacer(Modifier.width(dimensions.babyCardGenderSpacerW))     // WAS: 6.dp
+                Spacer(Modifier.width(dimensions.babyCardGenderSpacerW))
                 Text(stringResource(Res.string.home_add_first_baby), fontWeight = FontWeight.SemiBold)
             }
         }
@@ -928,7 +903,7 @@ private fun EmptyFilterResult(filter: BabyFilter) {
     ) {
         Text(
             text     = if (filter == BabyFilter.ARCHIVED) "📦" else "🔍",
-            fontSize = dimensions.noBabiesEmojiSize                 // WAS: 48.sp
+            fontSize = dimensions.noBabiesEmojiSize
         )
         Spacer(Modifier.height(dimensions.spacingMedium))
         Text(
@@ -960,10 +935,10 @@ private fun BabyCardSkeleton() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(dimensions.buttonHeight * 3.3f)                          // WAS: 180.dp
+            .height(dimensions.buttonHeight * 3.3f)
             .background(
                 MaterialTheme.colorScheme.onBackground.copy(shimmer),
-                RoundedCornerShape(dimensions.chartCardCornerRadius)          // WAS: 18.dp
+                RoundedCornerShape(dimensions.chartCardCornerRadius)
             )
     )
 }
