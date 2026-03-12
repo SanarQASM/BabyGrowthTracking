@@ -26,11 +26,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.LayoutDirection
 import io.github.alexzhirkevich.compottie.Compottie
 import io.github.alexzhirkevich.compottie.LottieCompositionSpec
 import io.github.alexzhirkevich.compottie.animateLottieCompositionAsState
@@ -625,20 +627,22 @@ private fun VerifyDecorativeCorner(
         tween(800, delayMillis, FastOutSlowInEasing),
         label = "alpha"
     )
-    Box(modifier.fillMaxSize(), contentAlignment = alignment) {
-        Image(
-            painter            = painterResource(imageRes),
-            // was: null
-            contentDescription = stringResource(Res.string.decorative_corner_description),
-            modifier           = Modifier
-                .size(size)
-                .graphicsLayer {
-                    translationX = offsetX; translationY = offsetY
-                    scaleX = scale;         scaleY = scale
-                }
-                .alpha(alpha),
-            contentScale = ContentScale.Crop
-        )
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        Box(modifier.fillMaxSize(), contentAlignment = alignment) {
+            Image(
+                painter            = painterResource(imageRes),
+                // was: null
+                contentDescription = stringResource(Res.string.decorative_corner_description),
+                modifier           = Modifier
+                    .size(size)
+                    .graphicsLayer {
+                        translationX = offsetX; translationY = offsetY
+                        scaleX = scale;         scaleY = scale
+                    }
+                    .alpha(alpha),
+                contentScale = ContentScale.Crop
+            )
+        }
     }
 }
 

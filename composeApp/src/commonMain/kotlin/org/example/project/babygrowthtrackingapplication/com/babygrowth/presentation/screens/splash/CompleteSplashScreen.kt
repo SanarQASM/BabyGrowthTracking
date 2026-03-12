@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,6 +23,8 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
@@ -59,6 +62,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
  * ✅ Platform-agnostic (Android, iOS, Desktop, Web)
  * ✅ Smooth corner animations
  * ✅ Responsive dimensions
+ * ✅ Corner images always stay LTR regardless of app language (RTL fix)
  */
 
 @OptIn(ExperimentalResourceApi::class)
@@ -69,11 +73,9 @@ fun CompleteSplashScreen(
     var startAnimation by remember { mutableStateOf(false) }
     var lottieAnimationComplete by remember { mutableStateOf(false) }
 
-    // Access responsive theme values - GENDER-AWARE!
     val dimensions = LocalDimensions.current
     val screenInfo = LocalScreenInfo.current
 
-    // 🔥 OPTIMIZED: Load Lottie JSON using cleaner approach (like OnboardingScreen)
     var jsonString by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
@@ -87,41 +89,34 @@ fun CompleteSplashScreen(
         }
     }
 
-    // Only create composition if JSON loaded successfully
     jsonString?.let { json ->
         val composition by rememberLottieComposition {
             LottieCompositionSpec.JsonString(json)
         }
 
-        // Animate Lottie composition - Play ONCE (not loop)
         val lottieProgress by animateLottieCompositionAsState(
             composition = composition,
-            iterations = 1, // Play only once
+            iterations = 1,
             speed = 1f
         )
 
-        // Track when Lottie animation is complete
         LaunchedEffect(lottieProgress, composition) {
             if (lottieProgress >= 0.99f && composition != null) {
                 lottieAnimationComplete = true
             }
         }
 
-        // Get Lottie painter
         val lottiePainter = rememberLottiePainter(
             composition = composition,
             progress = { lottieProgress }
         )
 
-        // Adjust animation duration based on screen size
         val animationDuration = when (screenInfo.windowSizeClass) {
-            WindowSizeClass.COMPACT -> 800
-            WindowSizeClass.MEDIUM -> 1000
+            WindowSizeClass.COMPACT  -> 800
+            WindowSizeClass.MEDIUM   -> 1000
             WindowSizeClass.EXPANDED -> 1200
         }
 
-        // Corner animations with screen-size-aware duration
-        // 🔥 FIXED: Initial positions further off-screen for smoother entry
         val topLeftTranslationX by animateFloatAsState(
             targetValue = if (startAnimation) 0f else -400f,
             animationSpec = tween(durationMillis = animationDuration, easing = FastOutSlowInEasing),
@@ -163,7 +158,6 @@ fun CompleteSplashScreen(
             label = "bottomRightY"
         )
 
-        // Logo animations
         val logoAlpha by animateFloatAsState(
             targetValue = if (startAnimation) 1f else 0f,
             animationSpec = tween(
@@ -181,110 +175,108 @@ fun CompleteSplashScreen(
             label = "logoScale"
         )
 
-        // Start animations and wait for Lottie to complete before navigating
         LaunchedEffect(Unit) {
-            // Wait a bit for resources to load
             delay(100)
             startAnimation = true
         }
 
-        // Navigate to next screen only when Lottie animation is complete
         LaunchedEffect(lottieAnimationComplete) {
             if (lottieAnimationComplete) {
-                // Add a small delay after animation completes for better UX
                 delay(500)
                 onSplashComplete()
             }
         }
 
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black) // 🎨 BLACK BACKGROUND for all modes/genders!
-        ) {
-            // TOP LEFT corner image - FLUSH with edges using Crop
-            Image(
-                painter = painterResource(Res.drawable.top_left_background),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(dimensions.cornerImageSize)
-                    .align(Alignment.TopStart)
-                    .graphicsLayer {
-                        translationX = topLeftTranslationX
-                        translationY = topLeftTranslationY
-                    },
-                contentScale = ContentScale.Crop // 🔥 CHANGED: Crop fills corner completely
-            )
-
-            // TOP RIGHT corner image - FLUSH with edges using Crop
-            Image(
-                painter = painterResource(Res.drawable.top_right_background),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(dimensions.cornerImageSize)
-                    .align(Alignment.TopEnd)
-                    .graphicsLayer {
-                        translationX = topRightTranslationX
-                        translationY = topRightTranslationY
-                    },
-                contentScale = ContentScale.Crop // 🔥 CHANGED: Crop fills corner completely
-            )
-
-            // BOTTOM LEFT corner image - FLUSH with edges using Crop
-            Image(
-                painter = painterResource(Res.drawable.bottom_left_background),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(dimensions.cornerImageSize)
-                    .align(Alignment.BottomStart)
-                    .graphicsLayer {
-                        translationX = bottomLeftTranslationX
-                        translationY = bottomLeftTranslationY
-                    },
-                contentScale = ContentScale.Crop // 🔥 CHANGED: Crop fills corner completely
-            )
-
-            // BOTTOM RIGHT corner image - FLUSH with edges using Crop
-            Image(
-                painter = painterResource(Res.drawable.bottom_right_background),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(dimensions.cornerImageSize)
-                    .align(Alignment.BottomEnd)
-                    .graphicsLayer {
-                        translationX = bottomRightTranslationX
-                        translationY = bottomRightTranslationY
-                    },
-                contentScale = ContentScale.Crop // 🔥 CHANGED: Crop fills corner completely
-            )
-
-            // CENTER LOGO - Natural size (like login screen)
+        // 🔒 Force LTR so corner images never flip when language is RTL (Arabic/Kurdish)
+        CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(dimensions.screenPadding)
-                    .alpha(logoAlpha)
-                    .scale(logoScale),
-                contentAlignment = Alignment.Center
+                    .background(Color.Black)
             ) {
-                // 🎨 LOTTIE ANIMATION - NO SIZE CONSTRAINT! Renders naturally like login screen
-                if (composition != null) {
-                    Image(
-                        painter = lottiePainter,
-                        contentDescription = stringResource(Res.string.app_name),
-                        modifier = Modifier
-                            .padding(dimensions.logoPadding),
-                        contentScale = ContentScale.Fit
-                    )
-                }
+                // TOP LEFT corner image - FLUSH with edges using Crop
+                Image(
+                    painter = painterResource(Res.drawable.top_left_background),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(dimensions.cornerImageSize)
+                        .align(Alignment.TopStart)
+                        .graphicsLayer {
+                            translationX = topLeftTranslationX
+                            translationY = topLeftTranslationY
+                        },
+                    contentScale = ContentScale.Crop
+                )
 
+                // TOP RIGHT corner image - FLUSH with edges using Crop
+                Image(
+                    painter = painterResource(Res.drawable.top_right_background),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(dimensions.cornerImageSize)
+                        .align(Alignment.TopEnd)
+                        .graphicsLayer {
+                            translationX = topRightTranslationX
+                            translationY = topRightTranslationY
+                        },
+                    contentScale = ContentScale.Crop
+                )
+
+                // BOTTOM LEFT corner image - FLUSH with edges using Crop
+                Image(
+                    painter = painterResource(Res.drawable.bottom_left_background),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(dimensions.cornerImageSize)
+                        .align(Alignment.BottomStart)
+                        .graphicsLayer {
+                            translationX = bottomLeftTranslationX
+                            translationY = bottomLeftTranslationY
+                        },
+                    contentScale = ContentScale.Crop
+                )
+
+                // BOTTOM RIGHT corner image - FLUSH with edges using Crop
+                Image(
+                    painter = painterResource(Res.drawable.bottom_right_background),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(dimensions.cornerImageSize)
+                        .align(Alignment.BottomEnd)
+                        .graphicsLayer {
+                            translationX = bottomRightTranslationX
+                            translationY = bottomRightTranslationY
+                        },
+                    contentScale = ContentScale.Crop
+                )
+
+                // CENTER LOGO - Natural size (like login screen)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(dimensions.screenPadding)
+                        .alpha(logoAlpha)
+                        .scale(logoScale),
+                    contentAlignment = Alignment.Center
+                ) {
+                    // 🎨 LOTTIE ANIMATION - NO SIZE CONSTRAINT!
+                    // Renders naturally like login screen
+                    if (composition != null) {
+                        Image(
+                            painter = lottiePainter,
+                            contentDescription = stringResource(Res.string.app_name),
+                            modifier = Modifier
+                                .padding(dimensions.logoPadding),
+                            contentScale = ContentScale.Fit
+                        )
+                    }
+                }
             }
         }
     }
 }
 
 // Preview for different themes - All with BLACK background
-//(name = "Neutral - Light", widthDp = 360, heightDp = 640)
 @Preview
 @Composable
 fun SplashScreenNeutralLightPreview() {
@@ -292,7 +284,7 @@ fun SplashScreenNeutralLightPreview() {
         CompleteSplashScreen(onSplashComplete = {})
     }
 }
-//(name = "Neutral - Dark", widthDp = 360, heightDp = 640)
+
 @Preview
 @Composable
 fun SplashScreenNeutralDarkPreview() {
@@ -301,7 +293,6 @@ fun SplashScreenNeutralDarkPreview() {
     }
 }
 
-//(name = "Girl - Light", widthDp = 360, heightDp = 640)
 @Preview
 @Composable
 fun SplashScreenGirlLightPreview() {
@@ -309,7 +300,7 @@ fun SplashScreenGirlLightPreview() {
         CompleteSplashScreen(onSplashComplete = {})
     }
 }
-//(name = "Girl - Dark", widthDp = 360, heightDp = 640)
+
 @Preview
 @Composable
 fun SplashScreenGirlDarkPreview() {
@@ -317,7 +308,7 @@ fun SplashScreenGirlDarkPreview() {
         CompleteSplashScreen(onSplashComplete = {})
     }
 }
-//(name = "Boy - Light", widthDp = 360, heightDp = 640)
+
 @Preview
 @Composable
 fun SplashScreenBoyLightPreview() {
@@ -326,7 +317,6 @@ fun SplashScreenBoyLightPreview() {
     }
 }
 
-//(name = "Boy - Dark", widthDp = 360, heightDp = 640)
 @Preview
 @Composable
 fun SplashScreenBoyDarkPreview() {
@@ -335,7 +325,6 @@ fun SplashScreenBoyDarkPreview() {
     }
 }
 
-//(name = "Tablet - Girl Light", widthDp = 800, heightDp = 1280)
 @Preview
 @Composable
 fun SplashScreenTabletGirlPreview() {
@@ -344,7 +333,6 @@ fun SplashScreenTabletGirlPreview() {
     }
 }
 
-//(name = "Desktop - Boy Light", widthDp = 1920, heightDp = 1080)
 @Preview
 @Composable
 fun SplashScreenDesktopBoyPreview() {

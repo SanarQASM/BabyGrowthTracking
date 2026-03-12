@@ -19,8 +19,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import io.github.alexzhirkevich.compottie.Compottie
 import io.github.alexzhirkevich.compottie.LottieCompositionSpec
 import io.github.alexzhirkevich.compottie.animateLottieCompositionAsState
@@ -235,11 +237,13 @@ private fun EnterCodeDecorativeCorner(
     val scale   by animateFloatAsState(if (animationStarted) 1f else 0f, spec, label = "scale")
     val alpha   by animateFloatAsState(if (animationStarted) 1f else 0f,
         tween(800, delayMillis, FastOutSlowInEasing), label = "alpha")
-    Box(modifier.fillMaxSize(), contentAlignment = alignment) {
-        Image(painterResource(imageRes), "Decorative corner",
-            modifier = Modifier.size(size)
-                .graphicsLayer { translationX = offsetX; translationY = offsetY; scaleX = scale; scaleY = scale }
-                .alpha(alpha),
-            contentScale = ContentScale.Crop)
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        Box(modifier.fillMaxSize(), contentAlignment = alignment) {
+            Image(painterResource(imageRes), "Decorative corner",
+                modifier = Modifier.size(size)
+                    .graphicsLayer { translationX = offsetX; translationY = offsetY; scaleX = scale; scaleY = scale }
+                    .alpha(alpha),
+                contentScale = ContentScale.Crop)
+        }
     }
 }

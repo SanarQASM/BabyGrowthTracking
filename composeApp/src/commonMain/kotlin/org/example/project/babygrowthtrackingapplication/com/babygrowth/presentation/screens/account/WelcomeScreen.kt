@@ -17,9 +17,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import io.github.alexzhirkevich.compottie.Compottie
 import io.github.alexzhirkevich.compottie.LottieCompositionSpec
 import io.github.alexzhirkevich.compottie.animateLottieCompositionAsState
@@ -365,24 +367,26 @@ fun DecorativeCorner(
         label         = "alpha"
     )
 
-    Box(
-        modifier         = modifier.fillMaxSize(),
-        contentAlignment = alignment
-    ) {
-        Image(
-            painter            = painterResource(imageRes),
-            // was: "Decorative corner"
-            contentDescription = stringResource(Res.string.decorative_corner_description),
-            modifier           = Modifier
-                .size(size)
-                .graphicsLayer {
-                    translationX = offsetX
-                    translationY = offsetY
-                    scaleX       = scale
-                    scaleY       = scale
-                }
-                .alpha(alpha),
-            contentScale = ContentScale.Crop
-        )
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        Box(
+            modifier         = modifier.fillMaxSize(),
+            contentAlignment = alignment
+        ) {
+            Image(
+                painter            = painterResource(imageRes),
+                // was: "Decorative corner"
+                contentDescription = stringResource(Res.string.decorative_corner_description),
+                modifier           = Modifier
+                    .size(size)
+                    .graphicsLayer {
+                        translationX = offsetX
+                        translationY = offsetY
+                        scaleX       = scale
+                        scaleY       = scale
+                    }
+                    .alpha(alpha),
+                contentScale = ContentScale.Crop
+            )
+        }
     }
 }

@@ -25,10 +25,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.unit.LayoutDirection
 import io.github.alexzhirkevich.compottie.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -157,6 +159,40 @@ fun LoginScreen(
     }
 }
 
+@Composable
+private fun LoginDecorativeCorner(
+    imageRes: DrawableResource,
+    alignment: Alignment,
+    fromX: Float, fromY: Float,
+    size: androidx.compose.ui.unit.Dp,
+    animationStarted: Boolean,
+    delayMillis: Int,
+    modifier: Modifier = Modifier
+) {
+    val spec = spring<Float>(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
+    val offsetX by animateFloatAsState(if (animationStarted) 0f else fromX, spec, label = "x")
+    val offsetY by animateFloatAsState(if (animationStarted) 0f else fromY, spec, label = "y")
+    val scale   by animateFloatAsState(if (animationStarted) 1f else 0f, spec, label = "scale")
+    val alpha   by animateFloatAsState(
+        if (animationStarted) 1f else 0f,
+        tween(800, delayMillis, FastOutSlowInEasing), label = "alpha"
+    )
+    // 🔒 Force LTR so corner images never flip in RTL languages
+    CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+        Box(modifier.fillMaxSize(), contentAlignment = alignment) {
+            Image(
+                painter = painterResource(imageRes),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(size)
+                    .graphicsLayer { translationX = offsetX; translationY = offsetY; scaleX = scale; scaleY = scale }
+                    .alpha(alpha),
+                contentScale = ContentScale.Crop
+            )
+        }
+    }
+}
+
 @OptIn(ExperimentalResourceApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 private fun AnimatedLogoSection(
@@ -171,14 +207,14 @@ private fun AnimatedLogoSection(
     LaunchedEffect(Unit) {
         jsonString = withContext(Dispatchers.Default) {
             try { Res.readBytes("files/login.json").decodeToString() }
-            catch (e: Exception) { null }
+            catch (e: Exception) { e.printStackTrace(); null }
         }
     }
 
     val offsetY by animateFloatAsState(
-        targetValue = if (animationStarted) 0f else 200f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
-        label = "logoOffsetY"
+        targetValue = if (animationStarted) 0f else -100f,
+        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
+        label = "logoOffset"
     )
     val alpha by animateFloatAsState(
         targetValue = if (animationStarted) 1f else 0f,
@@ -187,52 +223,36 @@ private fun AnimatedLogoSection(
     )
 
     with(sharedTransitionScope) {
-        Column(
-            modifier = modifier.graphicsLayer { translationY = offsetY }.alpha(alpha),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+        Box(
+            modifier = modifier
+                .graphicsLayer { translationY = offsetY }
+                .alpha(alpha)
+                .sharedBounds(
+                    rememberSharedContentState("lottie_animation"),
+                    animatedContentScope,
+                    boundsTransform = { _, _ -> tween(600, easing = FastOutSlowInEasing) }
+                ),
+            contentAlignment = Alignment.Center
         ) {
             jsonString?.let { json ->
-                val composition by rememberLottieComposition { LottieCompositionSpec.JsonString(json) }
-                val progress by animateLottieCompositionAsState(composition, iterations = Compottie.IterateForever)
-                val painter = rememberLottiePainter(composition = composition, progress = { progress })
+                val composition by rememberLottieComposition {
+                    LottieCompositionSpec.JsonString(json)
+                }
+                val progress by animateLottieCompositionAsState(
+                    composition = composition,
+                    iterations = Compottie.IterateForever
+                )
+                val painter = rememberLottiePainter(
+                    composition = composition,
+                    progress = { progress }
+                )
                 Image(
                     painter = painter,
                     contentDescription = stringResource(Res.string.login_logo_description),
-                    modifier = Modifier
-                        .size(dimensions.logoSize * 0.4f)
-                        .sharedBounds(
-                            rememberSharedContentState("lottie_animation"),
-                            animatedContentScope,
-                            boundsTransform = { _, _ -> tween(600, easing = FastOutSlowInEasing) }
-                        ),
+                    modifier = Modifier.size(dimensions.logoSize),
                     contentScale = ContentScale.Fit
                 )
             }
-
-            Spacer(Modifier.height(dimensions.spacingSmall))
-
-            Text(
-                text = stringResource(Res.string.login_app_name),
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.sharedBounds(
-                    rememberSharedContentState("app_name"),
-                    animatedContentScope,
-                    boundsTransform = { _, _ -> tween(600, easing = FastOutSlowInEasing) }
-                )
-            )
-
-            Spacer(Modifier.height(dimensions.spacingSmall))
-
-            Text(
-                text = stringResource(Res.string.login_page_title),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-                textAlign = TextAlign.Center
-            )
         }
     }
 }
@@ -260,7 +280,7 @@ private fun AnimatedLoginCard(
 
     val offsetY by animateFloatAsState(
         targetValue = if (animationStarted) 0f else 400f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+        animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
         label = "cardOffset"
     )
     val alpha by animateFloatAsState(
@@ -436,36 +456,5 @@ private fun AnimatedLoginCard(
                 Spacer(Modifier.height(dimensions.spacingMedium))
             }
         }
-    }
-}
-
-@Composable
-private fun LoginDecorativeCorner(
-    imageRes: DrawableResource,
-    alignment: Alignment,
-    fromX: Float, fromY: Float,
-    size: androidx.compose.ui.unit.Dp,
-    animationStarted: Boolean,
-    delayMillis: Int,
-    modifier: Modifier = Modifier
-) {
-    val spec = spring<Float>(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
-    val offsetX by animateFloatAsState(if (animationStarted) 0f else fromX, spec, label = "x")
-    val offsetY by animateFloatAsState(if (animationStarted) 0f else fromY, spec, label = "y")
-    val scale   by animateFloatAsState(if (animationStarted) 1f else 0f, spec, label = "scale")
-    val alpha   by animateFloatAsState(
-        if (animationStarted) 1f else 0f,
-        tween(800, delayMillis, FastOutSlowInEasing), label = "alpha"
-    )
-    Box(modifier.fillMaxSize(), contentAlignment = alignment) {
-        Image(
-            painter = painterResource(imageRes),
-            contentDescription = null,
-            modifier = Modifier
-                .size(size)
-                .graphicsLayer { translationX = offsetX; translationY = offsetY; scaleX = scale; scaleY = scale }
-                .alpha(alpha),
-            contentScale = ContentScale.Crop
-        )
     }
 }
