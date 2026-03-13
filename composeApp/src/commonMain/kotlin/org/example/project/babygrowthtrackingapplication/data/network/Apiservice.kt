@@ -558,7 +558,7 @@ data class ApiSingleResponse<T>(
     val benchNameEn: String,
     val benchNameAr: String,
     val governorate: String,
-    val isActive: Boolean
+    val isActive: Boolean = true   // ✅ FIX: added default — prevents crash when field is absent
 )
 
 // ── Vaccination Schedules ─────────────────────────────────────────────────────
@@ -574,17 +574,18 @@ data class ApiSingleResponse<T>(
     val vaccineName: String,
     val doseNumber: Int,
     val recommendedAgeMonths: Int,
-    val idealDate: String,
-    val scheduledDate: String,
+    val idealDate: String,           // ISO "yyyy-MM-dd" — from JacksonConfig fix
+    val scheduledDate: String,       // ISO "yyyy-MM-dd"
     val shiftReason: String = "NONE",
     val shiftDays: Int = 0,
     val status: String,
     val completedDate: String? = null,
     val completedByName: String? = null,
     val isVisibleToParent: Boolean = true,
-    val isVisibleToTeam: Boolean = true
+    val isVisibleToTeam: Boolean = true,
+    val createdAt: String? = null,   // ✅ added — was missing, backend sends this
+    val updatedAt: String? = null    // ✅ added — was missing, backend sends this
 )
-
 // ── Health Issues ─────────────────────────────────────────────────────────────
 
 @Serializable data class HealthIssueNet(
