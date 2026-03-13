@@ -1,7 +1,8 @@
 package com.example.backend_side
 
 // ============================================================
-// APPEND THESE TO THE BOTTOM OF YOUR EXISTING Dtos.kt
+// BENCH DTOs
+// FILE: backend-side/src/main/java/com/example/backend_side/BenchDtos.kt
 // ============================================================
 
 import com.example.backend_side.entity.*
@@ -25,12 +26,12 @@ data class VaccinationBenchResponse(
     val latitude: Double,
     val longitude: Double,
     val phone: String? = null,
-    val workingDays: List<String>,         // parsed list e.g. ["Sunday","Monday",...]
+    val workingDays: List<String>,
     val workingHoursStart: String,
     val workingHoursEnd: String,
-    val vaccinationDays: List<String>,     // parsed list e.g. ["Sunday","Tuesday","Thursday"]
+    val vaccinationDays: List<String>,
     val type: BenchType,
-    val vaccinesAvailable: List<String>,   // parsed list
+    val vaccinesAvailable: List<String>,
     val isActive: Boolean,
     val createdAt: LocalDateTime? = null
 )
@@ -56,8 +57,6 @@ data class VaccinationBenchCreateRequest(
     val longitude: Double,
 
     val phone: String? = null,
-
-    // Sent as lists from client, joined to comma-string in service
     val workingDays: List<String> = listOf("Sunday","Monday","Tuesday","Wednesday","Thursday"),
     val workingHoursStart: String = "08:00",
     val workingHoursEnd: String = "14:00",
@@ -110,7 +109,7 @@ data class BabyBenchAssignmentResponse(
 // ============================================================
 
 data class BenchHolidayCreateRequest(
-    val benchId: String? = null,   // NULL = national holiday
+    val benchId: String? = null,
 
     @field:NotNull(message = "Holiday date is required")
     val holidayDate: LocalDate,
@@ -146,8 +145,8 @@ data class VaccinationScheduleResponse(
     val vaccineName: String,
     val doseNumber: Byte,
     val recommendedAgeMonths: Int,
-    val idealDate: LocalDate,           // unadjusted date
-    val scheduledDate: LocalDate,       // bench-adjusted date
+    val idealDate: LocalDate,
+    val scheduledDate: LocalDate,
     val shiftReason: ShiftReason,
     val shiftDays: Int,
     val status: ScheduleStatus,
@@ -155,15 +154,28 @@ data class VaccinationScheduleResponse(
     val completedByName: String? = null,
     val isVisibleToParent: Boolean,
     val isVisibleToTeam: Boolean,
-    val createdAt: LocalDateTime? = null,
-    val updatedAt: LocalDateTime? = null
+    // ─────────────────────────────────────────────────────────────────────────
+    // FIX: Changed from LocalDateTime? to String?
+    //
+    // Root cause of "Field 'data' is required... missing at path: $":
+    //   Without jackson-datatype-jsr310 configured, Jackson serializes
+    //   LocalDateTime as a JSON array: [2025,1,14,10,30,0,0]
+    //   The client's VaccinationScheduleNet expects createdAt: String?
+    //   This type mismatch causes the entire Ktor JSON deserialization
+    //   to fail, throwing the "missing at path: $" error.
+    //
+    // Fix: serialize as ISO string "2025-01-14T10:30:00" in toResponse()
+    //   using .toString() — same pattern as BabyResponse in Services.kt
+    // ─────────────────────────────────────────────────────────────────────────
+    val createdAt: String? = null,
+    val updatedAt: String? = null
 )
 
 data class VaccinationScheduleUpdateRequest(
     val status: ScheduleStatus? = null,
     val completedDate: LocalDate? = null,
     val completedByUserId: String? = null,
-    val vaccinationId: String? = null,  // link to Vaccination record when done
+    val vaccinationId: String? = null,
     val notes: String? = null
 )
 
@@ -202,6 +214,6 @@ data class ScheduleAdjustmentLogResponse(
     val newDate: LocalDate,
     val reason: AdjustmentReason,
     val notes: String? = null,
-    val adjustedByName: String? = null,   // NULL = system auto-adjusted
+    val adjustedByName: String? = null,
     val adjustedAt: LocalDateTime
 )

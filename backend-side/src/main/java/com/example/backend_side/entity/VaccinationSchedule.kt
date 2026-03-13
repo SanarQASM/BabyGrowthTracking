@@ -2,24 +2,46 @@ package com.example.backend_side.entity
 
 import jakarta.persistence.*
 import java.time.LocalDate
-import java.time.LocalDateTime
 
-// Location: entity/VaccinationSchedule.kt
+// ─────────────────────────────────────────────────────────────────────────────
+// VaccinationSchedule entity
 //
 // Maps to: vaccination_schedules table
 // One row per baby per vaccine dose.
-// ideal_date   = DOB + recommended_age_months (no adjustment)
-// scheduled_date = next valid bench vaccination day >= ideal_date, skipping holidays
+//   ideal_date     = DOB + recommended_age_months (no adjustment)
+//   scheduled_date = next valid bench vaccination day >= ideal_date,
+//                    skipping holidays
+//
+// ─────────────────────────────────────────────────────────────────────────────
+// BUG 3 FIX — ENUM case mismatch / missing @Convert:
+//
+//   The DB columns are defined with lowercase ENUM values:
+//     ENUM('none','weekend','holiday',...)
+//   The Kotlin enum constants are UPPERCASE:
+//     ShiftReason.NONE, ShiftReason.WEEKEND, ...
+//
+//   Enums.kt already defines LowercaseEnumConverter subclasses
+//   (ShiftReasonConverter, ScheduleStatusConverter) with @Converter(autoApply=true).
+//   However, autoApply can silently fail for data class fields in Kotlin
+//   when the annotation target is ambiguous — the converter ends up not
+//   being applied, Hibernate falls back to ORDINAL mapping, and reading
+//   a row back throws because ordinal 0 maps to "" not "none".
+//
+//   Fix: Add explicit @Convert(converter = ...) on both fields.
+//   This guarantees the LowercaseEnumConverter is used regardless of
+//   Hibernate version or Kotlin annotation target resolution quirks.
+//   The DB column definitions (lowercase values) are CORRECT and unchanged.
+// ─────────────────────────────────────────────────────────────────────────────
 
 @Entity
 @Table(
     name = "vaccination_schedules",
     indexes = [
-        Index(name = "idx_vs_baby", columnList = "baby_id"),
-        Index(name = "idx_vs_bench", columnList = "bench_id"),
-        Index(name = "idx_vs_status", columnList = "status"),
-        Index(name = "idx_vs_scheduled_date", columnList = "scheduled_date"),
-        Index(name = "idx_vs_baby_vaccine", columnList = "baby_id,vaccine_id")
+        Index(name = "idx_vs_baby",          columnList = "baby_id"),
+        Index(name = "idx_vs_bench",         columnList = "bench_id"),
+        Index(name = "idx_vs_status",        columnList = "status"),
+        Index(name = "idx_vs_scheduled_date",columnList = "scheduled_date"),
+        Index(name = "idx_vs_baby_vaccine",  columnList = "baby_id,vaccine_id")
     ]
 )
 data class VaccinationSchedule(
@@ -48,17 +70,32 @@ data class VaccinationSchedule(
     @Column(name = "scheduled_date", nullable = false)
     var scheduledDate: LocalDate = LocalDate.now(),
 
-    // Why the scheduled_date differs from ideal_date
-    @Column(name = "shift_reason",
-        columnDefinition = "ENUM('none','weekend','holiday','bench_closed','missed','rescheduled')")
+    // BUG 3 FIX: Added explicit @Convert to ensure ShiftReasonConverter
+    // (LowercaseEnumConverter) is applied. Without this, Hibernate may ignore
+    // autoApply and use ORDINAL mapping, causing deserialization failures
+    // when reading rows back (ShiftReason.valueOf("none") throws because
+    // the constant is named NONE not none).
+    @Convert(converter = ShiftReasonConverter::class)
+    @Column(
+        name             = "shift_reason",
+        columnDefinition = "ENUM('none','weekend','holiday','bench_closed','missed','rescheduled')"
+    )
     var shiftReason: ShiftReason = ShiftReason.NONE,
 
     // How many days were added to reach a valid bench day
     @Column(name = "shift_days")
     var shiftDays: Int = 0,
 
-    @Column(name = "status",
-        columnDefinition = "ENUM('upcoming','due_soon','overdue','completed','missed','rescheduled')")
+    // BUG 3 FIX: Added explicit @Convert to ensure ScheduleStatusConverter
+    // (LowercaseEnumConverter) is applied. Same root cause as shiftReason above —
+    // without this annotation Hibernate falls back to ORDINAL, reads "upcoming"
+    // as position 0 which maps to "" not a valid enum constant, and throws a
+    // 500 on every getScheduleForBaby call.
+    @Convert(converter = ScheduleStatusConverter::class)
+    @Column(
+        name             = "status",
+        columnDefinition = "ENUM('upcoming','due_soon','overdue','completed','missed','rescheduled')"
+    )
     var status: ScheduleStatus = ScheduleStatus.UPCOMING,
 
     // Filled when the vaccination is actually done
@@ -78,13 +115,8 @@ data class VaccinationSchedule(
     var isVisibleToParent: Boolean = true,
 
     @Column(name = "is_visible_to_team")
-    var isVisibleToTeam: Boolean = true,
+    var isVisibleToTeam: Boolean = true
 
-    @OneToMany(mappedBy = "schedule", cascade = [CascadeType.ALL], orphanRemoval = true)
-    var adjustmentLogs: MutableList<ScheduleAdjustmentLog> = mutableListOf()
+    // createdAt and updatedAt are inherited from BaseEntity — do not redeclare here
 
-) : BaseEntity() {
-
-    @PreUpdate
-    fun preUpdate() { updatedAt = LocalDateTime.now() }
-}
+) : BaseEntity()

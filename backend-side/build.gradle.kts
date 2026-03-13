@@ -82,7 +82,7 @@ dependencies {
     implementation(libs.spring.security.jwt.jackson)
 
     // ─── Database ─────────────────────────────────────────────────────────────
-    runtimeOnly("com.mysql:mysql-connector-j")
+    runtimeOnly(libs.mysql.connector.j)
 
     // ─── Logging ──────────────────────────────────────────────────────────────
     implementation(libs.logback.classic)

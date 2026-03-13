@@ -138,6 +138,7 @@ multiplatform-settings           = { module = "com.russhwolf:multiplatform-setti
 multiplatform-settings-coroutines = { module = "com.russhwolf:multiplatform-settings-coroutines", version.ref = "multiplatform-settings" }
 
 # ─── Napier (Logging) ─────────────────────────────────────────────────────────
+mysql-connector-j = { module = "com.mysql:mysql-connector-j" }
 napier                          = { module = "io.github.aakira:napier",                 version.ref = "napier" }
 
 # ─── UUID ─────────────────────────────────────────────────────────────────────

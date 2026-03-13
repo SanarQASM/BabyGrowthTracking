@@ -78,6 +78,17 @@ class HealthRecordViewModel(
     var uiState by mutableStateOf(HealthRecordUiState())
         private set
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // BUG 5 FIX:
+    //   Track the in-flight loadSchedules job so it can be cancelled before
+    //   a new one starts. Without this, if selectBaby() triggers loadSchedules
+    //   (returning empty list because no bench is assigned) and then
+    //   assignBench() also triggers loadSchedules (returning the real list),
+    //   the first slower response could arrive last and overwrite
+    //   schedules = [] — making the list disappear after a successful assign.
+    // ─────────────────────────────────────────────────────────────────────────
+    private var schedulesJob: Job? = null
+
     // ── Initialise with babies list ──────────────────────────────────────────
 
     fun init(babies: List<BabyResponse>) {
@@ -106,11 +117,12 @@ class HealthRecordViewModel(
                 val result = apiService.getAllBenches()
                 uiState = when (result) {
                     is ApiResult.Success -> uiState.copy(
-                        allBenches = result.data,
+                        allBenches    = result.data,
                         benchesLoading = false
                     )
                     is ApiResult.Error   -> uiState.copy(
-                        error = result.message, benchesLoading = false
+                        error          = result.message,
+                        benchesLoading = false
                     )
                     else -> uiState.copy(benchesLoading = false)
                 }
@@ -137,19 +149,43 @@ class HealthRecordViewModel(
             uiState = uiState.copy(assignmentLoading = true)
             try {
                 val result = apiService.assignBench(babyId, benchId)
-                uiState = when (result) {
+
+                // ─────────────────────────────────────────────────────────────
+                // BUG 4 FIX:
+                //   Previously: loadSchedules(babyId) was called BEFORE
+                //   uiState.copy(assignment = result.data, ...) executed.
+                //   Because loadSchedules uses scope.launch, the new coroutine
+                //   is queued but hasn't run yet. The subsequent uiState.copy()
+                //   captured the STILL-OLD uiState — the assignment field was
+                //   set correctly but the pattern was fragile and order-dependent.
+                //
+                //   Fix: Commit the new state to uiState FIRST, then call
+                //   loadSchedules. This guarantees state is stable before
+                //   any child coroutine reads it, and also ensures the
+                //   LaunchedEffect(state.assignment) in BenchDetailScreen
+                //   fires the navigation trigger only after the assignment
+                //   is committed.
+                // ─────────────────────────────────────────────────────────────
+                when (result) {
                     is ApiResult.Success -> {
-                        loadSchedules(babyId)
-                        uiState.copy(
-                            assignment = result.data,
+                        // Step 1: Commit assignment state first
+                        uiState = uiState.copy(
+                            assignment        = result.data,
                             assignmentLoading = false,
-                            successMessage = "Health center assigned! Schedule generated."
+                            successMessage    = "Health center assigned!"
+                        )
+                        // Step 2: Only THEN kick off schedule load
+                        loadSchedules(babyId)
+                    }
+                    is ApiResult.Error -> {
+                        uiState = uiState.copy(
+                            error             = result.message,
+                            assignmentLoading = false
                         )
                     }
-                    is ApiResult.Error   -> uiState.copy(
-                        error = result.message, assignmentLoading = false
-                    )
-                    else -> uiState.copy(assignmentLoading = false)
+                    else -> {
+                        uiState = uiState.copy(assignmentLoading = false)
+                    }
                 }
             } catch (e: Exception) {
                 uiState = uiState.copy(assignmentLoading = false, error = e.message)
@@ -166,7 +202,8 @@ class HealthRecordViewModel(
                 val result = apiService.getActiveAssignment(babyId)
                 uiState = when (result) {
                     is ApiResult.Success -> uiState.copy(
-                        assignment = result.data, assignmentLoading = false
+                        assignment        = result.data,
+                        assignmentLoading = false
                     )
                     else -> uiState.copy(assignment = null, assignmentLoading = false)
                 }
@@ -179,21 +216,29 @@ class HealthRecordViewModel(
     // ── Vaccination Schedules ────────────────────────────────────────────────
 
     fun loadSchedules(babyId: String) {
-        scope.launch {
+        // BUG 5 FIX: Cancel any previous in-flight request before launching a new one.
+        // This prevents a stale (slower) response from overwriting a newer result.
+        schedulesJob?.cancel()
+        schedulesJob = scope.launch {
             uiState = uiState.copy(schedulesLoading = true)
             try {
                 val result = apiService.getScheduleForBaby(babyId)
                 uiState = when (result) {
                     is ApiResult.Success -> uiState.copy(
-                        schedules = result.data, schedulesLoading = false
+                        schedules        = result.data,
+                        schedulesLoading = false
                     )
                     is ApiResult.Error   -> uiState.copy(
-                        error = result.message, schedulesLoading = false
+                        error            = result.message,
+                        schedulesLoading = false
                     )
                     else -> uiState.copy(schedulesLoading = false)
                 }
             } catch (e: Exception) {
-                uiState = uiState.copy(schedulesLoading = false, error = e.message)
+                // CancellationException is normal — don't surface it as an error
+                if (e !is CancellationException) {
+                    uiState = uiState.copy(schedulesLoading = false, error = e.message)
+                }
             }
         }
     }
@@ -211,12 +256,11 @@ class HealthRecordViewModel(
     }
 
     fun confirmReschedule() {
-        val babyId = uiState.selectedBabyId ?: return
+        val babyId  = uiState.selectedBabyId ?: return
         val benchId = uiState.assignment?.benchId ?: return
         scope.launch {
             uiState = uiState.copy(showRescheduleConfirm = false, schedulesLoading = true)
             try {
-                // Re-assign same bench → regenerates entire schedule
                 val result = apiService.changeBench(babyId, benchId)
                 uiState = when (result) {
                     is ApiResult.Success -> {
@@ -249,10 +293,12 @@ class HealthRecordViewModel(
                 val result = apiService.getHealthIssuesForBaby(babyId)
                 uiState = when (result) {
                     is ApiResult.Success -> uiState.copy(
-                        healthIssues = result.data, healthIssuesLoading = false
+                        healthIssues        = result.data,
+                        healthIssuesLoading = false
                     )
                     is ApiResult.Error   -> uiState.copy(
-                        error = result.message, healthIssuesLoading = false
+                        error               = result.message,
+                        healthIssuesLoading = false
                     )
                     else -> uiState.copy(healthIssuesLoading = false)
                 }
@@ -266,10 +312,37 @@ class HealthRecordViewModel(
         uiState = uiState.copy(healthIssueFilter = filter)
     }
 
-    fun showAddHealthIssue() { uiState = uiState.copy(showAddHealthIssue = true) }
+    fun selectHealthIssue(issue: HealthIssueUi) {
+        uiState = uiState.copy(selectedHealthIssue = issue)
+    }
+
+    fun resolveHealthIssue(issueId: String) {
+        val babyId = uiState.selectedBabyId ?: return
+        scope.launch {
+            try {
+                val result = apiService.resolveHealthIssue(issueId)
+                if (result is ApiResult.Success) {
+                    loadHealthIssues(babyId)
+                    uiState = uiState.copy(successMessage = "Issue marked as resolved.")
+                } else if (result is ApiResult.Error) {
+                    uiState = uiState.copy(error = result.message)
+                }
+            } catch (e: Exception) {
+                uiState = uiState.copy(error = e.message)
+            }
+        }
+    }
+
+    fun showAddHealthIssue()    { uiState = uiState.copy(showAddHealthIssue = true) }
     fun dismissAddHealthIssue() { uiState = uiState.copy(showAddHealthIssue = false) }
 
-    fun addHealthIssue(babyId: String, title: String, description: String?, severity: String?, issueDate: String) {
+    fun addHealthIssue(
+        babyId     : String,
+        title      : String,
+        description: String?,
+        severity   : String?,
+        issueDate  : String
+    ) {
         scope.launch {
             try {
                 val result = apiService.createHealthIssue(babyId, title, description, severity, issueDate)
@@ -285,24 +358,6 @@ class HealthRecordViewModel(
         }
     }
 
-    fun resolveHealthIssue(issueId: String) {
-        scope.launch {
-            try {
-                val result = apiService.resolveHealthIssue(issueId)
-                if (result is ApiResult.Success) {
-                    val babyId = uiState.selectedBabyId ?: return@launch
-                    loadHealthIssues(babyId)
-                    uiState = uiState.copy(successMessage = "Issue marked as resolved.")
-                }
-            } catch (e: Exception) {
-                uiState = uiState.copy(error = e.message)
-            }
-        }
-    }
-
-    fun selectHealthIssue(issue: HealthIssueUi) { uiState = uiState.copy(selectedHealthIssue = issue) }
-    fun clearSelectedHealthIssue() { uiState = uiState.copy(selectedHealthIssue = null) }
-
     // ── Appointments ─────────────────────────────────────────────────────────
 
     fun loadAppointments(babyId: String) {
@@ -312,10 +367,12 @@ class HealthRecordViewModel(
                 val result = apiService.getAppointmentsForBaby(babyId)
                 uiState = when (result) {
                     is ApiResult.Success -> uiState.copy(
-                        appointments = result.data, appointmentsLoading = false
+                        appointments       = result.data,
+                        appointmentsLoading = false
                     )
                     is ApiResult.Error   -> uiState.copy(
-                        error = result.message, appointmentsLoading = false
+                        error              = result.message,
+                        appointmentsLoading = false
                     )
                     else -> uiState.copy(appointmentsLoading = false)
                 }
@@ -329,12 +386,38 @@ class HealthRecordViewModel(
         uiState = uiState.copy(appointmentFilter = filter)
     }
 
-    fun showAddAppointment() { uiState = uiState.copy(showAddAppointment = true) }
+    fun selectAppointment(appointment: AppointmentUi) {
+        uiState = uiState.copy(selectedAppointment = appointment)
+    }
+
+    fun cancelAppointment(appointmentId: String) {
+        val babyId = uiState.selectedBabyId ?: return
+        scope.launch {
+            try {
+                val result = apiService.cancelAppointment(appointmentId)
+                if (result is ApiResult.Success) {
+                    loadAppointments(babyId)
+                    uiState = uiState.copy(successMessage = "Appointment cancelled.")
+                } else if (result is ApiResult.Error) {
+                    uiState = uiState.copy(error = result.message)
+                }
+            } catch (e: Exception) {
+                uiState = uiState.copy(error = e.message)
+            }
+        }
+    }
+
+    fun showAddAppointment()    { uiState = uiState.copy(showAddAppointment = true) }
     fun dismissAddAppointment() { uiState = uiState.copy(showAddAppointment = false) }
 
     fun addAppointment(
-        babyId: String, type: String, date: String, time: String?,
-        doctorName: String?, location: String?, notes: String?
+        babyId     : String,
+        type       : String,
+        date       : String,
+        time       : String?,
+        doctorName : String?,
+        location   : String?,
+        notes      : String?
     ) {
         scope.launch {
             try {
@@ -351,69 +434,36 @@ class HealthRecordViewModel(
         }
     }
 
-    fun cancelAppointment(appointmentId: String) {
-        scope.launch {
-            try {
-                val result = apiService.cancelAppointment(appointmentId)
-                if (result is ApiResult.Success) {
-                    val babyId = uiState.selectedBabyId ?: return@launch
-                    loadAppointments(babyId)
-                    uiState = uiState.copy(successMessage = "Appointment cancelled.")
-                }
-            } catch (e: Exception) {
-                uiState = uiState.copy(error = e.message)
-            }
-        }
+    // ── Sub-tab ──────────────────────────────────────────────────────────────
+
+    fun setSubTab(tab: HealthRecordSubTab) {
+        uiState = uiState.copy(subTab = tab)
     }
 
-    fun selectAppointment(appointment: AppointmentUi) { uiState = uiState.copy(selectedAppointment = appointment) }
-    fun clearSelectedAppointment() { uiState = uiState.copy(selectedAppointment = null) }
-
-    // ── Sub tab ──────────────────────────────────────────────────────────────
-
-    fun setSubTab(tab: HealthRecordSubTab) { uiState = uiState.copy(subTab = tab) }
-
-    // ── Misc ─────────────────────────────────────────────────────────────────
-
-    fun clearError() { uiState = uiState.copy(error = null) }
-    fun clearSuccess() { uiState = uiState.copy(successMessage = null) }
+    // ── Map center ───────────────────────────────────────────────────────────
 
     private fun resolveMapCenter() {
-        // Use default based on parent's governorate (no lat/lng in parent profile)
-        // Map common Iraqi governorates to approximate centers
+        // Use parent's governorate from preferences to set map center
         val governorateMap = mapOf(
-            "nineveh"  to Pair(36.36, 43.18),
-            "erbil"    to Pair(36.19, 44.01),
-            "baghdad"  to Pair(33.34, 44.40),
-            "basra"    to Pair(30.51, 47.78),
+            "nineveh"      to Pair(36.36, 43.18),
+            "erbil"        to Pair(36.19, 44.01),
+            "baghdad"      to Pair(33.34, 44.40),
+            "basra"        to Pair(30.51, 47.78),
             "sulaymaniyah" to Pair(35.56, 45.44),
-            "duhok"    to Pair(36.87, 42.99),
-            "kirkuk"   to Pair(35.47, 44.39)
+            "duhok"        to Pair(36.87, 42.99),
+            "kirkuk"       to Pair(35.47, 44.39)
         )
-        val key = uiState.parentGovernorate.lowercase().trim()
+        val key    = uiState.parentGovernorate.lowercase().trim()
         val center = governorateMap[key] ?: Pair(36.19, 43.99)
         uiState = uiState.copy(mapCenterLat = center.first, mapCenterLng = center.second)
     }
 
-    // Distance calculation (Haversine)
-    fun computeDistances(userLat: Double, userLng: Double): List<VaccinationBenchUi> {
-        return uiState.allBenches.map { bench ->
-            val dist = haversineKm(userLat, userLng, bench.latitude, bench.longitude)
-            bench.copy(distanceKm = dist)
-        }.sortedBy { it.distanceKm }
-    }
+    // ── Utilities ────────────────────────────────────────────────────────────
 
-    private fun haversineKm(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
-        val R = 6371.0
-        val dLat = kotlin.math.PI / 180.0 * (lat2 - lat1)
-        val dLon = kotlin.math.PI / 180.0 * (lon2 - lon1)
-        val lat1Rad = kotlin.math.PI / 180.0 * lat1
-        val lat2Rad = kotlin.math.PI / 180.0 * lat2
-        val a = kotlin.math.sin(dLat / 2) * kotlin.math.sin(dLat / 2) +
-                kotlin.math.cos(lat1Rad) * kotlin.math.cos(lat2Rad) *
-                kotlin.math.sin(dLon / 2) * kotlin.math.sin(dLon / 2)
-        return R * 2.0 * kotlin.math.atan2(kotlin.math.sqrt(a), kotlin.math.sqrt(1.0 - a))
-    }
+    fun clearError()   { uiState = uiState.copy(error = null) }
+    fun clearSuccess() { uiState = uiState.copy(successMessage = null) }
 
-    fun onDestroy() { scope.cancel() }
+    fun onDestroy() {
+        scope.cancel()
+    }
 }

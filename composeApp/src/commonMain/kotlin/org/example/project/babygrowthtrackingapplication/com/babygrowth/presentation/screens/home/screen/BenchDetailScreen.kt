@@ -20,15 +20,24 @@ import org.example.project.babygrowthtrackingapplication.theme.LocalDimensions
 import org.example.project.babygrowthtrackingapplication.theme.customColors
 import org.jetbrains.compose.resources.stringResource
 
+// ─────────────────────────────────────────────────────────────────────────────
+// BUG 1 FIX:
+//   REMOVED `onCreateSchedule: () -> Unit` parameter entirely.
+//   Navigation back to Main is now driven by a LaunchedEffect in
+//   HealthRecordTabContent that observes `state.assignment`. This ensures
+//   we only navigate AFTER the ViewModel has committed the assignment to
+//   uiState — not synchronously alongside onAssign() before the API responds.
+// ─────────────────────────────────────────────────────────────────────────────
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BenchDetailScreen(
-    bench           : VaccinationBenchUi,
-    babyName        : String,
-    isLoading       : Boolean,
-    onBack          : () -> Unit,
-    onAssign        : () -> Unit,
-    onCreateSchedule: () -> Unit
+    bench    : VaccinationBenchUi,
+    babyName : String,
+    isLoading: Boolean,
+    onBack   : () -> Unit,
+    onAssign : () -> Unit
+    // onCreateSchedule removed — navigation is handled via LaunchedEffect in parent
 ) {
     val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
@@ -41,7 +50,11 @@ fun BenchDetailScreen(
             text  = { Text(stringResource(Res.string.bench_assign_confirm_body, babyName)) },
             confirmButton = {
                 Button(
-                    onClick = { showConfirm = false; onAssign(); onCreateSchedule() },
+                    // BUG 1 FIX: Only call onAssign() here.
+                    // onCreateSchedule() was previously called here too, which triggered
+                    // navState = HealthNavState.Main BEFORE the API responded, landing
+                    // on Main with assignment=null and making the vaccination tab invisible.
+                    onClick = { showConfirm = false; onAssign() },
                     colors  = ButtonDefaults.buttonColors(containerColor = customColors.accentGradientStart)
                 ) { Text(stringResource(Res.string.bench_assign_confirm)) }
             },
@@ -64,39 +77,39 @@ fun BenchDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null)
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = customColors.accentGradientStart.copy(0.12f)
+                    containerColor = Color.Transparent
                 )
             )
         },
         bottomBar = {
-            Surface(shadowElevation = dimensions.spacingSmall) {
+            Surface(tonalElevation = 8.dp) {
                 Button(
                     onClick  = { showConfirm = true },
+                    enabled  = !isLoading,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(dimensions.screenPadding)
-                        .height(dimensions.buttonHeight),
-                    shape    = RoundedCornerShape(dimensions.buttonCornerRadius),
-                    colors   = ButtonDefaults.buttonColors(containerColor = customColors.accentGradientStart),
-                    enabled  = !isLoading
+                        .padding(dimensions.screenPadding),
+                    colors   = ButtonDefaults.buttonColors(
+                        containerColor = customColors.accentGradientStart
+                    ),
+                    shape = RoundedCornerShape(dimensions.buttonCornerRadius)
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(
-                            color       = MaterialTheme.colorScheme.onPrimary,  // WAS: Color.White
-                            modifier    = Modifier.size(dimensions.iconMedium),
-                            strokeWidth = dimensions.borderWidthMedium          // WAS: 2.dp
+                            modifier  = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color     = MaterialTheme.colorScheme.onPrimary
                         )
-                    } else {
-                        Text(
-                            text       = stringResource(Res.string.bench_assign_for, babyName),
-                            style      = MaterialTheme.typography.labelLarge,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Spacer(Modifier.width(8.dp))
                     }
+                    Text(
+                        text       = stringResource(Res.string.bench_assign_button),
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
@@ -104,59 +117,63 @@ fun BenchDetailScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
                 .padding(padding)
+                .verticalScroll(rememberScrollState())
         ) {
-            // ── Hero gradient header ──────────────────────────────────────────
+            // ── Hero header ───────────────────────────────────────────────────
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(
                         Brush.verticalGradient(
                             listOf(
-                                customColors.accentGradientStart.copy(0.85f),
-                                customColors.accentGradientEnd.copy(0.70f)
+                                customColors.accentGradientStart.copy(0.15f),
+                                customColors.accentGradientEnd.copy(0.05f)
                             )
                         )
                     )
-                    .padding(dimensions.spacingLarge)
+                    .padding(dimensions.screenPadding),
+                contentAlignment = Alignment.Center
             ) {
-                Column(verticalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)) {
-                    Text(
-                        text       = "🏥 ${bench.type}",
-                        style      = MaterialTheme.typography.labelMedium,
-                        color      = MaterialTheme.colorScheme.onPrimary.copy(0.85f),
-                        fontWeight = FontWeight.Medium
-                    )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("🏥", style = MaterialTheme.typography.displaySmall)
+                    Spacer(Modifier.height(dimensions.spacingSmall))
                     Text(
                         text       = bench.nameEn,
-                        style      = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color      = MaterialTheme.colorScheme.onPrimary
+                        style      = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text  = "${bench.governorate} • ${bench.district}",
+                        text  = bench.type,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimary.copy(0.8f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(0.6f)
                     )
 
+                    // Distance chip (if available)
                     bench.distanceKm?.let { km ->
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall),
-                            verticalAlignment     = Alignment.CenterVertically
+                        Spacer(Modifier.height(dimensions.spacingSmall))
+                        Surface(
+                            shape = RoundedCornerShape(50),
+                            color = customColors.accentGradientStart.copy(0.85f)
                         ) {
-                            Icon(
-                                Icons.Default.LocationOn,
-                                null,
-                                tint     = customColors.accentGradientEnd,
-                                modifier = Modifier.size(dimensions.benchDistanceIconSize) // WAS: 16.dp
-                            )
-                            Text(
-                                text       = stringResource(Res.string.bench_distance_km, km),
-                                style      = MaterialTheme.typography.labelMedium,
-                                color      = MaterialTheme.colorScheme.onPrimary,
-                                fontWeight = FontWeight.SemiBold
-                            )
+                            Row(
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.LocationOn,
+                                    null,
+                                    tint     = customColors.accentGradientEnd,
+                                    modifier = Modifier.size(dimensions.benchDistanceIconSize)
+                                )
+                                Text(
+                                    text       = stringResource(Res.string.bench_distance_km, km),
+                                    style      = MaterialTheme.typography.labelMedium,
+                                    color      = MaterialTheme.colorScheme.onPrimary,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
                         }
                     }
                 }
@@ -165,14 +182,14 @@ fun BenchDetailScreen(
             Spacer(Modifier.height(dimensions.spacingMedium))
 
             // ── Info sections ─────────────────────────────────────────────────
-            DetailSection(title = stringResource(Res.string.bench_section_location)) { // WAS: "📍 Location"
+            DetailSection(title = stringResource(Res.string.bench_section_location)) {
                 DetailRow(Icons.Default.LocationOn, stringResource(Res.string.bench_label_governorate), bench.governorate)
                 DetailRow(Icons.Default.Place,      stringResource(Res.string.bench_label_district),    bench.district)
                 bench.addressEn?.let   { DetailRow(Icons.Default.Home,       stringResource(Res.string.bench_label_address),    it) }
                 bench.directionEn?.let { DetailRow(Icons.Default.Navigation, stringResource(Res.string.bench_label_directions), it) }
             }
 
-            DetailSection(title = stringResource(Res.string.bench_section_contact)) {  // WAS: "📞 Contact"
+            DetailSection(title = stringResource(Res.string.bench_section_contact)) {
                 bench.phone?.let { DetailRow(Icons.Default.Phone, stringResource(Res.string.bench_label_phone), it) }
                     ?: Text(
                         stringResource(Res.string.bench_no_phone),
@@ -182,7 +199,7 @@ fun BenchDetailScreen(
                     )
             }
 
-            DetailSection(title = stringResource(Res.string.bench_section_hours)) {    // WAS: "🕐 Working Hours"
+            DetailSection(title = stringResource(Res.string.bench_section_hours)) {
                 DetailRow(
                     Icons.Default.AccessTime,
                     stringResource(Res.string.bench_label_hours),
@@ -195,7 +212,7 @@ fun BenchDetailScreen(
                 )
             }
 
-            DetailSection(title = stringResource(Res.string.bench_section_services)) { // WAS: "💉 Vaccination Days"
+            DetailSection(title = stringResource(Res.string.bench_section_services)) {
                 DetailRow(
                     Icons.Default.Vaccines,
                     stringResource(Res.string.bench_label_vax_days),
@@ -216,7 +233,7 @@ fun BenchDetailScreen(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SECTION + ROW
+// SECTION + ROW helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -224,51 +241,60 @@ private fun DetailSection(
     title  : String,
     content: @Composable ColumnScope.() -> Unit
 ) {
-    val dimensions = LocalDimensions.current
-    Column(
-        modifier = Modifier.padding(
-            horizontal = dimensions.screenPadding,
-            vertical   = dimensions.spacingSmall
-        )
-    ) {
+    val dimensions   = LocalDimensions.current
+    val customColors = MaterialTheme.customColors
+
+    Column(modifier = Modifier.padding(vertical = dimensions.spacingSmall)) {
         Text(
             text       = title,
             style      = MaterialTheme.typography.titleSmall,
             fontWeight = FontWeight.Bold,
-            color      = MaterialTheme.colorScheme.onBackground,
-            modifier   = Modifier.padding(bottom = dimensions.spacingSmall)
+            color      = customColors.accentGradientStart,
+            modifier   = Modifier.padding(
+                horizontal = dimensions.screenPadding,
+                vertical   = dimensions.spacingSmall
+            )
         )
         Card(
-            modifier  = Modifier.fillMaxWidth(),
+            modifier  = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = dimensions.screenPadding),
             shape     = RoundedCornerShape(dimensions.cardCornerRadius),
-            colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-            elevation = CardDefaults.cardElevation(dimensions.cardElevation / 4)
+            elevation = CardDefaults.cardElevation(1.dp)
         ) {
-            Column(modifier = Modifier.padding(dimensions.spacingMedium)) {
-                content()
-            }
+            Column(
+                modifier = Modifier.padding(vertical = dimensions.spacingSmall),
+                content  = content
+            )
         }
     }
 }
 
 @Composable
-private fun DetailRow(icon: ImageVector, label: String, value: String) {
-    val dimensions   = LocalDimensions.current
-    val customColors = MaterialTheme.customColors
+private fun DetailRow(
+    icon : ImageVector,
+    label: String,
+    value: String
+) {
+    val dimensions = LocalDimensions.current
+
     Row(
-        modifier              = Modifier
+        modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = dimensions.detailRowVertPadding),            // WAS: 4.dp
+            .padding(
+                horizontal = dimensions.screenPadding,
+                vertical   = dimensions.detailRowVertPadding
+            ),
         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall),
         verticalAlignment     = Alignment.Top
     ) {
         Icon(
             imageVector        = icon,
             contentDescription = null,
+            tint               = MaterialTheme.colorScheme.onSurface.copy(0.5f),
             modifier           = Modifier
-                .size(dimensions.detailIconSize)                              // WAS: 18.dp
-                .padding(top = dimensions.detailIconTopPadding),             // WAS: 2.dp
-            tint               = customColors.accentGradientStart
+                .size(dimensions.detailIconSize)
+                .padding(top = dimensions.detailIconTopPadding)
         )
         Column(modifier = Modifier.weight(1f)) {
             Text(

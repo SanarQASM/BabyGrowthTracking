@@ -2,18 +2,20 @@ package com.example.backend_side
 
 import com.example.backend_side.entity.*
 import com.example.backend_side.repositories.*
+import jakarta.transaction.Transactional
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.stereotype.Service
-import org.springframework.transaction.annotation.Transactional
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.Period
-import java.util.UUID
+import java.util.*
 
 private val logger = KotlinLogging.logger {}
 
-// Day name → Java DayOfWeek mapping (Iraqi calendar uses Arabic day names in English)
+// ============================================================
+// DAY NAME MAP (bench.vaccinationDays stores English names)
+// ============================================================
+
 private val DAY_NAME_MAP = mapOf(
     "Sunday"    to DayOfWeek.SUNDAY,
     "Monday"    to DayOfWeek.MONDAY,
@@ -25,7 +27,7 @@ private val DAY_NAME_MAP = mapOf(
 )
 
 // ============================================================
-// VACCINATION BENCH SERVICE
+// BENCH SERVICE
 // ============================================================
 
 interface VaccinationBenchService {
@@ -52,11 +54,10 @@ class VaccinationBenchServiceImpl(
     override fun getBenchesByGovernorate(governorate: String): List<VaccinationBenchResponse> =
         benchRepository.findByGovernorateAndIsActiveTrue(governorate).map { it.toResponse() }
 
-    override fun getBenchById(benchId: String): VaccinationBenchResponse {
-        val bench = benchRepository.findById(benchId)
+    override fun getBenchById(benchId: String): VaccinationBenchResponse =
+        benchRepository.findById(benchId)
             .orElseThrow { ResourceNotFoundException("Bench not found: $benchId") }
-        return bench.toResponse()
-    }
+            .toResponse()
 
     override fun searchBenches(query: String): List<VaccinationBenchResponse> =
         benchRepository.searchBenches(query).map { it.toResponse() }
@@ -66,21 +67,21 @@ class VaccinationBenchServiceImpl(
 
     override fun createBench(request: VaccinationBenchCreateRequest): VaccinationBenchResponse {
         val bench = VaccinationBench(
-            benchId         = UUID.randomUUID().toString(),
-            nameEn          = request.nameEn,
-            nameAr          = request.nameAr,
-            governorate     = request.governorate,
-            district        = request.district,
-            addressEn       = request.addressEn,
-            addressAr       = request.addressAr,
-            latitude        = request.latitude,
-            longitude       = request.longitude,
-            phone           = request.phone,
-            workingDays     = request.workingDays.joinToString(","),
+            benchId           = UUID.randomUUID().toString(),
+            nameEn            = request.nameEn,
+            nameAr            = request.nameAr,
+            governorate       = request.governorate,
+            district          = request.district,
+            addressEn         = request.addressEn,
+            addressAr         = request.addressAr,
+            latitude          = request.latitude,
+            longitude         = request.longitude,
+            phone             = request.phone,
+            workingDays       = request.workingDays.joinToString(","),
             workingHoursStart = request.workingHoursStart,
             workingHoursEnd   = request.workingHoursEnd,
-            vaccinationDays = request.vaccinationDays.joinToString(","),
-            type            = request.type,
+            vaccinationDays   = request.vaccinationDays.joinToString(","),
+            type              = request.type,
             vaccinesAvailable = request.vaccinesAvailable.joinToString(",")
         )
         return benchRepository.save(bench).toResponse()
@@ -89,17 +90,15 @@ class VaccinationBenchServiceImpl(
     override fun updateBench(benchId: String, request: VaccinationBenchUpdateRequest): VaccinationBenchResponse {
         val bench = benchRepository.findById(benchId)
             .orElseThrow { ResourceNotFoundException("Bench not found: $benchId") }
-
-        request.nameEn?.let { bench.nameEn = it }
-        request.nameAr?.let { bench.nameAr = it }
-        request.phone?.let { bench.phone = it }
-        request.workingDays?.let { bench.workingDays = it.joinToString(",") }
-        request.workingHoursStart?.let { bench.workingHoursStart = it }
-        request.workingHoursEnd?.let { bench.workingHoursEnd = it }
-        request.vaccinationDays?.let { bench.vaccinationDays = it.joinToString(",") }
-        request.vaccinesAvailable?.let { bench.vaccinesAvailable = it.joinToString(",") }
-        request.isActive?.let { bench.isActive = it }
-
+        request.nameEn?.let           { bench.nameEn            = it }
+        request.nameAr?.let           { bench.nameAr            = it }
+        request.phone?.let            { bench.phone             = it }
+        request.workingDays?.let      { bench.workingDays       = it.joinToString(",") }
+        request.workingHoursStart?.let{ bench.workingHoursStart = it }
+        request.workingHoursEnd?.let  { bench.workingHoursEnd   = it }
+        request.vaccinationDays?.let  { bench.vaccinationDays   = it.joinToString(",") }
+        request.vaccinesAvailable?.let{ bench.vaccinesAvailable = it.joinToString(",") }
+        request.isActive?.let         { bench.isActive          = it }
         return benchRepository.save(bench).toResponse()
     }
 
@@ -114,6 +113,7 @@ class VaccinationBenchServiceImpl(
     override fun loadBenchesFromJson(benches: List<VaccinationBenchCreateRequest>): Int {
         var loaded = 0
         for (request in benches) {
+            if (benchRepository.existsById(request.nameEn)) continue
             val bench = VaccinationBench(
                 benchId           = UUID.randomUUID().toString(),
                 nameEn            = request.nameEn,
@@ -176,16 +176,16 @@ interface BabyBenchAssignmentService {
 @Service
 @Transactional
 class BabyBenchAssignmentServiceImpl(
-    private val assignmentRepository: BabyBenchAssignmentRepository,
-    private val babyRepository: BabyRepository,
-    private val benchRepository: VaccinationBenchRepository,
-    private val userRepository: UserRepository,
+    private val assignmentRepository    : BabyBenchAssignmentRepository,
+    private val babyRepository          : BabyRepository,
+    private val benchRepository         : VaccinationBenchRepository,
+    private val userRepository          : UserRepository,
     private val scheduleGeneratorService: ScheduleGeneratorService
 ) : BabyBenchAssignmentService {
 
     override fun assignBenchToBaby(
         assignedByUserId: String,
-        request: BabyBenchAssignRequest
+        request         : BabyBenchAssignRequest
     ): BabyBenchAssignmentResponse {
         val baby = babyRepository.findById(request.babyId)
             .orElseThrow { ResourceNotFoundException("Baby not found: ${request.babyId}") }
@@ -216,7 +216,7 @@ class BabyBenchAssignmentServiceImpl(
         val saved = assignmentRepository.save(assignment)
         logger.info { "Assigned bench ${bench.benchId} to baby ${baby.babyId}" }
 
-        // Generate vaccination schedule for this baby based on the new bench
+        // Generate vaccination schedule for this baby at the new bench
         scheduleGeneratorService.generateScheduleForBaby(baby, bench)
 
         return saved.toResponse()
@@ -233,14 +233,12 @@ class BabyBenchAssignmentServiceImpl(
         assignmentRepository.findActiveBabiesForBench(benchId).map { it.toResponse() }
 
     override fun changeBench(
-        babyId: String,
+        babyId          : String,
         assignedByUserId: String,
-        request: BabyBenchAssignRequest
-    ): BabyBenchAssignmentResponse {
-        // changeBench is the same as assign — just re-assign
-        // ScheduleGeneratorService will regenerate all upcoming schedules
-        return assignBenchToBaby(assignedByUserId, request.copy(babyId = babyId))
-    }
+        request         : BabyBenchAssignRequest
+    ): BabyBenchAssignmentResponse =
+        // changeBench re-uses assign logic — ScheduleGeneratorService regenerates upcoming schedules
+        assignBenchToBaby(assignedByUserId, request.copy(babyId = babyId))
 
     private fun BabyBenchAssignment.toResponse() = BabyBenchAssignmentResponse(
         assignmentId = assignmentId,
@@ -272,7 +270,7 @@ interface BenchHolidayService {
 @Transactional
 class BenchHolidayServiceImpl(
     private val holidayRepository: BenchHolidayRepository,
-    private val benchRepository: VaccinationBenchRepository
+    private val benchRepository  : VaccinationBenchRepository
 ) : BenchHolidayService {
 
     override fun addHoliday(request: BenchHolidayCreateRequest): BenchHolidayResponse {
@@ -280,7 +278,6 @@ class BenchHolidayServiceImpl(
             benchRepository.findById(it)
                 .orElseThrow { ResourceNotFoundException("Bench not found: $it") }
         }
-
         val holiday = BenchHoliday(
             holidayId   = UUID.randomUUID().toString(),
             bench       = bench,
@@ -327,7 +324,6 @@ class BenchHolidayServiceImpl(
 //      b. Is NOT in bench_holidays (bench-specific or national)
 //   3. Save to vaccination_schedules
 //   4. Log every shift to schedule_adjustment_logs
-// ============================================================
 
 interface ScheduleGeneratorService {
     fun generateScheduleForBaby(baby: Baby, bench: VaccinationBench)
@@ -338,16 +334,16 @@ interface ScheduleGeneratorService {
 @Service
 @Transactional
 class ScheduleGeneratorServiceImpl(
-    private val scheduleRepository: VaccinationScheduleRepository,
-    private val vaccineTypeRepository: VaccineTypeRepository,
-    private val holidayRepository: BenchHolidayRepository,
+    private val scheduleRepository     : VaccinationScheduleRepository,
+    private val vaccineTypeRepository  : VaccineTypeRepository,
+    private val holidayRepository      : BenchHolidayRepository,
     private val adjustmentLogRepository: ScheduleAdjustmentLogRepository
 ) : ScheduleGeneratorService {
 
     override fun generateScheduleForBaby(baby: Baby, bench: VaccinationBench) {
         logger.info { "Generating schedule for baby ${baby.babyId} at bench ${bench.benchId}" }
 
-        val allVaccines = vaccineTypeRepository.findAll()
+        val allVaccines     = vaccineTypeRepository.findAll()
         val vaccinationDays = bench.getVaccinationDaysList()
             .mapNotNull { DAY_NAME_MAP[it] }
             .toSet()
@@ -368,30 +364,30 @@ class ScheduleGeneratorServiceImpl(
             )
 
             val schedule = VaccinationSchedule(
-                scheduleId        = UUID.randomUUID().toString(),
-                baby              = baby,
-                bench             = bench,
-                vaccineType       = vaccine,
-                idealDate         = idealDate,
-                scheduledDate     = scheduledDate,
-                shiftReason       = shiftReason,
-                shiftDays         = shiftDays,
-                status            = computeStatus(scheduledDate)
+                scheduleId    = UUID.randomUUID().toString(),
+                baby          = baby,
+                bench         = bench,
+                vaccineType   = vaccine,
+                idealDate     = idealDate,
+                scheduledDate = scheduledDate,
+                shiftReason   = shiftReason,
+                shiftDays     = shiftDays,
+                status        = computeStatus(scheduledDate)
             )
             scheduleRepository.save(schedule)
 
             // Log only if the date was actually shifted
             if (shiftDays > 0) {
                 val log = ScheduleAdjustmentLog(
-                    logId        = UUID.randomUUID().toString(),
-                    schedule     = schedule,
-                    baby         = baby,
-                    oldDate      = idealDate,
-                    newDate      = scheduledDate,
-                    reason       = shiftReasonToAdjustmentReason(shiftReason),
-                    notes        = "Auto-adjusted by schedule generator",
-                    adjustedBy   = null,   // system adjustment
-                    adjustedAt   = LocalDateTime.now()
+                    logId       = UUID.randomUUID().toString(),
+                    schedule    = schedule,
+                    baby        = baby,
+                    oldDate     = idealDate,
+                    newDate     = scheduledDate,
+                    reason      = shiftReasonToAdjustmentReason(shiftReason),
+                    notes       = "Auto-adjusted by schedule generator",
+                    adjustedBy  = null,    // system adjustment
+                    adjustedAt  = LocalDateTime.now()
                 )
                 adjustmentLogRepository.save(log)
             }
@@ -411,111 +407,131 @@ class ScheduleGeneratorServiceImpl(
             .mapNotNull { DAY_NAME_MAP[it] }
             .toSet()
 
-        val now = LocalDate.now()
-        val holidayDates = loadHolidayDates(newBench.benchId, now, now.plusYears(3))
+        val baby         = upcomingSchedules.firstOrNull()?.baby ?: return
+        val holidayDates = loadHolidayDates(newBench.benchId, LocalDate.now(), LocalDate.now().plusYears(3))
 
         for (schedule in upcomingSchedules) {
-            val oldDate = schedule.scheduledDate
-            val (newDate, shiftReason, shiftDays) = findNextValidDate(
+            val (scheduledDate, shiftReason, shiftDays) = findNextValidDate(
                 schedule.idealDate, vaccinationDays, holidayDates
             )
 
-            if (newDate != oldDate) {
-                val log = ScheduleAdjustmentLog(
-                    logId      = UUID.randomUUID().toString(),
-                    schedule   = schedule,
-                    baby       = schedule.baby,
-                    oldDate    = oldDate,
-                    newDate    = newDate,
-                    reason     = AdjustmentReason.BENCH_CHANGED,
-                    notes      = "Bench changed to ${newBench.nameEn}",
-                    adjustedBy = null,
-                    adjustedAt = LocalDateTime.now()
-                )
-                adjustmentLogRepository.save(log)
-            }
-
-            schedule.bench         = newBench
-            schedule.scheduledDate = newDate
-            schedule.shiftReason   = shiftReason
-            schedule.shiftDays     = shiftDays
-            schedule.status        = computeStatus(newDate)
+            val oldDate = schedule.scheduledDate
+            schedule.bench        = newBench
+            schedule.scheduledDate = scheduledDate
+            schedule.shiftReason  = shiftReason
+            schedule.shiftDays    = shiftDays
             scheduleRepository.save(schedule)
+
+            // Log bench-change adjustment
+            val log = ScheduleAdjustmentLog(
+                logId      = UUID.randomUUID().toString(),
+                schedule   = schedule,
+                baby       = baby,
+                oldDate    = oldDate,
+                newDate    = scheduledDate,
+                reason     = AdjustmentReason.BENCH_CHANGED,
+                notes      = "Regenerated due to bench change to ${newBench.nameEn}",
+                adjustedBy = null,
+                adjustedAt = LocalDateTime.now()
+            )
+            adjustmentLogRepository.save(log)
         }
     }
 
     override fun updateStatusesForBaby(babyId: String) {
+        val today     = LocalDate.now()
+        val dueSoonIn = today.plusDays(14)
+
         val schedules = scheduleRepository.findByBaby_BabyIdOrderByScheduledDateAsc(babyId)
-        val today = LocalDate.now()
         for (schedule in schedules) {
-            if (schedule.status == ScheduleStatus.COMPLETED || schedule.status == ScheduleStatus.MISSED) continue
+            if (schedule.status == ScheduleStatus.COMPLETED ||
+                schedule.status == ScheduleStatus.MISSED) continue
+
             schedule.status = computeStatus(schedule.scheduledDate)
             scheduleRepository.save(schedule)
         }
     }
 
-    // ── Core date-finding algorithm ────────────────────────────────────────────
-    private fun findNextValidDate(
-        from: LocalDate,
-        vaccinationDays: Set<DayOfWeek>,
-        holidayDates: Set<LocalDate>
-    ): Triple<LocalDate, ShiftReason, Int> {
-
-        if (vaccinationDays.isEmpty()) {
-            return Triple(from, ShiftReason.NONE, 0)
-        }
-
-        var candidate = from
-        var shiftReason = ShiftReason.NONE
-        var iterations = 0
-
-        while (iterations < 365) {   // safety limit — max 1 year forward
-            val isVaccinationDay = candidate.dayOfWeek in vaccinationDays
-            val isHoliday = candidate in holidayDates
-
-            if (isVaccinationDay && !isHoliday) {
-                val shiftDays = (candidate.toEpochDay() - from.toEpochDay()).toInt()
-                return Triple(candidate, shiftReason, shiftDays)
-            }
-
-            // Move to next day and update reason
-            if (!isVaccinationDay && shiftReason == ShiftReason.NONE) {
-                shiftReason = ShiftReason.WEEKEND
-            }
-            if (isHoliday) {
-                shiftReason = ShiftReason.HOLIDAY
-            }
-
-            candidate = candidate.plusDays(1)
-            iterations++
-        }
-
-        // Fallback: return the ideal date with no shift
-        logger.warn { "Could not find valid vaccination date within 365 days from $from" }
-        return Triple(from, ShiftReason.NONE, 0)
-    }
-
-    private fun loadHolidayDates(benchId: String, from: LocalDate, to: LocalDate): Set<LocalDate> {
-        return holidayRepository
-            .findHolidaysForBenchInRange(benchId, from, to)
-            .map { it.holidayDate }
-            .toSet()
-    }
+    // ── Private helpers ───────────────────────────────────────────────────────
 
     private fun computeStatus(scheduledDate: LocalDate): ScheduleStatus {
-        val today = LocalDate.now()
+        val today     = LocalDate.now()
+        val dueSoonIn = today.plusDays(14)
         return when {
-            scheduledDate.isBefore(today)                         -> ScheduleStatus.OVERDUE
-            scheduledDate.isBefore(today.plusDays(14))            -> ScheduleStatus.DUE_SOON
-            else                                                   -> ScheduleStatus.UPCOMING
+            scheduledDate.isBefore(today)      -> ScheduleStatus.OVERDUE
+            scheduledDate <= dueSoonIn         -> ScheduleStatus.DUE_SOON
+            else                               -> ScheduleStatus.UPCOMING
         }
     }
 
+    private fun findNextValidDate(
+        from           : LocalDate,
+        vaccinationDays: Set<DayOfWeek>,
+        holidayDates   : Set<LocalDate>
+    ): Triple<LocalDate, ShiftReason, Int> {
+        var candidate  = from
+        var shiftDays  = 0
+
+        while (true) {
+            val isVacDay  = candidate.dayOfWeek in vaccinationDays
+            val isHoliday = candidate in holidayDates
+            val isWeekend = candidate.dayOfWeek == DayOfWeek.SATURDAY ||
+                    candidate.dayOfWeek == DayOfWeek.FRIDAY
+
+            when {
+                !isVacDay && isWeekend -> {
+                    candidate = candidate.plusDays(1); shiftDays++
+                    if (shiftDays == 1) return@findNextValidDate findNextValidDate(
+                        from, vaccinationDays, holidayDates
+                    ).let { Triple(it.first, ShiftReason.WEEKEND, it.third) }
+                }
+                isHoliday -> {
+                    candidate = candidate.plusDays(1); shiftDays++
+                    if (shiftDays == 1) return@findNextValidDate findNextValidDate(
+                        from, vaccinationDays, holidayDates
+                    ).let { Triple(it.first, ShiftReason.HOLIDAY, it.third) }
+                }
+                !isVacDay -> {
+                    candidate = candidate.plusDays(1); shiftDays++
+                }
+                else -> return Triple(candidate, ShiftReason.NONE, shiftDays)
+            }
+            if (shiftDays > 365) {
+                logger.error { "Could not find valid vaccination date within 1 year from $from" }
+                return Triple(from, ShiftReason.NONE, 0)
+            }
+        }
+    }
+
+    private fun loadHolidayDates(
+        benchId  : String,
+        from     : LocalDate,
+        to       : LocalDate
+    ): Set<LocalDate> =
+        // findHolidaysForBenchInRange returns bench-specific + national holidays in one query
+        holidayRepository.findHolidaysForBenchInRange(benchId, from, to)
+            .map { it.holidayDate }
+            .toSet()
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // BUG 6 FIX:
+    //   Previously: ShiftReason.WEEKEND (and all other values) fell into
+    //   the `else` branch which returned AdjustmentReason.HOLIDAY — wrong.
+    //   WEEKEND shifts were logged as HOLIDAY in the adjustment_logs table,
+    //   corrupting the audit history.
+    //
+    //   Fix: Exhaustive `when` with no `else` — the compiler now enforces
+    //   that every new ShiftReason constant must be mapped explicitly.
+    //   Each ShiftReason maps to its closest semantic AdjustmentReason.
+    // ─────────────────────────────────────────────────────────────────────────
     private fun shiftReasonToAdjustmentReason(reason: ShiftReason): AdjustmentReason =
         when (reason) {
             ShiftReason.HOLIDAY      -> AdjustmentReason.HOLIDAY
             ShiftReason.BENCH_CLOSED -> AdjustmentReason.BENCH_CLOSED
-            else                     -> AdjustmentReason.HOLIDAY
+            ShiftReason.WEEKEND      -> AdjustmentReason.BENCH_CLOSED       // weekend = bench not open
+            ShiftReason.MISSED       -> AdjustmentReason.PARENT_MISSED
+            ShiftReason.RESCHEDULED  -> AdjustmentReason.PARENT_RESCHEDULED
+            ShiftReason.NONE         -> AdjustmentReason.BENCH_CLOSED       // shouldn't log NONE, safe default
         }
 }
 
@@ -537,12 +553,12 @@ interface VaccinationScheduleService {
 @Service
 @Transactional
 class VaccinationScheduleServiceImpl(
-    private val scheduleRepository: VaccinationScheduleRepository,
-    private val userRepository: UserRepository,
-    private val vaccinationRepository: VaccinationRepository,
+    private val scheduleRepository     : VaccinationScheduleRepository,
+    private val userRepository         : UserRepository,
+    private val vaccinationRepository  : VaccinationRepository,
     private val adjustmentLogRepository: ScheduleAdjustmentLogRepository,
-    private val benchRepository: VaccinationBenchRepository,
-    private val holidayRepository: BenchHolidayRepository
+    private val benchRepository        : VaccinationBenchRepository,
+    private val holidayRepository      : BenchHolidayRepository
 ) : VaccinationScheduleService {
 
     override fun getScheduleForBaby(babyId: String): List<VaccinationScheduleResponse> =
@@ -551,17 +567,24 @@ class VaccinationScheduleServiceImpl(
 
     override fun getUpcomingForBaby(babyId: String, daysAhead: Int): List<VaccinationScheduleResponse> {
         val from = LocalDate.now()
-        val to = from.plusDays(daysAhead.toLong())
-        return scheduleRepository.findUpcomingForBaby(babyId, from, to).map { it.toResponse() }
+        val to   = from.plusDays(daysAhead.toLong())
+        return scheduleRepository.findUpcomingForBaby(
+            babyId   = babyId,
+            from     = from,
+            to       = to,
+            statuses = listOf(ScheduleStatus.UPCOMING, ScheduleStatus.DUE_SOON)
+        ).map { it.toResponse() }
     }
 
     override fun getOverdueForBaby(babyId: String): List<VaccinationScheduleResponse> =
-        scheduleRepository.findOverdueForBaby(babyId).map { it.toResponse() }
+        scheduleRepository.findOverdueForBaby(babyId, ScheduleStatus.OVERDUE)
+            .map { it.toResponse() }
 
     override fun getScheduleByBenchAndDate(benchId: String, date: LocalDate): BenchDayScheduleResponse {
         val bench = benchRepository.findById(benchId)
             .orElseThrow { ResourceNotFoundException("Bench not found: $benchId") }
-        val items = scheduleRepository.findByBenchAndDate(benchId, date).map { it.toResponse() }
+        val items = scheduleRepository.findByBenchAndDate(benchId, date)
+            .map { it.toResponse() }
         return BenchDayScheduleResponse(
             benchId     = benchId,
             benchNameEn = bench.nameEn,
@@ -572,24 +595,27 @@ class VaccinationScheduleServiceImpl(
     }
 
     override fun getScheduleByBenchAndRange(
-        benchId: String, from: LocalDate, to: LocalDate
+        benchId: String,
+        from   : LocalDate,
+        to     : LocalDate
     ): List<VaccinationScheduleResponse> =
-        scheduleRepository.findByBenchAndDateRange(benchId, from, to).map { it.toResponse() }
+        scheduleRepository.findByBenchAndDateRange(benchId, from, to)
+            .map { it.toResponse() }
 
     override fun updateScheduleStatus(
         scheduleId: String,
-        request: VaccinationScheduleUpdateRequest
+        request   : VaccinationScheduleUpdateRequest
     ): VaccinationScheduleResponse {
         val schedule = scheduleRepository.findById(scheduleId)
             .orElseThrow { ResourceNotFoundException("Schedule not found: $scheduleId") }
 
-        request.status?.let { schedule.status = it }
+        request.status?.let        { schedule.status        = it }
         request.completedDate?.let { schedule.completedDate = it }
         request.completedByUserId?.let { userId ->
             schedule.completedBy = userRepository.findById(userId).orElse(null)
         }
-        request.vaccinationId?.let { vId ->
-            schedule.vaccination = vaccinationRepository.findById(vId).orElse(null)
+        request.vaccinationId?.let { vacId ->
+            schedule.vaccination = vaccinationRepository.findById(vacId).orElse(null)
         }
 
         return scheduleRepository.save(schedule).toResponse()
@@ -597,20 +623,17 @@ class VaccinationScheduleServiceImpl(
 
     override fun adjustScheduleDate(
         adjustedByUserId: String,
-        request: ScheduleAdjustmentRequest
+        request         : ScheduleAdjustmentRequest
     ): VaccinationScheduleResponse {
         val schedule = scheduleRepository.findById(request.scheduleId)
             .orElseThrow { ResourceNotFoundException("Schedule not found: ${request.scheduleId}") }
-
         val adjustedBy = userRepository.findById(adjustedByUserId).orElse(null)
-        val oldDate = schedule.scheduledDate
 
-        // Log the change
         val log = ScheduleAdjustmentLog(
             logId      = UUID.randomUUID().toString(),
             schedule   = schedule,
             baby       = schedule.baby,
-            oldDate    = oldDate,
+            oldDate    = schedule.scheduledDate,
             newDate    = request.newDate,
             reason     = request.reason,
             notes      = request.notes,
@@ -619,24 +642,16 @@ class VaccinationScheduleServiceImpl(
         )
         adjustmentLogRepository.save(log)
 
-        // Apply the change
         schedule.scheduledDate = request.newDate
         schedule.shiftReason   = ShiftReason.RESCHEDULED
-        schedule.shiftDays     = (request.newDate.toEpochDay() - schedule.idealDate.toEpochDay()).toInt()
-        schedule.status        = when {
-            request.newDate.isBefore(LocalDate.now())               -> ScheduleStatus.OVERDUE
-            request.newDate.isBefore(LocalDate.now().plusDays(14))  -> ScheduleStatus.DUE_SOON
-            else                                                     -> ScheduleStatus.UPCOMING
-        }
-
-        logger.info { "Schedule ${schedule.scheduleId} adjusted from $oldDate to ${request.newDate} by $adjustedByUserId" }
         return scheduleRepository.save(schedule).toResponse()
     }
 
     override fun getAdjustmentHistory(scheduleId: String): List<ScheduleAdjustmentLogResponse> =
-        adjustmentLogRepository
-            .findBySchedule_ScheduleIdOrderByAdjustedAtDesc(scheduleId)
+        adjustmentLogRepository.findBySchedule_ScheduleIdOrderByAdjustedAtDesc(scheduleId)
             .map { it.toLogResponse() }
+
+    // ── Mapping helpers ───────────────────────────────────────────────────────
 
     private fun VaccinationSchedule.toResponse() = VaccinationScheduleResponse(
         scheduleId           = scheduleId,
@@ -658,20 +673,20 @@ class VaccinationScheduleServiceImpl(
         completedByName      = completedBy?.fullName,
         isVisibleToParent    = isVisibleToParent,
         isVisibleToTeam      = isVisibleToTeam,
-        createdAt            = createdAt,
-        updatedAt            = updatedAt
+        createdAt            = createdAt?.toString(),   // LocalDateTime → ISO String for client
+        updatedAt            = updatedAt?.toString()    // LocalDateTime → ISO String for client
     )
 
     private fun ScheduleAdjustmentLog.toLogResponse() = ScheduleAdjustmentLogResponse(
-        logId           = logId,
-        scheduleId      = schedule?.scheduleId ?: "",
-        babyId          = baby?.babyId ?: "",
-        babyName        = baby?.fullName ?: "",
-        oldDate         = oldDate,
-        newDate         = newDate,
-        reason          = reason,
-        notes           = notes,
-        adjustedByName  = adjustedBy?.fullName,
-        adjustedAt      = adjustedAt
+        logId          = logId,
+        scheduleId     = schedule?.scheduleId ?: "",
+        babyId         = baby?.babyId ?: "",
+        babyName       = baby?.fullName ?: "",
+        oldDate        = oldDate,
+        newDate        = newDate,
+        reason         = reason,
+        notes          = notes,
+        adjustedByName = adjustedBy?.fullName,
+        adjustedAt     = adjustedAt
     )
 }
