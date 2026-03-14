@@ -1,11 +1,8 @@
 package com.example.backend_side
 
-// ============================================================
-// BENCH DTOs
-// FILE: backend-side/src/main/java/com/example/backend_side/BenchDtos.kt
-// ============================================================
-
 import com.example.backend_side.entity.*
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import java.time.LocalDate
@@ -39,23 +36,17 @@ data class VaccinationBenchResponse(
 data class VaccinationBenchCreateRequest(
     @field:NotBlank(message = "English name is required")
     val nameEn: String,
-
     @field:NotBlank(message = "Arabic name is required")
     val nameAr: String,
-
     @field:NotBlank(message = "Governorate is required")
     val governorate: String,
-
     val district: String = "",
     val addressEn: String? = null,
     val addressAr: String? = null,
-
     @field:NotNull(message = "Latitude is required")
     val latitude: Double,
-
     @field:NotNull(message = "Longitude is required")
     val longitude: Double,
-
     val phone: String? = null,
     val workingDays: List<String> = listOf("Sunday","Monday","Tuesday","Wednesday","Thursday"),
     val workingHoursStart: String = "08:00",
@@ -81,14 +72,15 @@ data class VaccinationBenchUpdateRequest(
 // BABY BENCH ASSIGNMENT DTOs
 // ============================================================
 
-data class BabyBenchAssignRequest(
-    @field:NotBlank(message = "Baby ID is required")
-    val babyId: String,
-
-    @field:NotBlank(message = "Bench ID is required")
-    val benchId: String,
-
-    val notes: String? = null
+// ── FIX: @JsonCreator tells Jackson to use this constructor ──
+// Without KotlinModule, Jackson cannot deserialize Kotlin data
+// classes because they have no no-arg constructor.
+// @JsonCreator + @JsonProperty is the pure-Java solution that
+// works with any ObjectMapper without extra modules.
+data class BabyBenchAssignRequest @JsonCreator constructor(
+    @JsonProperty("babyId")  @field:NotBlank(message = "Baby ID is required")  val babyId: String,
+    @JsonProperty("benchId") @field:NotBlank(message = "Bench ID is required") val benchId: String,
+    @JsonProperty("notes")   val notes: String? = null
 )
 
 data class BabyBenchAssignmentResponse(
@@ -99,7 +91,7 @@ data class BabyBenchAssignmentResponse(
     val benchNameEn: String,
     val benchNameAr: String,
     val governorate: String,
-    val assignedAt: LocalDateTime,
+    val assignedAt: String,          // ✅ String not LocalDateTime — avoids Jackson array bug
     val isActive: Boolean,
     val notes: String? = null
 )
@@ -110,13 +102,10 @@ data class BabyBenchAssignmentResponse(
 
 data class BenchHolidayCreateRequest(
     val benchId: String? = null,
-
     @field:NotNull(message = "Holiday date is required")
     val holidayDate: LocalDate,
-
     @field:NotBlank(message = "Reason is required")
     val reason: String,
-
     val isNational: Boolean = false
 )
 
@@ -142,11 +131,25 @@ data class VaccinationScheduleResponse(
     val benchNameEn: String,
     val benchNameAr: String,
     val vaccineId: Int,
-    val vaccineName: String,
-    val doseNumber: Byte,
+    // ── Multilingual vaccine names ─────────────────────────────────────────
+    // Frontend picks the right one based on current language:
+    //   en  → vaccineName
+    //   ar  → vaccineNameAr   (falls back to vaccineName if null)
+    //   ku  → vaccineNameKu   (falls back to vaccineName if null)
+    //   ckb → vaccineNameCkb  (falls back to vaccineName if null)
+    val vaccineName   : String,
+    val vaccineNameAr : String? = null,
+    val vaccineNameKu : String? = null,
+    val vaccineNameCkb: String? = null,
+    // ── Multilingual descriptions ──────────────────────────────────────────
+    val description   : String? = null,
+    val descriptionAr : String? = null,
+    val descriptionKu : String? = null,
+    val descriptionCkb: String? = null,
+    val doseNumber: Int,             // ✅ Int not Byte — matches client VaccinationScheduleNet
     val recommendedAgeMonths: Int,
-    val idealDate: LocalDate,
-    val scheduledDate: LocalDate,
+    val idealDate: LocalDate,        // ✅ serializes as "2025-03-14" via JacksonConfig
+    val scheduledDate: LocalDate,    // ✅ serializes as "2025-03-14" via JacksonConfig
     val shiftReason: ShiftReason,
     val shiftDays: Int,
     val status: ScheduleStatus,
@@ -154,19 +157,6 @@ data class VaccinationScheduleResponse(
     val completedByName: String? = null,
     val isVisibleToParent: Boolean,
     val isVisibleToTeam: Boolean,
-    // ─────────────────────────────────────────────────────────────────────────
-    // FIX: Changed from LocalDateTime? to String?
-    //
-    // Root cause of "Field 'data' is required... missing at path: $":
-    //   Without jackson-datatype-jsr310 configured, Jackson serializes
-    //   LocalDateTime as a JSON array: [2025,1,14,10,30,0,0]
-    //   The client's VaccinationScheduleNet expects createdAt: String?
-    //   This type mismatch causes the entire Ktor JSON deserialization
-    //   to fail, throwing the "missing at path: $" error.
-    //
-    // Fix: serialize as ISO string "2025-01-14T10:30:00" in toResponse()
-    //   using .toString() — same pattern as BabyResponse in Services.kt
-    // ─────────────────────────────────────────────────────────────────────────
     val createdAt: String? = null,
     val updatedAt: String? = null
 )
@@ -179,7 +169,6 @@ data class VaccinationScheduleUpdateRequest(
     val notes: String? = null
 )
 
-// Team view: all babies coming to a bench on a specific date
 data class BenchDayScheduleResponse(
     val benchId: String,
     val benchNameEn: String,
@@ -192,17 +181,11 @@ data class BenchDayScheduleResponse(
 // SCHEDULE ADJUSTMENT LOG DTOs
 // ============================================================
 
-data class ScheduleAdjustmentRequest(
-    @field:NotBlank(message = "Schedule ID is required")
-    val scheduleId: String,
-
-    @field:NotNull(message = "New date is required")
-    val newDate: LocalDate,
-
-    @field:NotNull(message = "Reason is required")
-    val reason: AdjustmentReason,
-
-    val notes: String? = null
+data class ScheduleAdjustmentRequest @JsonCreator constructor(
+    @JsonProperty("scheduleId") @field:NotBlank(message = "Schedule ID is required") val scheduleId: String,
+    @JsonProperty("newDate")    @field:NotNull(message = "New date is required")     val newDate: LocalDate,
+    @JsonProperty("reason")     @field:NotNull(message = "Reason is required")       val reason: AdjustmentReason,
+    @JsonProperty("notes")      val notes: String? = null
 )
 
 data class ScheduleAdjustmentLogResponse(

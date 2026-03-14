@@ -477,4 +477,25 @@
     <string name="settings_field_name">ناو</string>
     <string name="settings_field_phone">مۆبایل</string>
     <string name="settings_contact_support_intro">پرسیارێکت هەیە یان کێشەیەک لە بەرنامەکەدا هەیە؟ خۆشحاڵ دەبین بە بیستنی دەنگی تۆ.</string>
+
+    <string name="schedule_status_completed">تەواو بووە</string>
+    <string name="schedule_status_overdue">کاتی تێپەڕیوە</string>
+    <string name="schedule_status_due_soon">کاتی هاتووە</string>
+    <string name="schedule_status_upcoming">داهاتوو</string>
+    <string name="schedule_status_missed">بەجێمایەوە</string>
+    <string name="schedule_status_rescheduled">دووبارە کاتی دراوەتێ</string>
+    <string name="schedule_completed_on">تەواو بووە: %1$s</string>
+    <string name="schedule_date_label">کات: %1$s</string>
+    <string name="schedule_age_recommended">تەمەنی پێشنیازکراو</string>
+    <string name="schedule_ideal_date">ڕێکەوتی ئایدیاڵ</string>
+    <string name="schedule_scheduled_date">ڕێکەوتی داواکراو</string>
+    <string name="schedule_adjustment">ڕێکخستنەوە</string>
+    <string name="schedule_completed_on_label">ڕێکەوتی تەواوبوون</string>
+    <string name="schedule_health_center">بنکەی تەندروستی</string>
+    <string name="schedule_status_label">دۆخ</string>
+    <string name="schedule_reschedule_remaining">ڕێکخستنەوەی ئەوەی مایەوە</string>
+    <string name="schedule_overdue_banner_count">⚠️ %1$d کوتان کاتی تێپەڕیوە</string>
+    <string name="schedule_overdue_banner_tap">کرتە بکە بۆ ڕێکخستنەوەی کوتانە ماوەکان</string>
+    <string name="schedule_no_vaccinations">هیچ کوتانێک نەدۆزرایەوە</string>
+
 </resources>

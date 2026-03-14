@@ -477,4 +477,24 @@
     <string name="settings_field_name">ناڤ</string>
     <string name="settings_field_phone">تەلەفۆن</string>
     <string name="settings_contact_support_intro">پرسیارەك تە هەیە یان ئاریشەیەك د بەرنامەی دا هەیە؟ ئەم دێ كەیفخۆش بین ب بیستنا دەنگێ تە.</string>
+
+    <string name="schedule_status_completed">تەمام بوویە</string>
+    <string name="schedule_status_overdue">دەمی وێ چوویە</string>
+    <string name="schedule_status_due_soon">دەمی وێ نێزیكە</string>
+    <string name="schedule_status_upcoming">بهێت</string>
+    <string name="schedule_status_missed">şûn de maye</string>
+    <string name="schedule_status_rescheduled">ji nû ve hat plankirin</string>
+    <string name="schedule_completed_on">تەمام بوویە: %1$s</string>
+    <string name="schedule_date_label">Dem: %1$s</string>
+    <string name="schedule_age_recommended">تەمەنێ پێشنیازکری</string>
+    <string name="schedule_ideal_date">Roja ideal</string>
+    <string name="schedule_scheduled_date">Roja plankirî</string>
+    <string name="schedule_adjustment">Eyarkirn</string>
+    <string name="schedule_completed_on_label">Roja temambûnê</string>
+    <string name="schedule_health_center">بنكەیێ ساخلەمیێ</string>
+    <string name="schedule_status_label">Rewş</string>
+    <string name="schedule_reschedule_remaining">Plana mayî ji nû ve bike</string>
+    <string name="schedule_overdue_banner_count">⚠️ %1$d derzî dereng man</string>
+    <string name="schedule_overdue_banner_tap">Klik bike ji bo plankirina derziyên mayî</string>
+    <string name="schedule_no_vaccinations">Ti derzî nehat dîtin</string>
 </resources>

@@ -11,18 +11,43 @@ data class VaccineType(
     @Column(name = "vaccine_id")
     var vaccineId: Int? = null,
 
+    // ── International/English name (always present) ────────────────────────
     @Column(name = "vaccine_name", nullable = false)
     var vaccineName: String = "",
+
+    // ── Arabic name ────────────────────────────────────────────────────────
+    @Column(name = "vaccine_name_ar")
+    var vaccineNameAr: String? = null,
+
+    // ── Kurdish Sorani name ────────────────────────────────────────────────
+    @Column(name = "vaccine_name_ku")
+    var vaccineNameKu: String? = null,
+
+    // ── Kurdish Badini name ────────────────────────────────────────────────
+    @Column(name = "vaccine_name_ckb")
+    var vaccineNameCkb: String? = null,
 
     @Column(name = "recommended_age_months", nullable = false)
     var recommendedAgeMonths: Int = 0,
 
-    // ✅ TINYINT in SQL → Byte in Kotlin
     @Column(name = "dose_number", columnDefinition = "TINYINT")
     var doseNumber: Byte = 1,
 
+    // ── English description ────────────────────────────────────────────────
     @Column(name = "description", columnDefinition = "TEXT")
     var description: String? = null,
+
+    // ── Arabic description ─────────────────────────────────────────────────
+    @Column(name = "description_ar", columnDefinition = "TEXT")
+    var descriptionAr: String? = null,
+
+    // ── Kurdish Sorani description ─────────────────────────────────────────
+    @Column(name = "description_ku", columnDefinition = "TEXT")
+    var descriptionKu: String? = null,
+
+    // ── Kurdish Badini description ─────────────────────────────────────────
+    @Column(name = "description_ckb", columnDefinition = "TEXT")
+    var descriptionCkb: String? = null,
 
     @Column(name = "is_mandatory")
     var isMandatory: Boolean = true,

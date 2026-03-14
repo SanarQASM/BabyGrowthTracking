@@ -564,27 +564,36 @@ data class ApiSingleResponse<T>(
 // ── Vaccination Schedules ─────────────────────────────────────────────────────
 
 @Serializable data class VaccinationScheduleNet(
-    val scheduleId: String,
-    val babyId: String,
-    val babyName: String,
-    val benchId: String,
-    val benchNameEn: String,
-    val benchNameAr: String,
-    val vaccineId: Int,
-    val vaccineName: String,
-    val doseNumber: Int,
-    val recommendedAgeMonths: Int,
-    val idealDate: String,           // ISO "yyyy-MM-dd" — from JacksonConfig fix
-    val scheduledDate: String,       // ISO "yyyy-MM-dd"
-    val shiftReason: String = "NONE",
-    val shiftDays: Int = 0,
-    val status: String,
-    val completedDate: String? = null,
-    val completedByName: String? = null,
-    val isVisibleToParent: Boolean = true,
-    val isVisibleToTeam: Boolean = true,
-    val createdAt: String? = null,   // ✅ added — was missing, backend sends this
-    val updatedAt: String? = null    // ✅ added — was missing, backend sends this
+    val scheduleId           : String,
+    val babyId               : String,
+    val babyName             : String,
+    val benchId              : String,
+    val benchNameEn          : String,
+    val benchNameAr          : String,
+    val vaccineId            : Int,
+    // ── Multilingual vaccine names ─────────────────────────────────────────
+    val vaccineName          : String,           // English (always present)
+    val vaccineNameAr        : String? = null,   // Arabic
+    val vaccineNameKu        : String? = null,   // Kurdish Sorani
+    val vaccineNameCkb       : String? = null,   // Kurdish Badini
+    // ── Multilingual descriptions ──────────────────────────────────────────
+    val description          : String? = null,
+    val descriptionAr        : String? = null,
+    val descriptionKu        : String? = null,
+    val descriptionCkb       : String? = null,
+    val doseNumber           : Int,
+    val recommendedAgeMonths : Int,
+    val idealDate            : String,
+    val scheduledDate        : String,
+    val shiftReason          : String = "NONE",
+    val shiftDays            : Int = 0,
+    val status               : String,
+    val completedDate        : String? = null,
+    val completedByName      : String? = null,
+    val isVisibleToParent    : Boolean = true,
+    val isVisibleToTeam      : Boolean = true,
+    val createdAt            : String? = null,
+    val updatedAt            : String? = null
 )
 // ── Health Issues ─────────────────────────────────────────────────────────────
 
@@ -638,12 +647,27 @@ fun BabyBenchAssignmentNet.toUi() = BabyBenchAssignmentUi(
 )
 
 fun VaccinationScheduleNet.toUi() = VaccinationScheduleUi(
-    scheduleId = scheduleId, babyId = babyId, vaccineId = vaccineId,
-    vaccineName = vaccineName, doseNumber = doseNumber,
-    recommendedAgeMonths = recommendedAgeMonths, idealDate = idealDate,
-    scheduledDate = scheduledDate, shiftReason = shiftReason, shiftDays = shiftDays,
-    status = status, completedDate = completedDate, benchNameEn = benchNameEn,
-    isVisibleToParent = isVisibleToParent
+    scheduleId           = scheduleId,
+    babyId               = babyId,
+    vaccineId            = vaccineId,
+    vaccineName          = vaccineName,
+    vaccineNameAr        = vaccineNameAr,
+    vaccineNameKu        = vaccineNameKu,
+    vaccineNameCkb       = vaccineNameCkb,
+    description          = description,
+    descriptionAr        = descriptionAr,
+    descriptionKu        = descriptionKu,
+    descriptionCkb       = descriptionCkb,
+    doseNumber           = doseNumber,
+    recommendedAgeMonths = recommendedAgeMonths,
+    idealDate            = idealDate,
+    scheduledDate        = scheduledDate,
+    shiftReason          = shiftReason,
+    shiftDays            = shiftDays,
+    status               = status,
+    completedDate        = completedDate,
+    benchNameEn          = benchNameEn,
+    isVisibleToParent    = isVisibleToParent
 )
 
 fun HealthIssueNet.toUi() = HealthIssueUi(

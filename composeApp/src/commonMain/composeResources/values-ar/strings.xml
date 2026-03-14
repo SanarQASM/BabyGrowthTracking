@@ -477,4 +477,25 @@
     <string name="settings_field_name">الاسم</string>
     <string name="settings_field_phone">الهاتف</string>
     <string name="settings_contact_support_intro">هل لديك سؤال أو وجدت مشكلة؟ نود السماع منك.</string>
+
+    <string name="schedule_status_completed">مكتمل</string>
+    <string name="schedule_status_overdue">متأخر</string>
+    <string name="schedule_status_due_soon">موعده قريب</string>
+    <string name="schedule_status_upcoming">قادم</string>
+    <string name="schedule_status_missed">فائت</string>
+    <string name="schedule_status_rescheduled">أُعيد جدولته</string>
+    <string name="schedule_completed_on">مكتمل: %1$s</string>
+    <string name="schedule_date_label">الموعد: %1$s</string>
+    <string name="schedule_age_recommended">العمر المحدد</string>
+    <string name="schedule_ideal_date">التاريخ المثالي</string>
+    <string name="schedule_scheduled_date">تاريخ الموعد</string>
+    <string name="schedule_adjustment">التعديل</string>
+    <string name="schedule_completed_on_label">تاريخ الإكمال</string>
+    <string name="schedule_health_center">المركز الصحي</string>
+    <string name="schedule_status_label">الحالة</string>
+    <string name="schedule_reschedule_remaining">إعادة جدولة المتبقي</string>
+    <string name="schedule_overdue_banner_count">⚠️ %1$d لقاح متأخر</string>
+    <string name="schedule_overdue_banner_tap">اضغط لإعادة جدولة اللقاحات المتبقية</string>
+    <string name="schedule_no_vaccinations">لا توجد لقاحات</string>
+
 </resources>

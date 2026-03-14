@@ -564,4 +564,25 @@ For questions, contact support@babygrowth.com.</string>
 5. The app is provided "as is" without warranties of any kind.\n\n
 Last updated: 2025.</string>
 
+    <string name="schedule_status_completed">Completed</string>
+    <string name="schedule_status_overdue">Overdue</string>
+    <string name="schedule_status_due_soon">Due Soon</string>
+    <string name="schedule_status_upcoming">Upcoming</string>
+    <string name="schedule_status_missed">Missed</string>
+    <string name="schedule_status_rescheduled">Rescheduled</string>
+    <string name="schedule_completed_on">Completed: %1$s</string>
+    <string name="schedule_date_label">Scheduled: %1$s</string>
+    <string name="schedule_age_recommended">Age recommended</string>
+    <string name="schedule_ideal_date">Ideal date</string>
+    <string name="schedule_scheduled_date">Scheduled date</string>
+    <string name="schedule_adjustment">Adjustment</string>
+    <string name="schedule_completed_on_label">Completed on</string>
+    <string name="schedule_health_center">Health Center</string>
+    <string name="schedule_status_label">Status</string>
+    <string name="schedule_reschedule_remaining">Reschedule Remaining</string>
+    <string name="schedule_overdue_banner_count">⚠️ %1$d vaccination(s) overdue</string>
+    <string name="schedule_overdue_banner_tap">Tap to reschedule remaining vaccinations</string>
+    <string name="schedule_no_vaccinations">No vaccinations found</string>
+    
+
 </resources>
