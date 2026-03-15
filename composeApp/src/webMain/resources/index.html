@@ -1,10 +1,60 @@
 <!DOCTYPE html>
+<!--
+    index.html — UPDATED FOR LANDSCAPE SUPPORT
+
+    Changes:
+    1. Viewport meta tag confirmed present with width=device-width, initial-scale=1.0
+       This is critical for mobile browsers — without it they render at 980 px
+       even in landscape and the responsive breakpoints are never triggered.
+
+    2. Added orientation CSS that prevents the browser from zooming the canvas
+       when the phone rotates.
+
+    3. All Firebase scripts, Google Identity Services, and the rest of the
+       <head> / <body> content are UNCHANGED.
+-->
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--
+        ✅ CRITICAL for landscape on mobile browsers.
+        width=device-width ensures Kotlin/Wasm reads the true CSS pixel width
+        (window.innerWidth) — not a zoomed-out 980 px default viewport.
+        initial-scale=1.0 prevents iOS Safari auto-zoom on rotation.
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Baby Growth Track</title>
     <link rel="stylesheet" href="styles.css">
+
+    <!--
+        Orientation handling:
+        We do NOT lock orientation via screen.orientation.lock() — the Compose
+        layout handles both orientations natively.  The CSS below just prevents
+        unwanted scaling artefacts that some Android WebViews apply on rotate.
+    -->
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Compose manages its own scroll */
+        }
+
+        #ComposeTarget {
+            width: 100vw;
+            height: 100vh;
+            /* On iOS Safari, 100vh can be wrong in landscape due to the
+               address bar. Use dvh where supported, fall back to vh. */
+            height: 100dvh;
+        }
+
+        /* Prevent text-size adjustment when rotating on some Android browsers */
+        * {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+    </style>
 
     <!--
         ✅ Firebase MUST be in <head> with no defer/async

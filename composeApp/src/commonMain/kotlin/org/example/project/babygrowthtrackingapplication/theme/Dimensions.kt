@@ -9,73 +9,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 /**
- * Responsive dimensions that adapt based on screen size (COMPACT / MEDIUM / EXPANDED).
+ * Responsive dimension tokens for the Baby Growth Tracking app.
  *
- * ┌──────────────────────────────────────────────────────────────────────────────┐
- * │  ALL NEW TOKENS (added during theme audit)                                   │
- * ├──────────────────────────────────┬───────────────────────────────────────────┤
- * │  Token                           │  Replaces                                 │
- * ├──────────────────────────────────┼───────────────────────────────────────────┤
- * │  borderWidthThin                 │  1.dp in border() calls                   │
- * │  borderWidthMedium               │  2.dp in border() calls                   │
- * │  profileInfoRowVerticalPadding   │  vertical = 5.dp in ProfileInfoRow         │
- * │  profileSectionLabelStartPadding │  start = 4.dp in ProfileSectionCard label  │
- * │  profileInfoIconWidth            │  28.dp icon column in ProfileInfoRow        │
- * │  profileInfoIconFontSize         │  15.sp emoji in ProfileInfoRow              │
- * │  profileSectionCardVertPad       │  spacingMedium - 2.dp card padding          │
- * │  profileArchivedCorner           │  RoundedCornerShape(8.dp) archived badge    │
- * │  profileArchivedPaddingH         │  horizontal = 12.dp archived badge          │
- * │  profileArchivedPaddingV         │  vertical = 4.dp archived badge             │
- * │  profileQuickActionEmojiSize     │  fontSize = 20.sp quick-action emoji        │
- * │  profileQuickActionLabelSize     │  fontSize = 9.sp quick-action label         │
- * │  profileQuickActionLineHeight    │  lineHeight = 11.sp quick-action label      │
- * │  profileQuickActionItemGap       │  Arrangement.spacedBy(4.dp) quick-action    │
- * │  cardTonalElevation6             │  tonalElevation = 6.dp dialogs/cards        │
- * │  babyCardAvatarSize              │  52.dp avatar in BabyCard                   │
- * │  babyCardEmojiSize               │  26.sp emoji in BabyCard                    │
- * │  babyCardInnerPadding            │  padding(16.dp) BabyCard box                │
- * │  babyCardAvatarNameGap           │  Spacer width = 12.dp                        │
- * │  babyCardNameBadgeGap            │  Spacer width = 8.dp                         │
- * │  babyCardInlineBadgeCorner       │  RoundedCornerShape(6.dp) inline badge       │
- * │  babyCardInlineBadgePaddingH     │  horizontal = 6.dp inline badge              │
- * │  babyCardInlineBadgePaddingV     │  vertical = 2.dp inline badge                │
- * │  babyCardSpacerAfterAvatar       │  Spacer height = 10.dp                       │
- * │  babyCardGenderSpacerW           │  Spacer width = 6.dp gender row              │
- * │  babyCardStatSpacer              │  Spacer height = 3.dp between stats          │
- * │  babyCardBottomSpacer            │  Spacer height = 14.dp before action row     │
- * │  addButtonSize                   │  36.dp "+" box in BabyProfileTabContent      │
- * │  chartCardCornerRadius           │  18.dp card corner in BabyProfileTabContent  │
- * │  chipCornerRadius                │  spacingSmall + 2.dp chip/badge corner       │
- * │  filterTabCorner                 │  RoundedCornerShape(20.dp) filter tabs        │
- * │  noBabiesEmojiSize               │  fontSize = 64.sp no-babies emoji             │
- * │  homeSmallTextSize               │  fontSize = 9.sp small labels                 │
- * │  homeSmallLineHeight             │  lineHeight = 11.sp small labels              │
- * │  starSizeLarge                   │  fontSize = 16.sp HangingStars large          │
- * │  starSizeSmall                   │  fontSize = 12.sp HangingStars small          │
- * │  bannerMoonEmojiSize             │  (iconXLarge.value - 6).sp moon emoji          │
- * │  bannerLabelLetterSpacing        │  letterSpacing = 1.5.sp banner label           │
- * │  navBarHeight                    │  NavigationBar height                          │
- * │  navBarPillSize                  │  selected indicator pill                       │
- * │  navBarPillCorner                │  pill corner radius                            │
- * │  navBarLabelSize                 │  fontSize nav label                            │
- * │  navBarPaddingH                  │  horizontal padding nav bar                    │
- * │  navBarPaddingV                  │  vertical padding nav bar                      │
- * │  navButtonPadding                │  inner padding each nav button                 │
- * │  navIconLabelGap                 │  gap icon→label in nav button                  │
- * │  detailRowVertPadding            │  vertical = 4.dp DetailRow in BenchDetail      │
- * │  detailIconSize                  │  size = 18.dp detail icon                      │
- * │  detailIconTopPadding            │  top = 2.dp detail icon                        │
- * │  benchDistanceIconSize           │  size = 16.dp distance chip icon               │
- * └──────────────────────────────────┴───────────────────────────────────────────┘
+ * Tokens are resolved in [Dimensions.create] based on [WindowSizeClass] and
+ * the new [isLandscape] flag so that every layout detail adapts to both
+ * portrait and landscape across all platforms.
+ *
+ * LANDSCAPE RULES applied here:
+ *  • navBarHeight = 0.dp   (hidden — replaced by SideNavigationRail)
+ *  • logoSize     reduced  (less vertical space available)
+ *  • spacingXXLarge reduced (phone landscape is height-constrained)
+ *  • maxContentWidth = Dp.Unspecified on phone landscape (full width)
  */
 data class Dimensions(
-    // ── Splash Screen ─────────────────────────────────────────────────────────
+    // ── Branding / logo ──────────────────────────────────────────────────────
     val cornerImageSize : Dp,
     val logoSize        : Dp,
     val screenPadding   : Dp,
     val logoPadding     : Dp,
 
-    // ── Common spacing ────────────────────────────────────────────────────────
+    // ── Spacing scale ─────────────────────────────────────────────────────────
     val spacingXSmall  : Dp,
     val spacingSmall   : Dp,
     val spacingMedium  : Dp,
@@ -89,117 +42,126 @@ data class Dimensions(
     val iconLarge  : Dp,
     val iconXLarge : Dp,
 
-    // ── Button sizes ──────────────────────────────────────────────────────────
+    // ── Buttons ───────────────────────────────────────────────────────────────
     val buttonHeight       : Dp,
     val buttonCornerRadius : Dp,
 
-    // ── Card sizes ────────────────────────────────────────────────────────────
+    // ── Cards ─────────────────────────────────────────────────────────────────
     val cardElevation    : Dp,
     val cardCornerRadius : Dp,
 
-    // ── Avatar / image sizes ──────────────────────────────────────────────────
+    // ── Avatars ───────────────────────────────────────────────────────────────
     val avatarSmall  : Dp,
     val avatarMedium : Dp,
     val avatarLarge  : Dp,
 
-    // ── Content max width ─────────────────────────────────────────────────────
+    // ── Layout ────────────────────────────────────────────────────────────────
     val maxContentWidth : Dp,
 
-    // ── ★ Border widths ───────────────────────────────────────────────────────
-    val borderWidthThin   : Dp,   // replaces: 1.dp
-    val borderWidthMedium : Dp,   // replaces: 2.dp
+    // ── Borders ───────────────────────────────────────────────────────────────
+    val borderWidthThin   : Dp,
+    val borderWidthMedium : Dp,
 
-    // ── ★ Profile screen — InfoRow / SectionCard ──────────────────────────────
-    val profileInfoRowVerticalPadding   : Dp,         // replaces: vertical = 5.dp
-    val profileSectionLabelStartPadding : Dp,         // replaces: start = 4.dp
-    val profileInfoIconWidth            : Dp,         // replaces: width = 28.dp
-    val profileInfoIconFontSize         : TextUnit,   // replaces: fontSize = 15.sp
-    val profileSectionCardVertPad       : Dp,         // replaces: spacingMedium - 2.dp
+    // ── Profile ───────────────────────────────────────────────────────────────
+    val profileInfoRowVerticalPadding  : Dp,
+    val profileSectionLabelStartPadding: Dp,
+    val profileInfoIconWidth           : Dp,
+    val profileInfoIconFontSize        : TextUnit,
+    val profileSectionCardVertPad      : Dp,
+    val profileArchivedCorner          : Dp,
+    val profileArchivedPaddingH        : Dp,
+    val profileArchivedPaddingV        : Dp,
+    val profileQuickActionEmojiSize    : TextUnit,
+    val profileQuickActionLabelSize    : TextUnit,
+    val profileQuickActionLineHeight   : TextUnit,
+    val profileQuickActionItemGap      : Dp,
 
-    // ── ★ Profile screen — Archived badge ────────────────────────────────────
-    val profileArchivedCorner   : Dp,   // replaces: RoundedCornerShape(8.dp)
-    val profileArchivedPaddingH : Dp,   // replaces: horizontal = 12.dp
-    val profileArchivedPaddingV : Dp,   // replaces: vertical = 4.dp
+    // ── Tonal elevation ───────────────────────────────────────────────────────
+    val cardTonalElevation6 : Dp,
 
-    // ── ★ Profile screen — Quick-action buttons ───────────────────────────────
-    val profileQuickActionEmojiSize  : TextUnit,   // replaces: fontSize = 20.sp
-    val profileQuickActionLabelSize  : TextUnit,   // replaces: fontSize = 9.sp
-    val profileQuickActionLineHeight : TextUnit,   // replaces: lineHeight = 11.sp
-    val profileQuickActionItemGap    : Dp,         // replaces: Arrangement.spacedBy(4.dp)
+    // ── Baby card ─────────────────────────────────────────────────────────────
+    val babyCardAvatarSize         : Dp,
+    val babyCardEmojiSize          : TextUnit,
+    val babyCardInnerPadding       : Dp,
+    val babyCardAvatarNameGap      : Dp,
+    val babyCardNameBadgeGap       : Dp,
+    val babyCardInlineBadgeCorner  : Dp,
+    val babyCardInlineBadgePaddingH: Dp,
+    val babyCardInlineBadgePaddingV: Dp,
+    val babyCardSpacerAfterAvatar  : Dp,
+    val babyCardGenderSpacerW      : Dp,
+    val babyCardStatSpacer         : Dp,
+    val babyCardBottomSpacer       : Dp,
 
-    // ── ★ Dialogs / tonal elevation ──────────────────────────────────────────
-    val cardTonalElevation6 : Dp,   // replaces: tonalElevation = 6.dp
+    // ── BabyProfileTabContent misc ────────────────────────────────────────────
+    val addButtonSize        : Dp,
+    val chartCardCornerRadius: Dp,
+    val chipCornerRadius     : Dp,
+    val filterTabCorner      : Dp,
+    val noBabiesEmojiSize    : TextUnit,
 
-    // ── ★ Baby card specifics ─────────────────────────────────────────────────
-    val babyCardAvatarSize          : Dp,         // replaces: 52.dp
-    val babyCardEmojiSize           : TextUnit,   // replaces: 26.sp
-    val babyCardInnerPadding        : Dp,         // replaces: padding(16.dp)
-    val babyCardAvatarNameGap       : Dp,         // replaces: Spacer width 12.dp
-    val babyCardNameBadgeGap        : Dp,         // replaces: Spacer width 8.dp
-    val babyCardInlineBadgeCorner   : Dp,         // replaces: RoundedCornerShape(6.dp)
-    val babyCardInlineBadgePaddingH : Dp,         // replaces: horizontal = 6.dp
-    val babyCardInlineBadgePaddingV : Dp,         // replaces: vertical = 2.dp
-    val babyCardSpacerAfterAvatar   : Dp,         // replaces: Spacer height 10.dp
-    val babyCardGenderSpacerW       : Dp,         // replaces: Spacer width 6.dp
-    val babyCardStatSpacer          : Dp,         // replaces: Spacer height 3.dp
-    val babyCardBottomSpacer        : Dp,         // replaces: Spacer height 14.dp
+    // ── Small text ────────────────────────────────────────────────────────────
+    val homeSmallTextSize  : TextUnit,
+    val homeSmallLineHeight: TextUnit,
 
-    // ── ★ BabyProfileTabContent misc ─────────────────────────────────────────
-    val addButtonSize         : Dp,         // replaces: 36.dp add-measurement button
-    val chartCardCornerRadius : Dp,         // replaces: 18.dp card corner
-    val chipCornerRadius      : Dp,         // replaces: spacingSmall + 2.dp
-    val filterTabCorner       : Dp,         // replaces: RoundedCornerShape(20.dp)
-    val noBabiesEmojiSize     : TextUnit,   // replaces: fontSize = 64.sp
+    // ── Gender banner ─────────────────────────────────────────────────────────
+    val starSizeLarge           : TextUnit,
+    val starSizeSmall           : TextUnit,
+    val bannerMoonEmojiSize     : TextUnit,
+    val bannerLabelLetterSpacing: TextUnit,
 
-    // ── ★ Small text tokens (HomeTab / WelcomeSection / BabyCard) ────────────
-    val homeSmallTextSize   : TextUnit,   // replaces: fontSize = 9.sp  labels
-    val homeSmallLineHeight : TextUnit,   // replaces: lineHeight = 11.sp labels
+    // ── Bottom navigation bar ─────────────────────────────────────────────────
+    // navBarHeight = 0.dp when in landscape (bar is hidden; rail is used).
+    val navBarHeight     : Dp,
+    val navBarPillSize   : Dp,
+    val navBarPillCorner : Dp,
+    val navBarLabelSize  : TextUnit,
+    val navBarPaddingH   : Dp,
+    val navBarPaddingV   : Dp,
+    val navButtonPadding : Dp,
+    val navIconLabelGap  : Dp,
 
-    // ── ★ Gender banner ───────────────────────────────────────────────────────
-    val starSizeLarge             : TextUnit,   // replaces: 16.sp HangingStars
-    val starSizeSmall             : TextUnit,   // replaces: 12.sp HangingStars
-    val bannerMoonEmojiSize       : TextUnit,   // replaces: (iconXLarge.value - 6).sp
-    val bannerLabelLetterSpacing  : TextUnit,   // replaces: letterSpacing = 1.5.sp
+    // ── Side navigation rail (landscape) ─────────────────────────────────────
+    val railWidth        : Dp,   // width of the NavigationRail in landscape
+    val railItemSize     : Dp,   // clickable item height in the rail
+    val railIconSize     : Dp,   // icon size inside the rail item
 
-    // ── ★ Bottom Navigation Bar ───────────────────────────────────────────────
-    val navBarHeight      : Dp,         // overall bar height
-    val navBarPillSize    : Dp,         // selected indicator circle
-    val navBarPillCorner  : Dp,         // pill corner radius
-    val navBarLabelSize   : TextUnit,   // nav label font size
-    val navBarPaddingH    : Dp,         // horizontal padding
-    val navBarPaddingV    : Dp,         // vertical padding
-    val navButtonPadding  : Dp,         // inner padding per button
-    val navIconLabelGap   : Dp,         // gap between icon and label
-
-    // ── ★ BenchDetailScreen ───────────────────────────────────────────────────
-    val detailRowVertPadding  : Dp,   // replaces: vertical = 4.dp
-    val detailIconSize        : Dp,   // replaces: size = 18.dp
-    val detailIconTopPadding  : Dp,   // replaces: top = 2.dp
-    val benchDistanceIconSize : Dp,   // replaces: size = 16.dp
+    // ── BenchDetailScreen ─────────────────────────────────────────────────────
+    val detailRowVertPadding  : Dp,
+    val detailIconSize        : Dp,
+    val detailIconTopPadding  : Dp,
+    val benchDistanceIconSize : Dp,
 ) {
     companion object {
 
         @Composable
         @ReadOnlyComposable
-        fun create(windowSizeClass: WindowSizeClass): Dimensions = when (windowSizeClass) {
-            WindowSizeClass.COMPACT  -> compactDimensions()
-            WindowSizeClass.MEDIUM   -> mediumDimensions()
-            WindowSizeClass.EXPANDED -> expandedDimensions()
+        fun create(
+            windowSizeClass: WindowSizeClass,
+            isLandscape    : Boolean = false,
+        ): Dimensions = when (windowSizeClass) {
+            WindowSizeClass.COMPACT  -> compactDimensions(isLandscape)
+            WindowSizeClass.MEDIUM   -> mediumDimensions(isLandscape)
+            WindowSizeClass.EXPANDED -> expandedDimensions(isLandscape)
         }
 
-        // ── COMPACT — Phone portrait < 600 dp ─────────────────────────────────
-        private fun compactDimensions() = Dimensions(
+        // ─────────────────────────────────────────────────────────────────────
+        // COMPACT — phone portrait (< 600dp)
+        // In landscape the same compact base is used but several height-bound
+        // tokens are reduced and the bottom nav height is zeroed out.
+        // ─────────────────────────────────────────────────────────────────────
+        private fun compactDimensions(landscape: Boolean) = Dimensions(
             cornerImageSize = 120.dp,
-            logoSize        = 320.dp,
+            logoSize        = if (landscape) 160.dp else 320.dp,
             screenPadding   = 16.dp,
-            logoPadding     = 8.dp,
+            logoPadding     = if (landscape) 4.dp  else 8.dp,
 
             spacingXSmall  = 4.dp,
             spacingSmall   = 8.dp,
             spacingMedium  = 16.dp,
             spacingLarge   = 24.dp,
             spacingXLarge  = 32.dp,
-            spacingXXLarge = 40.dp,
+            spacingXXLarge = if (landscape) 24.dp else 40.dp,
 
             iconSmall  = 16.dp,
             iconMedium = 24.dp,
@@ -218,32 +180,24 @@ data class Dimensions(
 
             maxContentWidth = Dp.Unspecified,
 
-            // Border
             borderWidthThin   = 1.dp,
             borderWidthMedium = 2.dp,
 
-            // Profile — InfoRow / SectionCard
             profileInfoRowVerticalPadding   = 5.dp,
             profileSectionLabelStartPadding = 4.dp,
             profileInfoIconWidth            = 28.dp,
             profileInfoIconFontSize         = 15.sp,
-            profileSectionCardVertPad       = 14.dp,   // ≈ spacingMedium - 2.dp
+            profileSectionCardVertPad       = 14.dp,
+            profileArchivedCorner           = 8.dp,
+            profileArchivedPaddingH         = 12.dp,
+            profileArchivedPaddingV         = 4.dp,
+            profileQuickActionEmojiSize     = 20.sp,
+            profileQuickActionLabelSize     = 9.sp,
+            profileQuickActionLineHeight    = 11.sp,
+            profileQuickActionItemGap       = 4.dp,
 
-            // Profile — Archived badge
-            profileArchivedCorner   = 8.dp,
-            profileArchivedPaddingH = 12.dp,
-            profileArchivedPaddingV = 4.dp,
-
-            // Profile — Quick-action buttons
-            profileQuickActionEmojiSize  = 20.sp,
-            profileQuickActionLabelSize  = 9.sp,
-            profileQuickActionLineHeight = 11.sp,
-            profileQuickActionItemGap    = 4.dp,
-
-            // Tonal elevation
             cardTonalElevation6 = 6.dp,
 
-            // Baby card
             babyCardAvatarSize          = 52.dp,
             babyCardEmojiSize           = 26.sp,
             babyCardInnerPadding        = 16.dp,
@@ -257,25 +211,22 @@ data class Dimensions(
             babyCardStatSpacer          = 3.dp,
             babyCardBottomSpacer        = 14.dp,
 
-            // BabyProfileTabContent misc
             addButtonSize         = 36.dp,
             chartCardCornerRadius = 18.dp,
             chipCornerRadius      = 10.dp,
             filterTabCorner       = 20.dp,
             noBabiesEmojiSize     = 64.sp,
 
-            // Small text
             homeSmallTextSize   = 9.sp,
             homeSmallLineHeight = 11.sp,
 
-            // Gender banner
             starSizeLarge            = 16.sp,
             starSizeSmall            = 12.sp,
-            bannerMoonEmojiSize      = 42.sp,   // ≈ iconXLarge(48dp) - 6
+            bannerMoonEmojiSize      = 42.sp,
             bannerLabelLetterSpacing = 1.5.sp,
 
-            // Bottom nav
-            navBarHeight     = 64.dp,
+            // Bottom nav: 0.dp in landscape — bar is hidden, rail takes over
+            navBarHeight     = if (landscape) 0.dp else 64.dp,
             navBarPillSize   = 40.dp,
             navBarPillCorner = 20.dp,
             navBarLabelSize  = 10.sp,
@@ -284,33 +235,39 @@ data class Dimensions(
             navButtonPadding = 8.dp,
             navIconLabelGap  = 2.dp,
 
-            // BenchDetailScreen
+            // Rail dimensions (only relevant in landscape)
+            railWidth    = 72.dp,
+            railItemSize = 56.dp,
+            railIconSize = 24.dp,
+
             detailRowVertPadding  = 4.dp,
             detailIconSize        = 18.dp,
             detailIconTopPadding  = 2.dp,
             benchDistanceIconSize = 16.dp,
         )
 
-        // ── MEDIUM — Tablet portrait / phone landscape 600–840 dp ─────────────
-        private fun mediumDimensions() = Dimensions(
+        // ─────────────────────────────────────────────────────────────────────
+        // MEDIUM — tablet portrait / phone landscape (600dp–840dp)
+        // ─────────────────────────────────────────────────────────────────────
+        private fun mediumDimensions(landscape: Boolean) = Dimensions(
             cornerImageSize = 160.dp,
-            logoSize        = 400.dp,
+            logoSize        = if (landscape) 200.dp else 400.dp,
             screenPadding   = 24.dp,
-            logoPadding     = 12.dp,
+            logoPadding     = if (landscape) 6.dp  else 12.dp,
 
             spacingXSmall  = 6.dp,
             spacingSmall   = 12.dp,
             spacingMedium  = 20.dp,
             spacingLarge   = 28.dp,
             spacingXLarge  = 40.dp,
-            spacingXXLarge = 56.dp,
+            spacingXXLarge = if (landscape) 32.dp else 48.dp,
 
             iconSmall  = 20.dp,
             iconMedium = 28.dp,
             iconLarge  = 36.dp,
             iconXLarge = 56.dp,
 
-            buttonHeight       = 54.dp,
+            buttonHeight       = 52.dp,
             buttonCornerRadius = 18.dp,
 
             cardElevation    = 6.dp,
@@ -320,35 +277,27 @@ data class Dimensions(
             avatarMedium = 60.dp,
             avatarLarge  = 80.dp,
 
-            maxContentWidth = 700.dp,
+            maxContentWidth = Dp.Unspecified,
 
-            // Border
             borderWidthThin   = 1.dp,
             borderWidthMedium = 2.dp,
 
-            // Profile — InfoRow / SectionCard
             profileInfoRowVerticalPadding   = 6.dp,
-            profileSectionLabelStartPadding = 4.dp,
+            profileSectionLabelStartPadding = 5.dp,
             profileInfoIconWidth            = 32.dp,
-            profileInfoIconFontSize         = 17.sp,
+            profileInfoIconFontSize         = 16.sp,
             profileSectionCardVertPad       = 18.dp,
+            profileArchivedCorner           = 10.dp,
+            profileArchivedPaddingH         = 14.dp,
+            profileArchivedPaddingV         = 5.dp,
+            profileQuickActionEmojiSize     = 22.sp,
+            profileQuickActionLabelSize     = 10.sp,
+            profileQuickActionLineHeight    = 12.sp,
+            profileQuickActionItemGap       = 5.dp,
 
-            // Profile — Archived badge
-            profileArchivedCorner   = 10.dp,
-            profileArchivedPaddingH = 14.dp,
-            profileArchivedPaddingV = 5.dp,
-
-            // Profile — Quick-action buttons
-            profileQuickActionEmojiSize  = 22.sp,
-            profileQuickActionLabelSize  = 10.sp,
-            profileQuickActionLineHeight = 12.sp,
-            profileQuickActionItemGap    = 5.dp,
-
-            // Tonal elevation
             cardTonalElevation6 = 6.dp,
 
-            // Baby card
-            babyCardAvatarSize          = 60.dp,
+            babyCardAvatarSize          = 62.dp,
             babyCardEmojiSize           = 30.sp,
             babyCardInnerPadding        = 20.dp,
             babyCardAvatarNameGap       = 14.dp,
@@ -361,25 +310,21 @@ data class Dimensions(
             babyCardStatSpacer          = 4.dp,
             babyCardBottomSpacer        = 16.dp,
 
-            // BabyProfileTabContent misc
             addButtonSize         = 40.dp,
             chartCardCornerRadius = 20.dp,
             chipCornerRadius      = 12.dp,
             filterTabCorner       = 22.dp,
             noBabiesEmojiSize     = 72.sp,
 
-            // Small text
             homeSmallTextSize   = 10.sp,
             homeSmallLineHeight = 12.sp,
 
-            // Gender banner
             starSizeLarge            = 18.sp,
             starSizeSmall            = 14.sp,
             bannerMoonEmojiSize      = 50.sp,
             bannerLabelLetterSpacing = 1.5.sp,
 
-            // Bottom nav
-            navBarHeight     = 72.dp,
+            navBarHeight     = if (landscape) 0.dp else 72.dp,
             navBarPillSize   = 48.dp,
             navBarPillCorner = 24.dp,
             navBarLabelSize  = 11.sp,
@@ -388,17 +333,23 @@ data class Dimensions(
             navButtonPadding = 10.dp,
             navIconLabelGap  = 3.dp,
 
-            // BenchDetailScreen
+            railWidth    = 80.dp,
+            railItemSize = 60.dp,
+            railIconSize = 28.dp,
+
             detailRowVertPadding  = 5.dp,
             detailIconSize        = 20.dp,
             detailIconTopPadding  = 2.dp,
             benchDistanceIconSize = 18.dp,
         )
 
-        // ── EXPANDED — Tablet landscape / desktop > 840 dp ────────────────────
-        private fun expandedDimensions() = Dimensions(
+        // ─────────────────────────────────────────────────────────────────────
+        // EXPANDED — tablet landscape / desktop (> 840dp)
+        // Always has the rail; landscape flag only affects a few tokens.
+        // ─────────────────────────────────────────────────────────────────────
+        private fun expandedDimensions(landscape: Boolean) = Dimensions(
             cornerImageSize = 200.dp,
-            logoSize        = 480.dp,
+            logoSize        = if (landscape) 280.dp else 480.dp,
             screenPadding   = 32.dp,
             logoPadding     = 16.dp,
 
@@ -426,32 +377,24 @@ data class Dimensions(
 
             maxContentWidth = 600.dp,
 
-            // Border
             borderWidthThin   = 1.dp,
             borderWidthMedium = 2.dp,
 
-            // Profile — InfoRow / SectionCard
             profileInfoRowVerticalPadding   = 8.dp,
             profileSectionLabelStartPadding = 6.dp,
             profileInfoIconWidth            = 36.dp,
             profileInfoIconFontSize         = 18.sp,
             profileSectionCardVertPad       = 22.dp,
+            profileArchivedCorner           = 12.dp,
+            profileArchivedPaddingH         = 16.dp,
+            profileArchivedPaddingV         = 6.dp,
+            profileQuickActionEmojiSize     = 24.sp,
+            profileQuickActionLabelSize     = 11.sp,
+            profileQuickActionLineHeight    = 14.sp,
+            profileQuickActionItemGap       = 6.dp,
 
-            // Profile — Archived badge
-            profileArchivedCorner   = 12.dp,
-            profileArchivedPaddingH = 16.dp,
-            profileArchivedPaddingV = 6.dp,
-
-            // Profile — Quick-action buttons
-            profileQuickActionEmojiSize  = 24.sp,
-            profileQuickActionLabelSize  = 11.sp,
-            profileQuickActionLineHeight = 14.sp,
-            profileQuickActionItemGap    = 6.dp,
-
-            // Tonal elevation
             cardTonalElevation6 = 6.dp,
 
-            // Baby card
             babyCardAvatarSize          = 72.dp,
             babyCardEmojiSize           = 36.sp,
             babyCardInnerPadding        = 24.dp,
@@ -465,25 +408,22 @@ data class Dimensions(
             babyCardStatSpacer          = 5.dp,
             babyCardBottomSpacer        = 18.dp,
 
-            // BabyProfileTabContent misc
             addButtonSize         = 44.dp,
             chartCardCornerRadius = 22.dp,
             chipCornerRadius      = 14.dp,
             filterTabCorner       = 24.dp,
             noBabiesEmojiSize     = 80.sp,
 
-            // Small text
             homeSmallTextSize   = 11.sp,
             homeSmallLineHeight = 13.sp,
 
-            // Gender banner
             starSizeLarge            = 20.sp,
             starSizeSmall            = 16.sp,
             bannerMoonEmojiSize      = 58.sp,
             bannerLabelLetterSpacing = 1.5.sp,
 
-            // Bottom nav
-            navBarHeight     = 80.dp,
+            // Expanded is always "landscape enough" to use the rail.
+            navBarHeight     = 0.dp,
             navBarPillSize   = 56.dp,
             navBarPillCorner = 28.dp,
             navBarLabelSize  = 12.sp,
@@ -492,7 +432,10 @@ data class Dimensions(
             navButtonPadding = 12.dp,
             navIconLabelGap  = 4.dp,
 
-            // BenchDetailScreen
+            railWidth    = 88.dp,
+            railItemSize = 64.dp,
+            railIconSize = 28.dp,
+
             detailRowVertPadding  = 6.dp,
             detailIconSize        = 22.dp,
             detailIconTopPadding  = 3.dp,
@@ -502,13 +445,14 @@ data class Dimensions(
 }
 
 val LocalDimensions = staticCompositionLocalOf<Dimensions> {
-    error("No Dimensions provided")
+    error("No Dimensions provided — wrap your composable tree in BabyGrowthTheme")
 }
 
-val LocalScreenInfo = staticCompositionLocalOf<ScreenInfo> {
+val LocalScreenInfo = staticCompositionLocalOf {
     ScreenInfo(
         widthDp         = 0.dp,
         heightDp        = 0.dp,
-        windowSizeClass = WindowSizeClass.COMPACT
+        windowSizeClass = WindowSizeClass.COMPACT,
+        isLandscape     = false,
     )
 }

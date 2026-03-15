@@ -1,4 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    AndroidManifest.xml — UPDATED FOR LANDSCAPE SUPPORT
+
+    Key changes:
+    ✅  android:screenOrientation is NOT set (or was never set) — the activity
+        supports all orientations by default.
+    ✅  android:configChanges includes orientation|screenSize|screenLayout|keyboardHidden
+        so Android does NOT restart the Activity on rotation — Compose recomposes
+        in-place and LocalConfiguration updates, driving the responsive layout.
+
+    NO OTHER CHANGES — all permissions, meta-data, and providers are identical
+    to the original file.
+-->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
@@ -25,9 +38,18 @@
         <activity
             android:name="org.example.project.babygrowthtrackingapplication.MainActivity"
             android:exported="true"
-            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|smallestScreenSize"
             android:theme="@style/Theme.BabyGrowth"
             android:windowSoftInputMode="adjustResize">
+            <!--
+                ✅  NO android:screenOrientation attribute here.
+                    Omitting it means "fullSensor" — all orientations supported.
+                    If you previously had screenOrientation="portrait", REMOVE IT.
+
+                ✅  configChanges prevents Activity recreation on rotation.
+                    Compose reads LocalConfiguration.current which updates
+                    automatically — no restart, no layout jump.
+            -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
