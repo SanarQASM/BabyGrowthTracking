@@ -328,8 +328,7 @@ class ScheduleGeneratorServiceImpl(
         // ── GUARD: if no vaccines exist, log clearly and return ───────────
         if (allVaccines.isEmpty()) {
             logger.error {
-                "❌ vaccine_types table is EMPTY — cannot generate schedule for baby ${baby.babyId}. " +
-                        "Add DataInitializer.kt to your project and restart the server."
+                "❌ vaccine_types table is EMPTY — cannot generate schedule for baby ${baby.babyId}."
             }
             return
         }
