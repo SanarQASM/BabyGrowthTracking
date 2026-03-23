@@ -6,7 +6,6 @@ import org.example.project.babygrowthtrackingapplication.navigation.AppNavigatio
 import org.example.project.babygrowthtrackingapplication.navigation.rememberPreferencesManager
 import org.example.project.babygrowthtrackingapplication.platform.ConfigureFullScreen
 import org.example.project.babygrowthtrackingapplication.theme.BabyGrowthTheme
-import org.example.project.babygrowthtrackingapplication.theme.GenderTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable

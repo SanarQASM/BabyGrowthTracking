@@ -1,19 +1,5 @@
 // =============================================================================
-// 🖥️  backend-side/build.gradle.kts — SPRING BOOT MODULE
-//
-// Structure observed:
-//   src/main/java/com/example/backend_side/
-//     ├── controllers/         — REST controllers
-//     ├── entity/              — JPA entities
-//     ├── repositories/        — Spring Data JPA repos
-//     ├── BabyGrowthTrackingApplication.kt  — @SpringBootApplication entry
-//     ├── Dtos.kt              — Request/Response DTOs
-//     ├── Globalexceptionhandler.kt — @ControllerAdvice
-//     ├── Openapiconfigkt.kt   — Swagger / SpringDoc config
-//     ├── Securityconfig.kt    — Spring Security + JWT
-//     └── Services.kt          — @Service business logic layer
-//   src/main/resources/
-//     └── application.properties
+// 🖥️  backend-side/build.gradle.kts — SPRING BOOT MODULE  (FIXED)
 // =============================================================================
 
 plugins {
@@ -39,6 +25,7 @@ kotlin {
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
     }
 }
+
 configurations.all {
     resolutionStrategy.eachDependency {
         if (requested.group.startsWith("com.fasterxml.jackson")) {
@@ -59,17 +46,15 @@ dependencies {
     implementation(libs.spring.boot.starter.security)
     implementation(libs.spring.boot.starter.validation)
     implementation(libs.spring.boot.starter.actuator)
-
-    // ─── NEW: Email (JavaMailSender) ──────────────────────────────────────────
-    // Auto-configures JavaMailSender from spring.mail.* in application.properties
-    // Version is managed automatically by spring-dependency-management plugin
     implementation(libs.spring.boot.starter.mail)
 
-    // ─── NEW: SMS (Twilio) ────────────────────────────────────────────────────
-    // Official Twilio Java/Kotlin SDK — initialised in TwilioConfig.kt
+    // ─── SMS (Twilio) ─────────────────────────────────────────────────────────
     implementation(libs.twilio)
 
     // ─── Kotlin ───────────────────────────────────────────────────────────────
+    // ✅  kotlin.reflect is what triggers Spring Boot's JacksonAutoConfiguration
+    //     to register KotlinModule automatically on the ObjectMapper.
+    //     As long as this stays here, @RequestBody Kotlin data classes work.
     implementation(libs.kotlin.reflect)
     implementation(libs.kotlinx.serialization.json)
 
@@ -91,6 +76,7 @@ dependencies {
     // ─── Testing ──────────────────────────────────────────────────────────────
     testImplementation(libs.spring.boot.starter.test)
     testImplementation(libs.kotlin.test)
+    implementation(libs.jackson.module.kotlin)
 }
 
 // =============================================================================

@@ -4,33 +4,42 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Window size classes based on Material Design 3 guidelines.
+ * Window size classes based on Material Design 3 guidelines
  * https://m3.material.io/foundations/layout/applying-layout/window-size-classes
  */
 enum class WindowSizeClass {
-    COMPACT,    // Phone portrait (< 600dp width)
-    MEDIUM,     // Tablet portrait / phone landscape (600dp–840dp)
-    EXPANDED    // Tablet landscape / desktop (> 840dp)
-}
-
-/** Derive the correct class from a width value. */
-fun getWindowSizeClass(windowWidth: Dp): WindowSizeClass = when {
-    windowWidth < 600.dp -> WindowSizeClass.COMPACT
-    windowWidth < 840.dp -> WindowSizeClass.MEDIUM
-    else                 -> WindowSizeClass.EXPANDED
+    COMPACT,    // Phone in portrait (< 600dp width)
+    MEDIUM,     // Tablet in portrait, phone in landscape (600dp - 840dp)
+    EXPANDED    // Tablet in landscape, desktop (> 840dp)
 }
 
 /**
- * Platform-specific screen information passed into the theme.
+ * Determines the window size class based on screen width.
+ * Overload that accepts both width AND height so landscape can be detected.
+ */
+fun getWindowSizeClass(windowWidth: Dp, windowHeight: Dp = Dp.Unspecified): WindowSizeClass {
+    return when {
+        windowWidth < 600.dp -> WindowSizeClass.COMPACT
+        windowWidth < 840.dp -> WindowSizeClass.MEDIUM
+        else                  -> WindowSizeClass.EXPANDED
+    }
+}
+
+/**
+ * Returns true when the screen is wider than it is tall (landscape orientation).
+ */
+fun isLandscape(widthDp: Dp, heightDp: Dp): Boolean =
+    heightDp != Dp.Unspecified && widthDp > heightDp
+
+/**
+ * Platform-specific screen information.
  *
- * [isLandscape] is true when width > height.
- * On desktop / web the window can be any shape, so we always derive
- * orientation from the actual size rather than a device sensor.
+ * [isLandscape] is derived automatically from width vs height.
  */
 data class ScreenInfo(
-    val widthDp        : Dp,
-    val heightDp       : Dp,
-    val windowSizeClass: WindowSizeClass,
-    // Derived — true whenever the container is wider than it is tall.
-    val isLandscape    : Boolean = widthDp > heightDp,
+    val widthDp         : Dp,
+    val heightDp        : Dp,
+    val windowSizeClass : WindowSizeClass,
+    // ── NEW ──────────────────────────────────────────────────────────────────
+    val isLandscape     : Boolean = heightDp != Dp.Unspecified && widthDp > heightDp
 )
