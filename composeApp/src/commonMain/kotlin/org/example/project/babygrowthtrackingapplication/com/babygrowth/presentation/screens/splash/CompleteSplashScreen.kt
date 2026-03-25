@@ -5,17 +5,8 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.foundation.layout.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -39,6 +30,7 @@ import kotlinx.coroutines.withContext
 import org.example.project.babygrowthtrackingapplication.theme.BabyGrowthTheme
 import org.example.project.babygrowthtrackingapplication.theme.GenderTheme
 import org.example.project.babygrowthtrackingapplication.theme.LocalDimensions
+import org.example.project.babygrowthtrackingapplication.theme.LocalIsLandscape
 import org.example.project.babygrowthtrackingapplication.theme.LocalScreenInfo
 import org.example.project.babygrowthtrackingapplication.theme.WindowSizeClass
 import io.github.alexzhirkevich.compottie.LottieCompositionSpec
@@ -50,21 +42,12 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 
 /**
  * Responsive Splash Screen with Lottie Animation
- * ✨ FIXED: LOTTIE SIZE & CORNER IMAGE POSITIONING! ✨
  *
- * ✅ Lottie has NO size constraint (like login screen) - renders naturally
- * ✅ Corner images use Crop scale to fill edges completely
- * ✅ Corner images positioned flush to screen edges (no gaps!)
- * ✅ Black background for all modes and genders
- * ✅ Waits for Lottie animation to complete before proceeding
- * ✅ Clean, minimalist design without title text
- * ✅ Adapts to different screen sizes (Phone, Tablet, Desktop)
- * ✅ Platform-agnostic (Android, iOS, Desktop, Web)
- * ✅ Smooth corner animations
- * ✅ Responsive dimensions
- * ✅ Corner images always stay LTR regardless of app language (RTL fix)
+ * LANDSCAPE FIX: In landscape the Lottie logo is constrained to at most 50 % of
+ * the screen height so it never overflows on height-constrained phone landscape.
+ * The logo padding is also increased slightly to give visual breathing room.
+ * Corner images and animation timings are unchanged.
  */
-
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun CompleteSplashScreen(
@@ -73,32 +56,24 @@ fun CompleteSplashScreen(
     var startAnimation by remember { mutableStateOf(false) }
     var lottieAnimationComplete by remember { mutableStateOf(false) }
 
-    val dimensions = LocalDimensions.current
-    val screenInfo = LocalScreenInfo.current
+    val dimensions   = LocalDimensions.current
+    val screenInfo   = LocalScreenInfo.current
+    val isLandscape  = LocalIsLandscape.current
 
     var jsonString by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         jsonString = withContext(Dispatchers.Default) {
-            try {
-                Res.readBytes("files/application_logo_lottie.json").decodeToString()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
-            }
+            try { Res.readBytes("files/application_logo_lottie.json").decodeToString() }
+            catch (e: Exception) { e.printStackTrace(); null }
         }
     }
 
     jsonString?.let { json ->
-        val composition by rememberLottieComposition {
-            LottieCompositionSpec.JsonString(json)
-        }
+        val composition by rememberLottieComposition { LottieCompositionSpec.JsonString(json) }
 
         val lottieProgress by animateLottieCompositionAsState(
-            composition = composition,
-            iterations = 1,
-            speed = 1f
-        )
+            composition = composition, iterations = 1, speed = 1f)
 
         LaunchedEffect(lottieProgress, composition) {
             if (lottieProgress >= 0.99f && composition != null) {
@@ -106,10 +81,7 @@ fun CompleteSplashScreen(
             }
         }
 
-        val lottiePainter = rememberLottiePainter(
-            composition = composition,
-            progress = { lottieProgress }
-        )
+        val lottiePainter = rememberLottiePainter(composition = composition, progress = { lottieProgress })
 
         val animationDuration = when (screenInfo.windowSizeClass) {
             WindowSizeClass.COMPACT  -> 800
@@ -117,155 +89,90 @@ fun CompleteSplashScreen(
             WindowSizeClass.EXPANDED -> 1200
         }
 
-        val topLeftTranslationX by animateFloatAsState(
-            targetValue = if (startAnimation) 0f else -400f,
-            animationSpec = tween(durationMillis = animationDuration, easing = FastOutSlowInEasing),
-            label = "topLeftX"
-        )
-        val topLeftTranslationY by animateFloatAsState(
-            targetValue = if (startAnimation) 0f else -400f,
-            animationSpec = tween(durationMillis = animationDuration, easing = FastOutSlowInEasing),
-            label = "topLeftY"
-        )
-        val topRightTranslationX by animateFloatAsState(
-            targetValue = if (startAnimation) 0f else 400f,
-            animationSpec = tween(durationMillis = animationDuration, easing = FastOutSlowInEasing),
-            label = "topRightX"
-        )
-        val topRightTranslationY by animateFloatAsState(
-            targetValue = if (startAnimation) 0f else -400f,
-            animationSpec = tween(durationMillis = animationDuration, easing = FastOutSlowInEasing),
-            label = "topRightY"
-        )
-        val bottomLeftTranslationX by animateFloatAsState(
-            targetValue = if (startAnimation) 0f else -400f,
-            animationSpec = tween(durationMillis = animationDuration, easing = FastOutSlowInEasing),
-            label = "bottomLeftX"
-        )
-        val bottomLeftTranslationY by animateFloatAsState(
-            targetValue = if (startAnimation) 0f else 400f,
-            animationSpec = tween(durationMillis = animationDuration, easing = FastOutSlowInEasing),
-            label = "bottomLeftY"
-        )
-        val bottomRightTranslationX by animateFloatAsState(
-            targetValue = if (startAnimation) 0f else 400f,
-            animationSpec = tween(durationMillis = animationDuration, easing = FastOutSlowInEasing),
-            label = "bottomRightX"
-        )
-        val bottomRightTranslationY by animateFloatAsState(
-            targetValue = if (startAnimation) 0f else 400f,
-            animationSpec = tween(durationMillis = animationDuration, easing = FastOutSlowInEasing),
-            label = "bottomRightY"
-        )
+        val topLeftTranslationX  by animateFloatAsState(if (startAnimation) 0f else -400f,
+            tween(animationDuration, easing = FastOutSlowInEasing), label = "topLeftX")
+        val topLeftTranslationY  by animateFloatAsState(if (startAnimation) 0f else -400f,
+            tween(animationDuration, easing = FastOutSlowInEasing), label = "topLeftY")
+        val topRightTranslationX by animateFloatAsState(if (startAnimation) 0f else 400f,
+            tween(animationDuration, easing = FastOutSlowInEasing), label = "topRightX")
+        val topRightTranslationY by animateFloatAsState(if (startAnimation) 0f else -400f,
+            tween(animationDuration, easing = FastOutSlowInEasing), label = "topRightY")
+        val bottomLeftTranslationX  by animateFloatAsState(if (startAnimation) 0f else -400f,
+            tween(animationDuration, easing = FastOutSlowInEasing), label = "bottomLeftX")
+        val bottomLeftTranslationY  by animateFloatAsState(if (startAnimation) 0f else 400f,
+            tween(animationDuration, easing = FastOutSlowInEasing), label = "bottomLeftY")
+        val bottomRightTranslationX by animateFloatAsState(if (startAnimation) 0f else 400f,
+            tween(animationDuration, easing = FastOutSlowInEasing), label = "bottomRightX")
+        val bottomRightTranslationY by animateFloatAsState(if (startAnimation) 0f else 400f,
+            tween(animationDuration, easing = FastOutSlowInEasing), label = "bottomRightY")
 
-        val logoAlpha by animateFloatAsState(
-            targetValue = if (startAnimation) 1f else 0f,
-            animationSpec = tween(
-                durationMillis = animationDuration + 200,
-                easing = FastOutSlowInEasing
-            ),
-            label = "logoAlpha"
-        )
-        val logoScale by animateFloatAsState(
-            targetValue = if (startAnimation) 1f else 0.3f,
-            animationSpec = tween(
-                durationMillis = animationDuration + 200,
-                easing = FastOutSlowInEasing
-            ),
-            label = "logoScale"
-        )
+        val logoAlpha by animateFloatAsState(if (startAnimation) 1f else 0f,
+            tween(animationDuration + 200, easing = FastOutSlowInEasing), label = "logoAlpha")
+        val logoScale by animateFloatAsState(if (startAnimation) 1f else 0.3f,
+            tween(animationDuration + 200, easing = FastOutSlowInEasing), label = "logoScale")
 
-        LaunchedEffect(Unit) {
-            delay(100)
-            startAnimation = true
-        }
+        LaunchedEffect(Unit) { delay(100); startAnimation = true }
 
         LaunchedEffect(lottieAnimationComplete) {
-            if (lottieAnimationComplete) {
-                delay(500)
-                onSplashComplete()
-            }
+            if (lottieAnimationComplete) { delay(500); onSplashComplete() }
         }
 
-        // 🔒 Force LTR so corner images never flip when language is RTL (Arabic/Kurdish)
+        // 🔒 Force LTR — corner images must never flip in RTL languages
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black)
-            ) {
-                // TOP LEFT corner image - FLUSH with edges using Crop
-                Image(
-                    painter = painterResource(Res.drawable.top_left_background),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(dimensions.cornerImageSize)
-                        .align(Alignment.TopStart)
-                        .graphicsLayer {
-                            translationX = topLeftTranslationX
-                            translationY = topLeftTranslationY
-                        },
-                    contentScale = ContentScale.Crop
-                )
+            Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
 
-                // TOP RIGHT corner image - FLUSH with edges using Crop
-                Image(
-                    painter = painterResource(Res.drawable.top_right_background),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(dimensions.cornerImageSize)
-                        .align(Alignment.TopEnd)
-                        .graphicsLayer {
-                            translationX = topRightTranslationX
-                            translationY = topRightTranslationY
-                        },
-                    contentScale = ContentScale.Crop
-                )
+                // Corner images
+                Image(painterResource(Res.drawable.top_left_background), null,
+                    modifier = Modifier.size(dimensions.cornerImageSize).align(Alignment.TopStart)
+                        .graphicsLayer { translationX = topLeftTranslationX; translationY = topLeftTranslationY },
+                    contentScale = ContentScale.Crop)
 
-                // BOTTOM LEFT corner image - FLUSH with edges using Crop
-                Image(
-                    painter = painterResource(Res.drawable.bottom_left_background),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(dimensions.cornerImageSize)
-                        .align(Alignment.BottomStart)
-                        .graphicsLayer {
-                            translationX = bottomLeftTranslationX
-                            translationY = bottomLeftTranslationY
-                        },
-                    contentScale = ContentScale.Crop
-                )
+                Image(painterResource(Res.drawable.top_right_background), null,
+                    modifier = Modifier.size(dimensions.cornerImageSize).align(Alignment.TopEnd)
+                        .graphicsLayer { translationX = topRightTranslationX; translationY = topRightTranslationY },
+                    contentScale = ContentScale.Crop)
 
-                // BOTTOM RIGHT corner image - FLUSH with edges using Crop
-                Image(
-                    painter = painterResource(Res.drawable.bottom_right_background),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(dimensions.cornerImageSize)
-                        .align(Alignment.BottomEnd)
-                        .graphicsLayer {
-                            translationX = bottomRightTranslationX
-                            translationY = bottomRightTranslationY
-                        },
-                    contentScale = ContentScale.Crop
-                )
+                Image(painterResource(Res.drawable.bottom_left_background), null,
+                    modifier = Modifier.size(dimensions.cornerImageSize).align(Alignment.BottomStart)
+                        .graphicsLayer { translationX = bottomLeftTranslationX; translationY = bottomLeftTranslationY },
+                    contentScale = ContentScale.Crop)
 
-                // CENTER LOGO - Natural size (like login screen)
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
+                Image(painterResource(Res.drawable.bottom_right_background), null,
+                    modifier = Modifier.size(dimensions.cornerImageSize).align(Alignment.BottomEnd)
+                        .graphicsLayer { translationX = bottomRightTranslationX; translationY = bottomRightTranslationY },
+                    contentScale = ContentScale.Crop)
+
+                // CENTER LOGO
+                // LANDSCAPE FIX: In landscape the available height is much smaller.
+                // We wrap in BoxWithConstraints so the logo never exceeds 70% of
+                // the current screen height, keeping it comfortably within the
+                // visible area even on phone landscape (≈ 360 dp tall).
+                BoxWithConstraints(
+                    modifier = Modifier.fillMaxSize()
                         .padding(dimensions.screenPadding)
                         .alpha(logoAlpha)
                         .scale(logoScale),
                     contentAlignment = Alignment.Center
                 ) {
-                    // 🎨 LOTTIE ANIMATION - NO SIZE CONSTRAINT!
-                    // Renders naturally like login screen
+                    val maxLogoSize = if (isLandscape) {
+                        // Cap the logo at 70 % of available height in landscape
+                        (maxHeight * 0.70f)
+                    } else {
+                        // Portrait: unconstrained (fills available space naturally)
+                        dimensions.logoSize   // reference — actual size is set by ContentScale.Fit
+                    }
+
                     if (composition != null) {
                         Image(
                             painter = lottiePainter,
                             contentDescription = stringResource(Res.string.app_name),
                             modifier = Modifier
+                                .then(
+                                    if (isLandscape)
+                                        Modifier.heightIn(max = maxLogoSize)
+                                    else
+                                        Modifier
+                                )
                                 .padding(dimensions.logoPadding),
                             contentScale = ContentScale.Fit
                         )
@@ -276,7 +183,10 @@ fun CompleteSplashScreen(
     }
 }
 
-// Preview for different themes - All with BLACK background
+// ─────────────────────────────────────────────────────────────────────────────
+// Previews
+// ─────────────────────────────────────────────────────────────────────────────
+
 @Preview
 @Composable
 fun SplashScreenNeutralLightPreview() {

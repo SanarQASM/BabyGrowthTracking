@@ -26,10 +26,9 @@ import babygrowthtrackingapplication.composeapp.generated.resources.*
 
 // ─────────────────────────────────────────────────────────────────────────────
 // WHO Standard Growth Percentile Data (0–24 months)
-// Triple = (3rd percentile, 50th percentile, 97th percentile)
 // ─────────────────────────────────────────────────────────────────────────────
 
-private val whoWeight = mapOf(   // kg
+private val whoWeight = mapOf(
     0  to Triple(2.5,  3.3,  4.3),  1  to Triple(3.4,  4.5,  5.7),
     2  to Triple(4.4,  5.6,  7.1),  3  to Triple(5.0,  6.4,  8.0),
     4  to Triple(5.6,  7.0,  8.7),  5  to Triple(6.1,  7.5,  9.3),
@@ -41,7 +40,7 @@ private val whoWeight = mapOf(   // kg
     24 to Triple(9.7,  12.2, 15.3)
 )
 
-private val whoHeight = mapOf(   // cm
+private val whoHeight = mapOf(
     0  to Triple(46.1, 49.9, 53.7),  1  to Triple(50.8, 54.7, 58.6),
     2  to Triple(54.4, 58.4, 62.4),  3  to Triple(57.3, 61.4, 65.5),
     4  to Triple(59.7, 63.9, 68.0),  5  to Triple(61.7, 65.9, 70.1),
@@ -53,7 +52,7 @@ private val whoHeight = mapOf(   // cm
     24 to Triple(82.5, 88.0, 95.5)
 )
 
-private val whoHead = mapOf(   // cm
+private val whoHead = mapOf(
     0  to Triple(32.1, 34.5, 36.9),  1  to Triple(35.1, 37.3, 39.5),
     2  to Triple(36.9, 39.1, 41.3),  3  to Triple(38.3, 40.5, 42.7),
     4  to Triple(39.4, 41.6, 43.8),  5  to Triple(40.3, 42.6, 44.8),
@@ -65,45 +64,23 @@ private val whoHead = mapOf(   // cm
     24 to Triple(45.2, 47.8, 50.4)
 )
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Chart-level colour constants
-// ─────────────────────────────────────────────────────────────────────────────
-
-private val WHO_97_COLOR = Color(0xFF4CAF50)   // green  – high range
-private val WHO_50_COLOR = Color(0xFFFFC107)   // amber  – average
-private val WHO_3_COLOR  = Color(0xFFF44336)   // red    – low range
-private val HEAD_COLOR   = Color(0xFF9C27B0)   // purple – head circumference
-private val TEAM_COLOR   = Color(0xFF00ACC1)   // teal   – team-added records
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Chart filter enum
-// ─────────────────────────────────────────────────────────────────────────────
+private val WHO_97_COLOR = Color(0xFF4CAF50)
+private val WHO_50_COLOR = Color(0xFFFFC107)
+private val WHO_3_COLOR  = Color(0xFFF44336)
+private val HEAD_COLOR   = Color(0xFF9C27B0)
+private val TEAM_COLOR   = Color(0xFF00ACC1)
 
 enum class ChartFilter { ALL, WEIGHT, HEIGHT, HEAD }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Localised month-name helper
-//
-// Returns a 13-element list (index 0 unused, indices 1-12 = Jan-Dec) built
-// entirely from string resources so month abbreviations are translatable.
-// All composables that need to format a date call this once with `remember`.
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun rememberMonthNames(): List<String> = listOf(
-    "",  // index 0 – unused sentinel
-    stringResource(Res.string.month_jan),
-    stringResource(Res.string.month_feb),
-    stringResource(Res.string.month_mar),
-    stringResource(Res.string.month_apr),
-    stringResource(Res.string.month_may),
-    stringResource(Res.string.month_jun),
-    stringResource(Res.string.month_jul),
-    stringResource(Res.string.month_aug),
-    stringResource(Res.string.month_sep),
-    stringResource(Res.string.month_oct),
-    stringResource(Res.string.month_nov),
-    stringResource(Res.string.month_dec)
+    "",
+    stringResource(Res.string.month_jan), stringResource(Res.string.month_feb),
+    stringResource(Res.string.month_mar), stringResource(Res.string.month_apr),
+    stringResource(Res.string.month_may), stringResource(Res.string.month_jun),
+    stringResource(Res.string.month_jul), stringResource(Res.string.month_aug),
+    stringResource(Res.string.month_sep), stringResource(Res.string.month_oct),
+    stringResource(Res.string.month_nov), stringResource(Res.string.month_dec)
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -119,6 +96,7 @@ fun ChartsTabContent(
     val state        = viewModel.uiState
     val customColors = MaterialTheme.customColors
     val dimensions   = LocalDimensions.current
+    val isLandscape  = LocalIsLandscape.current
 
     val activeBabies      = remember(state.babies) { state.babies.filter { it.isActive } }
     var selectedBabyIndex by remember { mutableStateOf(0) }
@@ -132,204 +110,350 @@ fun ChartsTabContent(
     val accentStart = customColors.accentGradientStart
     val accentEnd   = customColors.accentGradientEnd
 
-    Column(modifier = Modifier.fillMaxSize()) {
-
-        // ── STICKY HEADER ─────────────────────────────────────────────────────
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Brush.horizontalGradient(listOf(accentStart, accentEnd)))
-                .padding(horizontal = dimensions.spacingLarge, vertical = dimensions.spacingMedium - dimensions.spacingXSmall)
-        ) {
-            Row(
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall + dimensions.spacingXSmall)
+    if (isLandscape) {
+        // ── LANDSCAPE: Two-pane layout — controls left, chart right ──────────
+        Row(modifier = Modifier.fillMaxSize()) {
+            // Left pane: selectors, filters, legend
+            Column(
+                modifier = Modifier
+                    .width(260.dp)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(dimensions.spacingMedium),
+                verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(dimensions.iconLarge + dimensions.spacingXSmall)
-                        .background(Color.White.copy(0.25f), RoundedCornerShape(dimensions.spacingSmall + dimensions.spacingXSmall)),
-                    contentAlignment = Alignment.Center
-                ) { Text("📈", style = MaterialTheme.typography.titleLarge) }
-                Text(
-                    stringResource(Res.string.chart_title),
-                    style      = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color      = Color.White
-                )
-            }
-        }
+                // Header
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
+                    Box(
+                        modifier = Modifier
+                            .size(dimensions.iconLarge)
+                            .background(accentStart.copy(0.15f), RoundedCornerShape(dimensions.spacingSmall)),
+                        contentAlignment = Alignment.Center
+                    ) { Text("📈", style = MaterialTheme.typography.titleMedium) }
+                    Text(
+                        stringResource(Res.string.chart_title),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
 
-        // ── SCROLLABLE BODY ───────────────────────────────────────────────────
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = dimensions.spacingXXLarge + dimensions.spacingXLarge)
-        ) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-            // ── Main card: selector + filter + chart + legend ─────────────────
-            Card(
-                modifier  = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal = dimensions.screenPadding,
-                        vertical   = dimensions.spacingMedium
-                    ),
-                shape     = RoundedCornerShape(dimensions.cardCornerRadius + dimensions.spacingXSmall),
-                colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(dimensions.cardElevation)
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(dimensions.spacingMedium),
-                    verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
-                ) {
-
-                    // ── Baby selector ─────────────────────────────────────────
-                    if (activeBabies.isEmpty()) {
-                        Text(
-                            stringResource(Res.string.chart_no_child_hint),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
-                        )
-                    } else {
-                        Box {
-                            OutlinedButton(
-                                onClick = { dropdownExpanded = true },
-                                shape   = RoundedCornerShape(dimensions.buttonCornerRadius),
-                                border  = BorderStroke(1.dp, accentStart.copy(0.4f)),
-                                colors  = ButtonDefaults.outlinedButtonColors(contentColor = accentStart),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text(
-                                    selectedBaby?.fullName ?: stringResource(Res.string.chart_select_child),
-                                    style      = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    modifier   = Modifier.weight(1f)
-                                )
-                                Icon(Icons.Default.ArrowDropDown, contentDescription = null, modifier = Modifier.size(dimensions.iconSmall))
-                            }
-                            DropdownMenu(
-                                expanded        = dropdownExpanded,
-                                onDismissRequest = { dropdownExpanded = false }
-                            ) {
-                                activeBabies.forEachIndexed { idx, baby ->
-                                    DropdownMenuItem(
-                                        text    = { Text(baby.fullName) },
-                                        onClick = {
-                                            selectedBabyIndex = idx
-                                            dropdownExpanded  = false
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                    // ── Filter chips ──────────────────────────────────────────
-                    Row(
-                        modifier              = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
-                    ) {
-                        ChartFilter.entries.forEach { f ->
-                            val sel = chartFilter == f
-                            FilterChip(
-                                selected = sel,
-                                onClick  = { chartFilter = f },
-                                label    = {
-                                    Text(
-                                        text       = when (f) {
-                                            ChartFilter.ALL    -> stringResource(Res.string.chart_filter_all)
-                                            ChartFilter.WEIGHT -> stringResource(Res.string.chart_filter_weight)
-                                            ChartFilter.HEIGHT -> stringResource(Res.string.chart_filter_height)
-                                            ChartFilter.HEAD   -> stringResource(Res.string.chart_filter_head)
-                                        },
-                                        fontWeight = if (sel) FontWeight.Bold else FontWeight.Normal,
-                                        color      = if (sel) Color.White else accentStart,
-                                        maxLines   = 1,
-                                        overflow   = TextOverflow.Ellipsis,
-                                        textAlign  = TextAlign.Center
-                                    )
-                                },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor    = accentStart,
-                                    selectedLabelColor        = Color.White,
-                                    containerColor            = accentStart.copy(0.08f),
-                                    labelColor                = accentStart
-                                ),
+                // Baby selector
+                if (activeBabies.isEmpty()) {
+                    Text(
+                        stringResource(Res.string.chart_no_child_hint),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
+                    )
+                } else {
+                    Text(
+                        stringResource(Res.string.chart_select_child),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(0.6f),
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Box {
+                        OutlinedButton(
+                            onClick = { dropdownExpanded = true },
+                            shape   = RoundedCornerShape(dimensions.buttonCornerRadius),
+                            border  = BorderStroke(1.dp, accentStart.copy(0.4f)),
+                            colors  = ButtonDefaults.outlinedButtonColors(contentColor = accentStart),
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 8.dp)
+                        ) {
+                            Text(
+                                selectedBaby?.fullName ?: stringResource(Res.string.chart_select_child),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier.weight(1f)
                             )
+                            Icon(Icons.Default.ArrowDropDown, null, modifier = Modifier.size(dimensions.iconSmall))
+                        }
+                        DropdownMenu(expanded = dropdownExpanded, onDismissRequest = { dropdownExpanded = false }) {
+                            activeBabies.forEachIndexed { idx, baby ->
+                                DropdownMenuItem(
+                                    text = { Text(baby.fullName) },
+                                    onClick = { selectedBabyIndex = idx; dropdownExpanded = false }
+                                )
+                            }
                         }
                     }
+                }
 
-                    // ── Chart canvas ──────────────────────────────────────────
-                    if (selectedBaby == null) {
-                        EmptyChartBox(
-                            accentStart,
-                            stringResource(Res.string.chart_no_baby),
-                            stringResource(Res.string.chart_no_baby_desc),
-                            "👶"
-                        )
-                    } else if (allRecords.isEmpty()) {
-                        EmptyChartBox(
-                            accentStart,
-                            stringResource(Res.string.chart_no_measurement),
-                            stringResource(Res.string.chart_no_measurement_desc),
-                            "📊"
-                        )
-                    } else {
-                        GrowthChartCanvas(
-                            records     = allRecords,
-                            filter      = chartFilter,
-                            accentStart = accentStart,
-                            accentEnd   = accentEnd
-                        )
-                    }
-
-                    // ── Legend ────────────────────────────────────────────────
-                    if (selectedBaby != null) {
-                        ChartLegend(
-                            babyName    = selectedBaby.fullName,
-                            filter      = chartFilter,
-                            accentStart = accentStart,
-                            accentEnd   = accentEnd
+                // Filter chips — vertical in landscape sidebar
+                Text(
+                    "Filter",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(0.6f),
+                    fontWeight = FontWeight.SemiBold
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    ChartFilter.entries.forEach { f ->
+                        val sel = chartFilter == f
+                        FilterChip(
+                            selected = sel,
+                            onClick  = { chartFilter = f },
+                            label = {
+                                Text(
+                                    text = when (f) {
+                                        ChartFilter.ALL    -> stringResource(Res.string.chart_filter_all)
+                                        ChartFilter.WEIGHT -> stringResource(Res.string.chart_filter_weight)
+                                        ChartFilter.HEIGHT -> stringResource(Res.string.chart_filter_height)
+                                        ChartFilter.HEAD   -> stringResource(Res.string.chart_filter_head)
+                                    },
+                                    fontWeight = if (sel) FontWeight.Bold else FontWeight.Normal,
+                                    color      = if (sel) Color.White else accentStart,
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = accentStart,
+                                selectedLabelColor     = Color.White,
+                                containerColor         = accentStart.copy(0.08f),
+                                labelColor             = accentStart
+                            ),
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
+
+                // Legend
+                if (selectedBaby != null) {
+                    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                    ChartLegend(
+                        babyName    = selectedBaby.fullName,
+                        filter      = chartFilter,
+                        accentStart = accentStart,
+                        accentEnd   = accentEnd
+                    )
+                }
             }
 
-            // ── Latest Measurement card ───────────────────────────────────────
-            if (selectedBaby != null) {
-                LatestMeasurementCard(
-                    latestGrowth = latestGrowth,
-                    accentStart  = accentStart,
-                    accentEnd    = accentEnd,
-                    onViewAll    = { onViewAllMeasurements(selectedBaby.babyId) },
-                    onAddMeasure = { onAddMeasurement(selectedBaby.babyId) }
-                )
+            VerticalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+
+            // Right pane: chart + latest measurement card
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .verticalScroll(rememberScrollState())
+                    .padding(dimensions.spacingMedium),
+                verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
+            ) {
+                // Chart fills available height — taller in landscape right pane
+                Card(
+                    modifier  = Modifier.fillMaxWidth(),
+                    shape     = RoundedCornerShape(dimensions.cardCornerRadius),
+                    colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(dimensions.cardElevation)
+                ) {
+                    Box(modifier = Modifier.fillMaxWidth().padding(dimensions.spacingSmall)) {
+                        if (selectedBaby == null) {
+                            EmptyChartBox(accentStart,
+                                stringResource(Res.string.chart_no_baby),
+                                stringResource(Res.string.chart_no_baby_desc), "👶")
+                        } else if (allRecords.isEmpty()) {
+                            EmptyChartBox(accentStart,
+                                stringResource(Res.string.chart_no_measurement),
+                                stringResource(Res.string.chart_no_measurement_desc), "📊")
+                        } else {
+                            // In landscape, chart gets a fixed taller height
+                            GrowthChartCanvas(
+                                records     = allRecords,
+                                filter      = chartFilter,
+                                accentStart = accentStart,
+                                accentEnd   = accentEnd,
+                                landscapeHeight = 320.dp
+                            )
+                        }
+                    }
+                }
+
+                // Latest measurement below chart in landscape
+                if (selectedBaby != null) {
+                    LatestMeasurementCard(
+                        latestGrowth = latestGrowth,
+                        accentStart  = accentStart,
+                        accentEnd    = accentEnd,
+                        onViewAll    = { onViewAllMeasurements(selectedBaby.babyId) },
+                        onAddMeasure = { onAddMeasurement(selectedBaby.babyId) }
+                    )
+                }
+            }
+        }
+    } else {
+        // ── PORTRAIT: original single-column layout ───────────────────────────
+        Column(modifier = Modifier.fillMaxSize()) {
+            // Header
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Brush.horizontalGradient(listOf(accentStart, accentEnd)))
+                    .padding(horizontal = dimensions.spacingLarge, vertical = dimensions.spacingMedium - dimensions.spacingXSmall)
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall + dimensions.spacingXSmall)) {
+                    Box(
+                        modifier = Modifier
+                            .size(dimensions.iconLarge + dimensions.spacingXSmall)
+                            .background(Color.White.copy(0.25f), RoundedCornerShape(dimensions.spacingSmall + dimensions.spacingXSmall)),
+                        contentAlignment = Alignment.Center
+                    ) { Text("📈", style = MaterialTheme.typography.titleLarge) }
+                    Text(
+                        stringResource(Res.string.chart_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(bottom = dimensions.spacingXXLarge + dimensions.spacingXLarge)
+            ) {
+                Card(
+                    modifier  = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingMedium),
+                    shape     = RoundedCornerShape(dimensions.cardCornerRadius + dimensions.spacingXSmall),
+                    colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(dimensions.cardElevation)
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth().padding(dimensions.spacingMedium),
+                        verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
+                    ) {
+                        if (activeBabies.isEmpty()) {
+                            Text(
+                                stringResource(Res.string.chart_no_child_hint),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
+                            )
+                        } else {
+                            Box {
+                                OutlinedButton(
+                                    onClick = { dropdownExpanded = true },
+                                    shape   = RoundedCornerShape(dimensions.buttonCornerRadius),
+                                    border  = BorderStroke(1.dp, accentStart.copy(0.4f)),
+                                    colors  = ButtonDefaults.outlinedButtonColors(contentColor = accentStart),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        selectedBaby?.fullName ?: stringResource(Res.string.chart_select_child),
+                                        style = MaterialTheme.typography.labelMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    Icon(Icons.Default.ArrowDropDown, null, modifier = Modifier.size(dimensions.iconSmall))
+                                }
+                                DropdownMenu(expanded = dropdownExpanded, onDismissRequest = { dropdownExpanded = false }) {
+                                    activeBabies.forEachIndexed { idx, baby ->
+                                        DropdownMenuItem(
+                                            text    = { Text(baby.fullName) },
+                                            onClick = { selectedBabyIndex = idx; dropdownExpanded = false }
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        // Filter chips — horizontal in portrait
+                        Row(modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)) {
+                            ChartFilter.entries.forEach { f ->
+                                val sel = chartFilter == f
+                                FilterChip(
+                                    selected = sel,
+                                    onClick  = { chartFilter = f },
+                                    label = {
+                                        Text(
+                                            text = when (f) {
+                                                ChartFilter.ALL    -> stringResource(Res.string.chart_filter_all)
+                                                ChartFilter.WEIGHT -> stringResource(Res.string.chart_filter_weight)
+                                                ChartFilter.HEIGHT -> stringResource(Res.string.chart_filter_height)
+                                                ChartFilter.HEAD   -> stringResource(Res.string.chart_filter_head)
+                                            },
+                                            fontWeight = if (sel) FontWeight.Bold else FontWeight.Normal,
+                                            color      = if (sel) Color.White else accentStart,
+                                            maxLines   = 1,
+                                            overflow   = TextOverflow.Ellipsis,
+                                            textAlign  = TextAlign.Center
+                                        )
+                                    },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = accentStart,
+                                        selectedLabelColor     = Color.White,
+                                        containerColor         = accentStart.copy(0.08f),
+                                        labelColor             = accentStart
+                                    ),
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
+                        }
+
+                        if (selectedBaby == null) {
+                            EmptyChartBox(accentStart,
+                                stringResource(Res.string.chart_no_baby),
+                                stringResource(Res.string.chart_no_baby_desc), "👶")
+                        } else if (allRecords.isEmpty()) {
+                            EmptyChartBox(accentStart,
+                                stringResource(Res.string.chart_no_measurement),
+                                stringResource(Res.string.chart_no_measurement_desc), "📊")
+                        } else {
+                            GrowthChartCanvas(
+                                records     = allRecords,
+                                filter      = chartFilter,
+                                accentStart = accentStart,
+                                accentEnd   = accentEnd
+                            )
+                        }
+
+                        if (selectedBaby != null) {
+                            ChartLegend(
+                                babyName    = selectedBaby.fullName,
+                                filter      = chartFilter,
+                                accentStart = accentStart,
+                                accentEnd   = accentEnd
+                            )
+                        }
+                    }
+                }
+
+                if (selectedBaby != null) {
+                    LatestMeasurementCard(
+                        latestGrowth = latestGrowth,
+                        accentStart  = accentStart,
+                        accentEnd    = accentEnd,
+                        onViewAll    = { onViewAllMeasurements(selectedBaby.babyId) },
+                        onAddMeasure = { onAddMeasurement(selectedBaby.babyId) }
+                    )
+                }
             }
         }
     }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// GROWTH CHART CANVAS
+// GROWTH CHART CANVAS — added optional landscapeHeight parameter
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun GrowthChartCanvas(
-    records     : List<GrowthRecordResponse>,
-    filter      : ChartFilter,
-    accentStart : Color,
-    accentEnd   : Color
+    records         : List<GrowthRecordResponse>,
+    filter          : ChartFilter,
+    accentStart     : Color,
+    accentEnd       : Color,
+    landscapeHeight : Dp? = null   // when non-null, use this fixed height
 ) {
     val dimensions = LocalDimensions.current
     val maxMonths  = 24
 
-    // parentRecords = no measuredByName (added by parent)
-    // teamRecords   = has measuredByName (added by health team)
     val parentRecords = remember(records) { records.filter { it.measuredByName.isNullOrBlank() } }
     val teamRecords   = remember(records) { records.filter { !it.measuredByName.isNullOrBlank() } }
 
@@ -358,10 +482,13 @@ private fun GrowthChartCanvas(
 
     val ageMonthsLabel = stringResource(Res.string.chart_age_months_label)
 
+    // Chart height: use provided landscape height or default adaptive height
+    val chartHeight = landscapeHeight ?: (dimensions.avatarLarge * 4)
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(dimensions.avatarLarge * 4)
+            .height(chartHeight)
     ) {
         yLabels.forEachIndexed { i, v ->
             val topFraction = i.toFloat() / 5f
@@ -372,10 +499,7 @@ private fun GrowthChartCanvas(
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .fillMaxWidth()
-                    .padding(
-                        top = (topFraction * 204).dp,
-                        end = dimensions.spacingXSmall
-                    ),
+                    .padding(top = (topFraction * (chartHeight.value * 0.85f)).dp, end = dimensions.spacingXSmall),
                 textAlign = TextAlign.End
             )
         }
@@ -404,15 +528,13 @@ private fun GrowthChartCanvas(
 
             val stdDash  = PathEffect.dashPathEffect(floatArrayOf(7f, 4f))
             val dataDash = PathEffect.dashPathEffect(floatArrayOf(10f, 5f))
-
             val whoSorted = whoRef.keys.sorted()
 
             if (filter == ChartFilter.ALL) {
                 val path50 = Path()
                 whoSorted.forEachIndexed { i, mo ->
                     val v = whoRef[mo]!!.second.toFloat()
-                    if (i == 0) path50.moveTo(xOf(mo), yOf(v))
-                    else        path50.lineTo(xOf(mo), yOf(v))
+                    if (i == 0) path50.moveTo(xOf(mo), yOf(v)) else path50.lineTo(xOf(mo), yOf(v))
                 }
                 drawPath(path50, WHO_50_COLOR.copy(alpha = 0.20f), style = Stroke(1f, pathEffect = stdDash))
             } else {
@@ -425,8 +547,7 @@ private fun GrowthChartCanvas(
                     val path = Path()
                     whoSorted.forEachIndexed { i, mo ->
                         val v = get(whoRef[mo]!!)
-                        if (i == 0) path.moveTo(xOf(mo), yOf(v))
-                        else        path.lineTo(xOf(mo), yOf(v))
+                        if (i == 0) path.moveTo(xOf(mo), yOf(v)) else path.lineTo(xOf(mo), yOf(v))
                     }
                     drawPath(path, col, style = Stroke(1.5f, pathEffect = stdDash))
                 }
@@ -442,13 +563,7 @@ private fun GrowthChartCanvas(
                 val pts = recs
                     .filter { get(it) != null }
                     .sortedBy { it.ageInMonths }
-                    .map {
-                        Offset(
-                            xOf(it.ageInMonths.coerceIn(0, maxMonths)),
-                            yOf(get(it)!!.toFloat())
-                        )
-                    }
-
+                    .map { Offset(xOf(it.ageInMonths.coerceIn(0, maxMonths)), yOf(get(it)!!.toFloat())) }
                 if (pts.size >= 2) {
                     val path = Path().apply {
                         moveTo(pts.first().x, pts.first().y)
@@ -464,9 +579,6 @@ private fun GrowthChartCanvas(
                 }
             }
 
-            // ── Data lines ────────────────────────────────────────────────────
-            // parentRecords (measuredByName is null/blank) → solid line → accentStart / accentEnd / HEAD_COLOR
-            // teamRecords   (measuredByName is set)        → dashed line in ALL; TEAM_COLOR in single
             when (filter) {
                 ChartFilter.ALL -> {
                     drawDataLine(parentRecords, { it.weight },            accentStart)
@@ -503,26 +615,23 @@ private fun GrowthChartCanvas(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             listOf("0", "4", "8", "12", "16", "20", "24").forEach { label ->
-                Text(
-                    label,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(0.55f)
-                )
+                Text(label, style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(0.55f))
             }
         }
     }
 
     Text(
         ageMonthsLabel,
-        style     = MaterialTheme.typography.labelSmall,
-        color     = MaterialTheme.colorScheme.onSurface.copy(0.4f),
-        modifier  = Modifier.fillMaxWidth(),
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurface.copy(0.4f),
+        modifier = Modifier.fillMaxWidth(),
         textAlign = TextAlign.Center
     )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// LEGEND
+// LEGEND — unchanged from original
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -543,10 +652,8 @@ private fun ChartLegend(
     val weightKg           = stringResource(Res.string.chart_legend_weight_kg)
     val heightCm           = stringResource(Res.string.chart_legend_height_cm)
     val headCm             = stringResource(Res.string.chart_legend_head_cm)
-
-    // ── Unit strings (reuse existing add_baby_unit_* resources) ───────────────
-    val unitKg = stringResource(Res.string.add_baby_unit_kg)
-    val unitCm = stringResource(Res.string.add_baby_unit_cm)
+    val unitKg             = stringResource(Res.string.add_baby_unit_kg)
+    val unitCm             = stringResource(Res.string.add_baby_unit_cm)
 
     Column(
         modifier = Modifier
@@ -558,68 +665,37 @@ private fun ChartLegend(
     ) {
         Text(
             stringResource(Res.string.chart_legend_title),
-            style      = MaterialTheme.typography.labelLarge,
+            style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
-            color      = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         when (filter) {
-
             ChartFilter.ALL -> {
-                // In ALL mode: both parent and team use the same accent colours,
-                // distinguished by solid (parent) vs dashed (team) line style.
                 LegendSectionHeader(legendParentAdded)
                 LegendRow(accentStart, weightKg, dashed = false, showDot = true)
                 LegendRow(accentEnd,   heightCm, dashed = false, showDot = true)
                 LegendRow(HEAD_COLOR,  headCm,   dashed = false, showDot = true)
-
                 Spacer(Modifier.height(dimensions.spacingXSmall))
-
                 LegendSectionHeader(legendTeamAdded)
                 LegendRow(accentStart, weightKg, dashed = true, showDot = true)
                 LegendRow(accentEnd,   heightCm, dashed = true, showDot = true)
                 LegendRow(HEAD_COLOR,  headCm,   dashed = true, showDot = true)
-
                 Spacer(Modifier.height(dimensions.spacingXSmall))
-
                 LegendSectionHeader(legendWhoRef)
                 LegendRow(WHO_50_COLOR.copy(alpha = 0.5f), legendWhoAvg, dashed = true, showDot = false)
             }
-
-            ChartFilter.WEIGHT,
-            ChartFilter.HEIGHT,
-            ChartFilter.HEAD -> {
-                // ── Unit for each single-metric filter ────────────────────────
-                // Was: "kg" / "cm" hardcoded as metricUnit. Now resolved from resources.
+            ChartFilter.WEIGHT, ChartFilter.HEIGHT, ChartFilter.HEAD -> {
                 val (metricLabel, metricUnit) = when (filter) {
                     ChartFilter.WEIGHT -> stringResource(Res.string.chart_filter_weight) to unitKg
                     ChartFilter.HEIGHT -> stringResource(Res.string.chart_filter_height) to unitCm
                     ChartFilter.HEAD   -> stringResource(Res.string.chart_filter_head)   to unitCm
                     else               -> "" to ""
                 }
-
                 LegendSectionHeader(legendBabyMeasure)
-
-                // ── FIX: Legend colors now match the chart canvas exactly ──────
-                // In GrowthChartCanvas single-metric:
-                //   parentRecords → accentStart (solid)
-                //   teamRecords   → TEAM_COLOR  (solid)
-                // The legend must mirror this 1:1.
-                LegendRow(
-                    color   = accentStart,
-                    label   = "👪  ${stringResource(Res.string.chart_legend_parent_prefix)} — $metricLabel ($metricUnit)",
-                    dashed  = false,
-                    showDot = true
-                )
-                LegendRow(
-                    color   = TEAM_COLOR,
-                    label   = "🏥  ${stringResource(Res.string.chart_legend_team_prefix)} — $metricLabel ($metricUnit)",
-                    dashed  = false,
-                    showDot = true
-                )
-
+                LegendRow(accentStart, "👪  ${stringResource(Res.string.chart_legend_parent_prefix)} — $metricLabel ($metricUnit)", dashed = false, showDot = true)
+                LegendRow(TEAM_COLOR, "🏥  ${stringResource(Res.string.chart_legend_team_prefix)} — $metricLabel ($metricUnit)", dashed = false, showDot = true)
                 Spacer(Modifier.height(dimensions.spacingXSmall))
-
                 LegendSectionHeader(legendWhoStandards)
                 LegendRow(WHO_97_COLOR, stringResource(Res.string.chart_legend_who97), dashed = true, showDot = true)
                 LegendRow(WHO_50_COLOR, stringResource(Res.string.chart_legend_who50), dashed = true, showDot = true)
@@ -631,52 +707,39 @@ private fun ChartLegend(
 
 @Composable
 private fun LegendSectionHeader(text: String) {
-    Text(
-        text,
-        style         = MaterialTheme.typography.labelSmall,
-        fontWeight    = FontWeight.Bold,
-        color         = MaterialTheme.colorScheme.onSurface.copy(0.6f),
-        letterSpacing = 0.3.sp
-    )
+    Text(text, style = MaterialTheme.typography.labelSmall,
+        fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.onSurface.copy(0.6f),
+        letterSpacing = 0.3.sp)
 }
 
 @Composable
-private fun LegendRow(
-    color  : Color,
-    label  : String,
-    dashed : Boolean,
-    showDot: Boolean
-) {
+private fun LegendRow(color: Color, label: String, dashed: Boolean, showDot: Boolean) {
     val dimensions = LocalDimensions.current
-    Row(
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
-    ) {
-        Canvas(Modifier.size(width = dimensions.spacingLarge + dimensions.spacingXSmall, height = dimensions.spacingSmall + dimensions.spacingXSmall)) {
+    Row(verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
+        Canvas(Modifier.size(width = dimensions.spacingLarge + dimensions.spacingXSmall,
+            height = dimensions.spacingSmall + dimensions.spacingXSmall)) {
             val y  = size.height / 2
             val pe = if (dashed) PathEffect.dashPathEffect(floatArrayOf(5f, 3f)) else null
             drawLine(color, Offset(0f, y), Offset(size.width, y), 2f, pathEffect = pe)
             if (!dashed) {
-                drawCircle(color,       3.5f, Offset(size.width / 2, y))
-                drawCircle(Color.White, 2f,   Offset(size.width / 2, y))
+                drawCircle(color, 3.5f, Offset(size.width / 2, y))
+                drawCircle(Color.White, 2f, Offset(size.width / 2, y))
             }
         }
-
-        Text(
-            label,
-            style    = MaterialTheme.typography.bodySmall,
-            color    = MaterialTheme.colorScheme.onSurface.copy(0.75f),
-            modifier = Modifier.weight(1f)
-        )
-
+        Text(label, style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(0.75f),
+            modifier = Modifier.weight(1f))
         if (showDot) {
-            Box(Modifier.size(dimensions.spacingSmall + dimensions.spacingXSmall).background(color, CircleShape))
+            Box(Modifier.size(dimensions.spacingSmall + dimensions.spacingXSmall)
+                .background(color, CircleShape))
         }
     }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// LATEST MEASUREMENT CARD
+// LATEST MEASUREMENT CARD — unchanged
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -690,7 +753,6 @@ private fun LatestMeasurementCard(
     val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
 
-    // ── Localised unit strings ────────────────────────────────────────────────
     val unitKg             = stringResource(Res.string.add_baby_unit_kg)
     val unitCm             = stringResource(Res.string.add_baby_unit_cm)
     val percentileSuffix   = stringResource(Res.string.chart_percentile_suffix)
@@ -701,220 +763,104 @@ private fun LatestMeasurementCard(
     val percentileWeightIcon = stringResource(Res.string.chart_percentile_weight_icon)
     val percentileHeightIcon = stringResource(Res.string.chart_percentile_height_icon)
     val notRecorded        = stringResource(Res.string.profile_not_recorded_value)
-
-    val monthNames = rememberMonthNames()
+    val monthNames         = rememberMonthNames()
 
     Card(
-        modifier  = Modifier
-            .fillMaxWidth()
-            .padding(
-                horizontal = dimensions.screenPadding,
-                vertical   = dimensions.spacingSmall
-            ),
+        modifier  = Modifier.fillMaxWidth().padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingSmall),
         shape     = RoundedCornerShape(dimensions.cardCornerRadius + dimensions.spacingXSmall),
         colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(dimensions.cardElevation)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(dimensions.spacingMedium),
-            verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
-        ) {
-            // ── Header ────────────────────────────────────────────────────────
-            Row(
-                Modifier.fillMaxWidth(),
-                Arrangement.SpaceBetween,
-                Alignment.CenterVertically
-            ) {
-                Text(
-                    stringResource(Res.string.chart_latest_measurement),
-                    style         = MaterialTheme.typography.labelMedium,
-                    fontWeight    = FontWeight.Bold,
-                    color         = accentStart,
-                    letterSpacing = 0.8.sp
-                )
+        Column(modifier = Modifier.fillMaxWidth().padding(dimensions.spacingMedium),
+            verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
+            Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
+                Text(stringResource(Res.string.chart_latest_measurement),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = accentStart, letterSpacing = 0.8.sp)
                 if (latestGrowth != null) {
-                    OutlinedButton(
-                        onClick        = onViewAll,
-                        shape          = RoundedCornerShape(dimensions.buttonCornerRadius),
-                        border         = BorderStroke(1.dp, accentStart.copy(0.5f)),
-                        colors         = ButtonDefaults.outlinedButtonColors(contentColor = accentStart),
-                        contentPadding = PaddingValues(
-                            horizontal = dimensions.spacingSmall + dimensions.spacingXSmall,
-                            vertical   = dimensions.spacingXSmall
-                        )
+                    OutlinedButton(onClick = onViewAll,
+                        shape = RoundedCornerShape(dimensions.buttonCornerRadius),
+                        border = BorderStroke(1.dp, accentStart.copy(0.5f)),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = accentStart),
+                        contentPadding = PaddingValues(horizontal = dimensions.spacingSmall + dimensions.spacingXSmall, vertical = dimensions.spacingXSmall)
                     ) {
-                        Text(
-                            stringResource(Res.string.chart_view_all),
-                            style      = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                        Text(stringResource(Res.string.chart_view_all),
+                            style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
 
             if (latestGrowth == null) {
-                // ── Empty state ───────────────────────────────────────────────
-                Box(
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = dimensions.spacingMedium),
-                    Alignment.Center
-                ) {
+                Box(Modifier.fillMaxWidth().padding(vertical = dimensions.spacingMedium), Alignment.Center) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text("📏", style = MaterialTheme.typography.displaySmall)
                         Spacer(Modifier.height(dimensions.spacingSmall))
-                        Text(
-                            stringResource(Res.string.chart_no_measurement),
-                            style     = MaterialTheme.typography.bodyMedium,
-                            color     = MaterialTheme.colorScheme.onSurface.copy(0.5f),
-                            textAlign = TextAlign.Center
-                        )
+                        Text(stringResource(Res.string.chart_no_measurement),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurface.copy(0.5f),
+                            textAlign = TextAlign.Center)
                         Spacer(Modifier.height(dimensions.spacingSmall))
-                        Button(
-                            onClick = onAddMeasure,
-                            colors  = ButtonDefaults.buttonColors(containerColor = accentStart),
-                            shape   = RoundedCornerShape(dimensions.buttonCornerRadius)
-                        ) {
+                        Button(onClick = onAddMeasure,
+                            colors = ButtonDefaults.buttonColors(containerColor = accentStart),
+                            shape  = RoundedCornerShape(dimensions.buttonCornerRadius)) {
                             Text(stringResource(Res.string.chart_add_measurement), color = Color.White)
                         }
                     }
                 }
             } else {
-                // ── Measurement content ───────────────────────────────────────
                 Column(verticalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)) {
-
-                    // Source badge (parent vs team)
                     val measurer = latestGrowth.measuredByName
                     if (!measurer.isNullOrBlank()) {
-                        // Team-added record
-                        Row(
-                            modifier = Modifier
-                                .background(
-                                    TEAM_COLOR.copy(0.12f),
-                                    RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
-                                )
-                                .border(
-                                    1.dp,
-                                    TEAM_COLOR.copy(0.25f),
-                                    RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
-                                )
-                                .padding(
-                                    horizontal = dimensions.spacingXSmall + dimensions.spacingXSmall,
-                                    vertical   = dimensions.spacingXSmall / 2
-                                ),
+                        Row(modifier = Modifier.background(TEAM_COLOR.copy(0.12f),
+                            RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall))
+                            .border(1.dp, TEAM_COLOR.copy(0.25f),
+                                RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall))
+                            .padding(horizontal = dimensions.spacingXSmall * 2, vertical = dimensions.spacingXSmall / 2),
                             horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall),
-                            verticalAlignment     = Alignment.CenterVertically
-                        ) {
+                            verticalAlignment = Alignment.CenterVertically) {
                             Text("🏥", style = MaterialTheme.typography.labelSmall)
-                            Text(
-                                measurer,
-                                style    = MaterialTheme.typography.labelSmall,
-                                color    = TEAM_COLOR,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                            Text(measurer, style = MaterialTheme.typography.labelSmall, color = TEAM_COLOR, maxLines = 1, overflow = TextOverflow.Ellipsis)
                         }
                     } else {
-                        // Parent-added record
-                        Row(
-                            modifier = Modifier
-                                .background(
-                                    accentStart.copy(0.10f),
-                                    RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
-                                )
-                                .border(
-                                    1.dp,
-                                    accentStart.copy(0.25f),
-                                    RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
-                                )
-                                .padding(
-                                    horizontal = dimensions.spacingXSmall + dimensions.spacingXSmall,
-                                    vertical   = dimensions.spacingXSmall / 2
-                                ),
+                        Row(modifier = Modifier.background(accentStart.copy(0.10f),
+                            RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall))
+                            .border(1.dp, accentStart.copy(0.25f),
+                                RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall))
+                            .padding(horizontal = dimensions.spacingXSmall * 2, vertical = dimensions.spacingXSmall / 2),
                             horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall),
-                            verticalAlignment     = Alignment.CenterVertically
-                        ) {
+                            verticalAlignment = Alignment.CenterVertically) {
                             Text("👪", style = MaterialTheme.typography.labelSmall)
-                            Text(
-                                stringResource(Res.string.chart_legend_parent_prefix),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = accentStart
-                            )
+                            Text(stringResource(Res.string.chart_legend_parent_prefix),
+                                style = MaterialTheme.typography.labelSmall, color = accentStart)
                         }
                     }
-
                     Spacer(Modifier.height(dimensions.spacingXSmall / 2))
-
-                    // ── Measurement rows ──────────────────────────────────────
-                    // Units are resolved from string resources; values are
-                    // constructed as plain Kotlin string templates because
-                    // KMP's stringResource does not reliably interpolate %s args.
-                    MeasureRow(
-                        icon = weightIcon,
-                        text = latestGrowth.weight?.let { "$it $unitKg" }
-                            ?: stringResource(Res.string.chart_weight_empty)
-                    )
-                    MeasureRow(
-                        icon = heightIcon,
-                        text = latestGrowth.height?.let { "$it $unitCm" }
-                            ?: stringResource(Res.string.chart_height_empty)
-                    )
-                    MeasureRow(
-                        icon = headIcon,
-                        text = latestGrowth.headCircumference?.let { "$it $unitCm" }
-                            ?: stringResource(Res.string.chart_head_empty)
-                    )
-
-                    // Date — emoji prefix from resources, formatted date assembled in Kotlin
-                    Text(
-                        "$dateEmojiPrefix  ${formatChartDate(latestGrowth.measurementDate, monthNames)}",
+                    MeasureRow(weightIcon, latestGrowth.weight?.let { "$it $unitKg" } ?: stringResource(Res.string.chart_weight_empty))
+                    MeasureRow(heightIcon, latestGrowth.height?.let { "$it $unitCm" } ?: stringResource(Res.string.chart_height_empty))
+                    MeasureRow(headIcon, latestGrowth.headCircumference?.let { "$it $unitCm" } ?: stringResource(Res.string.chart_head_empty))
+                    Text("$dateEmojiPrefix  ${formatChartDate(latestGrowth.measurementDate, monthNames)}",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(0.55f)
-                    )
-
-                    // Percentiles (if any)
-                    // Percentile suffix ("th %ile") comes from resources; the numeric
-                    // value and icon are assembled in Kotlin to avoid %s interpolation issues.
+                        color = MaterialTheme.colorScheme.onSurface.copy(0.55f))
                     val wp = latestGrowth.weightPercentile
                     val hp = latestGrowth.heightPercentile
                     if (wp != null || hp != null) {
                         Row(horizontalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)) {
-                            wp?.let {
-                                Text(
-                                    "$percentileWeightIcon $it$percentileSuffix",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = accentStart
-                                )
-                            }
-                            hp?.let {
-                                Text(
-                                    "$percentileHeightIcon $it$percentileSuffix",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = accentEnd
-                                )
-                            }
+                            wp?.let { Text("$percentileWeightIcon $it$percentileSuffix", style = MaterialTheme.typography.labelSmall, color = accentStart) }
+                            hp?.let { Text("$percentileHeightIcon $it$percentileSuffix", style = MaterialTheme.typography.labelSmall, color = accentEnd) }
                         }
                     }
                 }
-
-                // ── Add measurement button ────────────────────────────────────
                 Spacer(Modifier.height(dimensions.spacingXSmall))
-                OutlinedButton(
-                    onClick  = onAddMeasure,
-                    shape    = RoundedCornerShape(dimensions.buttonCornerRadius),
-                    border   = BorderStroke(1.dp, accentStart.copy(0.5f)),
-                    colors   = ButtonDefaults.outlinedButtonColors(contentColor = accentStart),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(dimensions.iconSmall))
+                OutlinedButton(onClick = onAddMeasure,
+                    shape = RoundedCornerShape(dimensions.buttonCornerRadius),
+                    border = BorderStroke(1.dp, accentStart.copy(0.5f)),
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = accentStart),
+                    modifier = Modifier.fillMaxWidth()) {
+                    Icon(Icons.Default.Add, null, modifier = Modifier.size(dimensions.iconSmall))
                     Spacer(Modifier.width(dimensions.spacingXSmall))
-                    Text(
-                        stringResource(Res.string.chart_add_measurement),
-                        style      = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    Text(stringResource(Res.string.chart_add_measurement),
+                        style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold)
                 }
             }
         }
@@ -924,22 +870,17 @@ private fun LatestMeasurementCard(
 @Composable
 private fun MeasureRow(icon: String, text: String) {
     val dimensions = LocalDimensions.current
-    Row(
-        verticalAlignment     = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
-    ) {
+    Row(verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)) {
         Text(icon, style = MaterialTheme.typography.bodySmall)
-        Text(
-            text,
-            style      = MaterialTheme.typography.bodySmall,
+        Text(text, style = MaterialTheme.typography.bodySmall,
             fontWeight = FontWeight.SemiBold,
-            color      = MaterialTheme.colorScheme.onSurface.copy(0.85f)
-        )
+            color = MaterialTheme.colorScheme.onSurface.copy(0.85f))
     }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MEASUREMENT HISTORY (All measurements screen helper)
+// MEASUREMENT HISTORY LIST
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -951,15 +892,12 @@ fun MeasurementHistoryList(
 ) {
     val dimensions = LocalDimensions.current
     LazyColumn(
-        modifier            = Modifier.fillMaxSize().padding(dimensions.screenPadding),
+        modifier = Modifier.fillMaxSize().padding(dimensions.screenPadding),
         verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
     ) {
         items(records, key = { it.recordId }) { record ->
-            MeasurementCard(
-                record      = record,
-                accentStart = accentStart,
-                onDelete    = { viewModel.deleteGrowthRecord(babyId, record.recordId) }
-            )
+            MeasurementCard(record = record, accentStart = accentStart,
+                onDelete = { viewModel.deleteGrowthRecord(babyId, record.recordId) })
         }
     }
 }
@@ -970,10 +908,8 @@ private fun MeasurementCard(
     accentStart: Color,
     onDelete   : () -> Unit
 ) {
-    val dimensions = LocalDimensions.current
-    var showDel by remember { mutableStateOf(false) }
-
-    // ── Localised unit strings ────────────────────────────────────────────────
+    val dimensions  = LocalDimensions.current
+    var showDel     by remember { mutableStateOf(false) }
     val unitKg      = stringResource(Res.string.add_baby_unit_kg)
     val unitCm      = stringResource(Res.string.add_baby_unit_cm)
     val notRecorded = stringResource(Res.string.profile_not_recorded_value)
@@ -982,202 +918,98 @@ private fun MeasurementCard(
     if (showDel) {
         AlertDialog(
             onDismissRequest = { showDel = false },
-            title   = { Text(stringResource(Res.string.chart_delete_measurement_title)) },
-            text    = {
-                Text(
-                    stringResource(
-                        Res.string.chart_delete_measurement_desc,
-                        formatChartDate(record.measurementDate, monthNames)
-                    )
-                )
-            },
+            title = { Text(stringResource(Res.string.chart_delete_measurement_title)) },
+            text  = { Text(stringResource(Res.string.chart_delete_measurement_desc,
+                formatChartDate(record.measurementDate, monthNames))) },
             confirmButton = {
                 TextButton(onClick = { showDel = false; onDelete() }) {
-                    Text(
-                        stringResource(Res.string.all_measures_delete),
-                        color = MaterialTheme.colorScheme.error
-                    )
+                    Text(stringResource(Res.string.all_measures_delete), color = MaterialTheme.colorScheme.error)
                 }
             },
-            dismissButton = {
-                TextButton(onClick = { showDel = false }) {
-                    Text(stringResource(Res.string.add_measure_cancel))
-                }
-            }
+            dismissButton = { TextButton(onClick = { showDel = false }) {
+                Text(stringResource(Res.string.add_measure_cancel))
+            }}
         )
     }
 
-    Card(
-        modifier  = Modifier.fillMaxWidth(),
-        shape     = RoundedCornerShape(dimensions.cardCornerRadius),
-        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(dimensions.spacingXSmall / 2)
-    ) {
-        Row(
-            modifier          = Modifier.fillMaxWidth().padding(dimensions.spacingMedium),
-            verticalAlignment = Alignment.Top
-        ) {
-            // Date badge
+    Card(modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(dimensions.cardCornerRadius),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(dimensions.spacingXSmall / 2)) {
+        Row(modifier = Modifier.fillMaxWidth().padding(dimensions.spacingMedium),
+            verticalAlignment = Alignment.Top) {
             val parts = record.measurementDate.split("-")
-            Box(
-                modifier = Modifier
-                    .size(dimensions.avatarMedium + dimensions.spacingXSmall)
-                    .background(
-                        accentStart.copy(0.12f),
-                        RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
-                    )
-                    .border(
-                        1.dp,
-                        accentStart.copy(0.3f),
-                        RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(modifier = Modifier.size(dimensions.avatarMedium + dimensions.spacingXSmall)
+                .background(accentStart.copy(0.12f),
+                    RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall))
+                .border(1.dp, accentStart.copy(0.3f),
+                    RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)),
+                contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    // Day number – fall back to profile_not_recorded_value ("—") if missing
-                    Text(
-                        parts.getOrNull(2) ?: notRecorded,
-                        style      = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold,
-                        color      = accentStart
-                    )
-                    // Month abbreviation from localised month names list
-                    Text(
-                        monthAbbrev(parts.getOrNull(1)?.toIntOrNull() ?: 0, monthNames),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = accentStart.copy(0.8f)
-                    )
+                    Text(parts.getOrNull(2) ?: notRecorded,
+                        style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = accentStart)
+                    Text(monthAbbrev(parts.getOrNull(1)?.toIntOrNull() ?: 0, monthNames),
+                        style = MaterialTheme.typography.labelSmall, color = accentStart.copy(0.8f))
                 }
             }
-
             Spacer(Modifier.width(dimensions.spacingSmall + dimensions.spacingXSmall))
-
-            Column(
-                modifier            = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall - 1.dp)
-            ) {
-                // Source badge
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall - 1.dp)) {
                 val measurer = record.measuredByName
                 if (!measurer.isNullOrBlank()) {
-                    Row(
-                        modifier = Modifier
-                            .background(
-                                TEAM_COLOR.copy(0.12f),
-                                RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
-                            )
-                            .padding(
-                                horizontal = dimensions.spacingXSmall + dimensions.spacingXSmall,
-                                vertical   = dimensions.spacingXSmall / 2
-                            ),
+                    Row(modifier = Modifier.background(TEAM_COLOR.copy(0.12f),
+                        RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall))
+                        .padding(horizontal = dimensions.spacingXSmall * 2, vertical = dimensions.spacingXSmall / 2),
                         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall),
-                        verticalAlignment     = Alignment.CenterVertically
-                    ) {
+                        verticalAlignment = Alignment.CenterVertically) {
                         Text("🏥", style = MaterialTheme.typography.labelSmall)
-                        Text(
-                            measurer,
-                            style    = MaterialTheme.typography.labelSmall,
-                            color    = TEAM_COLOR,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
+                        Text(measurer, style = MaterialTheme.typography.labelSmall, color = TEAM_COLOR,
+                            maxLines = 1, overflow = TextOverflow.Ellipsis)
                     }
                 } else {
-                    Box(
-                        modifier = Modifier
-                            .background(
-                                accentStart.copy(0.10f),
-                                RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
-                            )
-                            .border(
-                                1.dp,
-                                accentStart.copy(0.25f),
-                                RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
-                            )
-                            .padding(
-                                horizontal = dimensions.spacingXSmall + dimensions.spacingXSmall,
-                                vertical   = dimensions.spacingXSmall / 2
-                            )
-                    ) {
-                        Text(
-                            "👪 ${stringResource(Res.string.chart_legend_parent_prefix)}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = accentStart
-                        )
+                    Box(modifier = Modifier.background(accentStart.copy(0.10f),
+                        RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall))
+                        .border(1.dp, accentStart.copy(0.25f),
+                            RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall))
+                        .padding(horizontal = dimensions.spacingXSmall * 2, vertical = dimensions.spacingXSmall / 2)) {
+                        Text("👪 ${stringResource(Res.string.chart_legend_parent_prefix)}",
+                            style = MaterialTheme.typography.labelSmall, color = accentStart)
                     }
                 }
-
                 Spacer(Modifier.height(dimensions.spacingXSmall / 2))
-
-                // ── Measurement value rows ────────────────────────────────────
-                // Units resolved from resources; notRecorded ("—") used as fallback.
-                // Emoji icons for each measurement type also come from resources.
-                Text(
-                    "${stringResource(Res.string.chart_measurement_weight_icon)}  ${record.weight?.let { "$it $unitKg" } ?: notRecorded}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(0.8f)
-                )
-                Text(
-                    "${stringResource(Res.string.chart_measurement_height_icon)}  ${record.height?.let { "$it $unitCm" } ?: notRecorded}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(0.8f)
-                )
-                Text(
-                    "${stringResource(Res.string.chart_measurement_head_icon)}  ${record.headCircumference?.let { "$it $unitCm" } ?: notRecorded}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(0.8f)
-                )
+                Text("${stringResource(Res.string.chart_measurement_weight_icon)}  ${record.weight?.let { "$it $unitKg" } ?: notRecorded}",
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(0.8f))
+                Text("${stringResource(Res.string.chart_measurement_height_icon)}  ${record.height?.let { "$it $unitCm" } ?: notRecorded}",
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(0.8f))
+                Text("${stringResource(Res.string.chart_measurement_head_icon)}  ${record.headCircumference?.let { "$it $unitCm" } ?: notRecorded}",
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(0.8f))
             }
-
-            // Delete button
-            IconButton(
-                onClick  = { showDel = true },
-                modifier = Modifier.size(dimensions.iconLarge)
-            ) {
-                Icon(
-                    Icons.Default.Delete,
+            IconButton(onClick = { showDel = true }, modifier = Modifier.size(dimensions.iconLarge)) {
+                Icon(Icons.Default.Delete,
                     contentDescription = stringResource(Res.string.all_measures_delete),
-                    tint     = MaterialTheme.colorScheme.error.copy(0.7f),
-                    modifier = Modifier.size(dimensions.iconMedium)
-                )
+                    tint = MaterialTheme.colorScheme.error.copy(0.7f),
+                    modifier = Modifier.size(dimensions.iconMedium))
             }
         }
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// EMPTY STATE BOX
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun EmptyChartBox(
-    accentStart: Color,
-    title      : String,
-    subtitle   : String,
-    emoji      : String
-) {
+private fun EmptyChartBox(accentStart: Color, title: String, subtitle: String, emoji: String) {
     val dimensions = LocalDimensions.current
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(dimensions.avatarLarge * 3)
-            .background(accentStart.copy(0.04f), RoundedCornerShape(dimensions.cardCornerRadius))
-            .border(1.dp, accentStart.copy(0.15f), RoundedCornerShape(dimensions.cardCornerRadius)),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
-        ) {
+    Box(modifier = Modifier.fillMaxWidth().height(dimensions.avatarLarge * 3)
+        .background(accentStart.copy(0.04f), RoundedCornerShape(dimensions.cardCornerRadius))
+        .border(1.dp, accentStart.copy(0.15f), RoundedCornerShape(dimensions.cardCornerRadius)),
+        contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
             Text(emoji, style = MaterialTheme.typography.displaySmall)
-            Text(title,    style = MaterialTheme.typography.titleSmall,  fontWeight = FontWeight.Bold,  color = MaterialTheme.colorScheme.onSurface.copy(0.7f), textAlign = TextAlign.Center)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall,   color = MaterialTheme.colorScheme.onSurface.copy(0.45f), textAlign = TextAlign.Center)
+            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface.copy(0.7f), textAlign = TextAlign.Center)
+            Text(subtitle, style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(0.45f), textAlign = TextAlign.Center)
         }
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// ALL MEASUREMENTS SCREEN
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 fun AllMeasurementsScreen(
@@ -1192,48 +1024,25 @@ fun AllMeasurementsScreen(
     val accentStart  = customColors.accentGradientStart
     val accentEnd    = customColors.accentGradientEnd
     val state        = viewModel.uiState
-    val records      = (state.allGrowthRecords[babyId] ?: emptyList())
-        .sortedByDescending { it.measurementDate }
+    val records      = (state.allGrowthRecords[babyId] ?: emptyList()).sortedByDescending { it.measurementDate }
 
     Scaffold(
         topBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Brush.horizontalGradient(listOf(accentStart, accentEnd)))
-                    .padding(
-                        horizontal = dimensions.spacingSmall,
-                        vertical   = dimensions.spacingSmall
-                    )
-            ) {
+            Box(modifier = Modifier.fillMaxWidth()
+                .background(Brush.horizontalGradient(listOf(accentStart, accentEnd)))
+                .padding(horizontal = dimensions.spacingSmall, vertical = dimensions.spacingSmall)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
                     }
-                    Text(
-                        stringResource(Res.string.all_measures_title),
-                        style      = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color      = Color.White,
-                        modifier   = Modifier.weight(1f)
-                    )
-                    Box(
-                        modifier = Modifier
-                            .background(
-                                Color.White.copy(0.22f),
-                                RoundedCornerShape(dimensions.buttonCornerRadius)
-                            )
-                            .padding(
-                                horizontal = dimensions.spacingSmall + dimensions.spacingXSmall,
-                                vertical   = dimensions.spacingXSmall
-                            )
-                    ) {
-                        Text(
-                            "${if (isFemale) "👶" else "👦"} $babyName",
-                            style      = MaterialTheme.typography.labelSmall,
-                            color      = Color.White,
-                            fontWeight = FontWeight.SemiBold
-                        )
+                    Text(stringResource(Res.string.all_measures_title),
+                        style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold,
+                        color = Color.White, modifier = Modifier.weight(1f))
+                    Box(modifier = Modifier.background(Color.White.copy(0.22f),
+                        RoundedCornerShape(dimensions.buttonCornerRadius))
+                        .padding(horizontal = dimensions.spacingSmall + dimensions.spacingXSmall, vertical = dimensions.spacingXSmall)) {
+                        Text("${if (isFemale) "👶" else "👦"} $babyName",
+                            style = MaterialTheme.typography.labelSmall, color = Color.White, fontWeight = FontWeight.SemiBold)
                     }
                 }
             }
@@ -1245,44 +1054,25 @@ fun AllMeasurementsScreen(
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("📏", style = MaterialTheme.typography.displayMedium)
                     Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
-                    Text(
-                        stringResource(Res.string.all_measures_empty),
-                        style     = MaterialTheme.typography.bodyLarge,
-                        color     = MaterialTheme.colorScheme.onBackground.copy(0.55f),
-                        textAlign = TextAlign.Center
-                    )
+                    Text(stringResource(Res.string.all_measures_empty),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onBackground.copy(0.55f),
+                        textAlign = TextAlign.Center)
                 }
             }
         } else {
-            LazyColumn(
-                modifier       = Modifier.fillMaxSize().padding(pad),
-                contentPadding = PaddingValues(
-                    horizontal = dimensions.screenPadding,
-                    vertical   = dimensions.spacingMedium
-                ),
-                verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
-            ) {
+            LazyColumn(modifier = Modifier.fillMaxSize().padding(pad),
+                contentPadding = PaddingValues(horizontal = dimensions.screenPadding, vertical = dimensions.spacingMedium),
+                verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
                 items(records, key = { it.recordId }) { record ->
-                    MeasurementCard(
-                        record      = record,
-                        accentStart = accentStart,
-                        onDelete    = { viewModel.deleteGrowthRecord(babyId, record.recordId) }
-                    )
+                    MeasurementCard(record = record, accentStart = accentStart,
+                        onDelete = { viewModel.deleteGrowthRecord(babyId, record.recordId) })
                 }
             }
         }
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * Formats a date string (yyyy-MM-dd) into a human-readable form such as
- * "Jan 05, 2024".  [monthNames] must be a 13-element list produced by
- * [rememberMonthNames] so that month abbreviations are properly localised.
- */
 private fun formatChartDate(dateStr: String, monthNames: List<String>): String {
     val parts = dateStr.split("-")
     if (parts.size != 3) return dateStr
@@ -1290,13 +1080,7 @@ private fun formatChartDate(dateStr: String, monthNames: List<String>): String {
     return "${monthNames.getOrElse(m) { parts[1] }} ${parts[2]}, ${parts[0]}"
 }
 
-/**
- * Returns the localised month abbreviation for a 1-based month index.
- * [monthNames] must be a 13-element list produced by [rememberMonthNames].
- */
 private fun monthAbbrev(m: Int, monthNames: List<String>): String =
     monthNames.getOrElse(m) { stringResource_fallback }
 
-// Sentinel used only when monthNames list is unexpectedly empty; in practice
-// rememberMonthNames() always returns a full 13-element list.
 private const val stringResource_fallback = "--"

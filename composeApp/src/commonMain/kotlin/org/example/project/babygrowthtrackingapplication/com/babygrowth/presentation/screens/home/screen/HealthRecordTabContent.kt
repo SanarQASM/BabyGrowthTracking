@@ -31,6 +31,8 @@ private sealed class HealthNavState {
     data class Map(val babyName: String) : HealthNavState()
     data class BenchDetail(val bench: VaccinationBenchUi, val babyName: String) : HealthNavState()
     data class VaccinationDetail(val item: VaccinationScheduleUi) : HealthNavState()
+    data class AddHealthIssue(val babyId: String, val babyName: String) : HealthNavState()
+    data class AddAppointment(val babyId: String, val babyName: String) : HealthNavState()
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -67,35 +69,25 @@ fun HealthRecordTabContent(
             it.statusUi != ScheduleStatusUi.COMPLETED && it.statusUi != ScheduleStatusUi.MISSED
         }
         RescheduleReasonPickerDialog(
-            overdueCount       = overdueCount,
-            reschedulableCount = reschedulableCount,
-            isLoading          = state.rescheduleInProgress,
-            onConfirm          = { reason, notes ->
+            overdueCount        = overdueCount,
+            reschedulableCount  = reschedulableCount,
+            isLoading           = state.rescheduleInProgress,
+            onConfirm           = { reason, notes ->
                 viewModel.confirmReschedule(reason, notes.ifBlank { null })
             },
             onDismiss = viewModel::dismissReschedule
         )
     }
 
-    // ── STEP 2: Loading overlay (reschedule in flight) ────────────────────────
+    // ── STEP 2: Loading overlay ───────────────────────────────────────────────
     if (state.rescheduleInProgress) {
         AlertDialog(
-            onDismissRequest = { /* non-dismissable while loading */ },
+            onDismissRequest = {},
             title = { Text("Rescheduling…", fontWeight = FontWeight.Bold) },
             text  = {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment     = Alignment.CenterVertically
-                ) {
-                    CircularProgressIndicator(
-                        modifier    = Modifier.size(32.dp),
-                        color       = customColors.accentGradientStart,
-                        strokeWidth = 3.dp
-                    )
-                    Text(
-                        "Checking vaccination windows and finding next valid dates…",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                    CircularProgressIndicator(modifier = Modifier.size(32.dp), color = customColors.accentGradientStart, strokeWidth = 3.dp)
+                    Text("Checking vaccination windows and finding next valid dates…", style = MaterialTheme.typography.bodyMedium)
                 }
             },
             confirmButton = {}
@@ -104,10 +96,7 @@ fun HealthRecordTabContent(
 
     // ── STEP 3: Result summary dialog ─────────────────────────────────────────
     state.rescheduleResult?.let { result ->
-        RescheduleResultDialog(
-            result    = result,
-            onDismiss = viewModel::dismissRescheduleResult
-        )
+        RescheduleResultDialog(result = result, onDismiss = viewModel::dismissRescheduleResult)
     }
 
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
@@ -119,7 +108,13 @@ fun HealthRecordTabContent(
                         viewModel = viewModel,
                         state     = state,
                         babies    = babies,
-                        onOpenMap = { babyName -> navState = HealthNavState.Map(babyName) }
+                        onOpenMap = { babyName -> navState = HealthNavState.Map(babyName) },
+                        onAddHealthIssue = { babyId, babyName ->
+                            navState = HealthNavState.AddHealthIssue(babyId, babyName)
+                        },
+                        onAddAppointment = { babyId, babyName ->
+                            navState = HealthNavState.AddAppointment(babyId, babyName)
+                        }
                     )
                 }
 
@@ -128,14 +123,11 @@ fun HealthRecordTabContent(
                         viewModel       = viewModel,
                         babyName        = nav.babyName,
                         onBack          = { navState = HealthNavState.Main },
-                        onBenchSelected = { bench ->
-                            navState = HealthNavState.BenchDetail(bench, nav.babyName)
-                        }
+                        onBenchSelected = { bench -> navState = HealthNavState.BenchDetail(bench, nav.babyName) }
                     )
                 }
 
                 is HealthNavState.BenchDetail -> {
-                    // Navigate to Main once the assignment is committed
                     LaunchedEffect(state.assignment) {
                         if (state.assignment != null && navState is HealthNavState.BenchDetail) {
                             navState = HealthNavState.Main
@@ -156,12 +148,34 @@ fun HealthRecordTabContent(
 
                 is HealthNavState.VaccinationDetail -> {
                     VaccinationDetailScreen(
-                        item        = nav.item,
-                        onBack      = { navState = HealthNavState.Main },
+                        item         = nav.item,
+                        onBack       = { navState = HealthNavState.Main },
                         onReschedule = {
                             navState = HealthNavState.Main
                             viewModel.triggerReschedule()
                         }
+                    )
+                }
+
+                // ── NEW: Full-screen Add Health Issue ─────────────────────────
+                is HealthNavState.AddHealthIssue -> {
+                    AddHealthIssueScreen(
+                        babyId    = nav.babyId,
+                        babyName  = nav.babyName,
+                        viewModel = viewModel,
+                        onBack    = { navState = HealthNavState.Main },
+                        onSaved   = { navState = HealthNavState.Main }
+                    )
+                }
+
+                // ── NEW: Full-screen Add Appointment ──────────────────────────
+                is HealthNavState.AddAppointment -> {
+                    AddAppointmentScreen(
+                        babyId   = nav.babyId,
+                        babyName = nav.babyName,
+                        viewModel = viewModel,
+                        onBack    = { navState = HealthNavState.Main },
+                        onSaved   = { navState = HealthNavState.Main }
                     )
                 }
             }
@@ -176,10 +190,12 @@ fun HealthRecordTabContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HealthRecordMain(
-    viewModel: HealthRecordViewModel,
-    state    : HealthRecordUiState,
-    babies   : List<BabyResponse>,
-    onOpenMap: (babyName: String) -> Unit
+    viewModel       : HealthRecordViewModel,
+    state           : HealthRecordUiState,
+    babies          : List<BabyResponse>,
+    onOpenMap       : (babyName: String) -> Unit,
+    onAddHealthIssue: (babyId: String, babyName: String) -> Unit,
+    onAddAppointment: (babyId: String, babyName: String) -> Unit
 ) {
     val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
@@ -235,7 +251,7 @@ private fun HealthRecordMain(
         }
 
         // ── Sub-tabs ──────────────────────────────────────────────────────────
-        if (hasAssignment) {
+        if (hasAssignment && selectedBaby != null) {
             TabRow(
                 selectedTabIndex = state.subTab.ordinal,
                 containerColor   = MaterialTheme.colorScheme.surface,
@@ -269,8 +285,7 @@ private fun HealthRecordMain(
                             filter         = state.vaccinationFilter,
                             loading        = state.schedulesLoading,
                             onFilterChange = { viewModel.setVaccinationFilter(it) },
-                            onItemClick    = { /* handled inside */ },
-                            // Trigger the new reason-picker flow
+                            onItemClick    = {},
                             onReschedule   = { viewModel.triggerReschedule() }
                         )
                     }
@@ -282,7 +297,9 @@ private fun HealthRecordMain(
                             onFilterChange = { viewModel.setHealthIssueFilter(it) },
                             onIssueClick   = { viewModel.selectHealthIssue(it) },
                             onResolve      = { viewModel.resolveHealthIssue(it) },
-                            onAddIssue     = { viewModel.showAddHealthIssue() }
+                            onAddIssue     = {
+                                onAddHealthIssue(selectedBaby.babyId, selectedBaby.fullName)
+                            }
                         )
                     }
                     HealthRecordSubTab.APPOINTMENTS -> {
@@ -293,7 +310,9 @@ private fun HealthRecordMain(
                             onFilterChange     = { viewModel.setAppointmentFilter(it) },
                             onAppointmentClick = { viewModel.selectAppointment(it) },
                             onCancel           = { viewModel.cancelAppointment(it) },
-                            onAddAppointment   = { viewModel.showAddAppointment() }
+                            onAddAppointment   = {
+                                onAddAppointment(selectedBaby.babyId, selectedBaby.fullName)
+                            }
                         )
                     }
                 }
@@ -336,8 +355,8 @@ private fun ChildSelector(
             fontWeight = FontWeight.SemiBold
         )
 
-        var expanded    by remember { mutableStateOf(false) }
-        val selectedBaby = babies.firstOrNull { it.babyId == selectedBabyId }
+        var expanded     by remember { mutableStateOf(false) }
+        val selectedBaby  = babies.firstOrNull { it.babyId == selectedBabyId }
 
         ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
             OutlinedCard(
@@ -365,24 +384,16 @@ private fun ChildSelector(
                 babies.forEach { baby ->
                     DropdownMenuItem(
                         text = {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment     = Alignment.CenterVertically
-                            ) {
-                                val isFemale = baby.gender.equals("FEMALE", true) ||
-                                        baby.gender.equals("GIRL", true)
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                                val isFemale = baby.gender.equals("FEMALE", true) || baby.gender.equals("GIRL", true)
                                 Text(if (isFemale) "👧" else "👦")
                                 Text(baby.fullName, style = MaterialTheme.typography.bodyMedium)
                             }
                         },
-                        onClick = { viewModel_select(onSelect, baby.babyId); expanded = false },
+                        onClick = { onSelect(baby.babyId); expanded = false },
                         trailingIcon = {
                             if (baby.babyId == selectedBabyId) {
-                                Icon(
-                                    Icons.Default.Check, null,
-                                    tint     = customColors.accentGradientStart,
-                                    modifier = Modifier.size(16.dp)
-                                )
+                                Icon(Icons.Default.Check, null, tint = customColors.accentGradientStart, modifier = Modifier.size(16.dp))
                             }
                         }
                     )
@@ -390,10 +401,6 @@ private fun ChildSelector(
             }
         }
     }
-}
-
-private inline fun viewModel_select(onSelect: (String) -> Unit, babyId: String) {
-    onSelect(babyId)
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -421,9 +428,7 @@ private fun AssignedBranchCard(
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(dimensions.spacingMedium),
+            modifier = Modifier.fillMaxWidth().padding(dimensions.spacingMedium),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment     = Alignment.CenterVertically
         ) {
@@ -433,20 +438,12 @@ private fun AssignedBranchCard(
                 modifier              = Modifier.weight(1f)
             ) {
                 Box(
-                    modifier         = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(customColors.accentGradientStart.copy(0.15f)),
+                    modifier         = Modifier.size(40.dp).clip(CircleShape).background(customColors.accentGradientStart.copy(0.15f)),
                     contentAlignment = Alignment.Center
-                ) {
-                    Text("🏥", style = MaterialTheme.typography.titleMedium)
-                }
+                ) { Text("🏥", style = MaterialTheme.typography.titleMedium) }
+
                 if (loading) {
-                    CircularProgressIndicator(
-                        modifier    = Modifier.size(18.dp),
-                        strokeWidth = 2.dp,
-                        color       = customColors.accentGradientStart
-                    )
+                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = customColors.accentGradientStart)
                 } else {
                     Column {
                         Text(
@@ -456,24 +453,10 @@ private fun AssignedBranchCard(
                             fontWeight = FontWeight.SemiBold
                         )
                         if (assignment != null) {
-                            Text(
-                                text       = assignment.benchNameEn,
-                                style      = MaterialTheme.typography.titleSmall,
-                                fontWeight = FontWeight.Bold,
-                                maxLines   = 1,
-                                overflow   = TextOverflow.Ellipsis
-                            )
-                            Text(
-                                text  = assignment.governorate,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
-                            )
+                            Text(text = assignment.benchNameEn, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                            Text(text = assignment.governorate, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(0.5f))
                         } else {
-                            Text(
-                                text  = stringResource(Res.string.health_no_assignment),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
-                            )
+                            Text(text = stringResource(Res.string.health_no_assignment), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(0.5f))
                         }
                     }
                 }
@@ -504,16 +487,8 @@ private fun NoAssignmentPrompt(babyName: String, onSelectBranch: () -> Unit) {
             modifier            = Modifier.padding(dimensions.screenPadding)
         ) {
             Text("🏥", style = MaterialTheme.typography.displaySmall)
-            Text(
-                text       = stringResource(Res.string.schedule_no_assignment_title),
-                style      = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
-            )
-            Text(
-                text  = stringResource(Res.string.schedule_no_assignment_body, babyName),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(0.6f)
-            )
+            Text(text = stringResource(Res.string.schedule_no_assignment_title), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(text = stringResource(Res.string.schedule_no_assignment_body, babyName), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(0.6f))
             Button(
                 onClick = onSelectBranch,
                 colors  = ButtonDefaults.buttonColors(containerColor = customColors.accentGradientStart),
