@@ -237,7 +237,7 @@ class BabyBenchAssignmentServiceImpl(
         benchNameEn  = bench?.nameEn ?: "",
         benchNameAr  = bench?.nameAr ?: "",
         governorate  = bench?.governorate ?: "",
-        assignedAt   = assignedAt.toString(),  // ✅ LocalDateTime → String
+        assignedAt   = assignedAt.toString(),
         isActive     = isActive,
         notes        = notes
     )
@@ -325,7 +325,6 @@ class ScheduleGeneratorServiceImpl(
 
         val allVaccines = vaccineTypeRepository.findAll()
 
-        // ── GUARD: if no vaccines exist, log clearly and return ───────────
         if (allVaccines.isEmpty()) {
             logger.error {
                 "❌ vaccine_types table is EMPTY — cannot generate schedule for baby ${baby.babyId}."
@@ -435,40 +434,83 @@ class ScheduleGeneratorServiceImpl(
     private fun computeStatus(scheduledDate: LocalDate): ScheduleStatus {
         val today = LocalDate.now()
         return when {
-            scheduledDate.isBefore(today)        -> ScheduleStatus.OVERDUE
-            scheduledDate <= today.plusDays(14)  -> ScheduleStatus.DUE_SOON
-            else                                 -> ScheduleStatus.UPCOMING
+            scheduledDate.isBefore(today)       -> ScheduleStatus.OVERDUE
+            scheduledDate <= today.plusDays(14) -> ScheduleStatus.DUE_SOON
+            else                                -> ScheduleStatus.UPCOMING
         }
     }
 
+    /**
+     * Finds the next valid vaccination date starting from [from].
+     *
+     * A valid date must:
+     *  - Fall on one of the bench's [vaccinationDays]
+     *  - Not be a holiday (in [holidayDates])
+     *  - Not be a weekend (Friday or Saturday in the Iraqi calendar)
+     *
+     * The [ShiftReason] returned reflects the *first* reason a shift was
+     * needed (WEEKEND > HOLIDAY > not-a-vaccination-day).  If no valid date
+     * is found within 365 days the original [from] date is returned with
+     * ShiftReason.NONE and 0 shift days.
+     *
+     * FIX: removed the erroneous recursive calls that passed the original
+     * [from] date instead of the already-advanced [candidate], which caused
+     * infinite recursion (StackOverflowError).  The while-loop already
+     * advances the candidate correctly, so we only need to track the first
+     * reason here.
+     */
     private fun findNextValidDate(
         from: LocalDate,
         vaccinationDays: Set<DayOfWeek>,
         holidayDates: Set<LocalDate>
     ): Triple<LocalDate, ShiftReason, Int> {
-        var candidate = from
-        var shiftDays = 0
-        while (true) {
-            val isVacDay  = candidate.dayOfWeek in vaccinationDays
-            val isHoliday = candidate in holidayDates
+
+        // Guard: if the bench has no vaccination days configured we can never
+        // find a valid date — return the original date immediately.
+        if (vaccinationDays.isEmpty()) {
+            logger.warn { "vaccinationDays is empty — returning idealDate unchanged" }
+            return Triple(from, ShiftReason.NONE, 0)
+        }
+
+        var candidate   = from
+        var shiftDays   = 0
+        var firstReason = ShiftReason.NONE   // track the *first* reason we had to shift
+
+        while (shiftDays <= 365) {
             val isWeekend = candidate.dayOfWeek == DayOfWeek.FRIDAY ||
                     candidate.dayOfWeek == DayOfWeek.SATURDAY
+            val isHoliday = candidate in holidayDates
+            val isVacDay  = candidate.dayOfWeek in vaccinationDays
+
             when {
-                !isVacDay && isWeekend -> {
-                    candidate = candidate.plusDays(1); shiftDays++
-                    if (shiftDays == 1) return findNextValidDate(from, vaccinationDays, holidayDates)
-                        .let { Triple(it.first, ShiftReason.WEEKEND, it.third) }
+                // Weekend takes priority over everything else
+                isWeekend -> {
+                    if (firstReason == ShiftReason.NONE) firstReason = ShiftReason.WEEKEND
+                    candidate = candidate.plusDays(1)
+                    shiftDays++
                 }
+                // Holiday check next
                 isHoliday -> {
-                    candidate = candidate.plusDays(1); shiftDays++
-                    if (shiftDays == 1) return findNextValidDate(from, vaccinationDays, holidayDates)
-                        .let { Triple(it.first, ShiftReason.HOLIDAY, it.third) }
+                    if (firstReason == ShiftReason.NONE) firstReason = ShiftReason.HOLIDAY
+                    candidate = candidate.plusDays(1)
+                    shiftDays++
                 }
-                !isVacDay -> { candidate = candidate.plusDays(1); shiftDays++ }
-                else      -> return Triple(candidate, ShiftReason.NONE, shiftDays)
+                // Not a configured vaccination day
+                !isVacDay -> {
+                    if (firstReason == ShiftReason.NONE) firstReason = ShiftReason.NONE
+                    candidate = candidate.plusDays(1)
+                    shiftDays++
+                }
+                // All conditions satisfied — we have our date
+                else -> return Triple(candidate, firstReason, shiftDays)
             }
-            if (shiftDays > 365) return Triple(from, ShiftReason.NONE, 0)
         }
+
+        // Safety fallback: could not find a valid date within a year
+        logger.warn {
+            "Could not find a valid vaccination date within 365 days of $from — returning original date"
+        }
+        return Triple(from, ShiftReason.NONE, 0)
     }
 
     private fun loadHolidayDates(benchId: String, from: LocalDate, to: LocalDate): Set<LocalDate> =
@@ -581,17 +623,15 @@ class VaccinationScheduleServiceImpl(
         benchNameEn          = bench?.nameEn ?: "",
         benchNameAr          = bench?.nameAr ?: "",
         vaccineId            = vaccineType?.vaccineId ?: 0,
-        // ── Multilingual vaccine names ─────────────────────────────────────
         vaccineName          = vaccineType?.vaccineName ?: "",
         vaccineNameAr        = vaccineType?.vaccineNameAr,
         vaccineNameKu        = vaccineType?.vaccineNameKu,
         vaccineNameCkb       = vaccineType?.vaccineNameCkb,
-        // ── Multilingual descriptions ──────────────────────────────────────
         description          = vaccineType?.description,
         descriptionAr        = vaccineType?.descriptionAr,
         descriptionKu        = vaccineType?.descriptionKu,
         descriptionCkb       = vaccineType?.descriptionCkb,
-        doseNumber           = vaccineType?.doseNumber?.toInt() ?: 1,  // ✅ Byte → Int
+        doseNumber           = vaccineType?.doseNumber?.toInt() ?: 1,
         recommendedAgeMonths = vaccineType?.recommendedAgeMonths ?: 0,
         idealDate            = idealDate,
         scheduledDate        = scheduledDate,

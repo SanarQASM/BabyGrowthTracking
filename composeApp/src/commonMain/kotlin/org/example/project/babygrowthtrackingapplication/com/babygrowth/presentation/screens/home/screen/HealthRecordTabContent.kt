@@ -40,19 +40,16 @@ private sealed class HealthNavState {
 @Composable
 fun HealthRecordTabContent(
     viewModel: HealthRecordViewModel,
-    babies: List<BabyResponse>
+    babies   : List<BabyResponse>
 ) {
-    val dimensions   = LocalDimensions.current
-    val customColors = MaterialTheme.customColors
-    val state        = viewModel.uiState
+    val dimensions        = LocalDimensions.current
+    val customColors      = MaterialTheme.customColors
+    val state             = viewModel.uiState
 
-    // Init
     LaunchedEffect(babies) { viewModel.init(babies) }
 
-    // Internal nav stack
     var navState by remember { mutableStateOf<HealthNavState>(HealthNavState.Main) }
 
-    // Snackbar
     val snackbarHostState = remember { SnackbarHostState() }
     LaunchedEffect(state.error) {
         state.error?.let { snackbarHostState.showSnackbar(it); viewModel.clearError() }
@@ -61,32 +58,62 @@ fun HealthRecordTabContent(
         state.successMessage?.let { snackbarHostState.showSnackbar(it); viewModel.clearSuccess() }
     }
 
-    // Reschedule confirm dialog
-    if (state.showRescheduleConfirm) {
+    // ── STEP 1: Reason picker dialog ─────────────────────────────────────────
+    if (state.showRescheduleReasonPicker) {
+        val overdueCount = state.schedules.count {
+            it.statusUi == ScheduleStatusUi.OVERDUE || it.statusUi == ScheduleStatusUi.MISSED
+        }
+        val reschedulableCount = state.schedules.count {
+            it.statusUi != ScheduleStatusUi.COMPLETED && it.statusUi != ScheduleStatusUi.MISSED
+        }
+        RescheduleReasonPickerDialog(
+            overdueCount       = overdueCount,
+            reschedulableCount = reschedulableCount,
+            isLoading          = state.rescheduleInProgress,
+            onConfirm          = { reason, notes ->
+                viewModel.confirmReschedule(reason, notes.ifBlank { null })
+            },
+            onDismiss = viewModel::dismissReschedule
+        )
+    }
+
+    // ── STEP 2: Loading overlay (reschedule in flight) ────────────────────────
+    if (state.rescheduleInProgress) {
         AlertDialog(
-            onDismissRequest = { viewModel.dismissReschedule() },
-            title = { Text(stringResource(Res.string.reschedule_title), fontWeight = FontWeight.Bold) },
-            text  = { Text(stringResource(Res.string.reschedule_confirm)) },
-            confirmButton = {
-                Button(onClick = { viewModel.confirmReschedule() }) {
-                    Text(stringResource(Res.string.reschedule_action))
+            onDismissRequest = { /* non-dismissable while loading */ },
+            title = { Text("Rescheduling…", fontWeight = FontWeight.Bold) },
+            text  = {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                    verticalAlignment     = Alignment.CenterVertically
+                ) {
+                    CircularProgressIndicator(
+                        modifier    = Modifier.size(32.dp),
+                        color       = customColors.accentGradientStart,
+                        strokeWidth = 3.dp
+                    )
+                    Text(
+                        "Checking vaccination windows and finding next valid dates…",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
                 }
             },
-            dismissButton = {
-                TextButton(onClick = { viewModel.dismissReschedule() }) {
-                    Text(stringResource(Res.string.bench_assign_cancel))
-                }
-            }
+            confirmButton = {}
+        )
+    }
+
+    // ── STEP 3: Result summary dialog ─────────────────────────────────────────
+    state.rescheduleResult?.let { result ->
+        RescheduleResultDialog(
+            result    = result,
+            onDismiss = viewModel::dismissRescheduleResult
         )
     }
 
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
+        Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             when (val nav = navState) {
+
                 is HealthNavState.Main -> {
                     HealthRecordMain(
                         viewModel = viewModel,
@@ -98,33 +125,22 @@ fun HealthRecordTabContent(
 
                 is HealthNavState.Map -> {
                     BenchMapScreen(
-                        viewModel        = viewModel,
-                        babyName         = nav.babyName,
-                        onBack           = { navState = HealthNavState.Main },
-                        onBenchSelected  = { bench ->
+                        viewModel       = viewModel,
+                        babyName        = nav.babyName,
+                        onBack          = { navState = HealthNavState.Main },
+                        onBenchSelected = { bench ->
                             navState = HealthNavState.BenchDetail(bench, nav.babyName)
                         }
                     )
                 }
 
                 is HealthNavState.BenchDetail -> {
-                    // ─────────────────────────────────────────────────────────
-                    // BUG 1 FIX:
-                    //   Navigation to Main is now driven by observing
-                    //   state.assignment becoming non-null — meaning the API
-                    //   call has completed and the ViewModel has committed the
-                    //   assignment. Previously onCreateSchedule() was called
-                    //   synchronously alongside onAssign(), pushing
-                    //   navState = Main before the coroutine even ran,
-                    //   resulting in assignment=null on Main and the vaccination
-                    //   tab being invisible.
-                    // ─────────────────────────────────────────────────────────
+                    // Navigate to Main once the assignment is committed
                     LaunchedEffect(state.assignment) {
                         if (state.assignment != null && navState is HealthNavState.BenchDetail) {
                             navState = HealthNavState.Main
                         }
                     }
-
                     BenchDetailScreen(
                         bench     = nav.bench,
                         babyName  = nav.babyName,
@@ -135,7 +151,6 @@ fun HealthRecordTabContent(
                                 viewModel.assignBench(babyId, nav.bench.benchId)
                             }
                         }
-                        // onCreateSchedule removed — handled by LaunchedEffect above
                     )
                 }
 
@@ -144,8 +159,8 @@ fun HealthRecordTabContent(
                         item        = nav.item,
                         onBack      = { navState = HealthNavState.Main },
                         onReschedule = {
-                            viewModel.triggerReschedule()
                             navState = HealthNavState.Main
+                            viewModel.triggerReschedule()
                         }
                     )
                 }
@@ -155,16 +170,16 @@ fun HealthRecordTabContent(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Main content (child selector + tab + content)
+// Main content
 // ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HealthRecordMain(
-    viewModel : HealthRecordViewModel,
-    state     : HealthRecordUiState,
-    babies    : List<BabyResponse>,
-    onOpenMap : (babyName: String) -> Unit
+    viewModel: HealthRecordViewModel,
+    state    : HealthRecordUiState,
+    babies   : List<BabyResponse>,
+    onOpenMap: (babyName: String) -> Unit
 ) {
     val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
@@ -186,20 +201,15 @@ private fun HealthRecordMain(
                         )
                     )
                 )
-                .padding(
-                    horizontal = dimensions.screenPadding,
-                    vertical   = dimensions.spacingMedium
-                )
+                .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingMedium)
         ) {
             Column(verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)) {
-                // Title
                 Text(
                     text       = stringResource(Res.string.health_record_title),
                     style      = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold
                 )
 
-                // Child selector
                 if (babies.isEmpty()) {
                     Text(
                         stringResource(Res.string.schedule_no_babies),
@@ -214,7 +224,6 @@ private fun HealthRecordMain(
                     )
                 }
 
-                // Assigned branch card OR tap-to-select prompt
                 selectedBaby?.let { baby ->
                     AssignedBranchCard(
                         assignment = state.assignment,
@@ -225,7 +234,7 @@ private fun HealthRecordMain(
             }
         }
 
-        // ── Sub-tabs (only shown when a branch is assigned) ───────────────────
+        // ── Sub-tabs ──────────────────────────────────────────────────────────
         if (hasAssignment) {
             TabRow(
                 selectedTabIndex = state.subTab.ordinal,
@@ -237,7 +246,7 @@ private fun HealthRecordMain(
                     Tab(
                         selected = state.subTab == tab,
                         onClick  = { viewModel.setSubTab(tab) },
-                        text     = {
+                        text = {
                             Text(
                                 text = when (tab) {
                                     HealthRecordSubTab.VACCINATIONS  -> "Vaccinations"
@@ -252,7 +261,6 @@ private fun HealthRecordMain(
                 }
             }
 
-            // ── Tab content ───────────────────────────────────────────────────
             Box(modifier = Modifier.fillMaxSize()) {
                 when (state.subTab) {
                     HealthRecordSubTab.VACCINATIONS -> {
@@ -261,7 +269,8 @@ private fun HealthRecordMain(
                             filter         = state.vaccinationFilter,
                             loading        = state.schedulesLoading,
                             onFilterChange = { viewModel.setVaccinationFilter(it) },
-                            onItemClick    = { /* navigate detail handled inside */ },
+                            onItemClick    = { /* handled inside */ },
+                            // Trigger the new reason-picker flow
                             onReschedule   = { viewModel.triggerReschedule() }
                         )
                     }
@@ -278,40 +287,24 @@ private fun HealthRecordMain(
                     }
                     HealthRecordSubTab.APPOINTMENTS -> {
                         AppointmentsView(
-                            appointments      = state.appointments,
-                            filter            = state.appointmentFilter,
-                            loading           = state.appointmentsLoading,
-                            onFilterChange    = { viewModel.setAppointmentFilter(it) },
+                            appointments       = state.appointments,
+                            filter             = state.appointmentFilter,
+                            loading            = state.appointmentsLoading,
+                            onFilterChange     = { viewModel.setAppointmentFilter(it) },
                             onAppointmentClick = { viewModel.selectAppointment(it) },
-                            onCancel          = { viewModel.cancelAppointment(it) },
-                            onAddAppointment  = { viewModel.showAddAppointment() }
+                            onCancel           = { viewModel.cancelAppointment(it) },
+                            onAddAppointment   = { viewModel.showAddAppointment() }
                         )
                     }
                 }
             }
 
         } else if (selectedBaby != null) {
-            // ─────────────────────────────────────────────────────────────────
-            // BUG 2 FIX:
-            //   Previously: `else if (selectedBaby != null && !state.assignmentLoading)`
-            //   That condition made BOTH branches false when assignmentLoading=true
-            //   AND assignment=null, leaving the content area completely blank
-            //   with no visual feedback — the app appeared frozen.
-            //
-            //   Fix: Split into two explicit sub-branches:
-            //     • Show CircularProgressIndicator while loading
-            //     • Show NoAssignmentPrompt only when loading is done and
-            //       there is genuinely no assignment
-            // ─────────────────────────────────────────────────────────────────
             if (state.assignmentLoading) {
-                Box(
-                    modifier         = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator(color = customColors.accentGradientStart)
                 }
             } else {
-                // No assignment and not loading — prompt user to select a branch
                 NoAssignmentPrompt(
                     babyName       = selectedBaby.fullName,
                     onSelectBranch = { onOpenMap(selectedBaby.fullName) }
@@ -328,9 +321,9 @@ private fun HealthRecordMain(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ChildSelector(
-    babies         : List<BabyResponse>,
-    selectedBabyId : String?,
-    onSelect       : (String) -> Unit
+    babies        : List<BabyResponse>,
+    selectedBabyId: String?,
+    onSelect      : (String) -> Unit
 ) {
     val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
@@ -348,10 +341,8 @@ private fun ChildSelector(
 
         ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
             OutlinedCard(
-                modifier = Modifier
-                    .menuAnchor()
-                    .fillMaxWidth(),
-                shape = RoundedCornerShape(dimensions.cardCornerRadius)
+                modifier = Modifier.menuAnchor().fillMaxWidth(),
+                shape    = RoundedCornerShape(dimensions.cardCornerRadius)
             ) {
                 Row(
                     modifier = Modifier
@@ -370,10 +361,7 @@ private fun ChildSelector(
                     ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
                 }
             }
-            ExposedDropdownMenu(
-                expanded          = expanded,
-                onDismissRequest  = { expanded = false }
-            ) {
+            ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 babies.forEach { baby ->
                     DropdownMenuItem(
                         text = {
@@ -387,7 +375,7 @@ private fun ChildSelector(
                                 Text(baby.fullName, style = MaterialTheme.typography.bodyMedium)
                             }
                         },
-                        onClick = { onSelect(baby.babyId); expanded = false },
+                        onClick = { viewModel_select(onSelect, baby.babyId); expanded = false },
                         trailingIcon = {
                             if (baby.babyId == selectedBabyId) {
                                 Icon(
@@ -404,28 +392,31 @@ private fun ChildSelector(
     }
 }
 
+private inline fun viewModel_select(onSelect: (String) -> Unit, babyId: String) {
+    onSelect(babyId)
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Assigned branch card
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun AssignedBranchCard(
-    assignment : BabyBenchAssignmentUi?,
-    loading    : Boolean,
-    onTap      : () -> Unit
+    assignment: BabyBenchAssignmentUi?,
+    loading   : Boolean,
+    onTap     : () -> Unit
 ) {
     val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onTap() },
-        shape  = RoundedCornerShape(dimensions.cardCornerRadius),
-        colors = CardDefaults.cardColors(
+        modifier = Modifier.fillMaxWidth().clickable { onTap() },
+        shape    = RoundedCornerShape(dimensions.cardCornerRadius),
+        colors   = CardDefaults.cardColors(
             containerColor = if (assignment != null)
                 customColors.accentGradientStart.copy(0.1f)
-            else MaterialTheme.colorScheme.surfaceVariant
+            else
+                MaterialTheme.colorScheme.surfaceVariant
         ),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
@@ -459,18 +450,18 @@ private fun AssignedBranchCard(
                 } else {
                     Column {
                         Text(
-                            text  = stringResource(Res.string.health_assigned_center),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(0.5f),
+                            text       = stringResource(Res.string.health_assigned_center),
+                            style      = MaterialTheme.typography.labelSmall,
+                            color      = MaterialTheme.colorScheme.onSurface.copy(0.5f),
                             fontWeight = FontWeight.SemiBold
                         )
                         if (assignment != null) {
                             Text(
-                                text      = assignment.benchNameEn,
-                                style     = MaterialTheme.typography.titleSmall,
+                                text       = assignment.benchNameEn,
+                                style      = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
-                                maxLines  = 1,
-                                overflow  = TextOverflow.Ellipsis
+                                maxLines   = 1,
+                                overflow   = TextOverflow.Ellipsis
                             )
                             Text(
                                 text  = assignment.governorate,
@@ -502,17 +493,11 @@ private fun AssignedBranchCard(
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun NoAssignmentPrompt(
-    babyName      : String,
-    onSelectBranch: () -> Unit
-) {
+private fun NoAssignmentPrompt(babyName: String, onSelectBranch: () -> Unit) {
     val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
 
-    Box(
-        modifier         = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium),
@@ -531,10 +516,8 @@ private fun NoAssignmentPrompt(
             )
             Button(
                 onClick = onSelectBranch,
-                colors  = ButtonDefaults.buttonColors(
-                    containerColor = customColors.accentGradientStart
-                ),
-                shape = RoundedCornerShape(dimensions.buttonCornerRadius)
+                colors  = ButtonDefaults.buttonColors(containerColor = customColors.accentGradientStart),
+                shape   = RoundedCornerShape(dimensions.buttonCornerRadius)
             ) {
                 Icon(Icons.Default.LocationOn, null)
                 Spacer(Modifier.width(8.dp))

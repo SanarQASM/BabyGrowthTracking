@@ -48,6 +48,7 @@ class ApiService(
             const val AUTH_VERIFY_RESET     = "/v1/auth/verify-reset-code"
             const val AUTH_RESET_PASSWORD   = "/v1/auth/reset-password"
 
+
             const val USERS = "/v1/users"
             fun user(id: String) = "$USERS/$id"
 
@@ -65,6 +66,7 @@ class ApiService(
             fun vaccination(id: String)              = "$VACCINATIONS/$id"
             fun babyVaccinations(babyId: String)     = "$VACCINATIONS/baby/$babyId"
             fun upcomingVaccinations(babyId: String) = "$VACCINATIONS/baby/$babyId/upcoming"
+            fun rescheduleVaccinations(babyId: String) = "$VACCINATION_SCHEDULES/baby/$babyId/reschedule"
 
             const val FAMILY_HISTORY = "/v1/family-history"
             fun familyHistoryByBaby(babyId: String) = "$FAMILY_HISTORY/baby/$babyId"
@@ -246,6 +248,22 @@ class ApiService(
             resp.body<ApiListResponse<VaccinationScheduleNet>>().data.map { it.toUi() }
         }
 
+    suspend fun rescheduleAllVaccinations(
+        babyId            : String,
+        shiftReason       : String,
+        notes             : String?  = null,
+        rescheduleOverdue : Boolean  = true
+    ): ApiResult<RescheduleResultUi> = safeCall {
+        val body = buildMap<String, Any?> {
+            put("shiftReason",       shiftReason)
+            put("rescheduleOverdue", rescheduleOverdue)
+            notes?.let { put("notes", it) }
+        }
+        val resp = client.post(
+            "$BASE_URL${Endpoints.rescheduleVaccinations(babyId)}"
+        ) { setBody(body) }
+        resp.body<ApiSingleResponse<RescheduleResponseNet>>().data!!.toUi()
+    }
     // ── Health Issues ─────────────────────────────────────────────────────────
 
     suspend fun getHealthIssuesForBaby(babyId: String): ApiResult<List<HealthIssueUi>> =
