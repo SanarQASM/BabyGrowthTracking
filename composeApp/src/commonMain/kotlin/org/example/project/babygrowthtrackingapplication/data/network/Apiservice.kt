@@ -254,16 +254,17 @@ class ApiService(
         notes             : String?  = null,
         rescheduleOverdue : Boolean  = true
     ): ApiResult<RescheduleResultUi> = safeCall {
-        val body = buildMap<String, Any?> {
-            put("shiftReason",       shiftReason)
-            put("rescheduleOverdue", rescheduleOverdue)
-            notes?.let { put("notes", it) }
-        }
+        val request = RescheduleRequest(
+            shiftReason = shiftReason,
+            rescheduleOverdue = rescheduleOverdue,
+            notes = notes
+        )
         val resp = client.post(
             "$BASE_URL${Endpoints.rescheduleVaccinations(babyId)}"
-        ) { setBody(body) }
+        ) { setBody(request) }
         resp.body<ApiSingleResponse<RescheduleResponseNet>>().data!!.toUi()
     }
+
     // ── Health Issues ─────────────────────────────────────────────────────────
 
     suspend fun getHealthIssuesForBaby(babyId: String): ApiResult<List<HealthIssueUi>> =
@@ -544,6 +545,12 @@ data class ApiSingleResponse<T>(
     val vaccineId: Int, val vaccineName: String, val scheduledDate: String,
     val administeredDate: String? = null, val status: String,
     val location: String? = null, val notes: String? = null, val createdAt: String
+)
+@Serializable
+data class RescheduleRequest(
+    val shiftReason: String,
+    val rescheduleOverdue: Boolean,
+    val notes: String? = null
 )
 
 // ── Benches ───────────────────────────────────────────────────────────────────

@@ -53,12 +53,12 @@ fun LoginScreen(
     sharedTransitionScope: SharedTransitionScope,
     animatedContentScope: AnimatedContentScope
 ) {
-    val dimensions = LocalDimensions.current
+    val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
     val focusManager = LocalFocusManager.current
-    val scrollState = rememberScrollState()
+    val isLandscape  = LocalIsLandscape.current
 
-    val uiState = viewModel.uiState
+    val uiState          = viewModel.uiState
     var animationStarted by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
@@ -78,84 +78,156 @@ fun LoginScreen(
                 )
             )
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(horizontal = dimensions.screenPadding),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
-                    .padding(top = dimensions.spacingMedium),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(Res.string.login_back),
-                        tint = customColors.accentGradientStart
+        if (isLandscape) {
+            // ── LANDSCAPE: Two-column layout ──────────────────────────────────
+            Row(modifier = Modifier.fillMaxSize()) {
+                // Left column: Back button + Logo animation
+                Column(
+                    modifier = Modifier
+                        .weight(0.4f)
+                        .fillMaxHeight()
+                        .padding(horizontal = dimensions.screenPadding),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    // Back button at top-left
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.TopStart
+                    ) {
+                        IconButton(
+                            onClick  = onBackClick,
+                            modifier = Modifier.padding(top = dimensions.spacingSmall)
+                        ) {
+                            Icon(
+                                imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(Res.string.login_back),
+                                tint               = customColors.accentGradientStart
+                            )
+                        }
+                    }
+
+                    AnimatedLogoSection(
+                        animationStarted      = animationStarted,
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedContentScope  = animatedContentScope,
+                        modifier              = Modifier.wrapContentHeight()
+                    )
+                }
+
+                // Right column: Scrollable form
+                Column(
+                    modifier = Modifier
+                        .weight(0.6f)
+                        .fillMaxHeight()
+                        .verticalScroll(rememberScrollState())
+                        .padding(
+                            horizontal = dimensions.screenPadding,
+                            vertical   = dimensions.spacingMedium
+                        ),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    AnimatedLoginCard(
+                        animationStarted           = animationStarted,
+                        uiState                    = uiState,
+                        viewModel                  = viewModel,
+                        onLoginSuccess             = onLoginSuccess,
+                        onEmailOrPhoneChange       = viewModel::onEmailOrPhoneChanged,
+                        onPasswordChange           = viewModel::onPasswordChanged,
+                        onPasswordVisibilityToggle = viewModel::onPasswordVisibilityToggled,
+                        onSavePasswordToggle       = viewModel::onSavePasswordToggled,
+                        onForgotPasswordClick      = onForgotPasswordClick,
+                        onLoginClick               = { viewModel.login(onLoginSuccess) },
+                        focusManager               = focusManager,
+                        sharedTransitionScope      = sharedTransitionScope,
+                        animatedContentScope       = animatedContentScope,
+                        modifier                   = Modifier.fillMaxWidth()
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(dimensions.spacingMedium))
-
-            Box(
+        } else {
+            // ── PORTRAIT: Original vertical scrollable layout ─────────────────
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6),
-                contentAlignment = Alignment.Center
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = dimensions.screenPadding),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                AnimatedLogoSection(
-                    animationStarted = animationStarted,
-                    sharedTransitionScope = sharedTransitionScope,
-                    animatedContentScope = animatedContentScope,
-                    modifier = Modifier.wrapContentHeight()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
+                        .padding(top = dimensions.spacingMedium),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(Res.string.login_back),
+                            tint               = customColors.accentGradientStart
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(dimensions.spacingMedium))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6),
+                    contentAlignment = Alignment.Center
+                ) {
+                    AnimatedLogoSection(
+                        animationStarted      = animationStarted,
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedContentScope  = animatedContentScope,
+                        modifier              = Modifier.wrapContentHeight()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(dimensions.spacingLarge))
+
+                AnimatedLoginCard(
+                    animationStarted           = animationStarted,
+                    uiState                    = uiState,
+                    viewModel                  = viewModel,
+                    onLoginSuccess             = onLoginSuccess,
+                    onEmailOrPhoneChange       = viewModel::onEmailOrPhoneChanged,
+                    onPasswordChange           = viewModel::onPasswordChanged,
+                    onPasswordVisibilityToggle = viewModel::onPasswordVisibilityToggled,
+                    onSavePasswordToggle       = viewModel::onSavePasswordToggled,
+                    onForgotPasswordClick      = onForgotPasswordClick,
+                    onLoginClick               = { viewModel.login(onLoginSuccess) },
+                    focusManager               = focusManager,
+                    sharedTransitionScope      = sharedTransitionScope,
+                    animatedContentScope       = animatedContentScope,
+                    modifier                   = Modifier
+                        .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
+                        .fillMaxWidth()
+                        .padding(bottom = dimensions.spacingXXLarge * 2)
                 )
             }
 
-            Spacer(modifier = Modifier.height(dimensions.spacingLarge))
-
-            AnimatedLoginCard(
+            // Decorative corners (portrait only)
+            LoginDecorativeCorner(
+                imageRes         = Res.drawable.bottom_left_background,
+                alignment        = Alignment.BottomStart,
+                fromX            = -100f, fromY = 100f,
+                size             = dimensions.cornerImageSize,
                 animationStarted = animationStarted,
-                uiState = uiState,
-                viewModel = viewModel,
-                onLoginSuccess = onLoginSuccess,
-                onEmailOrPhoneChange = viewModel::onEmailOrPhoneChanged,
-                onPasswordChange = viewModel::onPasswordChanged,
-                onPasswordVisibilityToggle = viewModel::onPasswordVisibilityToggled,
-                onSavePasswordToggle = viewModel::onSavePasswordToggled,
-                onForgotPasswordClick = onForgotPasswordClick,
-                onLoginClick = { viewModel.login(onLoginSuccess) },
-                focusManager = focusManager,
-                sharedTransitionScope = sharedTransitionScope,
-                animatedContentScope = animatedContentScope,
-                modifier = Modifier
-                    .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
-                    .fillMaxWidth()
-                    .padding(bottom = dimensions.spacingXXLarge * 2)
+                delayMillis      = 200
+            )
+            LoginDecorativeCorner(
+                imageRes         = Res.drawable.bottom_right_background,
+                alignment        = Alignment.BottomEnd,
+                fromX            = 100f, fromY = 100f,
+                size             = dimensions.cornerImageSize,
+                animationStarted = animationStarted,
+                delayMillis      = 300
             )
         }
-
-        LoginDecorativeCorner(
-            imageRes = Res.drawable.bottom_left_background,
-            alignment = Alignment.BottomStart,
-            fromX = -100f, fromY = 100f,
-            size = dimensions.cornerImageSize,
-            animationStarted = animationStarted,
-            delayMillis = 200
-        )
-        LoginDecorativeCorner(
-            imageRes = Res.drawable.bottom_right_background,
-            alignment = Alignment.BottomEnd,
-            fromX = 100f, fromY = 100f,
-            size = dimensions.cornerImageSize,
-            animationStarted = animationStarted,
-            delayMillis = 300
-        )
     }
 }
 
@@ -169,7 +241,7 @@ private fun LoginDecorativeCorner(
     delayMillis: Int,
     modifier: Modifier = Modifier
 ) {
-    val spec = spring<Float>(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
+    val spec    = spring<Float>(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
     val offsetX by animateFloatAsState(if (animationStarted) 0f else fromX, spec, label = "x")
     val offsetY by animateFloatAsState(if (animationStarted) 0f else fromY, spec, label = "y")
     val scale   by animateFloatAsState(if (animationStarted) 1f else 0f, spec, label = "scale")
@@ -177,13 +249,12 @@ private fun LoginDecorativeCorner(
         if (animationStarted) 1f else 0f,
         tween(800, delayMillis, FastOutSlowInEasing), label = "alpha"
     )
-    // 🔒 Force LTR so corner images never flip in RTL languages
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         Box(modifier.fillMaxSize(), contentAlignment = alignment) {
             Image(
-                painter = painterResource(imageRes),
+                painter            = painterResource(imageRes),
                 contentDescription = null,
-                modifier = Modifier
+                modifier           = Modifier
                     .size(size)
                     .graphicsLayer { translationX = offsetX; translationY = offsetY; scaleX = scale; scaleY = scale }
                     .alpha(alpha),
@@ -201,7 +272,8 @@ private fun AnimatedLogoSection(
     animatedContentScope: AnimatedContentScope,
     modifier: Modifier = Modifier
 ) {
-    val dimensions = LocalDimensions.current
+    val dimensions  = LocalDimensions.current
+    val isLandscape = LocalIsLandscape.current
     var jsonString by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
@@ -212,15 +284,18 @@ private fun AnimatedLogoSection(
     }
 
     val offsetY by animateFloatAsState(
-        targetValue = if (animationStarted) 0f else -100f,
+        targetValue   = if (animationStarted) 0f else -100f,
         animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
-        label = "logoOffset"
+        label         = "logoOffset"
     )
     val alpha by animateFloatAsState(
-        targetValue = if (animationStarted) 1f else 0f,
+        targetValue   = if (animationStarted) 1f else 0f,
         animationSpec = tween(800, easing = FastOutSlowInEasing),
-        label = "logoAlpha"
+        label         = "logoAlpha"
     )
+
+    // Smaller logo in landscape to leave room for the form
+    val logoSize = if (isLandscape) dimensions.logoSize * 0.55f else dimensions.logoSize
 
     with(sharedTransitionScope) {
         Box(
@@ -240,17 +315,17 @@ private fun AnimatedLogoSection(
                 }
                 val progress by animateLottieCompositionAsState(
                     composition = composition,
-                    iterations = Compottie.IterateForever
+                    iterations  = Compottie.IterateForever
                 )
                 val painter = rememberLottiePainter(
                     composition = composition,
-                    progress = { progress }
+                    progress    = { progress }
                 )
                 Image(
-                    painter = painter,
+                    painter            = painter,
                     contentDescription = stringResource(Res.string.login_logo_description),
-                    modifier = Modifier.size(dimensions.logoSize),
-                    contentScale = ContentScale.Fit
+                    modifier           = Modifier.size(logoSize),
+                    contentScale       = ContentScale.Fit
                 )
             }
         }
@@ -275,19 +350,25 @@ private fun AnimatedLoginCard(
     animatedContentScope: AnimatedContentScope,
     modifier: Modifier = Modifier
 ) {
-    val dimensions = LocalDimensions.current
+    val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
+    val isLandscape  = LocalIsLandscape.current
 
     val offsetY by animateFloatAsState(
-        targetValue = if (animationStarted) 0f else 400f,
+        targetValue   = if (animationStarted) 0f else 400f,
         animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
-        label = "cardOffset"
+        label         = "cardOffset"
     )
     val alpha by animateFloatAsState(
-        targetValue = if (animationStarted) 1f else 0f,
+        targetValue   = if (animationStarted) 1f else 0f,
         animationSpec = tween(800, delayMillis = 400, easing = FastOutSlowInEasing),
-        label = "cardAlpha"
+        label         = "cardAlpha"
     )
+
+    val cardCornerRadius = if (isLandscape)
+        RoundedCornerShape(dimensions.cardCornerRadius)
+    else
+        RoundedCornerShape(topStart = dimensions.cardCornerRadius * 2, topEnd = dimensions.cardCornerRadius * 2)
 
     with(sharedTransitionScope) {
         Box(
@@ -300,41 +381,43 @@ private fun AnimatedLoginCard(
                     boundsTransform = { _, _ -> tween(600, easing = FastOutSlowInEasing) }
                 )
         ) {
-            Image(
-                painter = painterResource(Res.drawable.baby_background),
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .matchParentSize()
-                    .clip(RoundedCornerShape(topStart = dimensions.cardCornerRadius * 2, topEnd = dimensions.cardCornerRadius * 2))
-                    .alpha(0.3f),
-                contentScale = ContentScale.Crop
-            )
+            if (!isLandscape) {
+                Image(
+                    painter            = painterResource(Res.drawable.baby_background),
+                    contentDescription = null,
+                    modifier           = Modifier
+                        .fillMaxWidth()
+                        .matchParentSize()
+                        .clip(cardCornerRadius)
+                        .alpha(0.3f),
+                    contentScale = ContentScale.Crop
+                )
+            }
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clip(RoundedCornerShape(topStart = dimensions.cardCornerRadius * 2, topEnd = dimensions.cardCornerRadius * 2))
+                    .clip(cardCornerRadius)
                     .background(customColors.glassBackground)
                     .padding(dimensions.spacingLarge),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = stringResource(Res.string.login_select_one),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
+                    text     = stringResource(Res.string.login_select_one),
+                    style    = MaterialTheme.typography.titleMedium,
+                    color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
                     modifier = Modifier.padding(bottom = dimensions.spacingMedium)
                 )
 
                 GlassmorphicTextField(
-                    value = uiState.emailOrPhone,
+                    value         = uiState.emailOrPhone,
                     onValueChange = onEmailOrPhoneChange,
-                    placeholder = stringResource(Res.string.login_email_or_phone_placeholder),
-                    leadingIcon = {
+                    placeholder   = stringResource(Res.string.login_email_or_phone_placeholder),
+                    leadingIcon   = {
                         Icon(
                             Icons.Default.Person,
                             contentDescription = "Email or Phone",
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            tint               = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     },
                     keyboardOptions = KeyboardOptions(
@@ -350,23 +433,20 @@ private fun AnimatedLoginCard(
                 Spacer(Modifier.height(dimensions.spacingMedium))
 
                 GlassmorphicTextField(
-                    value = uiState.password,
+                    value         = uiState.password,
                     onValueChange = onPasswordChange,
-                    placeholder = stringResource(Res.string.login_password_placeholder),
-                    leadingIcon = {
+                    placeholder   = stringResource(Res.string.login_password_placeholder),
+                    leadingIcon   = {
                         Icon(
                             Icons.Default.Lock,
                             contentDescription = "Password",
-                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            tint               = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     },
-                    trailingIcon = {
+                    trailingIcon  = {
                         IconButton(onClick = onPasswordVisibilityToggle) {
                             Icon(
-                                imageVector = if (uiState.passwordVisible)
-                                    Icons.Default.Visibility
-                                else
-                                    Icons.Default.VisibilityOff,
+                                imageVector        = if (uiState.passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                                 contentDescription = if (uiState.passwordVisible)
                                     stringResource(Res.string.login_hide_password)
                                 else
@@ -392,36 +472,36 @@ private fun AnimatedLoginCard(
                 Spacer(Modifier.height(dimensions.spacingSmall))
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment     = Alignment.CenterVertically
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable { onSavePasswordToggle() }
+                        modifier          = Modifier.clickable { onSavePasswordToggle() }
                     ) {
                         Checkbox(
-                            checked = uiState.savePassword,
+                            checked         = uiState.savePassword,
                             onCheckedChange = { onSavePasswordToggle() },
-                            colors = CheckboxDefaults.colors(
+                            colors          = CheckboxDefaults.colors(
                                 checkedColor   = customColors.accentGradientStart,
                                 uncheckedColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
                         )
                         Text(
-                            text = stringResource(Res.string.login_save_password),
+                            text  = stringResource(Res.string.login_save_password),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
                         )
                     }
 
                     Text(
-                        text = stringResource(Res.string.login_forget_password),
-                        style = MaterialTheme.typography.bodyMedium.copy(
+                        text     = stringResource(Res.string.login_forget_password),
+                        style    = MaterialTheme.typography.bodyMedium.copy(
                             textDecoration = TextDecoration.Underline,
                             fontWeight     = FontWeight.Medium
                         ),
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
+                        color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                         modifier = Modifier.clickable { onForgotPasswordClick() }
                     )
                 }
@@ -429,9 +509,9 @@ private fun AnimatedLoginCard(
                 uiState.errorMessage?.let { error ->
                     Spacer(Modifier.height(dimensions.spacingSmall))
                     Text(
-                        text  = error,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
+                        text     = error,
+                        style    = MaterialTheme.typography.bodySmall,
+                        color    = MaterialTheme.colorScheme.error,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -439,10 +519,10 @@ private fun AnimatedLoginCard(
                 Spacer(Modifier.height(dimensions.spacingLarge))
 
                 PrimaryButton(
-                    text    = stringResource(Res.string.login_button),
-                    onClick = onLoginClick,
-                    loading = uiState.isLoading,
-                    enabled = !uiState.isLoading,
+                    text     = stringResource(Res.string.login_button),
+                    onClick  = onLoginClick,
+                    loading  = uiState.isLoading,
+                    enabled  = !uiState.isLoading,
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -450,7 +530,7 @@ private fun AnimatedLoginCard(
 
                 SocialLoginSection(
                     onGoogleClick = { viewModel.loginWithGoogle(onLoginSuccess) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier      = Modifier.fillMaxWidth()
                 )
 
                 Spacer(Modifier.height(dimensions.spacingMedium))

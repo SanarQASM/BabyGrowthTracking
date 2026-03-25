@@ -50,9 +50,9 @@ fun WelcomeScreen(
 ) {
     val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
+    val isLandscape  = LocalIsLandscape.current
 
     var animationStarted by remember { mutableStateOf(false) }
-    val scrollState = rememberScrollState()
 
     LaunchedEffect(Unit) { delay(100); animationStarted = true }
 
@@ -68,72 +68,120 @@ fun WelcomeScreen(
                 )
             )
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(horizontal = dimensions.screenPadding),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Spacer(modifier = Modifier.height(dimensions.spacingLarge))
-
-            Box(
-                modifier         = Modifier
-                    .fillMaxWidth()
-                    .widthIn(max = dimensions.maxContentWidth),
-                contentAlignment = Alignment.Center
+        if (isLandscape) {
+            // ── LANDSCAPE: Logo left, card right ─────────────────────────────
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = dimensions.screenPadding),
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(dimensions.spacingLarge)
             ) {
-                AnimatedLottieLogoSection(
-                    animationStarted      = animationStarted,
-                    sharedTransitionScope = sharedTransitionScope,
-                    animatedContentScope  = animatedContentScope,
-                    modifier              = Modifier.wrapContentHeight()
-                )
+                // Left pane: Logo + app name
+                Box(
+                    modifier         = Modifier
+                        .weight(0.45f)
+                        .fillMaxHeight(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    AnimatedLottieLogoSection(
+                        animationStarted      = animationStarted,
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedContentScope  = animatedContentScope,
+                        modifier              = Modifier.wrapContentSize()
+                    )
+                }
+
+                // Right pane: Action card
+                Box(
+                    modifier         = Modifier
+                        .weight(0.55f)
+                        .fillMaxHeight(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    AnimatedCardSection(
+                        animationStarted      = animationStarted,
+                        onLoginClick          = onLoginClick,
+                        onSignUpClick         = onSignUpClick,
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedContentScope  = animatedContentScope,
+                        modifier              = Modifier
+                            .widthIn(max = dimensions.maxContentWidth)
+                            .fillMaxWidth()
+                    )
+                }
             }
-
-            Spacer(modifier = Modifier.height(dimensions.spacingLarge))
-
-            Box(
-                modifier         = Modifier
-                    .fillMaxWidth()
-                    .widthIn(max = dimensions.maxContentWidth),
-                contentAlignment = Alignment.Center
+        } else {
+            // ── PORTRAIT: Original vertical layout ───────────────────────────
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = dimensions.screenPadding),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
-                AnimatedCardSection(
-                    animationStarted      = animationStarted,
-                    onLoginClick          = onLoginClick,
-                    onSignUpClick         = onSignUpClick,
-                    sharedTransitionScope = sharedTransitionScope,
-                    animatedContentScope  = animatedContentScope,
-                    modifier              = Modifier
-                        .widthIn(max = dimensions.maxContentWidth)
+                Spacer(modifier = Modifier.height(dimensions.spacingLarge))
+
+                Box(
+                    modifier         = Modifier
                         .fillMaxWidth()
-                )
-            }
+                        .widthIn(max = dimensions.maxContentWidth),
+                    contentAlignment = Alignment.Center
+                ) {
+                    AnimatedLottieLogoSection(
+                        animationStarted      = animationStarted,
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedContentScope  = animatedContentScope,
+                        modifier              = Modifier.wrapContentHeight()
+                    )
+                }
 
-            Spacer(modifier = Modifier.height(dimensions.spacingLarge))
+                Spacer(modifier = Modifier.height(dimensions.spacingLarge))
+
+                Box(
+                    modifier         = Modifier
+                        .fillMaxWidth()
+                        .widthIn(max = dimensions.maxContentWidth),
+                    contentAlignment = Alignment.Center
+                ) {
+                    AnimatedCardSection(
+                        animationStarted      = animationStarted,
+                        onLoginClick          = onLoginClick,
+                        onSignUpClick         = onSignUpClick,
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedContentScope  = animatedContentScope,
+                        modifier              = Modifier
+                            .widthIn(max = dimensions.maxContentWidth)
+                            .fillMaxWidth()
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(dimensions.spacingLarge))
+            }
         }
 
-        // ── Decorative corners ───────────────────────────────────────────────
-        DecorativeCorner(
-            imageRes         = Res.drawable.bottom_left_background,
-            alignment        = Alignment.BottomStart,
-            fromX            = -(dimensions.cornerImageSize.value),
-            fromY            = dimensions.cornerImageSize.value,
-            size             = dimensions.cornerImageSize,
-            animationStarted = animationStarted,
-            delayMillis      = 200
-        )
-        DecorativeCorner(
-            imageRes         = Res.drawable.bottom_right_background,
-            alignment        = Alignment.BottomEnd,
-            fromX            = dimensions.cornerImageSize.value,
-            fromY            = dimensions.cornerImageSize.value,
-            size             = dimensions.cornerImageSize,
-            animationStarted = animationStarted,
-            delayMillis      = 300
-        )
+        // ── Decorative corners (portrait only to avoid clutter in landscape) ──
+        if (!isLandscape) {
+            DecorativeCorner(
+                imageRes         = Res.drawable.bottom_left_background,
+                alignment        = Alignment.BottomStart,
+                fromX            = -(dimensions.cornerImageSize.value),
+                fromY            = dimensions.cornerImageSize.value,
+                size             = dimensions.cornerImageSize,
+                animationStarted = animationStarted,
+                delayMillis      = 200
+            )
+            DecorativeCorner(
+                imageRes         = Res.drawable.bottom_right_background,
+                alignment        = Alignment.BottomEnd,
+                fromX            = dimensions.cornerImageSize.value,
+                fromY            = dimensions.cornerImageSize.value,
+                size             = dimensions.cornerImageSize,
+                animationStarted = animationStarted,
+                delayMillis      = 300
+            )
+        }
     }
 }
 
@@ -149,7 +197,8 @@ fun AnimatedLottieLogoSection(
     animatedContentScope : AnimatedContentScope,
     modifier             : Modifier = Modifier
 ) {
-    val dimensions = LocalDimensions.current
+    val dimensions  = LocalDimensions.current
+    val isLandscape = LocalIsLandscape.current
     var jsonString by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
@@ -169,6 +218,9 @@ fun AnimatedLottieLogoSection(
         animationSpec = tween(durationMillis = 800, easing = FastOutSlowInEasing),
         label         = "logoAlpha"
     )
+
+    // Reduce logo size in landscape to fit available space
+    val logoSize = if (isLandscape) dimensions.logoSize * 0.55f else dimensions.logoSize * 0.8f
 
     with(sharedTransitionScope) {
         Column(
@@ -192,7 +244,7 @@ fun AnimatedLottieLogoSection(
                     painter            = painter,
                     contentDescription = stringResource(Res.string.app_logo_description),
                     modifier           = Modifier
-                        .size(dimensions.logoSize * 0.8f)
+                        .size(logoSize)
                         .sharedBounds(
                             sharedContentState      = rememberSharedContentState(key = "lottie_animation"),
                             animatedVisibilityScope = animatedContentScope,
@@ -221,14 +273,15 @@ fun AnimatedLottieLogoSection(
                 )
             )
 
-            Spacer(modifier = Modifier.height(dimensions.spacingSmall))
-
-            Text(
-                text      = stringResource(Res.string.login_page_title),
-                style     = MaterialTheme.typography.titleMedium,
-                color     = MaterialTheme.colorScheme.onBackground,
-                textAlign = TextAlign.Center
-            )
+            if (!isLandscape) {
+                Spacer(modifier = Modifier.height(dimensions.spacingSmall))
+                Text(
+                    text      = stringResource(Res.string.login_page_title),
+                    style     = MaterialTheme.typography.titleMedium,
+                    color     = MaterialTheme.colorScheme.onBackground,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }
@@ -249,6 +302,7 @@ fun AnimatedCardSection(
 ) {
     val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
+    val isLandscape  = LocalIsLandscape.current
     val cardShape    = RoundedCornerShape(dimensions.cardCornerRadius)
 
     val offsetY by animateFloatAsState(
@@ -275,16 +329,19 @@ fun AnimatedCardSection(
                     }
                 )
         ) {
-            Image(
-                painter            = painterResource(Res.drawable.baby_background),
-                contentDescription = null,
-                modifier           = Modifier
-                    .fillMaxWidth()
-                    .height(dimensions.logoSize * 0.7f)
-                    .clip(cardShape),
-                contentScale = ContentScale.Crop,
-                alpha        = 0.3f
-            )
+            // In landscape, skip the tall background image to save vertical space
+            if (!isLandscape) {
+                Image(
+                    painter            = painterResource(Res.drawable.baby_background),
+                    contentDescription = null,
+                    modifier           = Modifier
+                        .fillMaxWidth()
+                        .height(dimensions.logoSize * 0.7f)
+                        .clip(cardShape),
+                    contentScale = ContentScale.Crop,
+                    alpha        = 0.3f
+                )
+            }
 
             Column(
                 modifier = Modifier
@@ -295,7 +352,9 @@ fun AnimatedCardSection(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Spacer(modifier = Modifier.height(dimensions.spacingMedium))
+                if (!isLandscape) {
+                    Spacer(modifier = Modifier.height(dimensions.spacingMedium))
+                }
 
                 Text(
                     text     = stringResource(Res.string.welcome_select_one),
@@ -304,7 +363,9 @@ fun AnimatedCardSection(
                     modifier = Modifier.padding(bottom = dimensions.spacingMedium)
                 )
 
-                Spacer(modifier = Modifier.height(dimensions.spacingSmall))
+                if (!isLandscape) {
+                    Spacer(modifier = Modifier.height(dimensions.spacingSmall))
+                }
 
                 PrimaryButton(
                     text     = stringResource(Res.string.welcome_login),
@@ -320,7 +381,9 @@ fun AnimatedCardSection(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(dimensions.spacingMedium))
+                if (!isLandscape) {
+                    Spacer(modifier = Modifier.height(dimensions.spacingMedium))
+                }
             }
         }
     }
@@ -374,7 +437,6 @@ fun DecorativeCorner(
         ) {
             Image(
                 painter            = painterResource(imageRes),
-                // was: "Decorative corner"
                 contentDescription = stringResource(Res.string.decorative_corner_description),
                 modifier           = Modifier
                     .size(size)

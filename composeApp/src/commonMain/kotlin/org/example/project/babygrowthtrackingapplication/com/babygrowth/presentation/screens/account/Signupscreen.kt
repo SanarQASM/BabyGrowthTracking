@@ -44,25 +44,22 @@ import org.example.project.babygrowthtrackingapplication.ui.components.SocialLog
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SignupScreen(
-    viewModel: SignupViewModel,
-    onBackClick: () -> Unit,
-    onSignupSuccess: () -> Unit,
+    viewModel            : SignupViewModel,
+    onBackClick          : () -> Unit,
+    onSignupSuccess      : () -> Unit,
     onSocialSignupSuccess: () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
-    animatedContentScope: AnimatedContentScope
+    animatedContentScope : AnimatedContentScope
 ) {
-    val dimensions = LocalDimensions.current
+    val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
     val focusManager = LocalFocusManager.current
-    val scrollState = rememberScrollState()
+    val isLandscape  = LocalIsLandscape.current
 
-    val uiState = viewModel.uiState
+    val uiState          = viewModel.uiState
     var animationStarted by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        delay(100)
-        animationStarted = true
-    }
+    LaunchedEffect(Unit) { delay(100); animationStarted = true }
 
     Box(
         modifier = Modifier
@@ -76,87 +73,163 @@ fun SignupScreen(
                 )
             )
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(horizontal = dimensions.screenPadding),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
-                    .padding(top = dimensions.spacingMedium),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(onClick = onBackClick) {
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(Res.string.common_back),
-                        tint = customColors.accentGradientStart
+        if (isLandscape) {
+            // ── LANDSCAPE: Logo left, scrollable form right ───────────────────
+            Row(modifier = Modifier.fillMaxSize()) {
+                // Left: Logo + app name
+                Column(
+                    modifier = Modifier
+                        .weight(0.35f)
+                        .fillMaxHeight()
+                        .padding(horizontal = dimensions.screenPadding),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Box(
+                        modifier         = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.TopStart
+                    ) {
+                        IconButton(
+                            onClick  = onBackClick,
+                            modifier = Modifier.padding(top = dimensions.spacingSmall)
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(Res.string.common_back),
+                                tint               = customColors.accentGradientStart
+                            )
+                        }
+                    }
+                    AnimatedSignupLogoSection(
+                        animationStarted      = animationStarted,
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedContentScope  = animatedContentScope,
+                        modifier              = Modifier.wrapContentHeight()
+                    )
+                }
+
+                // Right: Scrollable form in two-column grid layout
+                Column(
+                    modifier = Modifier
+                        .weight(0.65f)
+                        .fillMaxHeight()
+                        .verticalScroll(rememberScrollState())
+                        .padding(
+                            horizontal = dimensions.screenPadding,
+                            vertical   = dimensions.spacingMedium
+                        ),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    AnimatedSignupCard(
+                        animationStarted              = animationStarted,
+                        uiState                       = uiState,
+                        viewModel                     = viewModel,
+                        onSignupSuccess               = onSignupSuccess,
+                        onSocialSignupSuccess         = onSocialSignupSuccess,
+                        onFullNameChange              = viewModel::onFullNameChanged,
+                        onEmailChange                 = viewModel::onEmailChanged,
+                        onPasswordChange              = viewModel::onPasswordChanged,
+                        onConfirmPasswordChange       = viewModel::onConfirmPasswordChanged,
+                        onPhoneChange                 = viewModel::onPhoneChanged,
+                        onCityChange                  = viewModel::onCityChanged,
+                        onAddressChange               = viewModel::onAddressChanged,
+                        onPasswordVisibilityToggle    = viewModel::onPasswordVisibilityToggled,
+                        onConfirmPasswordVisibilityToggle = viewModel::onConfirmPasswordVisibilityToggled,
+                        onSignupClick                 = { viewModel.signup(onSignupSuccess) },
+                        focusManager                  = focusManager,
+                        sharedTransitionScope         = sharedTransitionScope,
+                        animatedContentScope          = animatedContentScope,
+                        modifier                      = Modifier.fillMaxWidth()
                     )
                 }
             }
-
-            Spacer(Modifier.height(dimensions.spacingMedium))
-
-            Box(
+        } else {
+            // ── PORTRAIT: Original vertical layout ───────────────────────────
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6),
-                contentAlignment = Alignment.Center
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = dimensions.screenPadding),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                AnimatedSignupLogoSection(
-                    animationStarted = animationStarted,
-                    sharedTransitionScope = sharedTransitionScope,
-                    animatedContentScope = animatedContentScope,
-                    modifier = Modifier.wrapContentHeight()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
+                        .padding(top = dimensions.spacingMedium),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(Res.string.common_back),
+                            tint               = customColors.accentGradientStart
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(dimensions.spacingMedium))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6),
+                    contentAlignment = Alignment.Center
+                ) {
+                    AnimatedSignupLogoSection(
+                        animationStarted      = animationStarted,
+                        sharedTransitionScope = sharedTransitionScope,
+                        animatedContentScope  = animatedContentScope,
+                        modifier              = Modifier.wrapContentHeight()
+                    )
+                }
+
+                Spacer(Modifier.height(dimensions.spacingLarge))
+
+                AnimatedSignupCard(
+                    animationStarted              = animationStarted,
+                    uiState                       = uiState,
+                    viewModel                     = viewModel,
+                    onSignupSuccess               = onSignupSuccess,
+                    onSocialSignupSuccess         = onSocialSignupSuccess,
+                    onFullNameChange              = viewModel::onFullNameChanged,
+                    onEmailChange                 = viewModel::onEmailChanged,
+                    onPasswordChange              = viewModel::onPasswordChanged,
+                    onConfirmPasswordChange       = viewModel::onConfirmPasswordChanged,
+                    onPhoneChange                 = viewModel::onPhoneChanged,
+                    onCityChange                  = viewModel::onCityChanged,
+                    onAddressChange               = viewModel::onAddressChanged,
+                    onPasswordVisibilityToggle    = viewModel::onPasswordVisibilityToggled,
+                    onConfirmPasswordVisibilityToggle = viewModel::onConfirmPasswordVisibilityToggled,
+                    onSignupClick                 = { viewModel.signup(onSignupSuccess) },
+                    focusManager                  = focusManager,
+                    sharedTransitionScope         = sharedTransitionScope,
+                    animatedContentScope          = animatedContentScope,
+                    modifier                      = Modifier
+                        .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
+                        .fillMaxWidth()
+                        .padding(bottom = dimensions.spacingXXLarge * 2)
                 )
             }
 
-            Spacer(Modifier.height(dimensions.spacingLarge))
-
-            AnimatedSignupCard(
-                animationStarted = animationStarted,
-                uiState = uiState,
-                viewModel = viewModel,
-                onSignupSuccess = onSignupSuccess,
-                onSocialSignupSuccess = onSocialSignupSuccess,
-                onFullNameChange = viewModel::onFullNameChanged,
-                onEmailChange = viewModel::onEmailChanged,
-                onPasswordChange = viewModel::onPasswordChanged,
-                onConfirmPasswordChange = viewModel::onConfirmPasswordChanged,
-                onPhoneChange = viewModel::onPhoneChanged,
-                onCityChange = viewModel::onCityChanged,
-                onAddressChange = viewModel::onAddressChanged,
-                onPasswordVisibilityToggle = viewModel::onPasswordVisibilityToggled,
-                onConfirmPasswordVisibilityToggle = viewModel::onConfirmPasswordVisibilityToggled,
-                onSignupClick = { viewModel.signup(onSignupSuccess) },
-                focusManager = focusManager,
-                sharedTransitionScope = sharedTransitionScope,
-                animatedContentScope = animatedContentScope,
-                modifier = Modifier
-                    .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
-                    .fillMaxWidth()
-                    .padding(bottom = dimensions.spacingXXLarge * 2)
-            )
+            SignupDecorativeCorner(Res.drawable.bottom_left_background, Alignment.BottomStart,
+                -100f, 100f, dimensions.cornerImageSize, animationStarted, 200)
+            SignupDecorativeCorner(Res.drawable.bottom_right_background, Alignment.BottomEnd,
+                100f, 100f, dimensions.cornerImageSize, animationStarted, 300)
         }
-
-        SignupDecorativeCorner(Res.drawable.bottom_left_background, Alignment.BottomStart, -100f, 100f, dimensions.cornerImageSize, animationStarted, 200)
-        SignupDecorativeCorner(Res.drawable.bottom_right_background, Alignment.BottomEnd, 100f, 100f, dimensions.cornerImageSize, animationStarted, 300)
     }
 }
 
 @OptIn(ExperimentalResourceApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 private fun AnimatedSignupLogoSection(
-    animationStarted: Boolean,
+    animationStarted     : Boolean,
     sharedTransitionScope: SharedTransitionScope,
-    animatedContentScope: AnimatedContentScope,
-    modifier: Modifier = Modifier
+    animatedContentScope : AnimatedContentScope,
+    modifier             : Modifier = Modifier
 ) {
-    val dimensions = LocalDimensions.current
+    val dimensions  = LocalDimensions.current
+    val isLandscape = LocalIsLandscape.current
     var jsonString by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
@@ -174,6 +247,8 @@ private fun AnimatedSignupLogoSection(
         tween(800, easing = FastOutSlowInEasing), label = "logoAlpha"
     )
 
+    val logoSize = if (isLandscape) dimensions.logoSize * 0.4f else dimensions.logoSize * 0.5f
+
     with(sharedTransitionScope) {
         Column(
             modifier = modifier.graphicsLayer { translationY = offsetY }.alpha(alpha),
@@ -185,10 +260,10 @@ private fun AnimatedSignupLogoSection(
                 val progress by animateLottieCompositionAsState(composition = composition, iterations = Compottie.IterateForever)
                 val painter = rememberLottiePainter(composition = composition, progress = { progress })
                 Image(
-                    painter = painter,
+                    painter            = painter,
                     contentDescription = stringResource(Res.string.app_logo_description),
-                    modifier = Modifier
-                        .size(dimensions.logoSize * 0.5f)
+                    modifier           = Modifier
+                        .size(logoSize)
                         .sharedBounds(
                             rememberSharedContentState("lottie_animation"),
                             animatedContentScope,
@@ -201,26 +276,27 @@ private fun AnimatedSignupLogoSection(
             Spacer(Modifier.height(dimensions.spacingSmall))
 
             Text(
-                text = stringResource(Res.string.app_name),
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.primary,
+                text       = stringResource(Res.string.app_name),
+                style      = MaterialTheme.typography.headlineSmall,
+                color      = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.sharedBounds(
+                textAlign  = TextAlign.Center,
+                modifier   = Modifier.sharedBounds(
                     rememberSharedContentState("app_name"),
                     animatedContentScope,
                     boundsTransform = { _, _ -> tween(600, easing = FastOutSlowInEasing) }
                 )
             )
 
-            Spacer(Modifier.height(dimensions.spacingSmall))
-
-            Text(
-                text = stringResource(Res.string.signup_page_title),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onBackground,
-                textAlign = TextAlign.Center
-            )
+            if (!isLandscape) {
+                Spacer(Modifier.height(dimensions.spacingSmall))
+                Text(
+                    text      = stringResource(Res.string.signup_page_title),
+                    style     = MaterialTheme.typography.titleLarge,
+                    color     = MaterialTheme.colorScheme.onBackground,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }
@@ -228,28 +304,29 @@ private fun AnimatedSignupLogoSection(
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun AnimatedSignupCard(
-    animationStarted: Boolean,
-    uiState: SignupUiState,
-    viewModel: SignupViewModel,
-    onSignupSuccess: () -> Unit,
-    onSocialSignupSuccess: () -> Unit,
-    onFullNameChange: (String) -> Unit,
-    onEmailChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit,
-    onConfirmPasswordChange: (String) -> Unit,
-    onPhoneChange: (String) -> Unit,
-    onCityChange: (String) -> Unit,
-    onAddressChange: (String) -> Unit,
-    onPasswordVisibilityToggle: () -> Unit,
+    animationStarted                 : Boolean,
+    uiState                          : SignupUiState,
+    viewModel                        : SignupViewModel,
+    onSignupSuccess                  : () -> Unit,
+    onSocialSignupSuccess            : () -> Unit,
+    onFullNameChange                 : (String) -> Unit,
+    onEmailChange                    : (String) -> Unit,
+    onPasswordChange                 : (String) -> Unit,
+    onConfirmPasswordChange          : (String) -> Unit,
+    onPhoneChange                    : (String) -> Unit,
+    onCityChange                     : (String) -> Unit,
+    onAddressChange                  : (String) -> Unit,
+    onPasswordVisibilityToggle       : () -> Unit,
     onConfirmPasswordVisibilityToggle: () -> Unit,
-    onSignupClick: () -> Unit,
-    focusManager: androidx.compose.ui.focus.FocusManager,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedContentScope: AnimatedContentScope,
-    modifier: Modifier = Modifier
+    onSignupClick                    : () -> Unit,
+    focusManager                     : androidx.compose.ui.focus.FocusManager,
+    sharedTransitionScope            : SharedTransitionScope,
+    animatedContentScope             : AnimatedContentScope,
+    modifier                         : Modifier = Modifier
 ) {
-    val dimensions = LocalDimensions.current
+    val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
+    val isLandscape  = LocalIsLandscape.current
 
     val offsetY by animateFloatAsState(
         if (animationStarted) 0f else 400f,
@@ -259,6 +336,11 @@ private fun AnimatedSignupCard(
         if (animationStarted) 1f else 0f,
         tween(800, delayMillis = 400, easing = FastOutSlowInEasing), label = "cardAlpha"
     )
+
+    val cardShape = if (isLandscape)
+        RoundedCornerShape(dimensions.cardCornerRadius)
+    else
+        RoundedCornerShape(dimensions.cardCornerRadius * 2)
 
     with(sharedTransitionScope) {
         Box(
@@ -272,126 +354,206 @@ private fun AnimatedSignupCard(
                     boundsTransform = { _, _ -> tween(600, easing = FastOutSlowInEasing) }
                 )
         ) {
-            Image(
-                painter = painterResource(Res.drawable.baby_background),
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .matchParentSize()
-                    .clip(RoundedCornerShape(dimensions.cardCornerRadius * 2))
-                    .alpha(0.3f),
-                contentScale = ContentScale.Crop
-            )
+            if (!isLandscape) {
+                Image(
+                    painter            = painterResource(Res.drawable.baby_background),
+                    contentDescription = null,
+                    modifier           = Modifier
+                        .fillMaxWidth()
+                        .matchParentSize()
+                        .clip(cardShape)
+                        .alpha(0.3f),
+                    contentScale = ContentScale.Crop
+                )
+            }
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight()
-                    .clip(RoundedCornerShape(dimensions.cardCornerRadius * 2))
+                    .clip(cardShape)
                     .background(customColors.glassBackground)
                     .padding(dimensions.spacingLarge),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = stringResource(Res.string.welcome_select_one),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
+                    text     = stringResource(Res.string.welcome_select_one),
+                    style    = MaterialTheme.typography.titleMedium,
+                    color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
                     modifier = Modifier.padding(bottom = dimensions.spacingMedium)
                 )
 
-                GlassmorphicTextField(
-                    value = uiState.fullName, onValueChange = onFullNameChange,
-                    placeholder = stringResource(Res.string.signup_full_name_placeholder),
-                    leadingIcon = { Icon(Icons.Default.Person, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
-                    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(Modifier.height(dimensions.spacingMedium))
-
-                GlassmorphicTextField(
-                    value = uiState.email, onValueChange = onEmailChange,
-                    placeholder = stringResource(Res.string.signup_email_placeholder),
-                    leadingIcon = { Icon(Icons.Default.Email, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
-                    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(Modifier.height(dimensions.spacingMedium))
-
-                GlassmorphicTextField(
-                    value = uiState.password, onValueChange = onPasswordChange,
-                    placeholder = stringResource(Res.string.signup_password_placeholder),
-                    leadingIcon = { Icon(Icons.Default.Lock, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
-                    trailingIcon = {
-                        IconButton(onClick = onPasswordVisibilityToggle) {
-                            Icon(
-                                if (uiState.passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)
+                if (isLandscape) {
+                    // ── 2-column grid for form fields in landscape ────────────
+                    Row(
+                        modifier              = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
+                    ) {
+                        Column(
+                            modifier            = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
+                        ) {
+                            GlassmorphicTextField(
+                                value           = uiState.fullName,
+                                onValueChange   = onFullNameChange,
+                                placeholder     = stringResource(Res.string.signup_full_name_placeholder),
+                                leadingIcon     = { Icon(Icons.Default.Person, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+                                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                                modifier        = Modifier.fillMaxWidth()
+                            )
+                            GlassmorphicTextField(
+                                value           = uiState.email,
+                                onValueChange   = onEmailChange,
+                                placeholder     = stringResource(Res.string.signup_email_placeholder),
+                                leadingIcon     = { Icon(Icons.Default.Email, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
+                                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                                modifier        = Modifier.fillMaxWidth()
+                            )
+                            GlassmorphicTextField(
+                                value                = uiState.password,
+                                onValueChange        = onPasswordChange,
+                                placeholder          = stringResource(Res.string.signup_password_placeholder),
+                                leadingIcon          = { Icon(Icons.Default.Lock, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
+                                trailingIcon         = {
+                                    IconButton(onClick = onPasswordVisibilityToggle) {
+                                        Icon(if (uiState.passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f))
+                                    }
+                                },
+                                visualTransformation = if (uiState.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                                keyboardOptions      = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+                                keyboardActions      = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                                modifier             = Modifier.fillMaxWidth()
                             )
                         }
-                    },
-                    visualTransformation = if (uiState.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
-                    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(Modifier.height(dimensions.spacingMedium))
-
-                GlassmorphicTextField(
-                    value = uiState.confirmPassword, onValueChange = onConfirmPasswordChange,
-                    placeholder = stringResource(Res.string.signup_confirm_password_placeholder),
-                    leadingIcon = { Icon(Icons.Default.Lock, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
-                    trailingIcon = {
-                        IconButton(onClick = onConfirmPasswordVisibilityToggle) {
-                            Icon(
-                                if (uiState.confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                                null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)
+                        Column(
+                            modifier            = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
+                        ) {
+                            GlassmorphicTextField(
+                                value                = uiState.confirmPassword,
+                                onValueChange        = onConfirmPasswordChange,
+                                placeholder          = stringResource(Res.string.signup_confirm_password_placeholder),
+                                leadingIcon          = { Icon(Icons.Default.Lock, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
+                                trailingIcon         = {
+                                    IconButton(onClick = onConfirmPasswordVisibilityToggle) {
+                                        Icon(if (uiState.confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f))
+                                    }
+                                },
+                                visualTransformation = if (uiState.confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                                keyboardOptions      = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+                                keyboardActions      = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                                modifier             = Modifier.fillMaxWidth()
+                            )
+                            GlassmorphicTextField(
+                                value           = uiState.phone,
+                                onValueChange   = onPhoneChange,
+                                placeholder     = stringResource(Res.string.signup_phone_placeholder),
+                                leadingIcon     = { Icon(Icons.Default.Phone, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Next),
+                                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                                modifier        = Modifier.fillMaxWidth()
+                            )
+                            GlassmorphicTextField(
+                                value           = uiState.city,
+                                onValueChange   = onCityChange,
+                                placeholder     = stringResource(Res.string.signup_city_placeholder),
+                                leadingIcon     = { Icon(Icons.Default.LocationCity, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+                                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                                modifier        = Modifier.fillMaxWidth()
                             )
                         }
-                    },
-                    visualTransformation = if (uiState.confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
-                    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(Modifier.height(dimensions.spacingMedium))
+                    }
 
-                GlassmorphicTextField(
-                    value = uiState.phone, onValueChange = onPhoneChange,
-                    placeholder = stringResource(Res.string.signup_phone_placeholder),
-                    leadingIcon = { Icon(Icons.Default.Phone, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Next),
-                    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(Modifier.height(dimensions.spacingMedium))
+                    Spacer(Modifier.height(dimensions.spacingMedium))
 
-                GlassmorphicTextField(
-                    value = uiState.city, onValueChange = onCityChange,
-                    placeholder = stringResource(Res.string.signup_city_placeholder),
-                    leadingIcon = { Icon(Icons.Default.LocationCity, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
-                    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(Modifier.height(dimensions.spacingMedium))
-
-                GlassmorphicTextField(
-                    value = uiState.address, onValueChange = onAddressChange,
-                    placeholder = stringResource(Res.string.signup_address_placeholder),
-                    leadingIcon = { Icon(Icons.Default.Home, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
-                    keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus(); onSignupClick() }),
-                    modifier = Modifier.fillMaxWidth()
-                )
+                    GlassmorphicTextField(
+                        value           = uiState.address,
+                        onValueChange   = onAddressChange,
+                        placeholder     = stringResource(Res.string.signup_address_placeholder),
+                        leadingIcon     = { Icon(Icons.Default.Home, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus(); onSignupClick() }),
+                        modifier        = Modifier.fillMaxWidth()
+                    )
+                } else {
+                    // ── Single column for portrait ────────────────────────────
+                    GlassmorphicTextField(
+                        value = uiState.fullName, onValueChange = onFullNameChange,
+                        placeholder = stringResource(Res.string.signup_full_name_placeholder),
+                        leadingIcon = { Icon(Icons.Default.Person, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+                        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(dimensions.spacingMedium))
+                    GlassmorphicTextField(
+                        value = uiState.email, onValueChange = onEmailChange,
+                        placeholder = stringResource(Res.string.signup_email_placeholder),
+                        leadingIcon = { Icon(Icons.Default.Email, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
+                        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(dimensions.spacingMedium))
+                    GlassmorphicTextField(
+                        value = uiState.password, onValueChange = onPasswordChange,
+                        placeholder = stringResource(Res.string.signup_password_placeholder),
+                        leadingIcon = { Icon(Icons.Default.Lock, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
+                        trailingIcon = { IconButton(onClick = onPasswordVisibilityToggle) { Icon(if (uiState.passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) } },
+                        visualTransformation = if (uiState.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+                        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(dimensions.spacingMedium))
+                    GlassmorphicTextField(
+                        value = uiState.confirmPassword, onValueChange = onConfirmPasswordChange,
+                        placeholder = stringResource(Res.string.signup_confirm_password_placeholder),
+                        leadingIcon = { Icon(Icons.Default.Lock, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
+                        trailingIcon = { IconButton(onClick = onConfirmPasswordVisibilityToggle) { Icon(if (uiState.confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) } },
+                        visualTransformation = if (uiState.confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+                        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(dimensions.spacingMedium))
+                    GlassmorphicTextField(
+                        value = uiState.phone, onValueChange = onPhoneChange,
+                        placeholder = stringResource(Res.string.signup_phone_placeholder),
+                        leadingIcon = { Icon(Icons.Default.Phone, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Next),
+                        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(dimensions.spacingMedium))
+                    GlassmorphicTextField(
+                        value = uiState.city, onValueChange = onCityChange,
+                        placeholder = stringResource(Res.string.signup_city_placeholder),
+                        leadingIcon = { Icon(Icons.Default.LocationCity, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+                        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(Modifier.height(dimensions.spacingMedium))
+                    GlassmorphicTextField(
+                        value = uiState.address, onValueChange = onAddressChange,
+                        placeholder = stringResource(Res.string.signup_address_placeholder),
+                        leadingIcon = { Icon(Icons.Default.Home, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
+                        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus(); onSignupClick() }),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
 
                 uiState.errorMessage?.let { error ->
                     Spacer(Modifier.height(dimensions.spacingSmall))
                     Text(
-                        text = error,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
+                        text     = error,
+                        style    = MaterialTheme.typography.bodySmall,
+                        color    = MaterialTheme.colorScheme.error,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -399,10 +561,10 @@ private fun AnimatedSignupCard(
                 Spacer(Modifier.height(dimensions.spacingLarge))
 
                 PrimaryButton(
-                    text = stringResource(Res.string.signup_button),
-                    onClick = onSignupClick,
-                    loading = uiState.isLoading,
-                    enabled = !uiState.isLoading,
+                    text     = stringResource(Res.string.signup_button),
+                    onClick  = onSignupClick,
+                    loading  = uiState.isLoading,
+                    enabled  = !uiState.isLoading,
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -410,7 +572,7 @@ private fun AnimatedSignupCard(
 
                 SocialLoginSection(
                     onGoogleClick = { viewModel.signupWithGoogle(onSocialSignupSuccess) },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier      = Modifier.fillMaxWidth()
                 )
 
                 Spacer(Modifier.height(dimensions.spacingMedium))
@@ -421,28 +583,28 @@ private fun AnimatedSignupCard(
 
 @Composable
 private fun SignupDecorativeCorner(
-    imageRes: org.jetbrains.compose.resources.DrawableResource,
-    alignment: Alignment,
-    fromX: Float, fromY: Float,
-    size: androidx.compose.ui.unit.Dp,
+    imageRes        : org.jetbrains.compose.resources.DrawableResource,
+    alignment       : Alignment,
+    fromX           : Float, fromY: Float,
+    size            : androidx.compose.ui.unit.Dp,
     animationStarted: Boolean,
-    delayMillis: Int,
-    modifier: Modifier = Modifier
+    delayMillis     : Int,
+    modifier        : Modifier = Modifier
 ) {
-    val spec = spring<Float>(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow)
+    val spec    = spring<Float>(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow)
     val offsetX by animateFloatAsState(if (animationStarted) 0f else fromX, spec, label = "x")
     val offsetY by animateFloatAsState(if (animationStarted) 0f else fromY, spec, label = "y")
-    val scale by animateFloatAsState(if (animationStarted) 1f else 0f, spec, label = "scale")
-    val alpha by animateFloatAsState(
+    val scale   by animateFloatAsState(if (animationStarted) 1f else 0f, spec, label = "scale")
+    val alpha   by animateFloatAsState(
         if (animationStarted) 1f else 0f,
         tween(800, delayMillis, FastOutSlowInEasing), label = "alpha"
     )
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         Box(modifier.fillMaxSize(), contentAlignment = alignment) {
             Image(
-                painter = painterResource(imageRes),
+                painter            = painterResource(imageRes),
                 contentDescription = null,
-                modifier = Modifier
+                modifier           = Modifier
                     .size(size)
                     .graphicsLayer { translationX = offsetX; translationY = offsetY; scaleX = scale; scaleY = scale }
                     .alpha(alpha),
