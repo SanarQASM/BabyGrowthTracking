@@ -1,0 +1,1477 @@
+{
+  "_meta": {
+    "version": "2.0.0",
+    "lastUpdated": "2025-01",
+    "medicalReferences": [
+      "American Academy of Pediatrics (AAP) Safe Sleep Guidelines 2022",
+      "WHO Child Growth Standards",
+      "National Sleep Foundation Pediatric Sleep Guidelines 2023",
+      "AAP SIDS and Sleep-Related Infant Deaths Updated Recommendations 2022"
+    ],
+    "disclaimer_key": "global_medical_disclaimer",
+    "schema": "sleep_guide_v2"
+  },
+
+  "ageRanges": [
+
+    {
+      "id": "0-3m",
+      "label_key": "age_0_3m",
+      "sortOrder": 1,
+      "icon": "newborn",
+      "colorTheme": "purple_soft",
+
+      "sleepNeeds": {
+        "totalMin": 840,
+        "totalMax": 1020,
+        "totalUnit": "minutes",
+        "nightMin": 480,
+        "nightMax": 600,
+        "noteKey": "sleep_needs_note_0_3m",
+        "naps": [
+          {
+            "id": "nap_0_3m_1",
+            "label_key": "nap_early_morning",
+            "typicalStart": "07:00",
+            "typicalEnd": "08:30",
+            "durationMinMin": 30,
+            "durationMinMax": 90
+          },
+          {
+            "id": "nap_0_3m_2",
+            "label_key": "nap_mid_morning",
+            "typicalStart": "09:30",
+            "typicalEnd": "11:00",
+            "durationMinMin": 30,
+            "durationMinMax": 90
+          },
+          {
+            "id": "nap_0_3m_3",
+            "label_key": "nap_early_afternoon",
+            "typicalStart": "12:00",
+            "typicalEnd": "13:30",
+            "durationMinMin": 30,
+            "durationMinMax": 90
+          },
+          {
+            "id": "nap_0_3m_4",
+            "label_key": "nap_late_afternoon",
+            "typicalStart": "15:00",
+            "typicalEnd": "16:30",
+            "durationMinMin": 20,
+            "durationMinMax": 60
+          },
+          {
+            "id": "nap_0_3m_5",
+            "label_key": "nap_catnap_evening",
+            "typicalStart": "17:30",
+            "typicalEnd": "18:30",
+            "durationMinMin": 15,
+            "durationMinMax": 30
+          }
+        ],
+        "napCount": { "min": 4, "max": 6 },
+        "awakeWindowMinutes": { "min": 45, "max": 75 },
+        "nightWakingsExpected": { "min": 2, "max": 4 },
+        "sleepThroughNight": false,
+        "tipsKeys": [
+          "sleep_tip_0_3m_circadian",
+          "sleep_tip_0_3m_feeding",
+          "sleep_tip_0_3m_expectations",
+          "sleep_tip_0_3m_drowsy"
+        ]
+      },
+
+      "strategies": [
+        {
+          "id": "str_0_3m_swaddle",
+          "categoryKey": "category_soothing",
+          "title_key": "str_title_swaddle",
+          "description_key": "str_desc_swaddle",
+          "steps_keys": [
+            "str_step_swaddle_1",
+            "str_step_swaddle_2",
+            "str_step_swaddle_3"
+          ],
+          "whyItWorksKey": "str_why_swaddle",
+          "warningKeys": ["str_warn_swaddle_hips", "str_warn_swaddle_rolling"],
+          "tags": ["soothing", "newborn", "safe_sleep"],
+          "evidenceLevel": "strong",
+          "ageSpecific": true,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        },
+        {
+          "id": "str_0_3m_white_noise",
+          "categoryKey": "category_environment",
+          "title_key": "str_title_white_noise",
+          "description_key": "str_desc_white_noise",
+          "steps_keys": [],
+          "whyItWorksKey": "str_why_white_noise",
+          "warningKeys": ["str_warn_white_noise_volume"],
+          "tags": ["soothing", "environment", "sound"],
+          "evidenceLevel": "moderate",
+          "ageSpecific": false,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        },
+        {
+          "id": "str_0_3m_drowsy_awake",
+          "categoryKey": "category_routine",
+          "title_key": "str_title_drowsy_awake",
+          "description_key": "str_desc_drowsy_awake",
+          "steps_keys": [
+            "str_step_drowsy_1",
+            "str_step_drowsy_2",
+            "str_step_drowsy_3"
+          ],
+          "whyItWorksKey": "str_why_drowsy_awake",
+          "warningKeys": [],
+          "tags": ["routine", "self_soothing", "foundational"],
+          "evidenceLevel": "strong",
+          "ageSpecific": false,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        },
+        {
+          "id": "str_0_3m_feed_wake_sleep",
+          "categoryKey": "category_routine",
+          "title_key": "str_title_feed_wake_sleep",
+          "description_key": "str_desc_feed_wake_sleep",
+          "steps_keys": [],
+          "whyItWorksKey": "str_why_feed_wake_sleep",
+          "warningKeys": [],
+          "tags": ["routine", "feeding", "schedule"],
+          "evidenceLevel": "moderate",
+          "ageSpecific": true,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        }
+      ],
+
+      "environment": {
+        "temperature": {
+          "minC": 18, "maxC": 21,
+          "minF": 64, "maxF": 70,
+          "whyItMattersKey": "env_temp_why",
+          "tipsKeys": [
+            "env_temp_tip_neck_check",
+            "env_temp_tip_no_fan_direct",
+            "env_temp_tip_one_layer"
+          ],
+          "warningKeys": ["env_temp_warn_overheating_sids"]
+        },
+        "lighting": {
+          "daytimeRecommendationKey": "env_light_day_bright",
+          "nighttimeRecommendationKey": "env_light_night_dark",
+          "whyItMattersKey": "env_light_why_melatonin",
+          "tipsKeys": [
+            "env_light_tip_blackout",
+            "env_light_tip_no_led",
+            "env_light_tip_dim_red_diaper"
+          ],
+          "warningKeys": ["env_light_warn_blue_light"]
+        },
+        "noise": {
+          "recommendationKey": "env_noise_white_noise_ok",
+          "maxDecibels": 50,
+          "whyItMattersKey": "env_noise_why",
+          "tipsKeys": [
+            "env_noise_tip_consistent",
+            "env_noise_tip_distance_60cm"
+          ],
+          "warningKeys": ["env_noise_warn_volume_hearing"]
+        },
+        "sleepSurface": {
+          "recommendationKey": "env_surface_firm_flat",
+          "whyItMattersKey": "env_surface_why_sids",
+          "tipsKeys": [
+            "env_surface_tip_aap_approved",
+            "env_surface_tip_no_soft_bedding",
+            "env_surface_tip_no_bumpers",
+            "env_surface_tip_no_incline"
+          ],
+          "warningKeys": [
+            "env_surface_warn_no_sofa",
+            "env_surface_warn_no_inclined_sleeper",
+            "env_surface_warn_no_pillows"
+          ]
+        },
+        "sleepPosition": {
+          "recommendationKey": "env_position_back_only",
+          "whyItMattersKey": "env_position_why_sids",
+          "tipsKeys": [
+            "env_position_tip_tummy_time_awake",
+            "env_position_tip_supervised_only"
+          ],
+          "warningKeys": ["env_position_warn_back_until_1yr"]
+        },
+        "roomSharing": {
+          "recommendationKey": "env_room_share_6m",
+          "whyItMattersKey": "env_room_share_why",
+          "tipsKeys": ["env_room_share_tip_same_room_diff_surface"],
+          "warningKeys": ["env_room_share_warn_no_bed_sharing"]
+        }
+      },
+
+      "lullabies": [
+        {
+          "id": "lale_lale_kurdan",
+          "title_key": "lullaby_lale_lale_kurdan_title",
+          "artist_key": "lullaby_lale_lale_kurdan_artist",
+          "language": "ku_sorani",
+          "dialect_key": "dialect_sorani",
+          "durationSeconds": 225,
+          "tempo": "slow",
+          "mood": "soothing",
+          "isTraditional": true,
+          "ageMin": 0,
+          "ageMax": 36,
+          "fileRefs": {
+            "android": "assets/audio/lale_lale_kurdan.mp3",
+            "ios":     "Assets.xcassets/lale_lale_kurdan.dataset/lale_lale_kurdan.mp3",
+            "web":     "/audio/lale_lale_kurdan.mp3",
+            "desktop": "resources/audio/lale_lale_kurdan.mp3"
+          },
+          "thumbnailRefs": {
+            "android": "assets/images/lullaby_thumb_lale.webp",
+            "ios":     "Assets.xcassets/lullaby_thumb_lale.imageset",
+            "web":     "/images/lullaby_thumb_lale.webp",
+            "desktop": "resources/images/lullaby_thumb_lale.png"
+          },
+          "tags": ["traditional", "kurdish", "sorani", "lullaby"]
+        },
+        {
+          "id": "ninni_kurdi_badini",
+          "title_key": "lullaby_ninni_badini_title",
+          "artist_key": "lullaby_ninni_badini_artist",
+          "language": "ku_badini",
+          "dialect_key": "dialect_badini",
+          "durationSeconds": 195,
+          "tempo": "slow",
+          "mood": "soothing",
+          "isTraditional": true,
+          "ageMin": 0,
+          "ageMax": 36,
+          "fileRefs": {
+            "android": "assets/audio/ninni_kurdi_badini.mp3",
+            "ios":     "Assets.xcassets/ninni_kurdi_badini.dataset/ninni_kurdi_badini.mp3",
+            "web":     "/audio/ninni_kurdi_badini.mp3",
+            "desktop": "resources/audio/ninni_kurdi_badini.mp3"
+          },
+          "thumbnailRefs": {
+            "android": "assets/images/lullaby_thumb_ninni_badini.webp",
+            "ios":     "Assets.xcassets/lullaby_thumb_ninni_badini.imageset",
+            "web":     "/images/lullaby_thumb_ninni_badini.webp",
+            "desktop": "resources/images/lullaby_thumb_ninni_badini.png"
+          },
+          "tags": ["traditional", "kurdish", "badini", "lullaby"]
+        },
+        {
+          "id": "ya_omri_arabic",
+          "title_key": "lullaby_ya_omri_title",
+          "artist_key": "lullaby_ya_omri_artist",
+          "language": "ar",
+          "dialect_key": "dialect_arabic",
+          "durationSeconds": 210,
+          "tempo": "slow",
+          "mood": "soothing",
+          "isTraditional": true,
+          "ageMin": 0,
+          "ageMax": 36,
+          "fileRefs": {
+            "android": "assets/audio/ya_omri.mp3",
+            "ios":     "Assets.xcassets/ya_omri.dataset/ya_omri.mp3",
+            "web":     "/audio/ya_omri.mp3",
+            "desktop": "resources/audio/ya_omri.mp3"
+          },
+          "thumbnailRefs": {
+            "android": "assets/images/lullaby_thumb_ya_omri.webp",
+            "ios":     "Assets.xcassets/lullaby_thumb_ya_omri.imageset",
+            "web":     "/images/lullaby_thumb_ya_omri.webp",
+            "desktop": "resources/images/lullaby_thumb_ya_omri.png"
+          },
+          "tags": ["traditional", "arabic", "lullaby"]
+        },
+        {
+          "id": "twinkle_twinkle_en",
+          "title_key": "lullaby_twinkle_title",
+          "artist_key": "lullaby_twinkle_artist",
+          "language": "en",
+          "dialect_key": "dialect_english",
+          "durationSeconds": 180,
+          "tempo": "slow",
+          "mood": "calm",
+          "isTraditional": true,
+          "ageMin": 0,
+          "ageMax": 36,
+          "fileRefs": {
+            "android": "assets/audio/twinkle_twinkle.mp3",
+            "ios":     "Assets.xcassets/twinkle_twinkle.dataset/twinkle_twinkle.mp3",
+            "web":     "/audio/twinkle_twinkle.mp3",
+            "desktop": "resources/audio/twinkle_twinkle.mp3"
+          },
+          "thumbnailRefs": {
+            "android": "assets/images/lullaby_thumb_twinkle.webp",
+            "ios":     "Assets.xcassets/lullaby_thumb_twinkle.imageset",
+            "web":     "/images/lullaby_thumb_twinkle.webp",
+            "desktop": "resources/images/lullaby_thumb_twinkle.png"
+          },
+          "tags": ["traditional", "english", "classic", "lullaby"]
+        },
+        {
+          "id": "white_noise_rain",
+          "title_key": "lullaby_white_noise_rain_title",
+          "artist_key": "lullaby_instrumental_artist",
+          "language": "instrumental",
+          "dialect_key": null,
+          "durationSeconds": 3600,
+          "tempo": "ambient",
+          "mood": "soothing",
+          "isTraditional": false,
+          "ageMin": 0,
+          "ageMax": 36,
+          "fileRefs": {
+            "android": "assets/audio/white_noise_rain.mp3",
+            "ios":     "Assets.xcassets/white_noise_rain.dataset/white_noise_rain.mp3",
+            "web":     "/audio/white_noise_rain.mp3",
+            "desktop": "resources/audio/white_noise_rain.mp3"
+          },
+          "thumbnailRefs": {
+            "android": "assets/images/lullaby_thumb_rain.webp",
+            "ios":     "Assets.xcassets/lullaby_thumb_rain.imageset",
+            "web":     "/images/lullaby_thumb_rain.webp",
+            "desktop": "resources/images/lullaby_thumb_rain.png"
+          },
+          "tags": ["white_noise", "ambient", "all_languages", "rain"]
+        }
+      ]
+    },
+
+    {
+      "id": "4-6m",
+      "label_key": "age_4_6m",
+      "sortOrder": 2,
+      "icon": "baby_4_6",
+      "colorTheme": "blue_soft",
+
+      "sleepNeeds": {
+        "totalMin": 720,
+        "totalMax": 900,
+        "totalUnit": "minutes",
+        "nightMin": 600,
+        "nightMax": 720,
+        "noteKey": "sleep_needs_note_4_6m",
+        "naps": [
+          {
+            "id": "nap_4_6m_1",
+            "label_key": "nap_morning",
+            "typicalStart": "09:00",
+            "typicalEnd": "10:30",
+            "durationMinMin": 60,
+            "durationMinMax": 90
+          },
+          {
+            "id": "nap_4_6m_2",
+            "label_key": "nap_afternoon",
+            "typicalStart": "13:00",
+            "typicalEnd": "14:30",
+            "durationMinMin": 60,
+            "durationMinMax": 90
+          },
+          {
+            "id": "nap_4_6m_3",
+            "label_key": "nap_late_afternoon_short",
+            "typicalStart": "16:00",
+            "typicalEnd": "16:45",
+            "durationMinMin": 20,
+            "durationMinMax": 45,
+            "isOptional": true
+          }
+        ],
+        "napCount": { "min": 3, "max": 4 },
+        "awakeWindowMinutes": { "min": 90, "max": 120 },
+        "nightWakingsExpected": { "min": 1, "max": 3 },
+        "sleepThroughNight": false,
+        "tipsKeys": [
+          "sleep_tip_4_6m_regression",
+          "sleep_tip_4_6m_consistent_time",
+          "sleep_tip_4_6m_drowsy"
+        ]
+      },
+
+      "strategies": [
+        {
+          "id": "str_4_6m_bedtime_routine",
+          "categoryKey": "category_routine",
+          "title_key": "str_title_bedtime_routine",
+          "description_key": "str_desc_bedtime_routine",
+          "steps_keys": [
+            "str_step_routine_bath",
+            "str_step_routine_feed",
+            "str_step_routine_song",
+            "str_step_routine_dark_room",
+            "str_step_routine_put_down"
+          ],
+          "whyItWorksKey": "str_why_bedtime_routine",
+          "warningKeys": [],
+          "tags": ["routine", "bedtime", "consistency"],
+          "evidenceLevel": "strong",
+          "ageSpecific": false,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        },
+        {
+          "id": "str_4_6m_sleep_training_intro",
+          "categoryKey": "category_sleep_training",
+          "title_key": "str_title_sleep_training_intro",
+          "description_key": "str_desc_sleep_training_intro",
+          "steps_keys": [],
+          "whyItWorksKey": "str_why_sleep_training",
+          "warningKeys": ["str_warn_sleep_training_consult_ped"],
+          "tags": ["sleep_training", "self_soothing", "optional"],
+          "evidenceLevel": "moderate",
+          "ageSpecific": true,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        },
+        {
+          "id": "str_4_6m_consistent_bedtime",
+          "categoryKey": "category_routine",
+          "title_key": "str_title_consistent_bedtime",
+          "description_key": "str_desc_consistent_bedtime",
+          "steps_keys": [],
+          "whyItWorksKey": "str_why_consistent_bedtime",
+          "warningKeys": [],
+          "tags": ["routine", "consistency", "circadian"],
+          "evidenceLevel": "strong",
+          "ageSpecific": false,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        },
+        {
+          "id": "str_4_6m_wake_window",
+          "categoryKey": "category_scheduling",
+          "title_key": "str_title_wake_window",
+          "description_key": "str_desc_wake_window_4_6m",
+          "steps_keys": [],
+          "whyItWorksKey": "str_why_wake_window",
+          "warningKeys": [],
+          "tags": ["scheduling", "overtired", "wake_windows"],
+          "evidenceLevel": "moderate",
+          "ageSpecific": true,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        }
+      ],
+
+      "environment": {
+        "temperature": {
+          "minC": 18, "maxC": 21,
+          "minF": 64, "maxF": 70,
+          "whyItMattersKey": "env_temp_why",
+          "tipsKeys": [
+            "env_temp_tip_neck_check",
+            "env_temp_tip_one_layer"
+          ],
+          "warningKeys": ["env_temp_warn_overheating_sids"]
+        },
+        "lighting": {
+          "daytimeRecommendationKey": "env_light_day_bright",
+          "nighttimeRecommendationKey": "env_light_night_dark",
+          "whyItMattersKey": "env_light_why_melatonin",
+          "tipsKeys": [
+            "env_light_tip_blackout",
+            "env_light_tip_no_led",
+            "env_light_tip_dim_red_diaper"
+          ],
+          "warningKeys": ["env_light_warn_blue_light"]
+        },
+        "noise": {
+          "recommendationKey": "env_noise_white_noise_ok",
+          "maxDecibels": 50,
+          "whyItMattersKey": "env_noise_why",
+          "tipsKeys": [
+            "env_noise_tip_consistent",
+            "env_noise_tip_distance_60cm"
+          ],
+          "warningKeys": ["env_noise_warn_volume_hearing"]
+        },
+        "sleepSurface": {
+          "recommendationKey": "env_surface_firm_flat",
+          "whyItMattersKey": "env_surface_why_sids",
+          "tipsKeys": [
+            "env_surface_tip_aap_approved",
+            "env_surface_tip_no_soft_bedding"
+          ],
+          "warningKeys": [
+            "env_surface_warn_no_sofa",
+            "env_surface_warn_no_pillows"
+          ]
+        },
+        "sleepPosition": {
+          "recommendationKey": "env_position_back_only",
+          "whyItMattersKey": "env_position_why_sids",
+          "tipsKeys": [
+            "env_position_tip_tummy_time_awake",
+            "env_position_tip_rolling_note_4_6m"
+          ],
+          "warningKeys": ["env_position_warn_back_until_1yr"]
+        },
+        "roomSharing": {
+          "recommendationKey": "env_room_share_6m",
+          "whyItMattersKey": "env_room_share_why",
+          "tipsKeys": ["env_room_share_tip_same_room_diff_surface"],
+          "warningKeys": ["env_room_share_warn_no_bed_sharing"]
+        }
+      },
+
+      "lullabies": [
+        "lale_lale_kurdan",
+        "ninni_kurdi_badini",
+        "ya_omri_arabic",
+        "twinkle_twinkle_en",
+        "white_noise_rain"
+      ]
+    },
+
+    {
+      "id": "7-9m",
+      "label_key": "age_7_9m",
+      "sortOrder": 3,
+      "icon": "baby_7_9",
+      "colorTheme": "teal_soft",
+
+      "sleepNeeds": {
+        "totalMin": 720,
+        "totalMax": 840,
+        "totalUnit": "minutes",
+        "nightMin": 660,
+        "nightMax": 720,
+        "noteKey": "sleep_needs_note_7_9m",
+        "naps": [
+          {
+            "id": "nap_7_9m_1",
+            "label_key": "nap_morning",
+            "typicalStart": "09:00",
+            "typicalEnd": "10:00",
+            "durationMinMin": 45,
+            "durationMinMax": 90
+          },
+          {
+            "id": "nap_7_9m_2",
+            "label_key": "nap_afternoon",
+            "typicalStart": "13:00",
+            "typicalEnd": "14:30",
+            "durationMinMin": 60,
+            "durationMinMax": 90
+          }
+        ],
+        "napCount": { "min": 2, "max": 3 },
+        "awakeWindowMinutes": { "min": 120, "max": 180 },
+        "nightWakingsExpected": { "min": 0, "max": 2 },
+        "sleepThroughNight": true,
+        "tipsKeys": [
+          "sleep_tip_7_9m_separation_anxiety",
+          "sleep_tip_7_9m_regression_8_10m",
+          "sleep_tip_7_9m_consistent_schedule"
+        ]
+      },
+
+      "strategies": [
+        {
+          "id": "str_7_9m_object_permanence",
+          "categoryKey": "category_soothing",
+          "title_key": "str_title_object_permanence",
+          "description_key": "str_desc_object_permanence",
+          "steps_keys": [
+            "str_step_op_peek_boo",
+            "str_step_op_consistent_farewell",
+            "str_step_op_comfort_object"
+          ],
+          "whyItWorksKey": "str_why_object_permanence",
+          "warningKeys": [],
+          "tags": ["separation_anxiety", "development", "soothing"],
+          "evidenceLevel": "strong",
+          "ageSpecific": true,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        },
+        {
+          "id": "str_7_9m_self_soothing",
+          "categoryKey": "category_sleep_training",
+          "title_key": "str_title_self_soothing",
+          "description_key": "str_desc_self_soothing",
+          "steps_keys": [],
+          "whyItWorksKey": "str_why_self_soothing",
+          "warningKeys": ["str_warn_self_soothing_readiness"],
+          "tags": ["sleep_training", "self_soothing", "independence"],
+          "evidenceLevel": "strong",
+          "ageSpecific": false,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        },
+        {
+          "id": "str_7_9m_comfort_object",
+          "categoryKey": "category_soothing",
+          "title_key": "str_title_comfort_object",
+          "description_key": "str_desc_comfort_object",
+          "steps_keys": [],
+          "whyItWorksKey": "str_why_comfort_object",
+          "warningKeys": ["str_warn_comfort_object_aap"],
+          "tags": ["soothing", "transitional_object", "lovey"],
+          "evidenceLevel": "moderate",
+          "ageSpecific": true,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        },
+        {
+          "id": "str_7_9m_bedtime_routine",
+          "categoryKey": "category_routine",
+          "title_key": "str_title_bedtime_routine",
+          "description_key": "str_desc_bedtime_routine",
+          "steps_keys": [
+            "str_step_routine_bath",
+            "str_step_routine_feed",
+            "str_step_routine_song",
+            "str_step_routine_dark_room",
+            "str_step_routine_put_down"
+          ],
+          "whyItWorksKey": "str_why_bedtime_routine",
+          "warningKeys": [],
+          "tags": ["routine", "bedtime", "consistency"],
+          "evidenceLevel": "strong",
+          "ageSpecific": false,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        }
+      ],
+
+      "environment": {
+        "temperature": { "minC": 18, "maxC": 21, "minF": 64, "maxF": 70,
+          "whyItMattersKey": "env_temp_why",
+          "tipsKeys": ["env_temp_tip_neck_check", "env_temp_tip_one_layer"],
+          "warningKeys": ["env_temp_warn_overheating_sids"]
+        },
+        "lighting": {
+          "daytimeRecommendationKey": "env_light_day_bright",
+          "nighttimeRecommendationKey": "env_light_night_dark",
+          "whyItMattersKey": "env_light_why_melatonin",
+          "tipsKeys": ["env_light_tip_blackout", "env_light_tip_no_led"],
+          "warningKeys": ["env_light_warn_blue_light"]
+        },
+        "noise": {
+          "recommendationKey": "env_noise_white_noise_ok",
+          "maxDecibels": 50,
+          "whyItMattersKey": "env_noise_why",
+          "tipsKeys": ["env_noise_tip_consistent", "env_noise_tip_distance_60cm"],
+          "warningKeys": ["env_noise_warn_volume_hearing"]
+        },
+        "sleepSurface": {
+          "recommendationKey": "env_surface_firm_flat",
+          "whyItMattersKey": "env_surface_why_sids",
+          "tipsKeys": ["env_surface_tip_aap_approved", "env_surface_tip_no_soft_bedding"],
+          "warningKeys": ["env_surface_warn_no_sofa", "env_surface_warn_no_pillows"]
+        },
+        "sleepPosition": {
+          "recommendationKey": "env_position_back_or_self_7m",
+          "whyItMattersKey": "env_position_why_7m_rolling",
+          "tipsKeys": ["env_position_tip_tummy_time_awake"],
+          "warningKeys": []
+        },
+        "roomSharing": {
+          "recommendationKey": "env_room_share_6m",
+          "whyItMattersKey": "env_room_share_why",
+          "tipsKeys": ["env_room_share_tip_same_room_diff_surface"],
+          "warningKeys": ["env_room_share_warn_no_bed_sharing"]
+        }
+      },
+
+      "lullabies": [
+        "lale_lale_kurdan",
+        "ninni_kurdi_badini",
+        "ya_omri_arabic",
+        "twinkle_twinkle_en",
+        "white_noise_rain"
+      ]
+    },
+
+    {
+      "id": "10-12m",
+      "label_key": "age_10_12m",
+      "sortOrder": 4,
+      "icon": "baby_10_12",
+      "colorTheme": "coral_soft",
+
+      "sleepNeeds": {
+        "totalMin": 720,
+        "totalMax": 840,
+        "totalUnit": "minutes",
+        "nightMin": 660,
+        "nightMax": 720,
+        "noteKey": "sleep_needs_note_10_12m",
+        "naps": [
+          {
+            "id": "nap_10_12m_1",
+            "label_key": "nap_morning",
+            "typicalStart": "09:30",
+            "typicalEnd": "10:30",
+            "durationMinMin": 45,
+            "durationMinMax": 60
+          },
+          {
+            "id": "nap_10_12m_2",
+            "label_key": "nap_afternoon",
+            "typicalStart": "13:30",
+            "typicalEnd": "15:00",
+            "durationMinMin": 60,
+            "durationMinMax": 90
+          }
+        ],
+        "napCount": { "min": 2, "max": 2 },
+        "awakeWindowMinutes": { "min": 180, "max": 240 },
+        "nightWakingsExpected": { "min": 0, "max": 1 },
+        "sleepThroughNight": true,
+        "tipsKeys": [
+          "sleep_tip_10_12m_nap_transition_signs",
+          "sleep_tip_10_12m_separation_anxiety_peak",
+          "sleep_tip_10_12m_no_nap_after_4pm"
+        ]
+      },
+
+      "strategies": [
+        {
+          "id": "str_10_12m_bedtime_routine",
+          "categoryKey": "category_routine",
+          "title_key": "str_title_bedtime_routine",
+          "description_key": "str_desc_bedtime_routine",
+          "steps_keys": [
+            "str_step_routine_bath",
+            "str_step_routine_feed",
+            "str_step_routine_song",
+            "str_step_routine_dark_room",
+            "str_step_routine_put_down"
+          ],
+          "whyItWorksKey": "str_why_bedtime_routine",
+          "warningKeys": [],
+          "tags": ["routine", "bedtime", "consistency"],
+          "evidenceLevel": "strong",
+          "ageSpecific": false,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        },
+        {
+          "id": "str_10_12m_separation_anxiety",
+          "categoryKey": "category_soothing",
+          "title_key": "str_title_separation_anxiety",
+          "description_key": "str_desc_separation_anxiety",
+          "steps_keys": [
+            "str_step_sep_consistent_goodbye",
+            "str_step_sep_comfort_object",
+            "str_step_sep_short_checks"
+          ],
+          "whyItWorksKey": "str_why_separation_anxiety",
+          "warningKeys": [],
+          "tags": ["separation_anxiety", "development", "soothing"],
+          "evidenceLevel": "strong",
+          "ageSpecific": true,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        },
+        {
+          "id": "str_10_12m_sleep_training",
+          "categoryKey": "category_sleep_training",
+          "title_key": "str_title_graduated_ext",
+          "description_key": "str_desc_graduated_ext",
+          "steps_keys": [],
+          "whyItWorksKey": "str_why_graduated_ext",
+          "warningKeys": ["str_warn_sleep_training_consult_ped"],
+          "tags": ["sleep_training", "ferber", "graduated_extinction"],
+          "evidenceLevel": "strong",
+          "ageSpecific": false,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        }
+      ],
+
+      "environment": {
+        "temperature": { "minC": 18, "maxC": 21, "minF": 64, "maxF": 70,
+          "whyItMattersKey": "env_temp_why",
+          "tipsKeys": ["env_temp_tip_neck_check", "env_temp_tip_one_layer"],
+          "warningKeys": []
+        },
+        "lighting": {
+          "daytimeRecommendationKey": "env_light_day_bright",
+          "nighttimeRecommendationKey": "env_light_night_dark",
+          "whyItMattersKey": "env_light_why_melatonin",
+          "tipsKeys": ["env_light_tip_blackout", "env_light_tip_no_led"],
+          "warningKeys": ["env_light_warn_blue_light"]
+        },
+        "noise": {
+          "recommendationKey": "env_noise_white_noise_ok",
+          "maxDecibels": 50,
+          "whyItMattersKey": "env_noise_why",
+          "tipsKeys": ["env_noise_tip_consistent"],
+          "warningKeys": []
+        },
+        "sleepSurface": {
+          "recommendationKey": "env_surface_firm_flat",
+          "whyItMattersKey": "env_surface_why_sids",
+          "tipsKeys": ["env_surface_tip_aap_approved", "env_surface_tip_no_soft_bedding"],
+          "warningKeys": ["env_surface_warn_no_pillows"]
+        },
+        "sleepPosition": {
+          "recommendationKey": "env_position_self_rolling_ok",
+          "whyItMattersKey": "env_position_why_self_rolling",
+          "tipsKeys": [],
+          "warningKeys": []
+        },
+        "roomSharing": {
+          "recommendationKey": "env_room_share_optional_after_6m",
+          "whyItMattersKey": "env_room_share_why",
+          "tipsKeys": ["env_room_share_tip_own_room_ok_after_6m"],
+          "warningKeys": ["env_room_share_warn_no_bed_sharing"]
+        }
+      },
+
+      "lullabies": [
+        "lale_lale_kurdan",
+        "ninni_kurdi_badini",
+        "ya_omri_arabic",
+        "twinkle_twinkle_en",
+        "white_noise_rain"
+      ]
+    },
+
+    {
+      "id": "13-18m",
+      "label_key": "age_13_18m",
+      "sortOrder": 5,
+      "icon": "toddler_13_18",
+      "colorTheme": "amber_soft",
+
+      "sleepNeeds": {
+        "totalMin": 660,
+        "totalMax": 840,
+        "totalUnit": "minutes",
+        "nightMin": 600,
+        "nightMax": 720,
+        "noteKey": "sleep_needs_note_13_18m",
+        "naps": [
+          {
+            "id": "nap_13_18m_1",
+            "label_key": "nap_midday",
+            "typicalStart": "12:00",
+            "typicalEnd": "14:00",
+            "durationMinMin": 60,
+            "durationMinMax": 120,
+            "isTransitionPeriod": true,
+            "transitionNoteKey": "nap_transition_2_to_1"
+          }
+        ],
+        "napCount": { "min": 1, "max": 2 },
+        "awakeWindowMinutes": { "min": 240, "max": 360 },
+        "nightWakingsExpected": { "min": 0, "max": 1 },
+        "sleepThroughNight": true,
+        "tipsKeys": [
+          "sleep_tip_13_18m_nap_transition_2_1",
+          "sleep_tip_13_18m_overtired_signs",
+          "sleep_tip_13_18m_molars",
+          "sleep_tip_13_18m_bedtime_7_8pm"
+        ]
+      },
+
+      "strategies": [
+        {
+          "id": "str_13_18m_transition_2_to_1_nap",
+          "categoryKey": "category_scheduling",
+          "title_key": "str_title_nap_transition_2_1",
+          "description_key": "str_desc_nap_transition_2_1",
+          "steps_keys": [
+            "str_step_nap21_push_morning",
+            "str_step_nap21_early_bedtime",
+            "str_step_nap21_watch_signs"
+          ],
+          "whyItWorksKey": "str_why_nap_transition",
+          "warningKeys": ["str_warn_nap_transition_overtired"],
+          "tags": ["nap_transition", "scheduling", "toddler"],
+          "evidenceLevel": "moderate",
+          "ageSpecific": true,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        },
+        {
+          "id": "str_13_18m_bedtime_routine",
+          "categoryKey": "category_routine",
+          "title_key": "str_title_bedtime_routine",
+          "description_key": "str_desc_bedtime_routine_toddler",
+          "steps_keys": [
+            "str_step_routine_bath",
+            "str_step_routine_feed",
+            "str_step_routine_book",
+            "str_step_routine_song",
+            "str_step_routine_dark_room",
+            "str_step_routine_put_down"
+          ],
+          "whyItWorksKey": "str_why_bedtime_routine",
+          "warningKeys": [],
+          "tags": ["routine", "bedtime", "consistency"],
+          "evidenceLevel": "strong",
+          "ageSpecific": false,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        },
+        {
+          "id": "str_13_18m_limit_setting",
+          "categoryKey": "category_sleep_training",
+          "title_key": "str_title_limit_setting",
+          "description_key": "str_desc_limit_setting",
+          "steps_keys": [],
+          "whyItWorksKey": "str_why_limit_setting",
+          "warningKeys": [],
+          "tags": ["limit_setting", "sleep_training", "toddler"],
+          "evidenceLevel": "strong",
+          "ageSpecific": true,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        }
+      ],
+
+      "environment": {
+        "temperature": { "minC": 18, "maxC": 21, "minF": 64, "maxF": 70,
+          "whyItMattersKey": "env_temp_why",
+          "tipsKeys": ["env_temp_tip_neck_check"],
+          "warningKeys": []
+        },
+        "lighting": {
+          "daytimeRecommendationKey": "env_light_day_bright",
+          "nighttimeRecommendationKey": "env_light_night_dark",
+          "whyItMattersKey": "env_light_why_melatonin",
+          "tipsKeys": ["env_light_tip_blackout", "env_light_tip_nightlight_ok_13m"],
+          "warningKeys": ["env_light_warn_blue_light"]
+        },
+        "noise": {
+          "recommendationKey": "env_noise_white_noise_optional",
+          "maxDecibels": 50,
+          "whyItMattersKey": "env_noise_why",
+          "tipsKeys": ["env_noise_tip_consistent"],
+          "warningKeys": []
+        },
+        "sleepSurface": {
+          "recommendationKey": "env_surface_crib_toddler_bed",
+          "whyItMattersKey": "env_surface_why_toddler",
+          "tipsKeys": [
+            "env_surface_tip_crib_still_safe",
+            "env_surface_tip_toddler_bed_transition_signs"
+          ],
+          "warningKeys": ["env_surface_warn_no_pillow_until_2yr"]
+        },
+        "sleepPosition": {
+          "recommendationKey": "env_position_self_choice_toddler",
+          "whyItMattersKey": "env_position_why_toddler",
+          "tipsKeys": [],
+          "warningKeys": []
+        },
+        "roomSharing": {
+          "recommendationKey": "env_room_share_optional",
+          "whyItMattersKey": "env_room_share_toddler_why",
+          "tipsKeys": ["env_room_share_tip_own_room_ok"],
+          "warningKeys": []
+        }
+      },
+
+      "lullabies": [
+        "lale_lale_kurdan",
+        "ninni_kurdi_badini",
+        "ya_omri_arabic",
+        "twinkle_twinkle_en",
+        "white_noise_rain"
+      ]
+    },
+
+    {
+      "id": "19-24m",
+      "label_key": "age_19_24m",
+      "sortOrder": 6,
+      "icon": "toddler_19_24",
+      "colorTheme": "green_soft",
+
+      "sleepNeeds": {
+        "totalMin": 660,
+        "totalMax": 780,
+        "totalUnit": "minutes",
+        "nightMin": 600,
+        "nightMax": 720,
+        "noteKey": "sleep_needs_note_19_24m",
+        "naps": [
+          {
+            "id": "nap_19_24m_1",
+            "label_key": "nap_midday",
+            "typicalStart": "12:30",
+            "typicalEnd": "14:30",
+            "durationMinMin": 60,
+            "durationMinMax": 120
+          }
+        ],
+        "napCount": { "min": 1, "max": 1 },
+        "awakeWindowMinutes": { "min": 360, "max": 420 },
+        "nightWakingsExpected": { "min": 0, "max": 1 },
+        "sleepThroughNight": true,
+        "tipsKeys": [
+          "sleep_tip_19_24m_nightmares_begin",
+          "sleep_tip_19_24m_stalling_tactics",
+          "sleep_tip_19_24m_consistent_wake_time",
+          "sleep_tip_19_24m_2yr_regression"
+        ]
+      },
+
+      "strategies": [
+        {
+          "id": "str_19_24m_visual_schedule",
+          "categoryKey": "category_routine",
+          "title_key": "str_title_visual_schedule",
+          "description_key": "str_desc_visual_schedule",
+          "steps_keys": [
+            "str_step_vs_create_cards",
+            "str_step_vs_involve_child",
+            "str_step_vs_follow_sequence"
+          ],
+          "whyItWorksKey": "str_why_visual_schedule",
+          "warningKeys": [],
+          "tags": ["routine", "visual", "toddler", "autonomy"],
+          "evidenceLevel": "moderate",
+          "ageSpecific": true,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        },
+        {
+          "id": "str_19_24m_stalling",
+          "categoryKey": "category_routine",
+          "title_key": "str_title_bedtime_stalling",
+          "description_key": "str_desc_bedtime_stalling",
+          "steps_keys": [],
+          "whyItWorksKey": "str_why_bedtime_stalling",
+          "warningKeys": [],
+          "tags": ["stalling", "boundaries", "toddler"],
+          "evidenceLevel": "moderate",
+          "ageSpecific": true,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        },
+        {
+          "id": "str_19_24m_nightmares",
+          "categoryKey": "category_soothing",
+          "title_key": "str_title_nightmares",
+          "description_key": "str_desc_nightmares",
+          "steps_keys": [],
+          "whyItWorksKey": "str_why_nightmares",
+          "warningKeys": [],
+          "tags": ["nightmares", "fears", "comfort"],
+          "evidenceLevel": "moderate",
+          "ageSpecific": true,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        }
+      ],
+
+      "environment": {
+        "temperature": { "minC": 18, "maxC": 21, "minF": 64, "maxF": 70,
+          "whyItMattersKey": "env_temp_why",
+          "tipsKeys": ["env_temp_tip_neck_check"],
+          "warningKeys": []
+        },
+        "lighting": {
+          "daytimeRecommendationKey": "env_light_day_bright",
+          "nighttimeRecommendationKey": "env_light_night_soft_optional",
+          "whyItMattersKey": "env_light_why_melatonin",
+          "tipsKeys": ["env_light_tip_blackout", "env_light_tip_nightlight_fears"],
+          "warningKeys": ["env_light_warn_blue_light"]
+        },
+        "noise": {
+          "recommendationKey": "env_noise_quiet_preferred",
+          "maxDecibels": 50,
+          "whyItMattersKey": "env_noise_why",
+          "tipsKeys": ["env_noise_tip_white_noise_optional"],
+          "warningKeys": []
+        },
+        "sleepSurface": {
+          "recommendationKey": "env_surface_crib_or_toddler_bed",
+          "whyItMattersKey": "env_surface_why_toddler",
+          "tipsKeys": [
+            "env_surface_tip_toddler_bed_when_climbing",
+            "env_surface_tip_pillow_ok_after_2yr"
+          ],
+          "warningKeys": []
+        },
+        "sleepPosition": {
+          "recommendationKey": "env_position_self_choice_toddler",
+          "whyItMattersKey": "env_position_why_toddler",
+          "tipsKeys": [],
+          "warningKeys": []
+        },
+        "roomSharing": {
+          "recommendationKey": "env_room_share_optional",
+          "whyItMattersKey": "env_room_share_toddler_why",
+          "tipsKeys": ["env_room_share_tip_own_room_ok"],
+          "warningKeys": []
+        }
+      },
+
+      "lullabies": [
+        "lale_lale_kurdan",
+        "ninni_kurdi_badini",
+        "ya_omri_arabic",
+        "twinkle_twinkle_en",
+        "white_noise_rain"
+      ]
+    },
+
+    {
+      "id": "25-36m",
+      "label_key": "age_25_36m",
+      "sortOrder": 7,
+      "icon": "toddler_25_36",
+      "colorTheme": "pink_soft",
+
+      "sleepNeeds": {
+        "totalMin": 660,
+        "totalMax": 780,
+        "totalUnit": "minutes",
+        "nightMin": 600,
+        "nightMax": 720,
+        "noteKey": "sleep_needs_note_25_36m",
+        "naps": [
+          {
+            "id": "nap_25_36m_1",
+            "label_key": "nap_quiet_time_or_nap",
+            "typicalStart": "13:00",
+            "typicalEnd": "15:00",
+            "durationMinMin": 45,
+            "durationMinMax": 90,
+            "isOptional": true,
+            "isTransitionPeriod": true,
+            "transitionNoteKey": "nap_transition_1_to_0"
+          }
+        ],
+        "napCount": { "min": 0, "max": 1 },
+        "awakeWindowMinutes": { "min": 420, "max": 480 },
+        "nightWakingsExpected": { "min": 0, "max": 1 },
+        "sleepThroughNight": true,
+        "tipsKeys": [
+          "sleep_tip_25_36m_quiet_time_no_nap",
+          "sleep_tip_25_36m_nighttime_fears",
+          "sleep_tip_25_36m_3yr_regression",
+          "sleep_tip_25_36m_potty_training_impact"
+        ]
+      },
+
+      "strategies": [
+        {
+          "id": "str_25_36m_quiet_time",
+          "categoryKey": "category_scheduling",
+          "title_key": "str_title_quiet_time",
+          "description_key": "str_desc_quiet_time",
+          "steps_keys": [
+            "str_step_qt_define_space",
+            "str_step_qt_set_timer",
+            "str_step_qt_calm_activities"
+          ],
+          "whyItWorksKey": "str_why_quiet_time",
+          "warningKeys": [],
+          "tags": ["quiet_time", "nap_drop", "rest", "toddler"],
+          "evidenceLevel": "moderate",
+          "ageSpecific": true,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        },
+        {
+          "id": "str_25_36m_bedtime_fears",
+          "categoryKey": "category_soothing",
+          "title_key": "str_title_bedtime_fears",
+          "description_key": "str_desc_bedtime_fears",
+          "steps_keys": [
+            "str_step_fears_validate",
+            "str_step_fears_monster_spray",
+            "str_step_fears_nightlight",
+            "str_step_fears_comfort_object"
+          ],
+          "whyItWorksKey": "str_why_bedtime_fears",
+          "warningKeys": [],
+          "tags": ["fears", "nightmares", "anxiety", "toddler"],
+          "evidenceLevel": "moderate",
+          "ageSpecific": true,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        },
+        {
+          "id": "str_25_36m_sleep_clock",
+          "categoryKey": "category_routine",
+          "title_key": "str_title_sleep_clock",
+          "description_key": "str_desc_sleep_clock",
+          "steps_keys": [],
+          "whyItWorksKey": "str_why_sleep_clock",
+          "warningKeys": [],
+          "tags": ["sleep_clock", "visual_cue", "routine", "toddler"],
+          "evidenceLevel": "moderate",
+          "ageSpecific": true,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        },
+        {
+          "id": "str_25_36m_bedtime_routine",
+          "categoryKey": "category_routine",
+          "title_key": "str_title_bedtime_routine",
+          "description_key": "str_desc_bedtime_routine_toddler",
+          "steps_keys": [
+            "str_step_routine_bath",
+            "str_step_routine_feed",
+            "str_step_routine_book",
+            "str_step_routine_song",
+            "str_step_routine_dark_room",
+            "str_step_routine_put_down"
+          ],
+          "whyItWorksKey": "str_why_bedtime_routine",
+          "warningKeys": [],
+          "tags": ["routine", "bedtime", "consistency"],
+          "evidenceLevel": "strong",
+          "ageSpecific": false,
+          "feedbackEnabled": true,
+          "platforms": ["android", "ios", "desktop", "web"]
+        }
+      ],
+
+      "environment": {
+        "temperature": { "minC": 18, "maxC": 21, "minF": 64, "maxF": 70,
+          "whyItMattersKey": "env_temp_why",
+          "tipsKeys": ["env_temp_tip_light_blanket_ok"],
+          "warningKeys": []
+        },
+        "lighting": {
+          "daytimeRecommendationKey": "env_light_day_bright",
+          "nighttimeRecommendationKey": "env_light_night_soft_optional",
+          "whyItMattersKey": "env_light_why_melatonin",
+          "tipsKeys": ["env_light_tip_nightlight_fears", "env_light_tip_blackout"],
+          "warningKeys": ["env_light_warn_blue_light_screens"]
+        },
+        "noise": {
+          "recommendationKey": "env_noise_quiet_preferred",
+          "maxDecibels": 50,
+          "whyItMattersKey": "env_noise_why",
+          "tipsKeys": ["env_noise_tip_white_noise_optional"],
+          "warningKeys": []
+        },
+        "sleepSurface": {
+          "recommendationKey": "env_surface_toddler_or_twin_bed",
+          "whyItMattersKey": "env_surface_why_toddler",
+          "tipsKeys": [
+            "env_surface_tip_bed_rail_safety",
+            "env_surface_tip_pillow_ok_after_2yr",
+            "env_surface_tip_light_blanket_ok"
+          ],
+          "warningKeys": []
+        },
+        "sleepPosition": {
+          "recommendationKey": "env_position_self_choice_toddler",
+          "whyItMattersKey": "env_position_why_toddler",
+          "tipsKeys": [],
+          "warningKeys": []
+        },
+        "roomSharing": {
+          "recommendationKey": "env_room_share_optional",
+          "whyItMattersKey": "env_room_share_toddler_why",
+          "tipsKeys": ["env_room_share_tip_own_room_ok"],
+          "warningKeys": []
+        }
+      },
+
+      "lullabies": [
+        "lale_lale_kurdan",
+        "ninni_kurdi_badini",
+        "ya_omri_arabic",
+        "twinkle_twinkle_en",
+        "white_noise_rain"
+      ]
+    }
+  ],
+
+  "lullabyCatalog": [
+    {
+      "id": "lale_lale_kurdan",
+      "title_key": "lullaby_lale_lale_kurdan_title",
+      "artist_key": "lullaby_lale_lale_kurdan_artist",
+      "language": "ku_sorani",
+      "dialect_key": "dialect_sorani",
+      "durationSeconds": 225,
+      "tempo": "slow",
+      "mood": "soothing",
+      "isTraditional": true,
+      "ageMin": 0,
+      "ageMax": 36,
+      "fileRefs": {
+        "android": "assets/audio/lale_lale_kurdan.mp3",
+        "ios":     "Assets.xcassets/lale_lale_kurdan.dataset/lale_lale_kurdan.mp3",
+        "web":     "/audio/lale_lale_kurdan.mp3",
+        "desktop": "resources/audio/lale_lale_kurdan.mp3"
+      },
+      "thumbnailRefs": {
+        "android": "assets/images/lullaby_thumb_lale.webp",
+        "ios":     "Assets.xcassets/lullaby_thumb_lale.imageset",
+        "web":     "/images/lullaby_thumb_lale.webp",
+        "desktop": "resources/images/lullaby_thumb_lale.png"
+      },
+      "tags": ["traditional", "kurdish", "sorani", "lullaby"]
+    },
+    {
+      "id": "ninni_kurdi_badini",
+      "title_key": "lullaby_ninni_badini_title",
+      "artist_key": "lullaby_ninni_badini_artist",
+      "language": "ku_badini",
+      "dialect_key": "dialect_badini",
+      "durationSeconds": 195,
+      "tempo": "slow",
+      "mood": "soothing",
+      "isTraditional": true,
+      "ageMin": 0,
+      "ageMax": 36,
+      "fileRefs": {
+        "android": "assets/audio/ninni_kurdi_badini.mp3",
+        "ios":     "Assets.xcassets/ninni_kurdi_badini.dataset/ninni_kurdi_badini.mp3",
+        "web":     "/audio/ninni_kurdi_badini.mp3",
+        "desktop": "resources/audio/ninni_kurdi_badini.mp3"
+      },
+      "thumbnailRefs": {
+        "android": "assets/images/lullaby_thumb_ninni_badini.webp",
+        "ios":     "Assets.xcassets/lullaby_thumb_ninni_badini.imageset",
+        "web":     "/images/lullaby_thumb_ninni_badini.webp",
+        "desktop": "resources/images/lullaby_thumb_ninni_badini.png"
+      },
+      "tags": ["traditional", "kurdish", "badini", "lullaby"]
+    },
+    {
+      "id": "ya_omri_arabic",
+      "title_key": "lullaby_ya_omri_title",
+      "artist_key": "lullaby_ya_omri_artist",
+      "language": "ar",
+      "dialect_key": "dialect_arabic",
+      "durationSeconds": 210,
+      "tempo": "slow",
+      "mood": "soothing",
+      "isTraditional": true,
+      "ageMin": 0,
+      "ageMax": 36,
+      "fileRefs": {
+        "android": "assets/audio/ya_omri.mp3",
+        "ios":     "Assets.xcassets/ya_omri.dataset/ya_omri.mp3",
+        "web":     "/audio/ya_omri.mp3",
+        "desktop": "resources/audio/ya_omri.mp3"
+      },
+      "thumbnailRefs": {
+        "android": "assets/images/lullaby_thumb_ya_omri.webp",
+        "ios":     "Assets.xcassets/lullaby_thumb_ya_omri.imageset",
+        "web":     "/images/lullaby_thumb_ya_omri.webp",
+        "desktop": "resources/images/lullaby_thumb_ya_omri.png"
+      },
+      "tags": ["traditional", "arabic", "lullaby"]
+    },
+    {
+      "id": "twinkle_twinkle_en",
+      "title_key": "lullaby_twinkle_title",
+      "artist_key": "lullaby_twinkle_artist",
+      "language": "en",
+      "dialect_key": "dialect_english",
+      "durationSeconds": 180,
+      "tempo": "slow",
+      "mood": "calm",
+      "isTraditional": true,
+      "ageMin": 0,
+      "ageMax": 36,
+      "fileRefs": {
+        "android": "assets/audio/twinkle_twinkle.mp3",
+        "ios":     "Assets.xcassets/twinkle_twinkle.dataset/twinkle_twinkle.mp3",
+        "web":     "/audio/twinkle_twinkle.mp3",
+        "desktop": "resources/audio/twinkle_twinkle.mp3"
+      },
+      "thumbnailRefs": {
+        "android": "assets/images/lullaby_thumb_twinkle.webp",
+        "ios":     "Assets.xcassets/lullaby_thumb_twinkle.imageset",
+        "web":     "/images/lullaby_thumb_twinkle.webp",
+        "desktop": "resources/images/lullaby_thumb_twinkle.png"
+      },
+      "tags": ["traditional", "english", "classic", "lullaby"]
+    },
+    {
+      "id": "white_noise_rain",
+      "title_key": "lullaby_white_noise_rain_title",
+      "artist_key": "lullaby_instrumental_artist",
+      "language": "instrumental",
+      "dialect_key": null,
+      "durationSeconds": 3600,
+      "tempo": "ambient",
+      "mood": "soothing",
+      "isTraditional": false,
+      "ageMin": 0,
+      "ageMax": 36,
+      "fileRefs": {
+        "android": "assets/audio/white_noise_rain.mp3",
+        "ios":     "Assets.xcassets/white_noise_rain.dataset/white_noise_rain.mp3",
+        "web":     "/audio/white_noise_rain.mp3",
+        "desktop": "resources/audio/white_noise_rain.mp3"
+      },
+      "thumbnailRefs": {
+        "android": "assets/images/lullaby_thumb_rain.webp",
+        "ios":     "Assets.xcassets/lullaby_thumb_rain.imageset",
+        "web":     "/images/lullaby_thumb_rain.webp",
+        "desktop": "resources/images/lullaby_thumb_rain.png"
+      },
+      "tags": ["white_noise", "ambient", "all_languages", "rain"]
+    },
+    {
+      "id": "white_noise_womb",
+      "title_key": "lullaby_white_noise_womb_title",
+      "artist_key": "lullaby_instrumental_artist",
+      "language": "instrumental",
+      "dialect_key": null,
+      "durationSeconds": 3600,
+      "tempo": "ambient",
+      "mood": "soothing",
+      "isTraditional": false,
+      "ageMin": 0,
+      "ageMax": 6,
+      "fileRefs": {
+        "android": "assets/audio/white_noise_womb.mp3",
+        "ios":     "Assets.xcassets/white_noise_womb.dataset/white_noise_womb.mp3",
+        "web":     "/audio/white_noise_womb.mp3",
+        "desktop": "resources/audio/white_noise_womb.mp3"
+      },
+      "thumbnailRefs": {
+        "android": "assets/images/lullaby_thumb_womb.webp",
+        "ios":     "Assets.xcassets/lullaby_thumb_womb.imageset",
+        "web":     "/images/lullaby_thumb_womb.webp",
+        "desktop": "resources/images/lullaby_thumb_womb.png"
+      },
+      "tags": ["white_noise", "womb", "newborn", "soothing"]
+    }
+  ],
+
+  "strategyCategories": [
+    { "id": "category_routine",        "label_key": "cat_routine",        "icon": "clock",   "colorTheme": "blue"   },
+    { "id": "category_soothing",       "label_key": "cat_soothing",       "icon": "heart",   "colorTheme": "pink"   },
+    { "id": "category_sleep_training", "label_key": "cat_sleep_training", "icon": "star",    "colorTheme": "amber"  },
+    { "id": "category_scheduling",     "label_key": "cat_scheduling",     "icon": "calendar","colorTheme": "teal"   },
+    { "id": "category_environment",    "label_key": "cat_environment",    "icon": "home",    "colorTheme": "green"  }
+  ],
+
+  "evidenceLevels": [
+    { "id": "strong",   "label_key": "evidence_strong",   "description_key": "evidence_strong_desc"   },
+    { "id": "moderate", "label_key": "evidence_moderate", "description_key": "evidence_moderate_desc" },
+    { "id": "emerging", "label_key": "evidence_emerging", "description_key": "evidence_emerging_desc" }
+  ],
+
+  "filterTags": [
+    "bedtime", "routine", "nap", "self_soothing", "soothing",
+    "sleep_training", "scheduling", "separation_anxiety",
+    "overtired", "newborn", "toddler", "environment",
+    "white_noise", "lullaby", "traditional", "kurdish",
+    "arabic", "english", "sorani", "badini"
+  ]
+}
