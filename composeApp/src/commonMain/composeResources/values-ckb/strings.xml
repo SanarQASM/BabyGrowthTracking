@@ -537,4 +537,62 @@
     <string name="fh_placeholder_parkinsonism">دیرۆکا پارکینۆنزم بنڤیسە…</string>
     <string name="fh_placeholder_allergies">پێزانینێن هەستیاریێ بنڤیسە…</string>
     <string name="fh_placeholder_others">بارودۆخێن دی بنڤیسە…</string>
+
+    <!-- ── Guide Screens ──────────────────────────────────────────────────── -->
+
+    <!-- Sleep Guide -->
+    <string name="sleep_guide_title">ڕێنمایی خەو</string>
+    <string name="sleep_guide_header">یارمەتی %s بدە بۆ خەوی باشتر 💤</string>
+    <string name="sleep_guide_select_child">منداڵ هەڵبژێرە</string>
+    <string name="sleep_guide_select_category">پۆل هەڵبژێرە</string>
+    <string name="sleep_guide_cat_strategies">ستراتیژییەکانی خەو</string>
+    <string name="sleep_guide_cat_needs">پێداویستییەکانی خەو</string>
+    <string name="sleep_guide_cat_environment">ژینگە</string>
+    <string name="sleep_guide_cat_lullabies">گۆرانییە لووژ لووژەکان</string>
+    <string name="sleep_guide_env_tab_all">هەموو</string>
+    <string name="sleep_guide_env_tab_bedtime">کاتی خەو</string>
+    <string name="sleep_guide_env_tab_naps">خەوی ڕۆژانە</string>
+    <string name="sleep_guide_lullabies_title">گۆرانی و دەنگەکان 🎵</string>
+    <string name="sleep_guide_lang_all">هەموو</string>
+    <string name="sleep_guide_lang_kurdish">کوردی</string>
+    <string name="sleep_guide_lang_arabic">عەرەبی</string>
+    <string name="sleep_guide_lang_english">ئینگلیزی</string>
+    <string name="sleep_guide_now_playing">ئێستا پیانەدەدرێت:</string>
+    <string name="sleep_guide_play">لێدان</string>
+    <string name="sleep_guide_pause">وەستان</string>
+    <string name="sleep_guide_download">داگرتن</string>
+    <string name="sleep_guide_useful_for">سوودبەخش بۆ %d بەکارهێنەر</string>
+    <string name="sleep_guide_useful">سوودبەخش</string>
+    <string name="sleep_guide_useless">بێ سوود</string>
+    <string name="sleep_guide_why_matters">بۆچی گرنگە:</string>
+    <string name="sleep_guide_tips">ئامۆژگارییەکان:</string>
+    <string name="sleep_guide_total_sleep">کۆی خەو:</string>
+    <string name="sleep_guide_night">شەو:</string>
+    <string name="sleep_guide_daytime">ڕۆژ:</string>
+    <string name="sleep_guide_total_nap">کۆی خەوی ڕۆژانە</string>
+    <string name="sleep_guide_duration">کات: %s</string>
+    <string name="sleep_guide_months">%d مانگ</string>
+    <string name="sleep_guide_tips_for_age">ئامۆژگارییەکان بۆ ئەم تەمەنە</string>
+    <string name="sleep_guide_no_data">ڕێنمایی خەو بۆ ئەم تەمەنە بەردەست نییە.</string>
+
+    <!-- Feeding Guide -->
+    <string name="feeding_guide_title">ڕێنمایی خواردن</string>
+    <string name="feeding_guide_header">یارمەتی %s بدە بۆ خواردنی باشتر 🍼</string>
+    <string name="feeding_guide_cat_milk">خواردنی شیر</string>
+    <string name="feeding_guide_cat_solid">خواردنی جامد</string>
+    <string name="feeding_guide_cat_schedule">خشتەی نموونەیی</string>
+    <string name="feeding_guide_cat_avoid">خواردنی خاوەن مەترسی</string>
+    <string name="feeding_guide_cat_tips">ئامۆژگارییەکانی خواردن</string>
+    <string name="feeding_guide_milk_tab_all">هەموو</string>
+    <string name="feeding_guide_milk_tab_breast">شیری دایک</string>
+    <string name="feeding_guide_milk_tab_formula">شیری بازرگانی</string>
+    <string name="feeding_guide_milk_tab_combo">تێکەڵ</string>
+    <string name="feeding_guide_frequency">ژمارەی جارەکان:</string>
+    <string name="feeding_guide_duration">ماوە:</string>
+    <string name="feeding_guide_hunger_signs">نیشانەکانی برسیەتی:</string>
+    <string name="feeding_guide_fullness_signs">نیشانەکانی تێرەتی:</string>
+    <string name="feeding_guide_tip_label">ئامۆژگاری:</string>
+    <string name="feeding_guide_recommended_foods">خواردنی پێشنیازکراو:</string>
+    <string name="feeding_guide_no_solid">خواردنی جامد بۆ ئەم تەمەنە گونجاو نییە.</string>
+    <string name="feeding_guide_no_data">ڕێنمایی خواردن بۆ ئەم تەمەنە بەردەست نییە.</string>
 </resources>

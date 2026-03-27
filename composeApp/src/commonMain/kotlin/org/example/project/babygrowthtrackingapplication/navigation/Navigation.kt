@@ -31,6 +31,9 @@ import org.example.project.babygrowthtrackingapplication.com.babygrowth.presenta
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.FamilyHistoryViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.AllMeasurementsScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.FamilyHistoryScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.SleepGuideScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.FeedingGuideScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.GuideViewModel
 import org.example.project.babygrowthtrackingapplication.data.auth.SocialAuthManager
 import org.example.project.babygrowthtrackingapplication.data.auth.SocialLoginHelper
 import org.example.project.babygrowthtrackingapplication.data.network.ApiService
@@ -59,7 +62,9 @@ enum class Screen {
     EditBaby,
     AddMeasurement,
     AllMeasurements,
-    FamilyHistory
+    FamilyHistory,
+    SleepGuide,
+    FeedingGuide
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -122,6 +127,8 @@ fun AppNavigation(
         FamilyHistoryViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
 
+    val guideViewModel = remember { GuideViewModel() }
+
     val signupViewModel = remember {
         SignupViewModel(
             repository        = repository,
@@ -153,6 +160,7 @@ fun AppNavigation(
             healthRecordViewModel.onDestroy()
             settingsViewModel.onDestroy()
             familyHistoryViewModel.onDestroy()
+            guideViewModel.onDestroy()
             cleanupSocialAuth(socialAuthManager)
         }
     }
@@ -421,6 +429,40 @@ fun AppNavigation(
                                 currentScreen = Screen.FamilyHistory
                             }
                         },
+                        onSleepGuide   = {
+                            originTab = selectedTab
+                            currentScreen = Screen.SleepGuide
+                        },
+                        onFeedingGuide = {
+                            originTab = selectedTab
+                            currentScreen = Screen.FeedingGuide
+                        },
+                    )
+                }
+
+                // ── Sleep Guide ───────────────────────────────────────────────────────
+                Screen.SleepGuide -> {
+                    SleepGuideScreen(
+                        babies    = homeViewModel.uiState.babies,
+                        viewModel = guideViewModel,
+                        language  = currentLanguage.code,
+                        onBack    = {
+                            selectedTab   = originTab
+                            currentScreen = Screen.Home
+                        }
+                    )
+                }
+
+                // ── Feeding Guide ─────────────────────────────────────────────────────
+                Screen.FeedingGuide -> {
+                    FeedingGuideScreen(
+                        babies    = homeViewModel.uiState.babies,
+                        viewModel = guideViewModel,
+                        language  = currentLanguage.code,
+                        onBack    = {
+                            selectedTab   = originTab
+                            currentScreen = Screen.Home
+                        }
                     )
                 }
 

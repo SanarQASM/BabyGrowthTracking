@@ -41,8 +41,10 @@ import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun HomeTabContent(
-    viewModel : HomeViewModel,
-    onAddBaby : () -> Unit = {}
+    viewModel      : HomeViewModel,
+    onAddBaby      : () -> Unit = {},
+    onSleepGuide   : () -> Unit = {},
+    onFeedingGuide : () -> Unit = {}
 ) {
     val state            = viewModel.uiState
     val dimensions       = LocalDimensions.current
@@ -114,8 +116,8 @@ fun HomeTabContent(
                 // Tools section in 2-column grid in landscape
                 UsefulToolsSectionLandscape(
                     genderTheme    = state.genderTheme,
-                    onSleepGuide   = { },
-                    onFeedingGuide = { },
+                    onSleepGuide   = onSleepGuide,
+                    onFeedingGuide = onFeedingGuide,
                     onMemory       = { },
                     onAddBaby      = onAddBaby
                 )
@@ -186,8 +188,8 @@ fun HomeTabContent(
                     Spacer(Modifier.height(dimensions.spacingLarge))
                     UsefulToolsSection(
                         genderTheme    = state.genderTheme,
-                        onSleepGuide   = { },
-                        onFeedingGuide = { },
+                        onSleepGuide   = onSleepGuide,
+                        onFeedingGuide = onFeedingGuide,
                         onMemory       = { },
                         onAddBaby      = onAddBaby
                     )

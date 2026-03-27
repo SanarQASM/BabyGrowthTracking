@@ -631,6 +631,64 @@ Last updated: 2025.</string>
     <string name="fh_placeholder_allergies">Enter allergy information…</string>
     <string name="fh_placeholder_others">Enter other conditions…</string>
 
+    <!-- ── Guide Screens ──────────────────────────────────────────────────── -->
+
+    <!-- Sleep Guide -->
+    <string name="sleep_guide_title">Sleep Guide</string>
+    <string name="sleep_guide_header">Help %s Sleep Better 💤</string>
+    <string name="sleep_guide_select_child">SELECT CHILD</string>
+    <string name="sleep_guide_select_category">SELECT CATEGORY</string>
+    <string name="sleep_guide_cat_strategies">Sleep Strategies</string>
+    <string name="sleep_guide_cat_needs">Sleep Needs</string>
+    <string name="sleep_guide_cat_environment">Environment</string>
+    <string name="sleep_guide_cat_lullabies">Lullabies</string>
+    <string name="sleep_guide_env_tab_all">All</string>
+    <string name="sleep_guide_env_tab_bedtime">Bedtime</string>
+    <string name="sleep_guide_env_tab_naps">Naps</string>
+    <string name="sleep_guide_lullabies_title">LULLABIES &amp; SOUNDS 🎵</string>
+    <string name="sleep_guide_lang_all">All</string>
+    <string name="sleep_guide_lang_kurdish">Kurdish</string>
+    <string name="sleep_guide_lang_arabic">Arabic</string>
+    <string name="sleep_guide_lang_english">English</string>
+    <string name="sleep_guide_now_playing">NOW PLAYING:</string>
+    <string name="sleep_guide_play">Play</string>
+    <string name="sleep_guide_pause">Pause</string>
+    <string name="sleep_guide_download">Download</string>
+    <string name="sleep_guide_useful_for">Useful for %d Users</string>
+    <string name="sleep_guide_useful">Useful</string>
+    <string name="sleep_guide_useless">Useless</string>
+    <string name="sleep_guide_why_matters">Why it matters:</string>
+    <string name="sleep_guide_tips">Tips:</string>
+    <string name="sleep_guide_total_sleep">Total Sleep:</string>
+    <string name="sleep_guide_night">Night:</string>
+    <string name="sleep_guide_daytime">Daytime:</string>
+    <string name="sleep_guide_total_nap">Total Nap</string>
+    <string name="sleep_guide_duration">Duration: %s</string>
+    <string name="sleep_guide_months">%d months</string>
+    <string name="sleep_guide_tips_for_age">TIPS FOR THIS AGE</string>
+    <string name="sleep_guide_no_data">No sleep guide available for this age.</string>
+
+    <!-- Feeding Guide -->
+    <string name="feeding_guide_title">Feeding Guide</string>
+    <string name="feeding_guide_header">Help %s Eat Well 🍼</string>
+    <string name="feeding_guide_cat_milk">Milk Feeding</string>
+    <string name="feeding_guide_cat_solid">Solid Foods</string>
+    <string name="feeding_guide_cat_schedule">Sample Schedule</string>
+    <string name="feeding_guide_cat_avoid">Foods to Avoid</string>
+    <string name="feeding_guide_cat_tips">Feeding Tips</string>
+    <string name="feeding_guide_milk_tab_all">All</string>
+    <string name="feeding_guide_milk_tab_breast">Breastfeeding</string>
+    <string name="feeding_guide_milk_tab_formula">Formula</string>
+    <string name="feeding_guide_milk_tab_combo">Combination</string>
+    <string name="feeding_guide_frequency">FREQUENCY:</string>
+    <string name="feeding_guide_duration">DURATION:</string>
+    <string name="feeding_guide_hunger_signs">SIGNS OF HUNGER:</string>
+    <string name="feeding_guide_fullness_signs">SIGNS OF FULLNESS:</string>
+    <string name="feeding_guide_tip_label">TIP:</string>
+    <string name="feeding_guide_recommended_foods">Recommended Foods:</string>
+    <string name="feeding_guide_no_solid">Solid foods are not recommended for this age.</string>
+    <string name="feeding_guide_no_data">No feeding guide available for this age.</string>
+
 
 
 </resources>

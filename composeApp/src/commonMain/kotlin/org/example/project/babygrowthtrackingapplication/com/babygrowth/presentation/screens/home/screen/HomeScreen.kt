@@ -39,6 +39,8 @@ fun HomeScreen(
     onViewAllMeasurementsById : (String) -> Unit = {},
     onNavigateToWelcome       : () -> Unit = {},
     onNavigateToFamilyHistory : (String, String) -> Unit = { _, _ -> },
+    onSleepGuide              : () -> Unit = {},
+    onFeedingGuide            : () -> Unit = {},
 ) {
     val state       = viewModel.uiState
     val useSideRail = rememberUseSideRail()
@@ -83,6 +85,8 @@ fun HomeScreen(
                     onViewAllMeasurementsById = onViewAllMeasurementsById,
                     onNavigateToWelcome       = onNavigateToWelcome,
                     onNavigateToFamilyHistory = onNavigateToFamilyHistory,
+                    onSleepGuide              = onSleepGuide,
+                    onFeedingGuide            = onFeedingGuide,
                     bottomPadding             = androidx.compose.ui.unit.Dp(0f)
                 )
             }
@@ -123,6 +127,8 @@ fun HomeScreen(
                     onViewAllMeasurementsById = onViewAllMeasurementsById,
                     onNavigateToWelcome       = onNavigateToWelcome,
                     onNavigateToFamilyHistory = onNavigateToFamilyHistory,
+                    onSleepGuide              = onSleepGuide,
+                    onFeedingGuide            = onFeedingGuide,
                     bottomPadding             = androidx.compose.ui.unit.Dp(0f)
                 )
             }
@@ -151,13 +157,17 @@ private fun TabContent(
     onViewAllMeasurementsById : (String) -> Unit,
     onNavigateToWelcome       : () -> Unit,
     onNavigateToFamilyHistory : (String, String) -> Unit,
+    onSleepGuide              : () -> Unit,
+    onFeedingGuide            : () -> Unit,
     bottomPadding             : androidx.compose.ui.unit.Dp,
 ) {
     when (selectedTab) {
         NavigationTab.HOME ->
             HomeTabContent(
-                viewModel = viewModel,
-                onAddBaby = onAddBaby
+                viewModel      = viewModel,
+                onAddBaby      = onAddBaby,
+                onSleepGuide   = onSleepGuide,
+                onFeedingGuide = onFeedingGuide
             )
 
         NavigationTab.BABY ->

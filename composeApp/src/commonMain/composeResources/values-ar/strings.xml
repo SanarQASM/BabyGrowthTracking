@@ -539,4 +539,62 @@
     <string name="fh_placeholder_parkinsonism">أدخل تاريخ الباركنسون…</string>
     <string name="fh_placeholder_allergies">أدخل معلومات الحساسية…</string>
     <string name="fh_placeholder_others">أدخل الحالات الأخرى…</string>
+
+    <!-- ── Guide Screens ──────────────────────────────────────────────────── -->
+
+    <!-- Sleep Guide -->
+    <string name="sleep_guide_title">دليل النوم</string>
+    <string name="sleep_guide_header">ساعد %s على النوم بشكل أفضل 💤</string>
+    <string name="sleep_guide_select_child">اختر الطفل</string>
+    <string name="sleep_guide_select_category">اختر الفئة</string>
+    <string name="sleep_guide_cat_strategies">استراتيجيات النوم</string>
+    <string name="sleep_guide_cat_needs">احتياجات النوم</string>
+    <string name="sleep_guide_cat_environment">البيئة</string>
+    <string name="sleep_guide_cat_lullabies">الأغاني</string>
+    <string name="sleep_guide_env_tab_all">الكل</string>
+    <string name="sleep_guide_env_tab_bedtime">وقت النوم</string>
+    <string name="sleep_guide_env_tab_naps">القيلولة</string>
+    <string name="sleep_guide_lullabies_title">الأغاني والأصوات 🎵</string>
+    <string name="sleep_guide_lang_all">الكل</string>
+    <string name="sleep_guide_lang_kurdish">كردي</string>
+    <string name="sleep_guide_lang_arabic">عربي</string>
+    <string name="sleep_guide_lang_english">إنجليزي</string>
+    <string name="sleep_guide_now_playing">يُشغَّل الآن:</string>
+    <string name="sleep_guide_play">تشغيل</string>
+    <string name="sleep_guide_pause">إيقاف</string>
+    <string name="sleep_guide_download">تحميل</string>
+    <string name="sleep_guide_useful_for">مفيد لـ %d مستخدم</string>
+    <string name="sleep_guide_useful">مفيد</string>
+    <string name="sleep_guide_useless">غير مفيد</string>
+    <string name="sleep_guide_why_matters">لماذا يهم:</string>
+    <string name="sleep_guide_tips">نصائح:</string>
+    <string name="sleep_guide_total_sleep">مجموع النوم:</string>
+    <string name="sleep_guide_night">الليل:</string>
+    <string name="sleep_guide_daytime">النهار:</string>
+    <string name="sleep_guide_total_nap">مجموع القيلولة</string>
+    <string name="sleep_guide_duration">المدة: %s</string>
+    <string name="sleep_guide_months">%d أشهر</string>
+    <string name="sleep_guide_tips_for_age">نصائح لهذا العمر</string>
+    <string name="sleep_guide_no_data">لا يوجد دليل نوم لهذا العمر.</string>
+
+    <!-- Feeding Guide -->
+    <string name="feeding_guide_title">دليل التغذية</string>
+    <string name="feeding_guide_header">ساعد %s على الأكل بشكل صحي 🍼</string>
+    <string name="feeding_guide_cat_milk">الرضاعة</string>
+    <string name="feeding_guide_cat_solid">الأطعمة الصلبة</string>
+    <string name="feeding_guide_cat_schedule">الجدول النموذجي</string>
+    <string name="feeding_guide_cat_avoid">الأطعمة المحظورة</string>
+    <string name="feeding_guide_cat_tips">نصائح التغذية</string>
+    <string name="feeding_guide_milk_tab_all">الكل</string>
+    <string name="feeding_guide_milk_tab_breast">الرضاعة الطبيعية</string>
+    <string name="feeding_guide_milk_tab_formula">الحليب الصناعي</string>
+    <string name="feeding_guide_milk_tab_combo">مختلط</string>
+    <string name="feeding_guide_frequency">التكرار:</string>
+    <string name="feeding_guide_duration">المدة:</string>
+    <string name="feeding_guide_hunger_signs">علامات الجوع:</string>
+    <string name="feeding_guide_fullness_signs">علامات الشبع:</string>
+    <string name="feeding_guide_tip_label">نصيحة:</string>
+    <string name="feeding_guide_recommended_foods">الأطعمة المقترحة:</string>
+    <string name="feeding_guide_no_solid">الأطعمة الصلبة غير مناسبة لهذا العمر.</string>
+    <string name="feeding_guide_no_data">لا يوجد دليل تغذية لهذا العمر.</string>
 </resources>
