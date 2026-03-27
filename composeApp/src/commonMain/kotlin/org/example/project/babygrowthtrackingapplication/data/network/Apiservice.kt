@@ -68,8 +68,11 @@ class ApiService(
             fun upcomingVaccinations(babyId: String) = "$VACCINATIONS/baby/$babyId/upcoming"
             fun rescheduleVaccinations(babyId: String) = "$VACCINATION_SCHEDULES/baby/$babyId/reschedule"
 
+
             const val FAMILY_HISTORY = "/v1/family-history"
             fun familyHistoryByBaby(babyId: String) = "$FAMILY_HISTORY/baby/$babyId"
+            fun familyHistoryById(historyId: String) = "$FAMILY_HISTORY/$historyId"
+
 
             const val CHILD_ILLNESSES = "/v1/child-illnesses"
             fun childIllnessesByBaby(babyId: String) = "$CHILD_ILLNESSES/baby/$babyId"
@@ -337,6 +340,37 @@ class ApiService(
 
     suspend fun checkHealth(): ApiResult<HealthResponse> =
         makeRequest { client.get("$BASE_URL${Endpoints.HEALTH}") }
+
+    // ── GET family history for a baby ─────────────────────────────────────────────
+    suspend fun getFamilyHistory(babyId: String): ApiResult<FamilyHistoryNet?> =
+        safeCall {
+            val resp = client.get("$BASE_URL${Endpoints.familyHistoryByBaby(babyId)}")
+            try {
+                resp.body<ApiSingleResponse<FamilyHistoryNet>>().data
+            } catch (e: Exception) {
+                null
+            }
+        }
+
+    // ── POST create family history ────────────────────────────────────────────────
+    suspend fun createFamilyHistory(request: FamilyHistoryRequest): ApiResult<FamilyHistoryNet> =
+        safeCall {
+            val resp = client.post("$BASE_URL${Endpoints.FAMILY_HISTORY}") { setBody(request) }
+            resp.body<ApiSingleResponse<FamilyHistoryNet>>().data!!
+        }
+
+    // ── PUT update family history ─────────────────────────────────────────────────
+    suspend fun updateFamilyHistory(historyId: String, request: FamilyHistoryRequest): ApiResult<FamilyHistoryNet> =
+        safeCall {
+            val resp = client.put("$BASE_URL${Endpoints.familyHistoryById(historyId)}") { setBody(request) }
+            resp.body<ApiSingleResponse<FamilyHistoryNet>>().data!!
+        }
+
+    // ── DELETE family history ─────────────────────────────────────────────────────
+    suspend fun deleteFamilyHistory(historyId: String): ApiResult<Unit> =
+        safeCall {
+            client.delete("$BASE_URL${Endpoints.familyHistoryById(historyId)}")
+        }
 
     // ── Request helpers ───────────────────────────────────────────────────────
 
@@ -632,6 +666,34 @@ data class RescheduleRequest(
     val isResolved: Boolean = false,
     val resolutionDate: String? = null,
     val resolvedNotes: String? = null
+)
+// FamilyHistoryRequest
+
+@Serializable data class FamilyHistoryRequest(
+    val babyId: String,
+    val heredity: String? = null,
+    val bloodDiseases: String? = null,
+    val cardiovascularDiseases: String? = null,
+    val metabolicDiseases: String? = null,
+    val appendicitis: String? = null,
+    val tuberculosis: String? = null,
+    val parkinsonism: String? = null,
+    val allergies: String? = null,
+    val others: String? = null
+)
+
+@Serializable data class FamilyHistoryNet(
+    val historyId: String = "",
+    val babyId: String = "",
+    val heredity: String? = null,
+    val bloodDiseases: String? = null,
+    val cardiovascularDiseases: String? = null,
+    val metabolicDiseases: String? = null,
+    val appendicitis: String? = null,
+    val tuberculosis: String? = null,
+    val parkinsonism: String? = null,
+    val allergies: String? = null,
+    val others: String? = null
 )
 
 // ── Appointments ──────────────────────────────────────────────────────────────

@@ -498,4 +498,45 @@
     <string name="schedule_overdue_banner_tap">اضغط لإعادة جدولة اللقاحات المتبقية</string>
     <string name="schedule_no_vaccinations">لا توجد لقاحات</string>
 
+    <!-- ── Family History - Arabic (ar) ────────────────────────────────────── -->
+
+    <string name="settings_section_information">المعلومات</string>
+    <string name="settings_family_history">التاريخ العائلي</string>
+    <string name="settings_family_history_sub">الخلفية الطبية للعائلة</string>
+    <string name="settings_family_history_set">تم إدخال المعلومات</string>
+    <string name="settings_family_history_not_set">لم يتم الإدخال — انقر للإضافة</string>
+
+    <string name="family_history_title">التاريخ العائلي</string>
+    <string name="family_history_save">حفظ</string>
+    <string name="family_history_edit">تعديل</string>
+    <string name="family_history_delete">حذف</string>
+    <string name="family_history_saved">تم حفظ التاريخ العائلي بنجاح</string>
+    <string name="family_history_deleted">تم حذف التاريخ العائلي</string>
+    <string name="family_history_confirm_delete_title">حذف التاريخ العائلي</string>
+    <string name="family_history_confirm_delete_msg">هل أنت متأكد من حذف جميع معلومات التاريخ العائلي؟ لا يمكن التراجع عن هذا.</string>
+    <string name="family_history_not_set_alert_title">لم يتم إدخال التاريخ العائلي</string>
+    <string name="family_history_not_set_alert_msg">يرجى ملء التاريخ الطبي للعائلة. هذه المعلومات تساعد في تتبع الأمراض الوراثية لصحة طفلك.</string>
+    <string name="family_history_add_info">إضافة معلومات</string>
+    <string name="family_history_status_set">✅ تم إدخال المعلومات</string>
+    <string name="family_history_status_not_set">⚠️ لم يتم الملء بعد</string>
+
+    <string name="fh_heredity">الوراثة</string>
+    <string name="fh_blood_diseases">أمراض الدم</string>
+    <string name="fh_cardiovascular">أمراض القلب والأوعية الدموية</string>
+    <string name="fh_metabolic">أمراض الأيض</string>
+    <string name="fh_appendicitis">التهاب الزائدة الدودية</string>
+    <string name="fh_tuberculosis">السل</string>
+    <string name="fh_parkinsonism">الباركنسونية</string>
+    <string name="fh_allergies">الحساسية</string>
+    <string name="fh_others">أخرى</string>
+
+    <string name="fh_placeholder_heredity">أدخل معلومات الوراثة…</string>
+    <string name="fh_placeholder_blood">أدخل تاريخ أمراض الدم…</string>
+    <string name="fh_placeholder_cardiovascular">أدخل تاريخ أمراض القلب والأوعية…</string>
+    <string name="fh_placeholder_metabolic">أدخل تاريخ أمراض الأيض…</string>
+    <string name="fh_placeholder_appendicitis">أدخل تاريخ التهاب الزائدة…</string>
+    <string name="fh_placeholder_tuberculosis">أدخل تاريخ مرض السل…</string>
+    <string name="fh_placeholder_parkinsonism">أدخل تاريخ الباركنسون…</string>
+    <string name="fh_placeholder_allergies">أدخل معلومات الحساسية…</string>
+    <string name="fh_placeholder_others">أدخل الحالات الأخرى…</string>
 </resources>

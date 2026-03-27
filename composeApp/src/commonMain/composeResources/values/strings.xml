@@ -583,6 +583,54 @@ Last updated: 2025.</string>
     <string name="schedule_overdue_banner_count">⚠️ %1$d vaccination(s) overdue</string>
     <string name="schedule_overdue_banner_tap">Tap to reschedule remaining vaccinations</string>
     <string name="schedule_no_vaccinations">No vaccinations found</string>
-    
+
+
+    <!-- ── Family History ──────────────────────────────────────────────────── -->
+
+    <!-- Settings section label -->
+    <string name="settings_section_information">Information</string>
+    <string name="settings_family_history">Family History</string>
+    <string name="settings_family_history_sub">Medical family background</string>
+    <string name="settings_family_history_set">Information set</string>
+    <string name="settings_family_history_not_set">Not set — tap to add</string>
+
+    <!-- Family History Screen title / actions -->
+    <string name="family_history_title">Family History</string>
+    <string name="family_history_save">Save</string>
+    <string name="family_history_edit">Edit</string>
+    <string name="family_history_delete">Delete</string>
+    <string name="family_history_saved">Family history saved successfully</string>
+    <string name="family_history_deleted">Family history deleted</string>
+    <string name="family_history_confirm_delete_title">Delete Family History</string>
+    <string name="family_history_confirm_delete_msg">Are you sure you want to delete all family history information? This cannot be undone.</string>
+    <string name="family_history_not_set_alert_title">Family History Not Set</string>
+    <string name="family_history_not_set_alert_msg">Please fill in the family medical history. This information helps track hereditary conditions for your baby\'s health.</string>
+    <string name="family_history_add_info">Add Information</string>
+    <string name="family_history_status_set">✅ Information set</string>
+    <string name="family_history_status_not_set">⚠️ Not filled yet</string>
+
+    <!-- Family History field labels -->
+    <string name="fh_heredity">Heredity</string>
+    <string name="fh_blood_diseases">Blood Diseases</string>
+    <string name="fh_cardiovascular">Heart &amp; Vascular Diseases</string>
+    <string name="fh_metabolic">Metabolic Diseases</string>
+    <string name="fh_appendicitis">Appendicitis</string>
+    <string name="fh_tuberculosis">Tuberculosis</string>
+    <string name="fh_parkinsonism">Parkinsonism</string>
+    <string name="fh_allergies">Allergies</string>
+    <string name="fh_others">Others</string>
+
+    <!-- Family History field placeholders -->
+    <string name="fh_placeholder_heredity">Enter heredity information…</string>
+    <string name="fh_placeholder_blood">Enter blood disease history…</string>
+    <string name="fh_placeholder_cardiovascular">Enter heart and vascular disease history…</string>
+    <string name="fh_placeholder_metabolic">Enter metabolic disease history…</string>
+    <string name="fh_placeholder_appendicitis">Enter appendicitis history…</string>
+    <string name="fh_placeholder_tuberculosis">Enter tuberculosis history…</string>
+    <string name="fh_placeholder_parkinsonism">Enter parkinsonism history…</string>
+    <string name="fh_placeholder_allergies">Enter allergy information…</string>
+    <string name="fh_placeholder_others">Enter other conditions…</string>
+
+
 
 </resources>

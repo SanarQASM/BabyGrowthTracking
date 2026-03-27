@@ -57,7 +57,10 @@ class SettingsViewModel(
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
-    init { loadFromPreferences() }
+    init {
+        loadFromPreferences()
+        loadUserProfile() // ✅ FIX: Fetch latest profile from server on startup
+    }
 
     // ─────────────────────────────────────────────────────────────────────────
     // INIT
@@ -82,6 +85,30 @@ class SettingsViewModel(
             appointmentReminders = preferencesManager.getBoolean("notif_appointment", true),
             reminderDaysBefore   = preferencesManager.getInt("notif_reminder_days",   3),
         )
+    }
+
+    /** ✅ NEW: Fetch user profile from API to ensure settings info is up-to-date */
+    private fun loadUserProfile() {
+        val userId = uiState.userId.ifBlank { return }
+        scope.launch {
+            when (val result = apiService.getUser(userId)) {
+                is ApiResult.Success -> {
+                    val user = result.data
+                    // Sync to Preferences
+                    preferencesManager.saveUserName(user.fullName)
+                    preferencesManager.saveUserEmail(user.email)
+                    user.phone?.let { preferencesManager.saveUserPhone(it) }
+
+                    // Sync to UI
+                    uiState = uiState.copy(
+                        userName  = user.fullName,
+                        userEmail = user.email,
+                        userPhone = user.phone ?: ""
+                    )
+                }
+                else -> { /* Fallback to what we have in preferences */ }
+            }
+        }
     }
 
     // ─────────────────────────────────────────────────────────────────────────

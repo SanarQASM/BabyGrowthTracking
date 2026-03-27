@@ -1,1306 +1,436 @@
 {
-  "_meta": {
-    "version": "1.0.0",
-    "lastUpdated": "2025-01",
-    "medicalReferences": [
-      "American Academy of Pediatrics (AAP) Breastfeeding Guidelines 2022",
-      "AAP Policy Statement: Infant Formula 2021",
-      "WHO Complementary Feeding Guidelines 2023",
-      "AAP Solid Foods and Introduction of Allergenic Foods 2023",
-      "USDA Dietary Guidelines for Americans: Birth to 24 Months 2020",
-      "AAP Foods to Avoid in Infants and Toddlers 2022"
-    ],
-    "disclaimer_key": "global_feeding_disclaimer",
-    "schema": "feeding_guide_v1"
-  },
-
-  "categories": [
+  "version": "1.0",
+  "guide_type": "feeding",
+  "age_ranges": [
     {
-      "id": "milk_feeding",
-      "label_key": "cat_milk_feeding",
-      "icon": "milk_bottle",
-      "colorTheme": "purple_soft",
-      "sortOrder": 1,
-      "hasTabs": true,
-      "tabs": [
-        { "id": "all",                "label_key": "tab_all",                 "sortOrder": 1 },
-        { "id": "breastfeeding",      "label_key": "tab_breastfeeding",       "sortOrder": 2 },
-        { "id": "formula_feeding",    "label_key": "tab_formula_feeding",     "sortOrder": 3 },
-        { "id": "combination_feeding","label_key": "tab_combination_feeding", "sortOrder": 4 }
+      "id": "0_3m",
+      "label_en": "0–3 Months",
+      "label_ar": "0–3 أشهر",
+      "label_ku": "0–3 مانگ",
+      "label_ckb": "0–3 مانگ",
+      "min_months": 0,
+      "max_months": 3,
+      "milk_feeding": [
+        {
+          "id": "mf_0_3_1",
+          "sub_type": "breastfeeding",
+          "title_en": "Exclusive Breastfeeding",
+          "title_ar": "الرضاعة الطبيعية الحصرية",
+          "title_ku": "شیرخواری تەنها",
+          "title_ckb": "شیرخواری تەنها",
+          "frequency_en": "8–12 feeds per day",
+          "frequency_ar": "8–12 رضعة يومياً",
+          "frequency_ku": "8–12 جار لە ڕۆژدا",
+          "frequency_ckb": "8–12 جار لە ڕۆژدا",
+          "duration_en": "10–45 minutes per feed\nUntil baby seems satisfied",
+          "duration_ar": "10–45 دقيقة لكل رضعة\nحتى يبدو الطفل راضياً",
+          "duration_ku": "10–45 خولەک هەر جار\nتا منداڵ ئارام بێت",
+          "duration_ckb": "10–45 خولەک هەر جار\nتا منداڵ ئارام بێت",
+          "hunger_signs_en": ["Rooting (turning head)", "Sucking on hands/fists", "Smacking lips", "Crying (late sign)"],
+          "hunger_signs_ar": ["الجذر (تحريك الرأس)", "مص اليدين/القبضتين", "تسمع الشفاه", "البكاء (إشارة متأخرة)"],
+          "hunger_signs_ku": ["سەرپێوی (سەر گێڕانەوە)", "دەست/مشتی مکانەوە", "تۆپی قووچ", "گریان (نیشانەی دواماوە)"],
+          "hunger_signs_ckb": ["سەرپێوی (سەر گێڕانەوە)", "دەست/مشتی مکانەوە", "تۆپی قووچ", "گریان (نیشانەی دواماوە)"],
+          "fullness_signs_en": ["Turns head away", "Closes mouth", "Relaxed hands", "Falls asleep"],
+          "fullness_signs_ar": ["يحول رأسه بعيداً", "يغلق فمه", "يرخي يديه", "يغفو"],
+          "fullness_signs_ku": ["سەر دەگێڕێتەوە", "دەمی دادەخات", "دەستەکانی ئارام دەبن", "دەنووێت"],
+          "fullness_signs_ckb": ["سەر دەگێڕێتەوە", "دەمی دادەخات", "دەستەکانی ئارام دەبن", "دەنووێت"],
+          "tip_en": "Feed on demand, not by schedule.",
+          "tip_ar": "أرضع عند الطلب، وليس حسب الجدول.",
+          "tip_ku": "لەگەڵ داواکاری خوارکی بدە، نە بەپێی خشتە.",
+          "tip_ckb": "لەگەڵ داواکاری خوارکی بدە، نە بەپێی خشتە."
+        },
+        {
+          "id": "mf_0_3_2",
+          "sub_type": "formula",
+          "title_en": "Formula Feeding",
+          "title_ar": "الرضاعة بالحليب الصناعي",
+          "title_ku": "خواردنی شیری دروستکراو",
+          "title_ckb": "خواردنی شیری دروستکراو",
+          "frequency_en": "Every 2–3 hours",
+          "frequency_ar": "كل 2–3 ساعات",
+          "frequency_ku": "هەر 2–3 کاتژمێر",
+          "frequency_ckb": "هەر 2–3 کاتژمێر",
+          "duration_en": "As long as baby wants",
+          "duration_ar": "طالما يريد الطفل",
+          "duration_ku": "تا منداڵی دەوێت",
+          "duration_ckb": "تا منداڵی دەوێت",
+          "hunger_signs_en": ["Rooting", "Sucking motions", "Fussiness", "Hands to mouth"],
+          "hunger_signs_ar": ["الجذر", "حركات المص", "الانزعاج", "اليدان إلى الفم"],
+          "hunger_signs_ku": ["سەرپێوی", "جووڵەی مکانەوە", "توندی", "دەست بۆ دەم"],
+          "hunger_signs_ckb": ["سەرپێوی", "جووڵەی مکانەوە", "توندی", "دەست بۆ دەم"],
+          "fullness_signs_en": ["Pushing bottle away", "Slowing down", "Turning head", "Falling asleep"],
+          "fullness_signs_ar": ["دفع الزجاجة بعيداً", "التباطؤ", "إدارة الرأس", "النوم"],
+          "fullness_signs_ku": ["بووتڵ دەدایەوە", "هێواش دەبێت", "سەر دەگێڕێتەوە", "دەنووێت"],
+          "fullness_signs_ckb": ["بووتڵ دەدایەوە", "هێواش دەبێت", "سەر دەگێڕێتەوە", "دەنووێت"],
+          "tip_en": "Newborns take 1.5–3 oz per feed (45–90 mL).",
+          "tip_ar": "المواليد الجدد يأخذون 1.5–3 أونصة لكل رضعة.",
+          "tip_ku": "نوێزانەکان 1.5–3 ئاونس هەر جار دەخوەن.",
+          "tip_ckb": "نوێزانەکان 1.5–3 ئاونس هەر جار دەخوەن."
+        },
+        {
+          "id": "mf_0_3_3",
+          "sub_type": "combination",
+          "title_en": "Combination Feeding",
+          "title_ar": "الرضاعة المختلطة",
+          "title_ku": "تێکەڵکاریی خواردن",
+          "title_ckb": "تێکەڵکاریی خواردن",
+          "frequency_en": "Mix of breast and bottle",
+          "frequency_ar": "مزيج من الثدي والزجاجة",
+          "frequency_ku": "تێکەڵەی شیرو بووتڵ",
+          "frequency_ckb": "تێکەڵەی شیرو بووتڵ",
+          "duration_en": "Varies by feed type",
+          "duration_ar": "يختلف حسب نوع الرضاعة",
+          "duration_ku": "جیاوازە بەپێی جۆری خواردن",
+          "duration_ckb": "جیاوازە بەپێی جۆری خواردن",
+          "hunger_signs_en": ["Same as breastfeeding cues"],
+          "hunger_signs_ar": ["نفس إشارات الرضاعة الطبيعية"],
+          "hunger_signs_ku": ["هەمان نیشانەکانی شیرخواری"],
+          "hunger_signs_ckb": ["هەمان نیشانەکانی شیرخواری"],
+          "fullness_signs_en": ["Same satisfaction cues"],
+          "fullness_signs_ar": ["نفس إشارات الشبع"],
+          "fullness_signs_ku": ["هەمان نیشانەکانی تێرە"],
+          "fullness_signs_ckb": ["هەمان نیشانەکانی تێرە"],
+          "tip_en": "Introduce bottle early (2–4 weeks) if combining.",
+          "tip_ar": "أدخل الزجاجة مبكراً (2–4 أسابيع) إذا كنت تجمع.",
+          "tip_ku": "بووتڵ زووتر دابنێ (2–4 هەفتە) ئەگەر تێکەڵ دەکەیت.",
+          "tip_ckb": "بووتڵ زووتر دابنێ (2–4 هەفتە) ئەگەر تێکەڵ دەکەیت."
+        }
+      ],
+      "solid_foods": [],
+      "sample_schedule": [
+        {
+          "id": "sch_0_3_1",
+          "sub_type": "breastfeeding",
+          "title_en": "Breastfeeding Schedule",
+          "title_ar": "جدول الرضاعة الطبيعية",
+          "title_ku": "خشتەی شیرخواری",
+          "title_ckb": "خشتەی شیرخواری",
+          "entries_en": ["6:00 AM – Feed", "8:30 AM – Feed", "11:00 AM – Feed", "1:30 PM – Feed", "4:00 PM – Feed", "6:30 PM – Feed", "9:00 PM – Feed", "12:00 AM – Feed", "3:00 AM – Feed"],
+          "entries_ar": ["6:00 صباحاً – رضاعة", "8:30 صباحاً – رضاعة", "11:00 صباحاً – رضاعة"],
+          "entries_ku": ["6:00 بەیانی – خواردن", "8:30 بەیانی – خواردن", "11:00 بەیانی – خواردن"],
+          "entries_ckb": ["6:00 بەیانی – خواردن", "8:30 بەیانی – خواردن", "11:00 بەیانی – خواردن"],
+          "tip_en": "This is a guideline — follow baby's cues.",
+          "tip_ar": "هذا مجرد دليل — اتبع إشارات طفلك.",
+          "tip_ku": "ئەمە رێنماییەکە — بانگەوازەکانی منداڵت بگرە چاو.",
+          "tip_ckb": "ئەمە رێنماییەکە — بانگەوازەکانی منداڵت بگرە چاو."
+        }
+      ],
+      "foods_to_avoid": [
+        {
+          "id": "fa_0_3_1",
+          "title_en": "Honey",
+          "title_ar": "العسل",
+          "title_ku": "هەنگوین",
+          "title_ckb": "هەنگوین",
+          "reason_en": "Risk of infant botulism — never give honey under 12 months.",
+          "reason_ar": "خطر التسمم الغذائي — لا تعط العسل تحت 12 شهراً.",
+          "reason_ku": "مەترسیی بوتولیزم — هیچ کاتێک هەنگوین لە ژێر 12 مانگدا مەدە.",
+          "reason_ckb": "مەترسیی بوتولیزم — هیچ کاتێک هەنگوین لە ژێر 12 مانگدا مەدە.",
+          "icon": "🍯"
+        },
+        {
+          "id": "fa_0_3_2",
+          "title_en": "Cow's Milk",
+          "title_ar": "حليب البقر",
+          "title_ku": "شیری مانگا",
+          "title_ckb": "شیری مانگا",
+          "reason_en": "Kidneys can't handle the protein load. Breast milk or formula only under 12 months.",
+          "reason_ar": "لا تستطيع الكليتان التعامل مع حمل البروتين. حليب الثدي أو الحليب الصناعي فقط تحت 12 شهراً.",
+          "reason_ku": "گورچیلەکان ناتوانن بار پرۆتینەکان بگرن. تەنها شیری دایک یان شیری دروستکراو لە ژێر 12 مانگدا.",
+          "reason_ckb": "گورچیلەکان ناتوانن بار پرۆتینەکان بگرن. تەنها شیری دایک یان شیری دروستکراو لە ژێر 12 مانگدا.",
+          "icon": "🥛"
+        },
+        {
+          "id": "fa_0_3_3",
+          "title_en": "Solid Foods",
+          "title_ar": "الأطعمة الصلبة",
+          "title_ku": "خواردنی سەخت",
+          "title_ckb": "خواردنی سەخت",
+          "reason_en": "Digestive system is not ready. Only breast milk or formula for the first 6 months.",
+          "reason_ar": "الجهاز الهضمي ليس مستعداً. حليب الثدي أو الحليب الصناعي فقط لأول 6 أشهر.",
+          "reason_ku": "سیستەمی گواستنەوەی خواردن ئامادە نییە. تەنها شیری دایک یان شیری دروستکراو بۆ 6 مانگی یەکەم.",
+          "reason_ckb": "سیستەمی گواستنەوەی خواردن ئامادە نییە. تەنها شیری دایک یان شیری دروستکراو بۆ 6 مانگی یەکەم.",
+          "icon": "🥄"
+        }
+      ],
+      "feeding_tips": [
+        {
+          "id": "ft_0_3_1",
+          "title_en": "Track Wet Diapers",
+          "title_ar": "تتبع الحفاضات المبللة",
+          "title_ku": "شوێنکەوتنی جانتاوەی تەر",
+          "title_ckb": "شوێنکەوتنی جانتاوەی تەر",
+          "description_en": "6+ wet diapers per day indicates adequate milk intake. Less may signal low supply.",
+          "description_ar": "6 حفاضات مبللة أو أكثر يومياً يشير إلى تناول كافٍ للحليب.",
+          "description_ku": "6 جانتاوەی تەر یان زیاتر لە ڕۆژدا نیشانی وەرگرتنی شیری پێویست دەدات.",
+          "description_ckb": "6 جانتاوەی تەر یان زیاتر لە ڕۆژدا نیشانی وەرگرتنی شیری پێویست دەدات.",
+          "tip_en": "Keep a feeding log for the first few weeks.",
+          "tip_ar": "احتفظ بسجل التغذية للأسابيع القليلة الأولى.",
+          "tip_ku": "تۆمارکردنی خواردن بۆ چەند هەفتەی یەکەم بگرە.",
+          "tip_ckb": "تۆمارکردنی خواردن بۆ چەند هەفتەی یەکەم بگرە.",
+          "icon": "📊"
+        },
+        {
+          "id": "ft_0_3_2",
+          "title_en": "Burp After Every Feed",
+          "title_ar": "التجشؤ بعد كل رضعة",
+          "title_ku": "دەم پیشکانی دوای هەر خواردنێک",
+          "title_ckb": "دەم پیشکانی دوای هەر خواردنێک",
+          "description_en": "Burp your baby mid-feed and at the end. This reduces gas and spit-up.",
+          "description_ar": "جشئ طفلك في منتصف الرضاعة وفي النهاية. يقلل ذلك من الغازات والقيء.",
+          "description_ku": "منداڵت لەنێوانی خواردن و لە کۆتایی دا دەمی پیشکاندانێ. ئەمە گازو دووپات کەمدەکاتەوە.",
+          "description_ckb": "منداڵت لەنێوانی خواردن و لە کۆتایی دا دەمی پیشکاندانێ. ئەمە گازو دووپات کەمدەکاتەوە.",
+          "tip_en": "Try different burping positions to find what works.",
+          "tip_ar": "جرب أوضاع التجشؤ المختلفة للعثور على ما يصلح.",
+          "tip_ku": "شێوازەکانی جیاوازی پیشکانی تاقی بکەرەوە.",
+          "tip_ckb": "شێوازەکانی جیاوازی پیشکانی تاقی بکەرەوە.",
+          "icon": "👶"
+        }
       ]
     },
     {
-      "id": "solid_foods",
-      "label_key": "cat_solid_foods",
-      "icon": "spoon",
-      "colorTheme": "teal_soft",
-      "sortOrder": 2,
-      "hasTabs": true,
-      "tabs": [
-        { "id": "all",          "label_key": "tab_all",          "sortOrder": 1 },
-        { "id": "purees",       "label_key": "tab_purees",       "sortOrder": 2 },
-        { "id": "finger_foods", "label_key": "tab_finger_foods", "sortOrder": 3 },
-        { "id": "family_foods", "label_key": "tab_family_foods", "sortOrder": 4 }
+      "id": "4_6m",
+      "label_en": "4–6 Months",
+      "label_ar": "4–6 أشهر",
+      "label_ku": "4–6 مانگ",
+      "label_ckb": "4–6 مانگ",
+      "min_months": 4,
+      "max_months": 6,
+      "milk_feeding": [
+        {
+          "id": "mf_4_6_1",
+          "sub_type": "breastfeeding",
+          "title_en": "Breastfeeding at 4–6 Months",
+          "title_ar": "الرضاعة الطبيعية في 4–6 أشهر",
+          "title_ku": "شیرخواری لە 4–6 مانگدا",
+          "title_ckb": "شیرخواری لە 4–6 مانگدا",
+          "frequency_en": "5–7 feeds per day",
+          "frequency_ar": "5–7 رضعات يومياً",
+          "frequency_ku": "5–7 جار لە ڕۆژدا",
+          "frequency_ckb": "5–7 جار لە ڕۆژدا",
+          "duration_en": "10–20 minutes per feed",
+          "duration_ar": "10–20 دقيقة لكل رضعة",
+          "duration_ku": "10–20 خولەک هەر جار",
+          "duration_ckb": "10–20 خولەک هەر جار",
+          "hunger_signs_en": ["Rooting", "Fussiness", "Chewing hands"],
+          "hunger_signs_ar": ["الجذر", "الانزعاج", "مضغ اليدين"],
+          "hunger_signs_ku": ["سەرپێوی", "توندی", "چانەی دەست"],
+          "hunger_signs_ckb": ["سەرپێوی", "توندی", "چانەی دەست"],
+          "fullness_signs_en": ["Turning away", "Distracted by surroundings", "Relaxed"],
+          "fullness_signs_ar": ["الالتفات بعيداً", "الانشغال بالمحيط", "الاسترخاء"],
+          "fullness_signs_ku": ["دوور دەکەوێتەوە", "بادەدرانی ژینگە", "ئارام"],
+          "fullness_signs_ckb": ["دوور دەکەوێتەوە", "بادەدرانی ژینگە", "ئارام"],
+          "tip_en": "You may notice feeding efficiency improves — sessions get shorter.",
+          "tip_ar": "قد تلاحظ تحسن كفاءة الرضاعة — تصبح الجلسات أقصر.",
+          "tip_ku": "دەتتوانی ببینی کارایی خواردن باشتر دەبێت — دانیشتنەکان کورتر دەبن.",
+          "tip_ckb": "دەتتوانی ببینی کارایی خواردن باشتر دەبێت — دانیشتنەکان کورتر دەبن."
+        }
+      ],
+      "solid_foods": [
+        {
+          "id": "sf_4_6_1",
+          "title_en": "Starting Solids — Signs of Readiness",
+          "title_ar": "بدء الأطعمة الصلبة — علامات الاستعداد",
+          "title_ku": "دەستپێکردنی خواردنی سەخت — نیشانەکانی ئامادەیی",
+          "title_ckb": "دەستپێکردنی خواردنی سەخت — نیشانەکانی ئامادەیی",
+          "description_en": "Most babies are ready between 4–6 months. Look for: sitting with support, showing interest in food, loss of tongue-thrust reflex.",
+          "description_ar": "معظم الأطفال مستعدون بين 4–6 أشهر. ابحث عن: الجلوس بدعم، وإظهار الاهتمام بالطعام.",
+          "description_ku": "زۆرینەی منداڵان لە نێوان 4–6 مانگدا ئامادەن. گەڕان بۆ: نیشتنی بەپشتەوانە، ئولەیلاندن بۆ خواردن.",
+          "description_ckb": "زۆرینەی منداڵان لە نێوان 4–6 مانگدا ئامادەن. گەڕان بۆ: نیشتنی بەپشتەوانە، ئولەیلاندن بۆ خواردن.",
+          "foods_en": ["Single-grain infant cereal", "Pureed vegetables (sweet potato, peas)", "Pureed fruits (banana, avocado)"],
+          "foods_ar": ["حبوب أطفال أحادية الحبوب", "خضروات مهروسة (بطاطا حلوة، بازلاء)", "فواكه مهروسة (موز، أفوكادو)"],
+          "foods_ku": ["غلەی منداڵی تاک-دانەیی", "سەوزەی پووڕکراو (سوی شیرین، نووک)", "میوەی پووڕکراو (مۆز، ئاڤۆکادۆ)"],
+          "foods_ckb": ["غلەی منداڵی تاک-دانەیی", "سەوزەی پووڕکراو (سوی شیرین، نووک)", "میوەی پووڕکراو (مۆز، ئاڤۆکادۆ)"],
+          "tip_en": "Always check with your pediatrician before starting solids.",
+          "tip_ar": "تحقق دائمًا مع طبيب الأطفال قبل بدء الأطعمة الصلبة.",
+          "tip_ku": "هەمیشە پێش دەستپێکردنی خواردنی سەخت لەگەڵ پزیشکی منداڵ کۆبوو.",
+          "tip_ckb": "هەمیشە پێش دەستپێکردنی خواردنی سەخت لەگەڵ پزیشکی منداڵ کۆبوو."
+        }
+      ],
+      "sample_schedule": [
+        {
+          "id": "sch_4_6_1",
+          "sub_type": "breastfeeding",
+          "title_en": "Daily Feeding Schedule",
+          "title_ar": "جدول التغذية اليومي",
+          "title_ku": "خشتەی خواردنی ڕۆژانە",
+          "title_ckb": "خشتەی خواردنی ڕۆژانە",
+          "entries_en": ["7:00 AM – Breastfeed", "10:00 AM – Breastfeed", "1:00 PM – Breastfeed + first taste of solids", "4:00 PM – Breastfeed", "7:00 PM – Breastfeed"],
+          "entries_ar": ["7:00 صباحاً – رضاعة طبيعية", "10:00 صباحاً – رضاعة طبيعية", "1:00 مساءً – رضاعة + أول تذوق للأطعمة"],
+          "entries_ku": ["7:00 بەیانی – شیرخواری", "10:00 بەیانی – شیرخواری", "1:00 دوانیوەڕۆ – شیرخواری + یەکەم چێشت"],
+          "entries_ckb": ["7:00 بەیانی – شیرخواری", "10:00 بەیانی – شیرخواری", "1:00 دوانیوەڕۆ – شیرخواری + یەکەم چێشت"],
+          "tip_en": "Breast milk remains primary nutrition.",
+          "tip_ar": "حليب الثدي يبقى التغذية الأساسية.",
+          "tip_ku": "شیری دایک خۆراکی سەرەکی دەمێنێتەوە.",
+          "tip_ckb": "شیری دایک خۆراکی سەرەکی دەمێنێتەوە."
+        }
+      ],
+      "foods_to_avoid": [
+        {
+          "id": "fa_4_6_1",
+          "title_en": "Honey",
+          "title_ar": "العسل",
+          "title_ku": "هەنگوین",
+          "title_ckb": "هەنگوین",
+          "reason_en": "Never under 12 months — botulism risk.",
+          "reason_ar": "أبداً تحت 12 شهراً — خطر التسمم الغذائي.",
+          "reason_ku": "هیچ کاتێک لە ژێر 12 مانگدا — مەترسیی بوتولیزم.",
+          "reason_ckb": "هیچ کاتێک لە ژێر 12 مانگدا — مەترسیی بوتولیزم.",
+          "icon": "🍯"
+        },
+        {
+          "id": "fa_4_6_2",
+          "title_en": "Added Salt & Sugar",
+          "title_ar": "الملح والسكر المضاف",
+          "title_ku": "خوێ و شەکر زیادکراو",
+          "title_ckb": "خوێ و شەکر زیادکراو",
+          "reason_en": "Kidneys can't process excess sodium. Avoid all added salt and sugar.",
+          "reason_ar": "لا تستطيع الكليتان معالجة الصوديوم الزائد. تجنب كل الملح والسكر المضاف.",
+          "reason_ku": "گورچیلەکان نایتوانن سۆدیومی زیادە کارپێبکەن. خودانی هەموو خوێ و شەکری زیادکراو.",
+          "reason_ckb": "گورچیلەکان نایتوانن سۆدیومی زیادە کارپێبکەن. خودانی هەموو خوێ و شەکری زیادکراو.",
+          "icon": "🧂"
+        }
+      ],
+      "feeding_tips": [
+        {
+          "id": "ft_4_6_1",
+          "title_en": "One New Food at a Time",
+          "title_ar": "طعام جديد واحد في كل مرة",
+          "title_ku": "یەک خواردنی نوێ هەر جار",
+          "title_ckb": "یەک خواردنی نوێ هەر جار",
+          "description_en": "Introduce one new food every 3–5 days to spot allergic reactions.",
+          "description_ar": "أدخل طعامًا جديدًا واحدًا كل 3–5 أيام لاكتشاف ردود الفعل التحسسية.",
+          "description_ku": "هەر 3–5 ڕۆژ یەک خواردنی نوێ دابنێ بۆ دیتنی وەڵامدانەوەی ئالەرژی.",
+          "description_ckb": "هەر 3–5 ڕۆژ یەک خواردنی نوێ دابنێ بۆ دیتنی وەڵامدانەوەی ئالەرژی.",
+          "tip_en": "Introduce common allergens early (with doctor guidance).",
+          "tip_ar": "أدخل مسببات الحساسية الشائعة مبكراً (بتوجيه من الطبيب).",
+          "tip_ku": "مادە ئالەرژیەکان زوو دابنێ (بەرێنماییی پزیشک).",
+          "tip_ckb": "مادە ئالەرژیەکان زوو دابنێ (بەرێنماییی پزیشک).",
+          "icon": "🥣"
+        }
       ]
     },
     {
-      "id": "sample_schedule",
-      "label_key": "cat_sample_schedule",
-      "icon": "calendar_clock",
-      "colorTheme": "amber_soft",
-      "sortOrder": 3,
-      "hasTabs": true,
-      "tabs": [
-        { "id": "breastfed",    "label_key": "tab_breastfed",    "sortOrder": 1 },
-        { "id": "formula_fed",  "label_key": "tab_formula_fed",  "sortOrder": 2 },
-        { "id": "combination",  "label_key": "tab_combination",  "sortOrder": 3 }
-      ]
-    },
-    {
-      "id": "foods_to_avoid",
-      "label_key": "cat_foods_to_avoid",
-      "icon": "warning_circle",
-      "colorTheme": "coral_soft",
-      "sortOrder": 4,
-      "hasTabs": true,
-      "tabs": [
-        { "id": "all",         "label_key": "tab_all",            "sortOrder": 1 },
-        { "id": "under_12m",   "label_key": "tab_under_12m",      "sortOrder": 2 },
-        { "id": "under_24m",   "label_key": "tab_under_24m",      "sortOrder": 3 },
-        { "id": "allergens",   "label_key": "tab_allergens",      "sortOrder": 4 }
-      ]
-    },
-    {
-      "id": "feeding_tips",
-      "label_key": "cat_feeding_tips",
-      "icon": "lightbulb",
-      "colorTheme": "pink_soft",
-      "sortOrder": 5,
-      "hasTabs": false,
-      "tabs": []
-    }
-  ],
-
-  "ageRanges": [
-
-    {
-      "id": "0-3m",
-      "label_key": "age_0_3m",
-      "sortOrder": 1,
-
-      "milkFeeding": {
-        "breastfeeding": {
-          "tabId": "breastfeeding",
-          "sectionTitle_key": "mf_bf_exclusive_title",
-          "type": "exclusive_breastfeeding",
-          "frequency": {
-            "value_key": "mf_bf_freq_0_3m",
-            "perDay": { "min": 8, "max": 12 }
-          },
-          "duration": {
-            "value_key": "mf_bf_dur_0_3m",
-            "minutesPerFeed": { "min": 10, "max": 45 },
-            "noteKey": "mf_bf_dur_note_0_3m"
-          },
-          "hungerCues": {
-            "label_key": "mf_hunger_cues_label",
-            "early_keys": [
-              "mf_cue_rooting",
-              "mf_cue_sucking_hands",
-              "mf_cue_smacking_lips"
-            ],
-            "late_keys": [
-              "mf_cue_crying_late"
-            ],
-            "warningKey": "mf_cue_late_warning"
-          },
-          "fullnessCues": {
-            "label_key": "mf_fullness_cues_label",
-            "cue_keys": [
-              "mf_full_turns_head",
-              "mf_full_closes_mouth",
-              "mf_full_relaxed_hands",
-              "mf_full_falls_asleep"
-            ]
-          },
-          "tips_keys": [
-            "mf_bf_tip_on_demand",
-            "mf_bf_tip_both_sides",
-            "mf_bf_tip_latch",
-            "mf_bf_tip_wet_diapers"
-          ],
-          "warningKeys": [
-            "mf_bf_warn_no_water_0_6m",
-            "mf_bf_warn_no_juice_0_6m"
-          ],
-          "feedbackEnabled": true
-        },
-
-        "formulaFeeding": {
-          "tabId": "formula_feeding",
-          "sectionTitle_key": "mf_ff_title",
-          "type": "formula_feeding",
-          "frequency": {
-            "value_key": "mf_ff_freq_0_3m",
-            "perDay": { "min": 8, "max": 12 }
-          },
-          "amountPerFeed": {
-            "mlMin": 60, "mlMax": 90,
-            "ozMin": 2, "ozMax": 3,
-            "value_key": "mf_ff_amount_0_3m",
-            "noteKey": "mf_ff_amount_note_0_3m"
-          },
-          "dailyTotal": {
-            "mlMin": 480, "mlMax": 960,
-            "ozMin": 16, "ozMax": 32,
-            "value_key": "mf_ff_daily_0_3m"
-          },
-          "formulaType": {
-            "recommended_key": "mf_ff_type_iron_fortified",
-            "noteKey": "mf_ff_type_note"
-          },
-          "hungerCues": {
-            "label_key": "mf_hunger_cues_label",
-            "early_keys": [
-              "mf_cue_rooting",
-              "mf_cue_sucking_hands",
-              "mf_cue_smacking_lips"
-            ],
-            "late_keys": [
-              "mf_cue_crying_late"
-            ],
-            "warningKey": "mf_cue_late_warning"
-          },
-          "fullnessCues": {
-            "label_key": "mf_fullness_cues_label",
-            "cue_keys": [
-              "mf_full_turns_head",
-              "mf_full_closes_mouth",
-              "mf_full_relaxed_hands",
-              "mf_full_falls_asleep"
-            ]
-          },
-          "tips_keys": [
-            "mf_ff_tip_prepare_fresh",
-            "mf_ff_tip_discard_1hr",
-            "mf_ff_tip_responsive",
-            "mf_ff_tip_burp"
-          ],
-          "warningKeys": [
-            "mf_ff_warn_no_cows_milk",
-            "mf_ff_warn_no_dilute",
-            "mf_ff_warn_no_homemade"
-          ],
-          "feedbackEnabled": true
-        },
-
-        "combinationFeeding": {
-          "tabId": "combination_feeding",
-          "sectionTitle_key": "mf_combo_title",
-          "type": "combination_feeding",
-          "description_key": "mf_combo_desc_0_3m",
-          "tips_keys": [
-            "mf_combo_tip_paced_bottle",
-            "mf_combo_tip_maintain_supply",
-            "mf_combo_tip_slow_flow_nipple",
-            "mf_combo_tip_timing"
-          ],
-          "warningKeys": [
-            "mf_combo_warn_nipple_confusion"
-          ],
-          "feedbackEnabled": true
-        }
-      },
-
-      "solidFoods": null,
-
-      "sampleSchedule": {
-        "breastfed": {
-          "tabId": "breastfed",
-          "noteKey": "sched_bf_note_0_3m",
-          "entries": [
-            { "time": "06:00", "activity_key": "sched_feed",  "detail_key": "sched_bf_detail_0_3m" },
-            { "time": "07:30", "activity_key": "sched_awake", "detail_key": "sched_awake_play"      },
-            { "time": "08:00", "activity_key": "sched_nap",   "detail_key": "sched_nap_short"       },
-            { "time": "09:00", "activity_key": "sched_feed",  "detail_key": "sched_bf_detail_0_3m"  },
-            { "time": "09:30", "activity_key": "sched_awake", "detail_key": "sched_awake_play"      },
-            { "time": "10:00", "activity_key": "sched_nap",   "detail_key": "sched_nap_short"       },
-            { "time": "12:00", "activity_key": "sched_feed",  "detail_key": "sched_bf_detail_0_3m"  },
-            { "time": "13:00", "activity_key": "sched_nap",   "detail_key": "sched_nap_long"        },
-            { "time": "15:00", "activity_key": "sched_feed",  "detail_key": "sched_bf_detail_0_3m"  },
-            { "time": "16:00", "activity_key": "sched_awake", "detail_key": "sched_awake_play"      },
-            { "time": "16:30", "activity_key": "sched_nap",   "detail_key": "sched_nap_short"       },
-            { "time": "18:00", "activity_key": "sched_feed",  "detail_key": "sched_bf_detail_0_3m"  },
-            { "time": "19:00", "activity_key": "sched_nap",   "detail_key": "sched_catnap"          },
-            { "time": "21:00", "activity_key": "sched_feed",  "detail_key": "sched_bf_detail_0_3m"  },
-            { "time": "21:30", "activity_key": "sched_sleep", "detail_key": "sched_night_sleep"     },
-            { "time": "00:00", "activity_key": "sched_feed",  "detail_key": "sched_night_feed"      },
-            { "time": "03:00", "activity_key": "sched_feed",  "detail_key": "sched_night_feed"      }
-          ],
-          "disclaimerKey": "sched_flexible_disclaimer"
-        },
-        "formulaFed": {
-          "tabId": "formula_fed",
-          "noteKey": "sched_ff_note_0_3m",
-          "entries": [
-            { "time": "06:00", "activity_key": "sched_feed",  "detail_key": "sched_ff_detail_0_3m_60_90ml" },
-            { "time": "07:30", "activity_key": "sched_awake", "detail_key": "sched_awake_play"              },
-            { "time": "08:00", "activity_key": "sched_nap",   "detail_key": "sched_nap_short"               },
-            { "time": "09:00", "activity_key": "sched_feed",  "detail_key": "sched_ff_detail_0_3m_60_90ml"  },
-            { "time": "10:00", "activity_key": "sched_nap",   "detail_key": "sched_nap_short"               },
-            { "time": "12:00", "activity_key": "sched_feed",  "detail_key": "sched_ff_detail_0_3m_60_90ml"  },
-            { "time": "13:00", "activity_key": "sched_nap",   "detail_key": "sched_nap_long"                },
-            { "time": "15:00", "activity_key": "sched_feed",  "detail_key": "sched_ff_detail_0_3m_60_90ml"  },
-            { "time": "17:00", "activity_key": "sched_feed",  "detail_key": "sched_ff_detail_0_3m_60_90ml"  },
-            { "time": "18:30", "activity_key": "sched_nap",   "detail_key": "sched_catnap"                  },
-            { "time": "20:00", "activity_key": "sched_feed",  "detail_key": "sched_ff_detail_0_3m_60_90ml"  },
-            { "time": "21:00", "activity_key": "sched_sleep", "detail_key": "sched_night_sleep"             },
-            { "time": "00:00", "activity_key": "sched_feed",  "detail_key": "sched_night_feed"              },
-            { "time": "03:00", "activity_key": "sched_feed",  "detail_key": "sched_night_feed"              }
-          ],
-          "disclaimerKey": "sched_flexible_disclaimer"
-        },
-        "combination": {
-          "tabId": "combination",
-          "noteKey": "sched_combo_note_0_3m",
-          "entries": [
-            { "time": "06:00", "activity_key": "sched_feed", "detail_key": "sched_combo_bf_or_ff" },
-            { "time": "09:00", "activity_key": "sched_feed", "detail_key": "sched_combo_bf_or_ff" },
-            { "time": "12:00", "activity_key": "sched_feed", "detail_key": "sched_combo_bf_or_ff" },
-            { "time": "15:00", "activity_key": "sched_feed", "detail_key": "sched_combo_bf_or_ff" },
-            { "time": "18:00", "activity_key": "sched_feed", "detail_key": "sched_combo_bf_or_ff" },
-            { "time": "21:00", "activity_key": "sched_feed", "detail_key": "sched_combo_bf_or_ff" },
-            { "time": "00:00", "activity_key": "sched_feed", "detail_key": "sched_night_feed"      },
-            { "time": "03:00", "activity_key": "sched_feed", "detail_key": "sched_night_feed"      }
-          ],
-          "disclaimerKey": "sched_flexible_disclaimer"
-        }
-      },
-
-      "foodsToAvoid": {
-        "under12m": [
-          {
-            "id": "fta_honey",
-            "name_key": "fta_honey_name",
-            "reason_key": "fta_honey_reason",
-            "severity": "critical",
-            "tabIds": ["all", "under_12m"]
-          },
-          {
-            "id": "fta_cows_milk_main",
-            "name_key": "fta_cows_milk_main_name",
-            "reason_key": "fta_cows_milk_main_reason",
-            "severity": "critical",
-            "tabIds": ["all", "under_12m"]
-          },
-          {
-            "id": "fta_water_excess",
-            "name_key": "fta_water_excess_name",
-            "reason_key": "fta_water_excess_reason",
-            "severity": "critical",
-            "tabIds": ["all", "under_12m"]
-          },
-          {
-            "id": "fta_juice",
-            "name_key": "fta_juice_name",
-            "reason_key": "fta_juice_reason",
-            "severity": "high",
-            "tabIds": ["all", "under_12m"]
-          },
-          {
-            "id": "fta_added_salt",
-            "name_key": "fta_added_salt_name",
-            "reason_key": "fta_added_salt_reason",
-            "severity": "high",
-            "tabIds": ["all", "under_12m"]
-          },
-          {
-            "id": "fta_added_sugar",
-            "name_key": "fta_added_sugar_name",
-            "reason_key": "fta_added_sugar_reason",
-            "severity": "high",
-            "tabIds": ["all", "under_12m"]
-          }
-        ],
-        "under24m": [],
-        "allergens": []
-      },
-
-      "feedingTips": [
+      "id": "7_12m",
+      "label_en": "7–12 Months",
+      "label_ar": "7–12 شهراً",
+      "label_ku": "7–12 مانگ",
+      "label_ckb": "7–12 مانگ",
+      "min_months": 7,
+      "max_months": 12,
+      "milk_feeding": [
         {
-          "id": "ftip_0_3m_demand_feed",
-          "title_key": "ftip_demand_feed_title",
-          "body_key": "ftip_demand_feed_body",
-          "icon": "clock",
-          "feedbackEnabled": true
+          "id": "mf_7_12_1",
+          "sub_type": "breastfeeding",
+          "title_en": "Breastfeeding + Solids",
+          "title_ar": "الرضاعة الطبيعية + الأطعمة الصلبة",
+          "title_ku": "شیرخواری + خواردنی سەخت",
+          "title_ckb": "شیرخواری + خواردنی سەخت",
+          "frequency_en": "4–5 feeds per day",
+          "frequency_ar": "4–5 رضعات يومياً",
+          "frequency_ku": "4–5 جار لە ڕۆژدا",
+          "frequency_ckb": "4–5 جار لە ڕۆژدا",
+          "duration_en": "Varies — shorter as solids increase",
+          "duration_ar": "يتفاوت — أقصر مع زيادة الأطعمة الصلبة",
+          "duration_ku": "جیاوازە — کورتر ئەگەر خواردنی سەخت زیاد بێت",
+          "duration_ckb": "جیاوازە — کورتر ئەگەر خواردنی سەخت زیاد بێت",
+          "hunger_signs_en": ["Reaching for food", "Opening mouth when food approaches", "Excitement at meal time"],
+          "hunger_signs_ar": ["الوصول للطعام", "فتح الفم عند اقتراب الطعام", "الإثارة وقت الوجبة"],
+          "hunger_signs_ku": ["گەیشتن بۆ خواردن", "کردنەوەی دەم کاتێک خواردن نزیک دەبێت", "شاباشیی کاتی خواردنی"],
+          "hunger_signs_ckb": ["گەیشتن بۆ خواردن", "کردنەوەی دەم کاتێک خواردن نزیک دەبێت", "شاباشیی کاتی خواردنی"],
+          "fullness_signs_en": ["Turning head away from spoon", "Sealing lips", "Playing with food"],
+          "fullness_signs_ar": ["إبعاد الرأس عن الملعقة", "إغلاق الشفتين", "العب بالطعام"],
+          "fullness_signs_ku": ["سەر دووریکردنەوە لە قاشۆ", "داخستنی قووچ", "یاریکردن بە خواردن"],
+          "fullness_signs_ckb": ["سەر دووریکردنەوە لە قاشۆ", "داخستنی قووچ", "یاریکردن بە خواردن"],
+          "tip_en": "Breast milk or formula remains primary until 12 months.",
+          "tip_ar": "حليب الثدي أو الحليب الصناعي يبقى أساسياً حتى 12 شهراً.",
+          "tip_ku": "شیری دایک یان شیری دروستکراو تا 12 مانگ سەرەکی دەمێنێتەوە.",
+          "tip_ckb": "شیری دایک یان شیری دروستکراو تا 12 مانگ سەرەکی دەمێنێتەوە."
+        }
+      ],
+      "solid_foods": [
+        {
+          "id": "sf_7_12_1",
+          "title_en": "Expanding the Menu",
+          "title_ar": "توسيع القائمة",
+          "title_ku": "بەرفراوانکردنی لیستەی خواردن",
+          "title_ckb": "بەرفراوانکردنی لیستەی خواردن",
+          "description_en": "Offer a variety of textures and flavors. Move from purees to mashed and soft lumpy foods.",
+          "description_ar": "قدم مجموعة متنوعة من القوام والنكهات. انتقل من المهروس إلى المسحوق والأطعمة الطرية.",
+          "description_ku": "جۆراوجۆری خواردن و تامەکان پێشکەش بکە. لە پووڕکراو بچۆ بۆ چەورکراو و خواردنی نووم.",
+          "description_ckb": "جۆراوجۆری خواردن و تامەکان پێشکەش بکە. لە پووڕکراو بچۆ بۆ چەورکراو و خواردنی نووم.",
+          "foods_en": ["Soft cooked vegetables", "Soft fruits", "Mashed legumes (lentils, beans)", "Soft fish", "Egg yolk (from 6 months)", "Small pasta pieces"],
+          "foods_ar": ["خضروات مطبوخة طرية", "فواكه طرية", "بقوليات مهروسة (عدس، فاصوليا)", "سمك طري", "صفار البيض (من 6 أشهر)"],
+          "foods_ku": ["سەوزەی کوکراوی نووم", "میوەی نووم", "دانەوەشانی چەورکراو (مەرجی، فاصوڵیا)", "ماسیی نووم", "زردی هێلکە (لە 6 مانگ)"],
+          "foods_ckb": ["سەوزەی کوکراوی نووم", "میوەی نووم", "دانەوەشانی چەورکراو (مەرجی، فاصوڵیا)", "ماسیی نووم", "زردی هێلکە (لە 6 مانگ)"],
+          "tip_en": "Introduce finger foods around 8–9 months when baby has pincer grasp.",
+          "tip_ar": "أدخل أطعمة الأصابع حول 8–9 أشهر عندما يكون للطفل قبضة قرصية.",
+          "tip_ckb": "خواردنی تەلووچکەی دابنێ لە دەوری 8–9 مانگدا کە منداڵ توانای گرتنی خۆیەتی.",
+          "tip_ku": "خواردنی تەلووچکەی دابنێ لە دەوری 8–9 مانگدا کە منداڵ توانای گرتنی خۆیەتی."
+        }
+      ],
+      "sample_schedule": [
+        {
+          "id": "sch_7_12_1",
+          "sub_type": "combination",
+          "title_en": "Milk + Solids Schedule",
+          "title_ar": "جدول الحليب + الأطعمة الصلبة",
+          "title_ku": "خشتەی شیر + خواردنی سەخت",
+          "title_ckb": "خشتەی شیر + خواردنی سەخت",
+          "entries_en": ["7:00 AM – Breastfeed/Formula", "8:00 AM – Breakfast (puree + cereal)", "11:00 AM – Breastfeed/Formula + lunch puree", "3:00 PM – Breastfeed/Formula + snack", "6:00 PM – Dinner puree", "7:00 PM – Bedtime breastfeed/formula"],
+          "entries_ar": ["7:00 صباحاً – رضاعة", "8:00 صباحاً – إفطار (هريسة + حبوب)", "11:00 صباحاً – رضاعة + غداء"],
+          "entries_ku": ["7:00 بەیانی – شیرخواری", "8:00 بەیانی – بەیانی خواردن (پووڕ + غلە)", "11:00 بەیانی – شیرخواری + نیوەڕۆ"],
+          "entries_ckb": ["7:00 بەیانی – شیرخواری", "8:00 بەیانی – بەیانی خواردن (پووڕ + غلە)", "11:00 بەیانی – شیرخواری + نیوەڕۆ"],
+          "tip_en": "Offer milk before solids — milk is still most important.",
+          "tip_ar": "قدم الحليب قبل الأطعمة الصلبة — الحليب لا يزال الأهم.",
+          "tip_ku": "شیر پێش خواردنی سەخت پێشکەش بکە — شیر هێشتا گرنگترە.",
+          "tip_ckb": "شیر پێش خواردنی سەخت پێشکەش بکە — شیر هێشتا گرنگترە."
+        }
+      ],
+      "foods_to_avoid": [
+        {
+          "id": "fa_7_12_1",
+          "title_en": "Whole Nuts & Large Seeds",
+          "title_ar": "المكسرات الكاملة والبذور الكبيرة",
+          "title_ku": "گیزەی تەواو و تۆوی گەورە",
+          "title_ckb": "گیزەی تەواو و تۆوی گەورە",
+          "reason_en": "Choking hazard. Use nut butters thinned with water instead.",
+          "reason_ar": "خطر الاختناق. استخدم زبدة الجوز المخففة بالماء بدلاً من ذلك.",
+          "reason_ku": "مەترسیی گیر هەستانی قووچ. بجێگای پەنیری گیزە ئاو تێکەڵکراو بەکاربێنە.",
+          "reason_ckb": "مەترسیی گیر هەستانی قووچ. بجێگای پەنیری گیزە ئاو تێکەڵکراو بەکاربێنە.",
+          "icon": "🥜"
         },
         {
-          "id": "ftip_0_3m_burping",
-          "title_key": "ftip_burping_title",
-          "body_key": "ftip_burping_body_0_3m",
-          "icon": "baby",
-          "feedbackEnabled": true
-        },
+          "id": "fa_7_12_2",
+          "title_en": "Raw Honey & Maple Syrup",
+          "title_ar": "العسل الخام وشراب القيقب",
+          "title_ku": "هەنگوینی خاو و شەربەتی دارچەنکی",
+          "title_ckb": "هەنگوینی خاو و شەربەتی دارچەنکی",
+          "reason_en": "Botulism risk under 12 months. No added sweeteners.",
+          "reason_ar": "خطر التسمم الغذائي تحت 12 شهراً. بدون محليات مضافة.",
+          "reason_ku": "مەترسیی بوتولیزم لە ژێر 12 مانگدا. بێ شیرینکەری زیادکراو.",
+          "reason_ckb": "مەترسیی بوتولیزم لە ژێر 12 مانگدا. بێ شیرینکەری زیادکراو.",
+          "icon": "🍯"
+        }
+      ],
+      "feeding_tips": [
         {
-          "id": "ftip_0_3m_growth_spurts",
-          "title_key": "ftip_growth_spurts_title",
-          "body_key": "ftip_growth_spurts_body",
-          "icon": "chart",
-          "feedbackEnabled": true
-        },
-        {
-          "id": "ftip_0_3m_weight_gain",
-          "title_key": "ftip_weight_gain_title",
-          "body_key": "ftip_weight_gain_body_0_3m",
-          "icon": "scale",
-          "feedbackEnabled": true
-        },
-        {
-          "id": "ftip_0_3m_vitamin_d",
-          "title_key": "ftip_vitamin_d_title",
-          "body_key": "ftip_vitamin_d_body",
-          "icon": "sun",
-          "isUrgent": true,
-          "feedbackEnabled": true
+          "id": "ft_7_12_1",
+          "title_en": "Make Mealtimes Social",
+          "title_ar": "اجعل أوقات الوجبات اجتماعية",
+          "title_ku": "کاتی خواردنی کۆمەڵایەتی بکە",
+          "title_ckb": "کاتی خواردنی کۆمەڵایەتی بکە",
+          "description_en": "Eat together as a family. Babies learn by watching you eat — they are more likely to try new foods.",
+          "description_ar": "تناول الطعام معاً كعائلة. يتعلم الأطفال بمراقبتك تناول الطعام.",
+          "description_ku": "وەک خێزان پێکەوە بخوەن. منداڵان لە سەیرکردنی خواردنت فێر دەبن.",
+          "description_ckb": "وەک خێزان پێکەوە بخوەن. منداڵان لە سەیرکردنی خواردنت فێر دەبن.",
+          "tip_en": "Let baby self-feed with fingers — it builds independence.",
+          "tip_ar": "دع الطفل يتغذى بنفسه بأصابعه — يبني الاستقلالية.",
+          "tip_ku": "بگذرێ منداڵ خۆی بە تەلووچکەی بخوات — سەربەخۆیی دروست دەکات.",
+          "tip_ckb": "بگذرێ منداڵ خۆی بە تەلووچکەی بخوات — سەربەخۆیی دروست دەکات.",
+          "icon": "👨‍👩‍👧"
         }
-      ]
-    },
-
-    {
-      "id": "4-6m",
-      "label_key": "age_4_6m",
-      "sortOrder": 2,
-
-      "milkFeeding": {
-        "breastfeeding": {
-          "tabId": "breastfeeding",
-          "sectionTitle_key": "mf_bf_exclusive_title",
-          "type": "exclusive_breastfeeding",
-          "frequency": {
-            "value_key": "mf_bf_freq_4_6m",
-            "perDay": { "min": 6, "max": 8 }
-          },
-          "duration": {
-            "value_key": "mf_bf_dur_4_6m",
-            "minutesPerFeed": { "min": 10, "max": 30 },
-            "noteKey": "mf_bf_dur_note_4_6m"
-          },
-          "hungerCues": {
-            "label_key": "mf_hunger_cues_label",
-            "early_keys": ["mf_cue_rooting", "mf_cue_sucking_hands", "mf_cue_smacking_lips", "mf_cue_increased_alertness"],
-            "late_keys": ["mf_cue_crying_late"],
-            "warningKey": "mf_cue_late_warning"
-          },
-          "fullnessCues": {
-            "label_key": "mf_fullness_cues_label",
-            "cue_keys": ["mf_full_turns_head", "mf_full_closes_mouth", "mf_full_relaxed_hands", "mf_full_falls_asleep", "mf_full_distracted"]
-          },
-          "tips_keys": [
-            "mf_bf_tip_on_demand",
-            "mf_bf_tip_solid_readiness_watch",
-            "mf_bf_tip_cluster_evening"
-          ],
-          "warningKeys": [
-            "mf_bf_warn_no_water_0_6m",
-            "mf_bf_warn_no_solids_before_6m"
-          ],
-          "feedbackEnabled": true
-        },
-        "formulaFeeding": {
-          "tabId": "formula_feeding",
-          "sectionTitle_key": "mf_ff_title",
-          "type": "formula_feeding",
-          "frequency": { "value_key": "mf_ff_freq_4_6m", "perDay": { "min": 5, "max": 6 } },
-          "amountPerFeed": {
-            "mlMin": 120, "mlMax": 180, "ozMin": 4, "ozMax": 6,
-            "value_key": "mf_ff_amount_4_6m",
-            "noteKey": "mf_ff_amount_note_4_6m"
-          },
-          "dailyTotal": {
-            "mlMin": 720, "mlMax": 960, "ozMin": 24, "ozMax": 32,
-            "value_key": "mf_ff_daily_4_6m"
-          },
-          "formulaType": { "recommended_key": "mf_ff_type_iron_fortified", "noteKey": "mf_ff_type_note" },
-          "hungerCues": {
-            "label_key": "mf_hunger_cues_label",
-            "early_keys": ["mf_cue_rooting", "mf_cue_sucking_hands", "mf_cue_smacking_lips"],
-            "late_keys": ["mf_cue_crying_late"],
-            "warningKey": "mf_cue_late_warning"
-          },
-          "fullnessCues": {
-            "label_key": "mf_fullness_cues_label",
-            "cue_keys": ["mf_full_turns_head", "mf_full_closes_mouth", "mf_full_relaxed_hands", "mf_full_distracted"]
-          },
-          "tips_keys": [
-            "mf_ff_tip_prepare_fresh",
-            "mf_ff_tip_discard_1hr",
-            "mf_ff_tip_responsive",
-            "mf_ff_tip_burp"
-          ],
-          "warningKeys": ["mf_ff_warn_no_cows_milk", "mf_ff_warn_no_dilute"],
-          "feedbackEnabled": true
-        },
-        "combinationFeeding": {
-          "tabId": "combination_feeding",
-          "sectionTitle_key": "mf_combo_title",
-          "type": "combination_feeding",
-          "description_key": "mf_combo_desc_4_6m",
-          "tips_keys": [
-            "mf_combo_tip_paced_bottle",
-            "mf_combo_tip_maintain_supply",
-            "mf_combo_tip_slow_flow_nipple"
-          ],
-          "warningKeys": [],
-          "feedbackEnabled": true
-        }
-      },
-
-      "solidFoods": {
-        "readinessAge_key": "sf_ready_6m_note",
-        "readinessSigns": {
-          "label_key": "sf_readiness_signs_label",
-          "signs_keys": [
-            "sf_sign_head_control",
-            "sf_sign_sits_with_support",
-            "sf_sign_shows_interest",
-            "sf_sign_tongue_thrust_gone",
-            "sf_sign_doubles_birth_weight"
-          ],
-          "noteKey": "sf_readiness_not_before_4m"
-        },
-        "purees": null,
-        "fingerFoods": null,
-        "familyFoods": null,
-        "tips_keys": ["sf_tip_watch_not_4m"]
-      },
-
-      "sampleSchedule": {
-        "breastfed": {
-          "tabId": "breastfed",
-          "noteKey": "sched_bf_note_4_6m",
-          "entries": [
-            { "time": "07:00", "activity_key": "sched_feed",  "detail_key": "sched_bf_detail_4_6m" },
-            { "time": "08:30", "activity_key": "sched_nap",   "detail_key": "sched_nap_short"       },
-            { "time": "10:00", "activity_key": "sched_feed",  "detail_key": "sched_bf_detail_4_6m"  },
-            { "time": "11:00", "activity_key": "sched_awake", "detail_key": "sched_awake_play"       },
-            { "time": "11:30", "activity_key": "sched_nap",   "detail_key": "sched_nap_medium"       },
-            { "time": "13:00", "activity_key": "sched_feed",  "detail_key": "sched_bf_detail_4_6m"  },
-            { "time": "14:00", "activity_key": "sched_awake", "detail_key": "sched_awake_play"       },
-            { "time": "14:30", "activity_key": "sched_nap",   "detail_key": "sched_nap_medium"       },
-            { "time": "16:00", "activity_key": "sched_feed",  "detail_key": "sched_bf_detail_4_6m"  },
-            { "time": "17:30", "activity_key": "sched_nap",   "detail_key": "sched_catnap"           },
-            { "time": "19:00", "activity_key": "sched_feed",  "detail_key": "sched_bf_detail_4_6m"  },
-            { "time": "19:30", "activity_key": "sched_sleep", "detail_key": "sched_night_sleep"      },
-            { "time": "02:00", "activity_key": "sched_feed",  "detail_key": "sched_night_feed"       }
-          ],
-          "disclaimerKey": "sched_flexible_disclaimer"
-        },
-        "formulaFed": {
-          "tabId": "formula_fed",
-          "noteKey": "sched_ff_note_4_6m",
-          "entries": [
-            { "time": "07:00", "activity_key": "sched_feed",  "detail_key": "sched_ff_detail_4_6m_150ml" },
-            { "time": "09:00", "activity_key": "sched_nap",   "detail_key": "sched_nap_medium"            },
-            { "time": "11:00", "activity_key": "sched_feed",  "detail_key": "sched_ff_detail_4_6m_150ml"  },
-            { "time": "12:00", "activity_key": "sched_awake", "detail_key": "sched_awake_play"             },
-            { "time": "12:30", "activity_key": "sched_nap",   "detail_key": "sched_nap_medium"             },
-            { "time": "14:30", "activity_key": "sched_feed",  "detail_key": "sched_ff_detail_4_6m_150ml"  },
-            { "time": "16:30", "activity_key": "sched_nap",   "detail_key": "sched_catnap"                 },
-            { "time": "18:30", "activity_key": "sched_feed",  "detail_key": "sched_ff_detail_4_6m_150ml"  },
-            { "time": "19:30", "activity_key": "sched_sleep", "detail_key": "sched_night_sleep"            },
-            { "time": "02:00", "activity_key": "sched_feed",  "detail_key": "sched_night_feed"             }
-          ],
-          "disclaimerKey": "sched_flexible_disclaimer"
-        },
-        "combination": {
-          "tabId": "combination",
-          "noteKey": "sched_combo_note_4_6m",
-          "entries": [
-            { "time": "07:00", "activity_key": "sched_feed", "detail_key": "sched_combo_bf_or_ff" },
-            { "time": "11:00", "activity_key": "sched_feed", "detail_key": "sched_combo_bf_or_ff" },
-            { "time": "14:30", "activity_key": "sched_feed", "detail_key": "sched_combo_bf_or_ff" },
-            { "time": "18:30", "activity_key": "sched_feed", "detail_key": "sched_combo_bf_or_ff" },
-            { "time": "19:30", "activity_key": "sched_sleep","detail_key": "sched_night_sleep"    },
-            { "time": "02:00", "activity_key": "sched_feed", "detail_key": "sched_night_feed"     }
-          ],
-          "disclaimerKey": "sched_flexible_disclaimer"
-        }
-      },
-
-      "foodsToAvoid": {
-        "under12m": [
-          { "id": "fta_honey",         "name_key": "fta_honey_name",         "reason_key": "fta_honey_reason",         "severity": "critical", "tabIds": ["all","under_12m"] },
-          { "id": "fta_cows_milk_main","name_key": "fta_cows_milk_main_name","reason_key": "fta_cows_milk_main_reason","severity": "critical", "tabIds": ["all","under_12m"] },
-          { "id": "fta_added_salt",    "name_key": "fta_added_salt_name",    "reason_key": "fta_added_salt_reason",    "severity": "high",     "tabIds": ["all","under_12m"] },
-          { "id": "fta_added_sugar",   "name_key": "fta_added_sugar_name",   "reason_key": "fta_added_sugar_reason",   "severity": "high",     "tabIds": ["all","under_12m"] },
-          { "id": "fta_juice",         "name_key": "fta_juice_name",         "reason_key": "fta_juice_reason",         "severity": "high",     "tabIds": ["all","under_12m"] }
-        ],
-        "under24m": [],
-        "allergens": [
-          { "id": "alg_peanut",      "name_key": "alg_peanut_name",      "reason_key": "alg_peanut_reason_4_6m",  "severity": "info", "tabIds": ["all","allergens"], "noteKey": "alg_early_intro_note" },
-          { "id": "alg_egg",         "name_key": "alg_egg_name",         "reason_key": "alg_egg_reason",          "severity": "info", "tabIds": ["all","allergens"], "noteKey": "alg_early_intro_note" },
-          { "id": "alg_tree_nut",    "name_key": "alg_tree_nut_name",    "reason_key": "alg_tree_nut_reason",     "severity": "info", "tabIds": ["all","allergens"]  },
-          { "id": "alg_fish",        "name_key": "alg_fish_name",        "reason_key": "alg_fish_reason",         "severity": "info", "tabIds": ["all","allergens"]  },
-          { "id": "alg_shellfish",   "name_key": "alg_shellfish_name",   "reason_key": "alg_shellfish_reason",    "severity": "info", "tabIds": ["all","allergens"]  },
-          { "id": "alg_wheat",       "name_key": "alg_wheat_name",       "reason_key": "alg_wheat_reason",        "severity": "info", "tabIds": ["all","allergens"]  },
-          { "id": "alg_soy",         "name_key": "alg_soy_name",         "reason_key": "alg_soy_reason",          "severity": "info", "tabIds": ["all","allergens"]  },
-          { "id": "alg_sesame",      "name_key": "alg_sesame_name",      "reason_key": "alg_sesame_reason",       "severity": "info", "tabIds": ["all","allergens"]  }
-        ]
-      },
-
-      "feedingTips": [
-        {
-          "id": "ftip_4_6m_readiness",
-          "title_key": "ftip_solid_readiness_title",
-          "body_key": "ftip_solid_readiness_body",
-          "icon": "spoon",
-          "feedbackEnabled": true
-        },
-        {
-          "id": "ftip_4_6m_regression",
-          "title_key": "ftip_4m_regression_title",
-          "body_key": "ftip_4m_regression_body",
-          "icon": "warning",
-          "feedbackEnabled": true
-        },
-        {
-          "id": "ftip_4_6m_vitamin_d",
-          "title_key": "ftip_vitamin_d_title",
-          "body_key": "ftip_vitamin_d_body",
-          "icon": "sun",
-          "isUrgent": true,
-          "feedbackEnabled": true
-        }
-      ]
-    },
-
-    {
-      "id": "6-9m",
-      "label_key": "age_6_9m",
-      "sortOrder": 3,
-
-      "milkFeeding": {
-        "breastfeeding": {
-          "tabId": "breastfeeding",
-          "sectionTitle_key": "mf_bf_with_solids_title",
-          "type": "breastfeeding_with_solids",
-          "frequency": { "value_key": "mf_bf_freq_6_9m", "perDay": { "min": 4, "max": 6 } },
-          "duration": {
-            "value_key": "mf_bf_dur_6_9m",
-            "minutesPerFeed": { "min": 10, "max": 20 },
-            "noteKey": "mf_bf_dur_note_6_9m"
-          },
-          "hungerCues": {
-            "label_key": "mf_hunger_cues_label",
-            "early_keys": ["mf_cue_rooting", "mf_cue_sucking_hands", "mf_cue_smacking_lips", "mf_cue_reaching_food"],
-            "late_keys": ["mf_cue_crying_late"],
-            "warningKey": "mf_cue_late_warning"
-          },
-          "fullnessCues": {
-            "label_key": "mf_fullness_cues_label",
-            "cue_keys": ["mf_full_turns_head", "mf_full_closes_mouth", "mf_full_pushes_food", "mf_full_distracted"]
-          },
-          "tips_keys": [
-            "mf_bf_tip_milk_first_6_9m",
-            "mf_bf_tip_solids_complement",
-            "mf_bf_tip_iron_rich_first"
-          ],
-          "warningKeys": ["mf_bf_warn_milk_main_6_12m"],
-          "feedbackEnabled": true
-        },
-        "formulaFeeding": {
-          "tabId": "formula_feeding",
-          "sectionTitle_key": "mf_ff_title",
-          "type": "formula_with_solids",
-          "frequency": { "value_key": "mf_ff_freq_6_9m", "perDay": { "min": 4, "max": 5 } },
-          "amountPerFeed": {
-            "mlMin": 180, "mlMax": 240, "ozMin": 6, "ozMax": 8,
-            "value_key": "mf_ff_amount_6_9m",
-            "noteKey": "mf_ff_amount_note_6_9m"
-          },
-          "dailyTotal": {
-            "mlMin": 720, "mlMax": 960, "ozMin": 24, "ozMax": 32,
-            "value_key": "mf_ff_daily_6_9m"
-          },
-          "formulaType": { "recommended_key": "mf_ff_type_iron_fortified", "noteKey": "mf_ff_type_note" },
-          "hungerCues": {
-            "label_key": "mf_hunger_cues_label",
-            "early_keys": ["mf_cue_rooting", "mf_cue_reaching_food", "mf_cue_excited_food"],
-            "late_keys": ["mf_cue_crying_late"],
-            "warningKey": "mf_cue_late_warning"
-          },
-          "fullnessCues": {
-            "label_key": "mf_fullness_cues_label",
-            "cue_keys": ["mf_full_turns_head", "mf_full_closes_mouth", "mf_full_pushes_food"]
-          },
-          "tips_keys": ["mf_ff_tip_prepare_fresh", "mf_ff_tip_milk_before_solids", "mf_ff_tip_sippy_cup_intro"],
-          "warningKeys": ["mf_ff_warn_no_cows_milk", "mf_ff_warn_no_dilute"],
-          "feedbackEnabled": true
-        },
-        "combinationFeeding": {
-          "tabId": "combination_feeding",
-          "sectionTitle_key": "mf_combo_title",
-          "type": "combination_with_solids",
-          "description_key": "mf_combo_desc_6_9m",
-          "tips_keys": ["mf_combo_tip_paced_bottle", "mf_combo_tip_milk_before_solids"],
-          "warningKeys": [],
-          "feedbackEnabled": true
-        }
-      },
-
-      "solidFoods": {
-        "readinessAge_key": "sf_start_6m_recommended",
-        "purees": {
-          "tabId": "purees",
-          "label_key": "sf_purees_label",
-          "description_key": "sf_purees_desc_6_9m",
-          "texture_key": "sf_texture_smooth_6m",
-          "consistencyNote_key": "sf_consistency_6m",
-          "firstFoods": [
-            { "id": "sf_iron_cereals",  "name_key": "sf_iron_cereals_name",  "noteKey": "sf_iron_cereals_note",  "category": "grains",     "ageIntroMin": 6  },
-            { "id": "sf_pureed_meat",   "name_key": "sf_pureed_meat_name",   "noteKey": "sf_pureed_meat_note",   "category": "protein",    "ageIntroMin": 6  },
-            { "id": "sf_pureed_veg",    "name_key": "sf_pureed_veg_name",    "noteKey": "sf_pureed_veg_note",    "category": "vegetables", "ageIntroMin": 6  },
-            { "id": "sf_pureed_fruit",  "name_key": "sf_pureed_fruit_name",  "noteKey": "sf_pureed_fruit_note",  "category": "fruit",      "ageIntroMin": 6  },
-            { "id": "sf_pureed_lentil", "name_key": "sf_pureed_lentil_name", "noteKey": "sf_pureed_lentil_note", "category": "legumes",    "ageIntroMin": 6  },
-            { "id": "sf_full_fat_yogurt","name_key": "sf_yogurt_name",       "noteKey": "sf_yogurt_note",        "category": "dairy",      "ageIntroMin": 6  }
-          ],
-          "servingSizeNote_key": "sf_serving_start_6m",
-          "frequencyNote_key":   "sf_freq_1_2_meals_6m",
-          "tips_keys": [
-            "sf_tip_single_ingredient",
-            "sf_tip_new_food_wait_3_5_days",
-            "sf_tip_iron_rich_first",
-            "sf_tip_no_added_salt_sugar",
-            "sf_tip_texture_progress"
-          ],
-          "warningKeys": ["sf_warn_no_honey_purees", "sf_warn_choking_thin_purees"]
-        },
-        "fingerFoods": null,
-        "familyFoods": null
-      },
-
-      "sampleSchedule": {
-        "breastfed": {
-          "tabId": "breastfed",
-          "noteKey": "sched_bf_note_6_9m",
-          "entries": [
-            { "time": "07:00", "activity_key": "sched_feed",       "detail_key": "sched_bf_detail_6_9m"  },
-            { "time": "08:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_breakfast_6m" },
-            { "time": "09:00", "activity_key": "sched_nap",        "detail_key": "sched_nap_medium"       },
-            { "time": "11:00", "activity_key": "sched_feed",       "detail_key": "sched_bf_detail_6_9m"   },
-            { "time": "12:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_lunch_6m"   },
-            { "time": "13:00", "activity_key": "sched_nap",        "detail_key": "sched_nap_long"         },
-            { "time": "15:00", "activity_key": "sched_feed",       "detail_key": "sched_bf_detail_6_9m"   },
-            { "time": "17:30", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_dinner_6m"  },
-            { "time": "19:00", "activity_key": "sched_feed",       "detail_key": "sched_bf_detail_6_9m"   },
-            { "time": "19:30", "activity_key": "sched_sleep",      "detail_key": "sched_night_sleep"      }
-          ],
-          "disclaimerKey": "sched_flexible_disclaimer"
-        },
-        "formulaFed": {
-          "tabId": "formula_fed",
-          "noteKey": "sched_ff_note_6_9m",
-          "entries": [
-            { "time": "07:00", "activity_key": "sched_feed",       "detail_key": "sched_ff_detail_6_9m_210ml" },
-            { "time": "08:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_breakfast_6m"   },
-            { "time": "09:30", "activity_key": "sched_nap",        "detail_key": "sched_nap_medium"            },
-            { "time": "11:30", "activity_key": "sched_feed",       "detail_key": "sched_ff_detail_6_9m_210ml"  },
-            { "time": "12:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_lunch_6m"        },
-            { "time": "13:00", "activity_key": "sched_nap",        "detail_key": "sched_nap_long"              },
-            { "time": "15:30", "activity_key": "sched_feed",       "detail_key": "sched_ff_detail_6_9m_210ml"  },
-            { "time": "17:30", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_dinner_6m"       },
-            { "time": "19:00", "activity_key": "sched_feed",       "detail_key": "sched_ff_detail_6_9m_210ml"  },
-            { "time": "19:30", "activity_key": "sched_sleep",      "detail_key": "sched_night_sleep"           }
-          ],
-          "disclaimerKey": "sched_flexible_disclaimer"
-        },
-        "combination": {
-          "tabId": "combination",
-          "noteKey": "sched_combo_note_6_9m",
-          "entries": [
-            { "time": "07:00", "activity_key": "sched_feed",       "detail_key": "sched_combo_bf_or_ff"     },
-            { "time": "08:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_breakfast_6m" },
-            { "time": "09:30", "activity_key": "sched_nap",        "detail_key": "sched_nap_medium"         },
-            { "time": "11:30", "activity_key": "sched_feed",       "detail_key": "sched_combo_bf_or_ff"     },
-            { "time": "12:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_lunch_6m"     },
-            { "time": "13:00", "activity_key": "sched_nap",        "detail_key": "sched_nap_long"           },
-            { "time": "15:30", "activity_key": "sched_feed",       "detail_key": "sched_combo_bf_or_ff"     },
-            { "time": "17:30", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_dinner_6m"    },
-            { "time": "19:00", "activity_key": "sched_feed",       "detail_key": "sched_combo_bf_or_ff"     },
-            { "time": "19:30", "activity_key": "sched_sleep",      "detail_key": "sched_night_sleep"        }
-          ],
-          "disclaimerKey": "sched_flexible_disclaimer"
-        }
-      },
-
-      "foodsToAvoid": {
-        "under12m": [
-          { "id": "fta_honey",          "name_key": "fta_honey_name",          "reason_key": "fta_honey_reason",          "severity": "critical", "tabIds": ["all","under_12m"] },
-          { "id": "fta_cows_milk_main", "name_key": "fta_cows_milk_main_name", "reason_key": "fta_cows_milk_main_reason", "severity": "critical", "tabIds": ["all","under_12m"] },
-          { "id": "fta_whole_nuts",     "name_key": "fta_whole_nuts_name",     "reason_key": "fta_whole_nuts_reason",     "severity": "critical", "tabIds": ["all","under_12m"] },
-          { "id": "fta_round_grapes",   "name_key": "fta_round_grapes_name",   "reason_key": "fta_round_grapes_reason",   "severity": "critical", "tabIds": ["all","under_12m"] },
-          { "id": "fta_raw_carrot",     "name_key": "fta_raw_carrot_name",     "reason_key": "fta_raw_carrot_reason",     "severity": "critical", "tabIds": ["all","under_12m"] },
-          { "id": "fta_popcorn",        "name_key": "fta_popcorn_name",        "reason_key": "fta_popcorn_reason",        "severity": "critical", "tabIds": ["all","under_12m"] },
-          { "id": "fta_added_salt",     "name_key": "fta_added_salt_name",     "reason_key": "fta_added_salt_reason",     "severity": "high",     "tabIds": ["all","under_12m"] },
-          { "id": "fta_added_sugar",    "name_key": "fta_added_sugar_name",    "reason_key": "fta_added_sugar_reason",    "severity": "high",     "tabIds": ["all","under_12m"] },
-          { "id": "fta_juice",          "name_key": "fta_juice_name",          "reason_key": "fta_juice_reason",          "severity": "high",     "tabIds": ["all","under_12m"] },
-          { "id": "fta_lowfat_dairy",   "name_key": "fta_lowfat_dairy_name",   "reason_key": "fta_lowfat_dairy_reason",   "severity": "moderate", "tabIds": ["all","under_12m"] },
-          { "id": "fta_unpasteurized",  "name_key": "fta_unpasteurized_name",  "reason_key": "fta_unpasteurized_reason",  "severity": "high",     "tabIds": ["all","under_12m"] }
-        ],
-        "under24m": [],
-        "allergens": [
-          { "id": "alg_peanut",    "name_key": "alg_peanut_name",    "reason_key": "alg_peanut_reason_6m",   "severity": "info", "tabIds": ["all","allergens"], "noteKey": "alg_introduce_early_aap" },
-          { "id": "alg_egg",       "name_key": "alg_egg_name",       "reason_key": "alg_egg_reason",         "severity": "info", "tabIds": ["all","allergens"], "noteKey": "alg_introduce_early_aap" },
-          { "id": "alg_tree_nut",  "name_key": "alg_tree_nut_name",  "reason_key": "alg_tree_nut_reason",    "severity": "info", "tabIds": ["all","allergens"]  },
-          { "id": "alg_fish",      "name_key": "alg_fish_name",      "reason_key": "alg_fish_reason",        "severity": "info", "tabIds": ["all","allergens"]  },
-          { "id": "alg_shellfish", "name_key": "alg_shellfish_name", "reason_key": "alg_shellfish_reason",   "severity": "info", "tabIds": ["all","allergens"]  },
-          { "id": "alg_wheat",     "name_key": "alg_wheat_name",     "reason_key": "alg_wheat_reason",       "severity": "info", "tabIds": ["all","allergens"]  },
-          { "id": "alg_soy",       "name_key": "alg_soy_name",       "reason_key": "alg_soy_reason",         "severity": "info", "tabIds": ["all","allergens"]  },
-          { "id": "alg_sesame",    "name_key": "alg_sesame_name",    "reason_key": "alg_sesame_reason",      "severity": "info", "tabIds": ["all","allergens"]  }
-        ]
-      },
-
-      "feedingTips": [
-        {
-          "id": "ftip_6_9m_milk_first",
-          "title_key": "ftip_milk_first_title",
-          "body_key": "ftip_milk_first_body",
-          "icon": "milk",
-          "feedbackEnabled": true
-        },
-        {
-          "id": "ftip_6_9m_allergy_intro",
-          "title_key": "ftip_allergy_intro_title",
-          "body_key": "ftip_allergy_intro_body",
-          "icon": "alert",
-          "isUrgent": true,
-          "feedbackEnabled": true
-        },
-        {
-          "id": "ftip_6_9m_iron",
-          "title_key": "ftip_iron_title",
-          "body_key": "ftip_iron_body",
-          "icon": "leaf",
-          "feedbackEnabled": true
-        },
-        {
-          "id": "ftip_6_9m_gagging",
-          "title_key": "ftip_gagging_vs_choking_title",
-          "body_key": "ftip_gagging_vs_choking_body",
-          "icon": "info",
-          "feedbackEnabled": true
-        }
-      ]
-    },
-
-    {
-      "id": "9-12m",
-      "label_key": "age_9_12m",
-      "sortOrder": 4,
-
-      "milkFeeding": {
-        "breastfeeding": {
-          "tabId": "breastfeeding",
-          "sectionTitle_key": "mf_bf_with_solids_title",
-          "type": "breastfeeding_with_solids",
-          "frequency": { "value_key": "mf_bf_freq_9_12m", "perDay": { "min": 3, "max": 5 } },
-          "duration": { "value_key": "mf_bf_dur_9_12m", "minutesPerFeed": { "min": 8, "max": 15 }, "noteKey": null },
-          "hungerCues": {
-            "label_key": "mf_hunger_cues_label",
-            "early_keys": ["mf_cue_reaching_food", "mf_cue_excited_food", "mf_cue_pointing_food"],
-            "late_keys": ["mf_cue_crying_late"],
-            "warningKey": null
-          },
-          "fullnessCues": {
-            "label_key": "mf_fullness_cues_label",
-            "cue_keys": ["mf_full_turns_head", "mf_full_closes_mouth", "mf_full_pushes_food", "mf_full_throws_food"]
-          },
-          "tips_keys": ["mf_bf_tip_milk_secondary_9m", "mf_bf_tip_cup_transition"],
-          "warningKeys": ["mf_bf_warn_milk_main_6_12m"],
-          "feedbackEnabled": true
-        },
-        "formulaFeeding": {
-          "tabId": "formula_feeding",
-          "sectionTitle_key": "mf_ff_title",
-          "type": "formula_with_solids",
-          "frequency": { "value_key": "mf_ff_freq_9_12m", "perDay": { "min": 3, "max": 4 } },
-          "amountPerFeed": {
-            "mlMin": 180, "mlMax": 240, "ozMin": 6, "ozMax": 8,
-            "value_key": "mf_ff_amount_9_12m", "noteKey": null
-          },
-          "dailyTotal": {
-            "mlMin": 600, "mlMax": 840, "ozMin": 20, "ozMax": 28,
-            "value_key": "mf_ff_daily_9_12m"
-          },
-          "formulaType": { "recommended_key": "mf_ff_type_iron_fortified", "noteKey": "mf_ff_type_note_9_12m" },
-          "hungerCues": {
-            "label_key": "mf_hunger_cues_label",
-            "early_keys": ["mf_cue_reaching_food", "mf_cue_excited_food", "mf_cue_pointing_food"],
-            "late_keys": ["mf_cue_crying_late"],
-            "warningKey": null
-          },
-          "fullnessCues": {
-            "label_key": "mf_fullness_cues_label",
-            "cue_keys": ["mf_full_turns_head", "mf_full_closes_mouth", "mf_full_pushes_food", "mf_full_throws_food"]
-          },
-          "tips_keys": ["mf_ff_tip_cup_transition_9m", "mf_ff_tip_no_bottle_bed", "mf_ff_tip_transition_cows_milk_at_12m"],
-          "warningKeys": ["mf_ff_warn_no_cows_milk"],
-          "feedbackEnabled": true
-        },
-        "combinationFeeding": {
-          "tabId": "combination_feeding",
-          "sectionTitle_key": "mf_combo_title",
-          "type": "combination_with_solids",
-          "description_key": "mf_combo_desc_9_12m",
-          "tips_keys": ["mf_combo_tip_paced_bottle", "mf_combo_tip_cup_both_types"],
-          "warningKeys": [],
-          "feedbackEnabled": true
-        }
-      },
-
-      "solidFoods": {
-        "purees": {
-          "tabId": "purees",
-          "label_key": "sf_purees_label",
-          "description_key": "sf_purees_desc_9_12m",
-          "texture_key": "sf_texture_lumpy_9m",
-          "consistencyNote_key": "sf_consistency_9m",
-          "firstFoods": [
-            { "id": "sf_mashed_veg",    "name_key": "sf_mashed_veg_name",    "noteKey": "sf_mashed_veg_note",    "category": "vegetables", "ageIntroMin": 7 },
-            { "id": "sf_soft_fruit",    "name_key": "sf_soft_fruit_name",     "noteKey": "sf_soft_fruit_note",    "category": "fruit",      "ageIntroMin": 7 },
-            { "id": "sf_minced_meat",   "name_key": "sf_minced_meat_name",    "noteKey": "sf_minced_meat_note",   "category": "protein",    "ageIntroMin": 7 },
-            { "id": "sf_soft_egg",      "name_key": "sf_soft_egg_name",       "noteKey": "sf_soft_egg_note",      "category": "protein",    "ageIntroMin": 6 },
-            { "id": "sf_yogurt",        "name_key": "sf_yogurt_name",         "noteKey": "sf_yogurt_note",        "category": "dairy",      "ageIntroMin": 6 },
-            { "id": "sf_soft_cheese",   "name_key": "sf_soft_cheese_name",    "noteKey": "sf_soft_cheese_note",   "category": "dairy",      "ageIntroMin": 8 }
-          ],
-          "servingSizeNote_key": "sf_serving_2_3_tbsp",
-          "frequencyNote_key":   "sf_freq_2_3_meals_9m",
-          "tips_keys": ["sf_tip_lumpier_textures", "sf_tip_family_food_adapted"],
-          "warningKeys": ["sf_warn_no_honey", "sf_warn_choking_9m"]
-        },
-        "fingerFoods": {
-          "tabId": "finger_foods",
-          "label_key": "sf_finger_foods_label",
-          "description_key": "sf_finger_foods_desc_9m",
-          "texture_key": "sf_texture_soft_dissolvable",
-          "readinessNote_key": "sf_finger_food_readiness_9m",
-          "foods": [
-            { "id": "ff_soft_banana",   "name_key": "ff_soft_banana_name",   "prepNote_key": "ff_prep_soft_peel",      "category": "fruit",   "ageIntroMin": 6  },
-            { "id": "ff_cooked_carrot", "name_key": "ff_cooked_carrot_name", "prepNote_key": "ff_prep_dice_small",     "category": "veg",     "ageIntroMin": 8  },
-            { "id": "ff_soft_pasta",    "name_key": "ff_soft_pasta_name",    "prepNote_key": "ff_prep_cook_very_soft", "category": "grains",  "ageIntroMin": 8  },
-            { "id": "ff_soft_cheese",   "name_key": "ff_soft_cheese_name",   "prepNote_key": "ff_prep_small_pieces",   "category": "dairy",   "ageIntroMin": 8  },
-            { "id": "ff_scrambled_egg", "name_key": "ff_scrambled_egg_name", "prepNote_key": "ff_prep_soft_cooked",    "category": "protein", "ageIntroMin": 6  },
-            { "id": "ff_tofu",          "name_key": "ff_tofu_name",          "prepNote_key": "ff_prep_soft_cubes",     "category": "protein", "ageIntroMin": 8  },
-            { "id": "ff_rice_puffs",    "name_key": "ff_rice_puffs_name",    "prepNote_key": "ff_prep_as_is",          "category": "grains",  "ageIntroMin": 7  }
-          ],
-          "safetyRules_keys": [
-            "ff_safety_thumb_finger_size",
-            "ff_safety_soft_enough",
-            "ff_safety_supervised",
-            "ff_safety_upright_position"
-          ],
-          "tips_keys": ["sf_tip_blw_intro", "sf_tip_gagging_normal"],
-          "warningKeys": ["sf_warn_choking_finger_foods", "sf_warn_no_whole_grapes", "sf_warn_no_raw_hard_veg"]
-        },
-        "familyFoods": null
-      },
-
-      "sampleSchedule": {
-        "breastfed": {
-          "tabId": "breastfed",
-          "noteKey": "sched_bf_note_9_12m",
-          "entries": [
-            { "time": "07:00", "activity_key": "sched_feed",       "detail_key": "sched_bf_detail_9_12m"      },
-            { "time": "08:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_breakfast_9m"   },
-            { "time": "09:30", "activity_key": "sched_nap",        "detail_key": "sched_nap_medium"            },
-            { "time": "11:30", "activity_key": "sched_feed",       "detail_key": "sched_bf_detail_9_12m"       },
-            { "time": "12:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_lunch_9m"        },
-            { "time": "13:00", "activity_key": "sched_nap",        "detail_key": "sched_nap_long"              },
-            { "time": "15:30", "activity_key": "sched_snack",      "detail_key": "sched_snack_finger_food"     },
-            { "time": "18:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_dinner_9m"       },
-            { "time": "19:00", "activity_key": "sched_feed",       "detail_key": "sched_bf_detail_9_12m"       },
-            { "time": "19:30", "activity_key": "sched_sleep",      "detail_key": "sched_night_sleep"           }
-          ],
-          "disclaimerKey": "sched_flexible_disclaimer"
-        },
-        "formulaFed": {
-          "tabId": "formula_fed",
-          "noteKey": "sched_ff_note_9_12m",
-          "entries": [
-            { "time": "07:00", "activity_key": "sched_feed",       "detail_key": "sched_ff_detail_9_12m_210ml" },
-            { "time": "08:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_breakfast_9m"    },
-            { "time": "09:30", "activity_key": "sched_nap",        "detail_key": "sched_nap_medium"             },
-            { "time": "11:30", "activity_key": "sched_feed",       "detail_key": "sched_ff_detail_9_12m_210ml"  },
-            { "time": "12:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_lunch_9m"         },
-            { "time": "13:00", "activity_key": "sched_nap",        "detail_key": "sched_nap_long"               },
-            { "time": "15:30", "activity_key": "sched_snack",      "detail_key": "sched_snack_finger_food"      },
-            { "time": "18:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_dinner_9m"        },
-            { "time": "19:00", "activity_key": "sched_feed",       "detail_key": "sched_ff_detail_9_12m_210ml"  },
-            { "time": "19:30", "activity_key": "sched_sleep",      "detail_key": "sched_night_sleep"            }
-          ],
-          "disclaimerKey": "sched_flexible_disclaimer"
-        },
-        "combination": {
-          "tabId": "combination",
-          "noteKey": "sched_combo_note_9_12m",
-          "entries": [
-            { "time": "07:00", "activity_key": "sched_feed",       "detail_key": "sched_combo_bf_or_ff"      },
-            { "time": "08:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_breakfast_9m"  },
-            { "time": "09:30", "activity_key": "sched_nap",        "detail_key": "sched_nap_medium"          },
-            { "time": "11:30", "activity_key": "sched_feed",       "detail_key": "sched_combo_bf_or_ff"      },
-            { "time": "12:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_lunch_9m"      },
-            { "time": "13:00", "activity_key": "sched_nap",        "detail_key": "sched_nap_long"            },
-            { "time": "15:30", "activity_key": "sched_snack",      "detail_key": "sched_snack_finger_food"   },
-            { "time": "18:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_dinner_9m"     },
-            { "time": "19:00", "activity_key": "sched_feed",       "detail_key": "sched_combo_bf_or_ff"      },
-            { "time": "19:30", "activity_key": "sched_sleep",      "detail_key": "sched_night_sleep"         }
-          ],
-          "disclaimerKey": "sched_flexible_disclaimer"
-        }
-      },
-
-      "foodsToAvoid": {
-        "under12m": [
-          { "id": "fta_honey",          "name_key": "fta_honey_name",          "reason_key": "fta_honey_reason",          "severity": "critical", "tabIds": ["all","under_12m"] },
-          { "id": "fta_cows_milk_main", "name_key": "fta_cows_milk_main_name", "reason_key": "fta_cows_milk_main_reason", "severity": "critical", "tabIds": ["all","under_12m"] },
-          { "id": "fta_whole_nuts",     "name_key": "fta_whole_nuts_name",     "reason_key": "fta_whole_nuts_reason",     "severity": "critical", "tabIds": ["all","under_12m"] },
-          { "id": "fta_round_grapes",   "name_key": "fta_round_grapes_name",   "reason_key": "fta_round_grapes_reason",   "severity": "critical", "tabIds": ["all","under_12m"] },
-          { "id": "fta_round_cherry_tomato","name_key":"fta_round_cherry_tomato_name","reason_key":"fta_round_cherry_tomato_reason","severity":"critical","tabIds":["all","under_12m"]},
-          { "id": "fta_raw_hard_veg",   "name_key": "fta_raw_hard_veg_name",   "reason_key": "fta_raw_hard_veg_reason",   "severity": "critical", "tabIds": ["all","under_12m"] },
-          { "id": "fta_popcorn",        "name_key": "fta_popcorn_name",        "reason_key": "fta_popcorn_reason",        "severity": "critical", "tabIds": ["all","under_12m"] },
-          { "id": "fta_added_salt",     "name_key": "fta_added_salt_name",     "reason_key": "fta_added_salt_reason",     "severity": "high",     "tabIds": ["all","under_12m"] },
-          { "id": "fta_added_sugar",    "name_key": "fta_added_sugar_name",    "reason_key": "fta_added_sugar_reason",    "severity": "high",     "tabIds": ["all","under_12m"] }
-        ],
-        "under24m": [
-          { "id": "fta_juice_under24",  "name_key": "fta_juice_name",          "reason_key": "fta_juice_reason_24m",      "severity": "moderate", "tabIds": ["all","under_24m"] },
-          { "id": "fta_sugary_drinks",  "name_key": "fta_sugary_drinks_name",  "reason_key": "fta_sugary_drinks_reason",  "severity": "high",     "tabIds": ["all","under_24m"] },
-          { "id": "fta_lowfat_dairy",   "name_key": "fta_lowfat_dairy_name",   "reason_key": "fta_lowfat_dairy_reason",   "severity": "moderate", "tabIds": ["all","under_24m"] }
-        ],
-        "allergens": [
-          { "id": "alg_peanut",    "name_key": "alg_peanut_name",    "reason_key": "alg_peanut_reason_6m", "severity": "info", "tabIds": ["all","allergens"], "noteKey": "alg_introduce_early_aap" },
-          { "id": "alg_egg",       "name_key": "alg_egg_name",       "reason_key": "alg_egg_reason",       "severity": "info", "tabIds": ["all","allergens"], "noteKey": "alg_introduce_early_aap" },
-          { "id": "alg_tree_nut",  "name_key": "alg_tree_nut_name",  "reason_key": "alg_tree_nut_reason",  "severity": "info", "tabIds": ["all","allergens"]  },
-          { "id": "alg_fish",      "name_key": "alg_fish_name",      "reason_key": "alg_fish_reason",      "severity": "info", "tabIds": ["all","allergens"]  },
-          { "id": "alg_shellfish", "name_key": "alg_shellfish_name", "reason_key": "alg_shellfish_reason", "severity": "info", "tabIds": ["all","allergens"]  },
-          { "id": "alg_wheat",     "name_key": "alg_wheat_name",     "reason_key": "alg_wheat_reason",     "severity": "info", "tabIds": ["all","allergens"]  },
-          { "id": "alg_soy",       "name_key": "alg_soy_name",       "reason_key": "alg_soy_reason",       "severity": "info", "tabIds": ["all","allergens"]  },
-          { "id": "alg_sesame",    "name_key": "alg_sesame_name",    "reason_key": "alg_sesame_reason",    "severity": "info", "tabIds": ["all","allergens"]  }
-        ]
-      },
-
-      "feedingTips": [
-        { "id": "ftip_9_12m_texture",      "title_key": "ftip_texture_progress_title", "body_key": "ftip_texture_progress_body", "icon": "spoon",  "feedbackEnabled": true },
-        { "id": "ftip_9_12m_family_table", "title_key": "ftip_family_table_title",      "body_key": "ftip_family_table_body",      "icon": "family", "feedbackEnabled": true },
-        { "id": "ftip_9_12m_cup",          "title_key": "ftip_cup_intro_title",         "body_key": "ftip_cup_intro_body",         "icon": "cup",    "feedbackEnabled": true },
-        { "id": "ftip_9_12m_iron",         "title_key": "ftip_iron_title",              "body_key": "ftip_iron_body_9m",           "icon": "leaf",   "feedbackEnabled": true }
-      ]
-    },
-
-    {
-      "id": "12-18m",
-      "label_key": "age_12_18m",
-      "sortOrder": 5,
-
-      "milkFeeding": {
-        "breastfeeding": {
-          "tabId": "breastfeeding",
-          "sectionTitle_key": "mf_bf_toddler_title",
-          "type": "toddler_breastfeeding",
-          "frequency": { "value_key": "mf_bf_freq_12_18m", "perDay": { "min": 2, "max": 4 } },
-          "duration": { "value_key": "mf_bf_dur_12_18m", "minutesPerFeed": { "min": 5, "max": 15 }, "noteKey": null },
-          "hungerCues": { "label_key": "mf_hunger_cues_label", "early_keys": ["mf_cue_pointing_food","mf_cue_verbal_ask"], "late_keys": [], "warningKey": null },
-          "fullnessCues": { "label_key": "mf_fullness_cues_label", "cue_keys": ["mf_full_turns_head","mf_full_walks_away","mf_full_throws_food"] },
-          "tips_keys": ["mf_bf_tip_toddler_who_ok", "mf_bf_tip_toddler_nutrition_supplement"],
-          "warningKeys": [],
-          "feedbackEnabled": true
-        },
-        "formulaFeeding": {
-          "tabId": "formula_feeding",
-          "sectionTitle_key": "mf_cows_milk_transition_title",
-          "type": "cows_milk_transition",
-          "transitionNote_key": "mf_transition_formula_to_cows_12m",
-          "frequency": { "value_key": "mf_cows_milk_freq_12_18m", "perDay": { "min": 2, "max": 3 } },
-          "amountPerFeed": { "mlMin": 120, "mlMax": 180, "ozMin": 4, "ozMax": 6, "value_key": "mf_cows_milk_amount_12_18m", "noteKey": null },
-          "dailyTotal": { "mlMin": 360, "mlMax": 480, "ozMin": 12, "ozMax": 16, "value_key": "mf_cows_milk_daily_12_18m" },
-          "milkType": { "recommended_key": "mf_full_fat_cows_milk_12_24m", "noteKey": "mf_ff_type_note_12m" },
-          "hungerCues": { "label_key": "mf_hunger_cues_label", "early_keys": ["mf_cue_pointing_food","mf_cue_verbal_ask"], "late_keys": [], "warningKey": null },
-          "fullnessCues": { "label_key": "mf_fullness_cues_label", "cue_keys": ["mf_full_turns_head","mf_full_walks_away"] },
-          "tips_keys": ["mf_ff_tip_no_bottle_12m", "mf_ff_tip_cup_only_12m", "mf_ff_tip_max_500ml_cows_milk"],
-          "warningKeys": ["mf_ff_warn_no_lowfat_under_2yr"],
-          "feedbackEnabled": true
-        },
-        "combinationFeeding": {
-          "tabId": "combination_feeding",
-          "sectionTitle_key": "mf_combo_title",
-          "type": "toddler_combination",
-          "description_key": "mf_combo_desc_12_18m",
-          "tips_keys": ["mf_combo_tip_cup_only_12m"],
-          "warningKeys": [],
-          "feedbackEnabled": true
-        }
-      },
-
-      "solidFoods": {
-        "purees": null,
-        "fingerFoods": {
-          "tabId": "finger_foods",
-          "label_key": "sf_finger_foods_label",
-          "description_key": "sf_finger_foods_desc_12m",
-          "texture_key": "sf_texture_varied_12m",
-          "foods": [
-            { "id": "ff_soft_cooked_veg", "name_key": "ff_soft_cooked_veg_name", "prepNote_key": "ff_prep_dice_fork_tender", "category": "veg",     "ageIntroMin": 6  },
-            { "id": "ff_diced_soft_fruit","name_key": "ff_diced_soft_fruit_name","prepNote_key": "ff_prep_small_dice",       "category": "fruit",   "ageIntroMin": 6  },
-            { "id": "ff_minced_meat",     "name_key": "ff_minced_meat_name",     "prepNote_key": "ff_prep_small_pieces",     "category": "protein", "ageIntroMin": 7  },
-            { "id": "ff_cheese_cubes",    "name_key": "ff_cheese_cubes_name",    "prepNote_key": "ff_prep_small_cubes",      "category": "dairy",   "ageIntroMin": 8  },
-            { "id": "ff_whole_egg",       "name_key": "ff_whole_egg_name",       "prepNote_key": "ff_prep_any_style",        "category": "protein", "ageIntroMin": 6  },
-            { "id": "ff_halved_grapes",   "name_key": "ff_halved_grapes_name",   "prepNote_key": "ff_prep_quarter_lengthwise","category": "fruit",  "ageIntroMin": 12 },
-            { "id": "ff_beans",           "name_key": "ff_beans_name",           "prepNote_key": "ff_prep_cooked_soft",      "category": "legumes", "ageIntroMin": 8  }
-          ],
-          "safetyRules_keys": ["ff_safety_thumb_finger_size","ff_safety_soft_enough","ff_safety_supervised","ff_safety_upright_position"],
-          "tips_keys": ["sf_tip_self_feeding_12m","sf_tip_3_meals_2_snacks"],
-          "warningKeys": ["sf_warn_choking_12m"]
-        },
-        "familyFoods": {
-          "tabId": "family_foods",
-          "label_key": "sf_family_foods_label",
-          "description_key": "sf_family_foods_desc_12m",
-          "noteKey": "sf_family_foods_modify_note",
-          "guidelines_keys": [
-            "sf_ff_low_salt_family",
-            "sf_ff_low_sugar_family",
-            "sf_ff_shared_mealtimes",
-            "sf_ff_no_pressure"
-          ],
-          "tips_keys": ["sf_tip_division_of_responsibility","sf_tip_exposure_repeated"],
-          "warningKeys": []
-        }
-      },
-
-      "sampleSchedule": {
-        "breastfed": {
-          "tabId": "breastfed",
-          "noteKey": "sched_bf_note_12_18m",
-          "entries": [
-            { "time": "07:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_breakfast_12m" },
-            { "time": "09:30", "activity_key": "sched_snack",      "detail_key": "sched_snack_12m"           },
-            { "time": "12:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_lunch_12m"     },
-            { "time": "13:00", "activity_key": "sched_feed",       "detail_key": "sched_bf_detail_12_18m"    },
-            { "time": "13:30", "activity_key": "sched_nap",        "detail_key": "sched_nap_long"            },
-            { "time": "15:30", "activity_key": "sched_snack",      "detail_key": "sched_snack_12m"           },
-            { "time": "18:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_dinner_12m"    },
-            { "time": "19:00", "activity_key": "sched_feed",       "detail_key": "sched_bf_detail_12_18m"    },
-            { "time": "19:30", "activity_key": "sched_sleep",      "detail_key": "sched_night_sleep"         }
-          ],
-          "disclaimerKey": "sched_flexible_disclaimer"
-        },
-        "formulaFed": {
-          "tabId": "formula_fed",
-          "noteKey": "sched_cows_milk_note_12_18m",
-          "entries": [
-            { "time": "07:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_breakfast_12m"      },
-            { "time": "07:30", "activity_key": "sched_milk_cup",   "detail_key": "sched_cows_milk_120_180ml"      },
-            { "time": "09:30", "activity_key": "sched_snack",      "detail_key": "sched_snack_12m"                },
-            { "time": "12:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_lunch_12m"          },
-            { "time": "13:30", "activity_key": "sched_nap",        "detail_key": "sched_nap_long"                 },
-            { "time": "15:30", "activity_key": "sched_snack",      "detail_key": "sched_snack_12m"                },
-            { "time": "18:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_dinner_12m"         },
-            { "time": "19:00", "activity_key": "sched_milk_cup",   "detail_key": "sched_cows_milk_120_180ml"      },
-            { "time": "19:30", "activity_key": "sched_sleep",      "detail_key": "sched_night_sleep"              }
-          ],
-          "disclaimerKey": "sched_flexible_disclaimer"
-        },
-        "combination": {
-          "tabId": "combination",
-          "noteKey": "sched_combo_note_12_18m",
-          "entries": [
-            { "time": "07:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_breakfast_12m" },
-            { "time": "07:30", "activity_key": "sched_feed",       "detail_key": "sched_combo_bf_or_milk"    },
-            { "time": "12:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_lunch_12m"     },
-            { "time": "13:30", "activity_key": "sched_nap",        "detail_key": "sched_nap_long"            },
-            { "time": "15:30", "activity_key": "sched_snack",      "detail_key": "sched_snack_12m"           },
-            { "time": "18:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_dinner_12m"    },
-            { "time": "19:00", "activity_key": "sched_feed",       "detail_key": "sched_combo_bf_or_milk"    },
-            { "time": "19:30", "activity_key": "sched_sleep",      "detail_key": "sched_night_sleep"         }
-          ],
-          "disclaimerKey": "sched_flexible_disclaimer"
-        }
-      },
-
-      "foodsToAvoid": {
-        "under12m": [],
-        "under24m": [
-          { "id": "fta_juice_under24",  "name_key": "fta_juice_name",         "reason_key": "fta_juice_reason_24m",     "severity": "moderate", "tabIds": ["all","under_24m"] },
-          { "id": "fta_sugary_drinks",  "name_key": "fta_sugary_drinks_name", "reason_key": "fta_sugary_drinks_reason", "severity": "high",     "tabIds": ["all","under_24m"] },
-          { "id": "fta_lowfat_dairy",   "name_key": "fta_lowfat_dairy_name",  "reason_key": "fta_lowfat_dairy_reason",  "severity": "moderate", "tabIds": ["all","under_24m"] },
-          { "id": "fta_choking_foods",  "name_key": "fta_choking_foods_name", "reason_key": "fta_choking_foods_reason", "severity": "critical", "tabIds": ["all","under_24m"] }
-        ],
-        "allergens": [
-          { "id": "alg_peanut",    "name_key": "alg_peanut_name",    "reason_key": "alg_peanut_reason_12m", "severity": "info", "tabIds": ["all","allergens"], "noteKey": "alg_continue_exposure" },
-          { "id": "alg_egg",       "name_key": "alg_egg_name",       "reason_key": "alg_egg_reason_12m",    "severity": "info", "tabIds": ["all","allergens"]  },
-          { "id": "alg_tree_nut",  "name_key": "alg_tree_nut_name",  "reason_key": "alg_tree_nut_reason",   "severity": "info", "tabIds": ["all","allergens"]  },
-          { "id": "alg_fish",      "name_key": "alg_fish_name",      "reason_key": "alg_fish_reason",       "severity": "info", "tabIds": ["all","allergens"]  },
-          { "id": "alg_shellfish", "name_key": "alg_shellfish_name", "reason_key": "alg_shellfish_reason",  "severity": "info", "tabIds": ["all","allergens"]  },
-          { "id": "alg_wheat",     "name_key": "alg_wheat_name",     "reason_key": "alg_wheat_reason",      "severity": "info", "tabIds": ["all","allergens"]  },
-          { "id": "alg_sesame",    "name_key": "alg_sesame_name",    "reason_key": "alg_sesame_reason",     "severity": "info", "tabIds": ["all","allergens"]  }
-        ]
-      },
-
-      "feedingTips": [
-        { "id": "ftip_12_18m_neophobia",     "title_key": "ftip_food_neophobia_title",       "body_key": "ftip_food_neophobia_body",       "icon": "face", "feedbackEnabled": true },
-        { "id": "ftip_12_18m_division",      "title_key": "ftip_division_responsibility_title","body_key": "ftip_division_responsibility_body","icon":"fork","feedbackEnabled": true },
-        { "id": "ftip_12_18m_milk_limit",    "title_key": "ftip_milk_limit_12m_title",       "body_key": "ftip_milk_limit_12m_body",       "icon": "cup",  "isUrgent": true, "feedbackEnabled": true },
-        { "id": "ftip_12_18m_iron",          "title_key": "ftip_iron_toddler_title",         "body_key": "ftip_iron_toddler_body",         "icon": "leaf", "feedbackEnabled": true }
-      ]
-    },
-
-    {
-      "id": "18-36m",
-      "label_key": "age_18_36m",
-      "sortOrder": 6,
-
-      "milkFeeding": {
-        "breastfeeding": {
-          "tabId": "breastfeeding",
-          "sectionTitle_key": "mf_bf_toddler_extended_title",
-          "type": "extended_breastfeeding",
-          "frequency": { "value_key": "mf_bf_freq_18_36m", "perDay": { "min": 1, "max": 3 } },
-          "duration": { "value_key": "mf_bf_dur_18_36m", "minutesPerFeed": { "min": 5, "max": 10 }, "noteKey": null },
-          "hungerCues": { "label_key": "mf_hunger_cues_label", "early_keys": ["mf_cue_verbal_ask","mf_cue_pointing_food"], "late_keys": [], "warningKey": null },
-          "fullnessCues": { "label_key": "mf_fullness_cues_label", "cue_keys": ["mf_full_walks_away","mf_full_verbal_done"] },
-          "tips_keys": ["mf_bf_tip_toddler_who_ok_extended", "mf_bf_tip_mutual_weaning"],
-          "warningKeys": [],
-          "feedbackEnabled": true
-        },
-        "formulaFeeding": {
-          "tabId": "formula_feeding",
-          "sectionTitle_key": "mf_cows_milk_toddler_title",
-          "type": "cows_milk_toddler",
-          "transitionNote_key": null,
-          "frequency": { "value_key": "mf_cows_milk_freq_18_36m", "perDay": { "min": 2, "max": 2 } },
-          "amountPerFeed": { "mlMin": 120, "mlMax": 180, "ozMin": 4, "ozMax": 6, "value_key": "mf_cows_milk_amount_18_36m", "noteKey": null },
-          "dailyTotal": { "mlMin": 360, "mlMax": 480, "ozMin": 12, "ozMax": 16, "value_key": "mf_cows_milk_daily_18_36m" },
-          "milkType": { "recommended_key": "mf_full_fat_cows_milk_12_24m", "noteKey": "mf_switch_lowfat_after_2yr" },
-          "hungerCues": { "label_key": "mf_hunger_cues_label", "early_keys": ["mf_cue_verbal_ask"], "late_keys": [], "warningKey": null },
-          "fullnessCues": { "label_key": "mf_fullness_cues_label", "cue_keys": ["mf_full_verbal_done","mf_full_walks_away"] },
-          "tips_keys": ["mf_ff_tip_max_500ml_cows_milk", "mf_ff_tip_cup_only_18m"],
-          "warningKeys": ["mf_ff_warn_no_lowfat_under_2yr"],
-          "feedbackEnabled": true
-        },
-        "combinationFeeding": {
-          "tabId": "combination_feeding",
-          "sectionTitle_key": "mf_combo_title",
-          "type": "toddler_any_milk",
-          "description_key": "mf_combo_desc_18_36m",
-          "tips_keys": ["mf_combo_tip_cup_only_18m"],
-          "warningKeys": [],
-          "feedbackEnabled": true
-        }
-      },
-
-      "solidFoods": {
-        "purees": null,
-        "fingerFoods": null,
-        "familyFoods": {
-          "tabId": "family_foods",
-          "label_key": "sf_family_foods_label",
-          "description_key": "sf_family_foods_desc_18m",
-          "noteKey": "sf_family_foods_full_participation",
-          "mealsPerDay": 3,
-          "snacksPerDay": 2,
-          "portionNote_key": "sf_portion_toddler_note",
-          "guidelines_keys": [
-            "sf_ff_low_salt_family",
-            "sf_ff_low_sugar_family",
-            "sf_ff_shared_mealtimes",
-            "sf_ff_no_pressure",
-            "sf_ff_variety_exposure"
-          ],
-          "tips_keys": [
-            "sf_tip_division_of_responsibility",
-            "sf_tip_no_short_order_cook",
-            "sf_tip_repeated_exposure_15_20",
-            "sf_tip_positive_mealtime"
-          ],
-          "warningKeys": ["sf_warn_picky_eating_normal"]
-        }
-      },
-
-      "sampleSchedule": {
-        "breastfed": {
-          "tabId": "breastfed",
-          "noteKey": "sched_bf_note_18_36m",
-          "entries": [
-            { "time": "07:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_breakfast_18m" },
-            { "time": "09:30", "activity_key": "sched_snack",      "detail_key": "sched_snack_18m"            },
-            { "time": "12:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_lunch_18m"      },
-            { "time": "13:00", "activity_key": "sched_feed",       "detail_key": "sched_bf_detail_18_36m"     },
-            { "time": "13:30", "activity_key": "sched_nap",        "detail_key": "sched_nap_long"             },
-            { "time": "15:30", "activity_key": "sched_snack",      "detail_key": "sched_snack_18m"            },
-            { "time": "18:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_dinner_18m"     },
-            { "time": "19:00", "activity_key": "sched_feed",       "detail_key": "sched_bf_detail_18_36m"     },
-            { "time": "19:30", "activity_key": "sched_sleep",      "detail_key": "sched_night_sleep"          }
-          ],
-          "disclaimerKey": "sched_flexible_disclaimer"
-        },
-        "formulaFed": {
-          "tabId": "formula_fed",
-          "noteKey": "sched_cows_milk_note_18_36m",
-          "entries": [
-            { "time": "07:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_breakfast_18m" },
-            { "time": "07:30", "activity_key": "sched_milk_cup",   "detail_key": "sched_cows_milk_120ml"     },
-            { "time": "09:30", "activity_key": "sched_snack",      "detail_key": "sched_snack_18m"           },
-            { "time": "12:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_lunch_18m"     },
-            { "time": "13:30", "activity_key": "sched_nap",        "detail_key": "sched_nap_long"            },
-            { "time": "15:30", "activity_key": "sched_snack",      "detail_key": "sched_snack_18m"           },
-            { "time": "18:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_dinner_18m"    },
-            { "time": "19:00", "activity_key": "sched_milk_cup",   "detail_key": "sched_cows_milk_120ml"     },
-            { "time": "19:30", "activity_key": "sched_sleep",      "detail_key": "sched_night_sleep"         }
-          ],
-          "disclaimerKey": "sched_flexible_disclaimer"
-        },
-        "combination": {
-          "tabId": "combination",
-          "noteKey": "sched_combo_note_18_36m",
-          "entries": [
-            { "time": "07:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_breakfast_18m" },
-            { "time": "12:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_lunch_18m"     },
-            { "time": "13:30", "activity_key": "sched_nap",        "detail_key": "sched_nap_long"            },
-            { "time": "15:30", "activity_key": "sched_snack",      "detail_key": "sched_snack_18m"           },
-            { "time": "18:00", "activity_key": "sched_solid_meal", "detail_key": "sched_solid_dinner_18m"    },
-            { "time": "19:00", "activity_key": "sched_milk_cup",   "detail_key": "sched_combo_bf_or_milk"    },
-            { "time": "19:30", "activity_key": "sched_sleep",      "detail_key": "sched_night_sleep"         }
-          ],
-          "disclaimerKey": "sched_flexible_disclaimer"
-        }
-      },
-
-      "foodsToAvoid": {
-        "under12m": [],
-        "under24m": [
-          { "id": "fta_juice_under24",  "name_key": "fta_juice_name",         "reason_key": "fta_juice_reason_24m",     "severity": "moderate", "tabIds": ["all","under_24m"] },
-          { "id": "fta_sugary_drinks",  "name_key": "fta_sugary_drinks_name", "reason_key": "fta_sugary_drinks_reason", "severity": "high",     "tabIds": ["all","under_24m"] },
-          { "id": "fta_lowfat_dairy",   "name_key": "fta_lowfat_dairy_name",  "reason_key": "fta_lowfat_dairy_reason",  "severity": "moderate", "tabIds": ["all","under_24m"] }
-        ],
-        "allergens": [
-          { "id": "alg_peanut",    "name_key": "alg_peanut_name",    "reason_key": "alg_peanut_continue",    "severity": "info", "tabIds": ["all","allergens"], "noteKey": "alg_continue_exposure" },
-          { "id": "alg_tree_nut",  "name_key": "alg_tree_nut_name",  "reason_key": "alg_tree_nut_reason",    "severity": "info", "tabIds": ["all","allergens"]  },
-          { "id": "alg_shellfish", "name_key": "alg_shellfish_name", "reason_key": "alg_shellfish_reason",   "severity": "info", "tabIds": ["all","allergens"]  }
-        ]
-      },
-
-      "feedingTips": [
-        { "id": "ftip_18_36m_picky",     "title_key": "ftip_picky_eating_title",         "body_key": "ftip_picky_eating_body",         "icon": "face",   "feedbackEnabled": true },
-        { "id": "ftip_18_36m_mealtime",  "title_key": "ftip_positive_mealtime_title",    "body_key": "ftip_positive_mealtime_body",    "icon": "family", "feedbackEnabled": true },
-        { "id": "ftip_18_36m_milk_cap",  "title_key": "ftip_milk_cap_18m_title",         "body_key": "ftip_milk_cap_18m_body",         "icon": "cup",    "feedbackEnabled": true },
-        { "id": "ftip_18_36m_vitamins",  "title_key": "ftip_vitamins_toddler_title",     "body_key": "ftip_vitamins_toddler_body",     "icon": "sun",    "isUrgent": true, "feedbackEnabled": true }
       ]
     }
-  ],
-
-  "severityLevels": [
-    { "id": "critical", "label_key": "severity_critical", "colorTheme": "red",    "icon": "stop"    },
-    { "id": "high",     "label_key": "severity_high",     "colorTheme": "orange", "icon": "warning" },
-    { "id": "moderate", "label_key": "severity_moderate", "colorTheme": "amber",  "icon": "info"    },
-    { "id": "info",     "label_key": "severity_info",     "colorTheme": "blue",   "icon": "info"    }
   ]
 }
