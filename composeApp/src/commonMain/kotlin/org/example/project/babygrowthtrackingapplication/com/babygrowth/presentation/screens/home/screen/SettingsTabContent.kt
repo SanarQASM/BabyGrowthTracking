@@ -58,7 +58,7 @@ private enum class SettingsDialog {
 // Landscape section index
 // ─────────────────────────────────────────────────────────────────────────────
 private enum class SettingsSection {
-    ACCOUNT, PREFERENCES, NOTIFICATIONS, SECURITY, ABOUT, ACTIONS
+    ACCOUNT, PREFERENCES, NOTIFICATIONS, SECURITY, INFORMATION, ABOUT, ACTIONS
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -72,6 +72,12 @@ fun SettingsTabContent(
     onDarkModeChange    : (Boolean) -> Unit     = {},
     onGenderThemeChange : (GenderTheme) -> Unit = {},
     onNavigateToWelcome : () -> Unit            = {},
+
+    // ✅ NEW: Connection to Family History
+    onNavigateToFamilyHistory: (babyId: String, babyName: String) -> Unit = { _, _ -> },
+    selectedBabyId: String? = null,
+    selectedBabyName: String = "",
+    familyHistoryIsSet: Boolean = false,
 ) {
     val state       = viewModel.uiState
     val dim         = LocalDimensions.current
@@ -218,6 +224,7 @@ fun SettingsTabContent(
                         add(NavItem(SettingsSection.NOTIFICATIONS, "🔔", stringResource(Res.string.settings_section_notifications)))
                         if (state.isEmailLogin)
                             add(NavItem(SettingsSection.SECURITY,  "🔒", stringResource(Res.string.settings_section_security)))
+                        add(NavItem(SettingsSection.INFORMATION,   "👨‍👩‍👧‍👦", stringResource(Res.string.settings_section_information)))
                         add(NavItem(SettingsSection.ABOUT,         "ℹ️", stringResource(Res.string.settings_section_about)))
                         add(NavItem(SettingsSection.ACTIONS,       "⚠️", stringResource(Res.string.settings_section_actions)))
                     }
@@ -337,6 +344,20 @@ fun SettingsTabContent(
                                         subtitle = stringResource(Res.string.settings_save_password_sub),
                                         checked = state.savePasswordEnabled, onToggle = viewModel::setSavePassword)
                                 }
+                            }
+                        }
+                        SettingsSection.INFORMATION -> {
+                            SectionLabel("👨‍👩‍👧‍👦", stringResource(Res.string.settings_section_information), hPad)
+                            SettingsCard(hPad) {
+                                FamilyHistorySettingsRow(
+                                    isSet    = familyHistoryIsSet,
+                                    babyName = selectedBabyName,
+                                    onClick  = {
+                                        if (selectedBabyId != null) {
+                                            onNavigateToFamilyHistory(selectedBabyId, selectedBabyName)
+                                        }
+                                    }
+                                )
                             }
                         }
                         SettingsSection.ABOUT -> {
@@ -463,6 +484,22 @@ fun SettingsTabContent(
                     Spacer(Modifier.height(dim.spacingMedium))
                 }
 
+                Spacer(Modifier.height(dim.spacingMedium))
+
+                SectionLabel("ℹ️", stringResource(Res.string.settings_section_information), hPad)
+                SettingsCard(hPad) {
+                    FamilyHistorySettingsRow(
+                        isSet    = familyHistoryIsSet,
+                        babyName = selectedBabyName,
+                        onClick  = {
+                            if (selectedBabyId != null)
+                                onNavigateToFamilyHistory(selectedBabyId, selectedBabyName)
+                        }
+                    )
+                }
+
+                Spacer(Modifier.height(dim.spacingMedium))
+
                 SectionLabel("ℹ️", stringResource(Res.string.settings_section_about), hPad)
                 SettingsCard(hPad) {
                     ArrowRow(icon = Icons.Default.Info, label = stringResource(Res.string.settings_about_app),
@@ -473,7 +510,6 @@ fun SettingsTabContent(
                     RowDivider()
                     ArrowRow(icon = Icons.Default.Gavel, label = stringResource(Res.string.settings_terms),
                         onClick = { dialog = SettingsDialog.TERMS_OF_USE })
-                    RowDivider()
                     ArrowRow(icon = Icons.Default.ContactSupport, label = stringResource(Res.string.settings_contact_support),
                         onClick = { dialog = SettingsDialog.CONTACT_SUPPORT })
                 }

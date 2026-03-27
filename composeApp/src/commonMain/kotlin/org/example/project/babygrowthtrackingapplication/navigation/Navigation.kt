@@ -28,7 +28,9 @@ import org.example.project.babygrowthtrackingapplication.com.babygrowth.presenta
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HomeViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HealthRecordViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.SettingsViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.FamilyHistoryViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.AllMeasurementsScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.FamilyHistoryScreen
 import org.example.project.babygrowthtrackingapplication.data.auth.SocialAuthManager
 import org.example.project.babygrowthtrackingapplication.data.auth.SocialLoginHelper
 import org.example.project.babygrowthtrackingapplication.data.network.ApiService
@@ -56,7 +58,8 @@ enum class Screen {
     BabyProfile,
     EditBaby,
     AddMeasurement,
-    AllMeasurements
+    AllMeasurements,
+    FamilyHistory
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -82,6 +85,7 @@ fun AppNavigation(
     var selectedBaby        by remember { mutableStateOf<BabyResponse?>(null) }
     var measurementBaby     by remember { mutableStateOf<BabyResponse?>(null) }
     var allMeasurementsBaby by remember { mutableStateOf<BabyResponse?>(null) }
+    var familyHistoryBaby   by remember { mutableStateOf<BabyResponse?>(null) }
 
     var selectedTab by remember { mutableStateOf(NavigationTab.HOME) }
     var originTab   by remember { mutableStateOf(NavigationTab.HOME) }
@@ -114,6 +118,10 @@ fun AppNavigation(
         )
     }
 
+    val familyHistoryViewModel = remember {
+        FamilyHistoryViewModel(apiService = apiService, preferencesManager = preferencesManager)
+    }
+
     val signupViewModel = remember {
         SignupViewModel(
             repository        = repository,
@@ -144,6 +152,7 @@ fun AppNavigation(
             addBabyViewModel.onDestroy()
             healthRecordViewModel.onDestroy()
             settingsViewModel.onDestroy()
+            familyHistoryViewModel.onDestroy()
             cleanupSocialAuth(socialAuthManager)
         }
     }
@@ -190,7 +199,8 @@ fun AppNavigation(
 
                     Screen.BabyProfile,
                     Screen.AddMeasurement,
-                    Screen.AllMeasurements ->
+                    Screen.AllMeasurements,
+                    Screen.FamilyHistory ->
                         slideInHorizontally(
                             initialOffsetX = { it },
                             animationSpec  = tween(400, easing = FastOutSlowInEasing)
@@ -351,6 +361,7 @@ fun AppNavigation(
                         viewModel             = homeViewModel,
                         healthRecordViewModel = healthRecordViewModel,
                         settingsViewModel     = settingsViewModel,
+                        familyHistoryViewModel = familyHistoryViewModel,
                         currentLanguage       = currentLanguage,
                         onLanguageChange      = { newLanguage ->
                             preferencesManager.setLanguage(newLanguage)
@@ -401,6 +412,14 @@ fun AppNavigation(
                         },
                         onNavigateToWelcome = {
                             currentScreen = Screen.Welcome
+                        },
+                        onNavigateToFamilyHistory = { babyId, babyName ->
+                            val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
+                            if (baby != null) {
+                                familyHistoryBaby = baby
+                                familyHistoryViewModel.loadFamilyHistory(babyId)
+                                currentScreen = Screen.FamilyHistory
+                            }
                         },
                     )
                 }
@@ -543,6 +562,24 @@ fun AppNavigation(
                                     selectedTab   = originTab
                                     currentScreen = Screen.Home
                                 }
+                            }
+                        )
+                    }
+                }
+
+                // ── Family History ────────────────────────────────────────────
+                Screen.FamilyHistory -> {
+                    val baby = familyHistoryBaby
+                    if (baby == null) {
+                        currentScreen = Screen.Home
+                    } else {
+                        FamilyHistoryScreen(
+                            babyId    = baby.babyId,
+                            babyName  = baby.fullName,
+                            viewModel = familyHistoryViewModel,
+                            onBack    = {
+                                familyHistoryBaby = null
+                                currentScreen     = Screen.Home
                             }
                         )
                     }

@@ -10,6 +10,7 @@ import org.example.project.babygrowthtrackingapplication.com.babygrowth.presenta
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HealthRecordViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HomeViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.SettingsViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.FamilyHistoryViewModel
 import org.example.project.babygrowthtrackingapplication.data.network.BabyResponse
 import org.example.project.babygrowthtrackingapplication.theme.GenderTheme
 import org.example.project.babygrowthtrackingapplication.ui.components.BottomNavigationBar
@@ -17,17 +18,12 @@ import org.example.project.babygrowthtrackingapplication.ui.components.Navigatio
 import org.example.project.babygrowthtrackingapplication.ui.components.SideNavigationRail
 import org.example.project.babygrowthtrackingapplication.ui.components.rememberUseSideRail
 
-// NOTE: BabyGrowthTheme import intentionally removed.
-// HomeScreen is already a descendant of the root BabyGrowthTheme in App.kt,
-// which correctly holds both `genderTheme` and `isDarkMode`. Adding another
-// wrapper here would break dark-mode toggling and gender-theme changes made
-// in Settings.
-
 @Composable
 fun HomeScreen(
     viewModel                 : HomeViewModel,
     healthRecordViewModel     : HealthRecordViewModel,
     settingsViewModel         : SettingsViewModel,
+    familyHistoryViewModel    : FamilyHistoryViewModel,
     currentLanguage           : Language = Language.ENGLISH,
     onLanguageChange          : (Language) -> Unit = {},
     onDarkModeChange          : (Boolean) -> Unit = {},
@@ -42,19 +38,18 @@ fun HomeScreen(
     onAddMeasurementById      : (String) -> Unit = {},
     onViewAllMeasurementsById : (String) -> Unit = {},
     onNavigateToWelcome       : () -> Unit = {},
+    onNavigateToFamilyHistory : (String, String) -> Unit = { _, _ -> },
 ) {
     val state       = viewModel.uiState
     val useSideRail = rememberUseSideRail()
 
     if (useSideRail) {
-        // ── LANDSCAPE / EXPANDED: Rail on the left, content on the right ─────
         Row(modifier = Modifier.fillMaxSize()) {
             SideNavigationRail(
                 selectedTab   = selectedTab,
                 onTabSelected = onTabChange
             )
 
-            // Thin divider between rail and content
             HorizontalDivider(
                 modifier  = Modifier
                     .fillMaxHeight()
@@ -73,6 +68,7 @@ fun HomeScreen(
                     viewModel                 = viewModel,
                     healthRecordViewModel     = healthRecordViewModel,
                     settingsViewModel         = settingsViewModel,
+                    familyHistoryViewModel    = familyHistoryViewModel,
                     state                     = state,
                     currentLanguage           = currentLanguage,
                     onLanguageChange          = onLanguageChange,
@@ -86,12 +82,12 @@ fun HomeScreen(
                     onAddMeasurementById      = onAddMeasurementById,
                     onViewAllMeasurementsById = onViewAllMeasurementsById,
                     onNavigateToWelcome       = onNavigateToWelcome,
+                    onNavigateToFamilyHistory = onNavigateToFamilyHistory,
                     bottomPadding             = androidx.compose.ui.unit.Dp(0f)
                 )
             }
         }
     } else {
-        // ── PORTRAIT: Standard bottom navigation ──────────────────────────────
         Scaffold(
             bottomBar = {
                 BottomNavigationBar(
@@ -112,6 +108,7 @@ fun HomeScreen(
                     viewModel                 = viewModel,
                     healthRecordViewModel     = healthRecordViewModel,
                     settingsViewModel         = settingsViewModel,
+                    familyHistoryViewModel    = familyHistoryViewModel,
                     state                     = state,
                     currentLanguage           = currentLanguage,
                     onLanguageChange          = onLanguageChange,
@@ -125,6 +122,7 @@ fun HomeScreen(
                     onAddMeasurementById      = onAddMeasurementById,
                     onViewAllMeasurementsById = onViewAllMeasurementsById,
                     onNavigateToWelcome       = onNavigateToWelcome,
+                    onNavigateToFamilyHistory = onNavigateToFamilyHistory,
                     bottomPadding             = androidx.compose.ui.unit.Dp(0f)
                 )
             }
@@ -138,6 +136,7 @@ private fun TabContent(
     viewModel                 : HomeViewModel,
     healthRecordViewModel     : HealthRecordViewModel,
     settingsViewModel         : SettingsViewModel,
+    familyHistoryViewModel    : FamilyHistoryViewModel,
     state                     : org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HomeUiState,
     currentLanguage           : Language,
     onLanguageChange          : (Language) -> Unit,
@@ -151,10 +150,10 @@ private fun TabContent(
     onAddMeasurementById      : (String) -> Unit,
     onViewAllMeasurementsById : (String) -> Unit,
     onNavigateToWelcome       : () -> Unit,
+    onNavigateToFamilyHistory : (String, String) -> Unit,
     bottomPadding             : androidx.compose.ui.unit.Dp,
 ) {
     when (selectedTab) {
-
         NavigationTab.HOME ->
             HomeTabContent(
                 viewModel = viewModel,
@@ -184,13 +183,25 @@ private fun TabContent(
                 babies    = state.babies
             )
 
-        NavigationTab.SETTINGS ->
+        NavigationTab.SETTINGS -> {
+            val selectedBaby = state.selectedBaby
+            
+            // Auto-load history status for the current baby when viewing settings
+            LaunchedEffect(selectedBaby?.babyId) {
+                selectedBaby?.let { familyHistoryViewModel.loadFamilyHistory(it.babyId) }
+            }
+
             SettingsTabContent(
                 viewModel           = settingsViewModel,
                 onLanguageChange    = onLanguageChange,
                 onDarkModeChange    = onDarkModeChange,
                 onGenderThemeChange = onGenderThemeChange,
                 onNavigateToWelcome = onNavigateToWelcome,
+                onNavigateToFamilyHistory = onNavigateToFamilyHistory,
+                selectedBabyId      = selectedBaby?.babyId,
+                selectedBabyName    = selectedBaby?.fullName ?: "",
+                familyHistoryIsSet  = familyHistoryViewModel.uiState.isSet
             )
+        }
     }
 }

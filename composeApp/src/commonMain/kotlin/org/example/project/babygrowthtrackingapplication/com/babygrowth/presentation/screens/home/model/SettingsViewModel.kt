@@ -27,9 +27,8 @@ data class SettingsUiState(
     val genderTheme          : GenderTheme = GenderTheme.NEUTRAL,
 
     // Save Password — only meaningful for email/password logins.
-    // For Google logins this is always false and the toggle is hidden in the UI.
     val savePasswordEnabled  : Boolean     = false,
-    val isEmailLogin         : Boolean     = false,   // drives whether the toggle is visible
+    val isEmailLogin         : Boolean     = false,
 
     val notificationsEnabled : Boolean     = true,
     val vaccinationReminders : Boolean     = true,
@@ -59,11 +58,11 @@ class SettingsViewModel(
 
     init {
         loadFromPreferences()
-        loadUserProfile() // ✅ FIX: Fetch latest profile from server on startup
+        loadUserProfile()
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // INIT
+    // INIT & REFRESH
     // ─────────────────────────────────────────────────────────────────────────
 
     private fun loadFromPreferences() {
@@ -76,7 +75,6 @@ class SettingsViewModel(
             currentLanguage      = preferencesManager.getCurrentLanguage(),
             isDarkMode           = preferencesManager.getBoolean("dark_mode", false),
             genderTheme          = preferencesManager.getGenderTheme(),
-            // Save Password is only shown and active for email logins
             isEmailLogin         = isEmail,
             savePasswordEnabled  = if (isEmail) preferencesManager.isSavePasswordEnabled() else false,
             notificationsEnabled = preferencesManager.getBoolean("notif_enabled",     true),
@@ -87,32 +85,35 @@ class SettingsViewModel(
         )
     }
 
-    /** ✅ NEW: Fetch user profile from API to ensure settings info is up-to-date */
+    /** 🔄 Force a refresh of the user profile from the database */
+    fun refreshProfile() {
+        loadFromPreferences() // Re-read ID/cached data first
+        loadUserProfile()     // Then fetch fresh from server
+    }
+
     private fun loadUserProfile() {
         val userId = uiState.userId.ifBlank { return }
         scope.launch {
             when (val result = apiService.getUser(userId)) {
                 is ApiResult.Success -> {
                     val user = result.data
-                    // Sync to Preferences
                     preferencesManager.saveUserName(user.fullName)
                     preferencesManager.saveUserEmail(user.email)
                     user.phone?.let { preferencesManager.saveUserPhone(it) }
 
-                    // Sync to UI
                     uiState = uiState.copy(
                         userName  = user.fullName,
                         userEmail = user.email,
                         userPhone = user.phone ?: ""
                     )
                 }
-                else -> { /* Fallback to what we have in preferences */ }
+                else -> { /* keep existing preferences values */ }
             }
         }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // ACCOUNT — update profile  →  PUT /v1/users/{userId}
+    // ACCOUNT ACTIONS
     // ─────────────────────────────────────────────────────────────────────────
 
     fun updateProfile(name: String, phone: String) {
@@ -139,11 +140,6 @@ class SettingsViewModel(
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // CHANGE PASSWORD (3-step)
-    // ─────────────────────────────────────────────────────────────────────────
-
-    /** Step 1 — send reset code to user's email */
     fun sendPasswordResetCode(onCodeSent: () -> Unit) {
         val email = uiState.userEmail.ifBlank { return }
         scope.launch {
@@ -159,7 +155,6 @@ class SettingsViewModel(
         }
     }
 
-    /** Step 2 — verify the 6-digit code */
     fun verifyPasswordCode(code: String, onVerified: (verifiedCode: String) -> Unit) {
         val email = uiState.userEmail.ifBlank { return }
         scope.launch {
@@ -175,7 +170,6 @@ class SettingsViewModel(
         }
     }
 
-    /** Step 3 — set the new password */
     fun confirmNewPassword(verifiedCode: String, newPassword: String) {
         val email = uiState.userEmail.ifBlank { return }
         if (newPassword.length < 6) {
@@ -186,7 +180,6 @@ class SettingsViewModel(
             uiState = uiState.copy(isLoading = true, errorMessage = null)
             when (val result = accountRepository.resetPasswordWithCode(email, verifiedCode, newPassword)) {
                 is ApiResult.Success -> {
-                    // If "Save Password" is enabled, update the stored password to the new one
                     if (uiState.savePasswordEnabled) {
                         val emailOrPhone = preferencesManager.getSavedEmailOrPhone() ?: email
                         preferencesManager.saveLoginCredentials(emailOrPhone, newPassword)
@@ -198,10 +191,6 @@ class SettingsViewModel(
             }
         }
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // PREFERENCES
-    // ─────────────────────────────────────────────────────────────────────────
 
     fun setLanguage(language: Language) {
         preferencesManager.setLanguage(language)
@@ -217,10 +206,6 @@ class SettingsViewModel(
         preferencesManager.saveGenderTheme(theme)
         uiState = uiState.copy(genderTheme = theme)
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // NOTIFICATIONS
-    // ─────────────────────────────────────────────────────────────────────────
 
     fun setNotificationsEnabled(on: Boolean) {
         preferencesManager.putBoolean("notif_enabled", on)
@@ -247,32 +232,12 @@ class SettingsViewModel(
         uiState = uiState.copy(reminderDaysBefore = days)
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // SECURITY — Save Password toggle
-    //
-    // Only reachable for email login users (isEmailLogin = true).
-    // The UI hides the toggle entirely for Google users so this method is
-    // never called for them.
-    //
-    // ON  → store email + password in prefs (same key as LoginScreen checkbox)
-    // OFF → clear stored credentials
-    //
-    // Both directions update the same KEY_SAVE_PASSWORD_ENABLED flag that
-    // LoginScreen reads on startup, so the two are always in sync.
-    // ─────────────────────────────────────────────────────────────────────────
-
     fun setSavePassword(on: Boolean) {
         if (on) {
             val email    = preferencesManager.getUserEmail() ?: ""
-            // Use the already-stored password if available; if the user has never
-            // saved before there is no password in prefs, so we cannot enable this.
             val password = preferencesManager.getSavedPassword() ?: ""
-
             if (email.isBlank() || password.isBlank()) {
-                uiState = uiState.copy(
-                    errorMessage = "To enable this, please log out and log in again with 'Save Password' checked."
-                )
-                // Do NOT update the toggle — leave it as false
+                uiState = uiState.copy(errorMessage = "Please log in again with 'Save Password' checked.")
                 return
             }
             preferencesManager.saveLoginCredentials(email, password)
@@ -281,10 +246,6 @@ class SettingsViewModel(
         }
         uiState = uiState.copy(savePasswordEnabled = on)
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // ACCOUNT ACTIONS
-    // ─────────────────────────────────────────────────────────────────────────
 
     fun logout() {
         accountRepository.logout()
@@ -308,10 +269,6 @@ class SettingsViewModel(
             }
         }
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // LIFECYCLE
-    // ─────────────────────────────────────────────────────────────────────────
 
     fun clearMessages() {
         uiState = uiState.copy(successMessage = null, errorMessage = null)
