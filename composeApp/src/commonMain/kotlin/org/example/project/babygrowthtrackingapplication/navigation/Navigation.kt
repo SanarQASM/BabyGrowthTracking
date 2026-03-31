@@ -33,7 +33,6 @@ import org.example.project.babygrowthtrackingapplication.com.babygrowth.presenta
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.FamilyHistoryScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.SleepGuideScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.FeedingGuideScreen
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.GuideViewModel
 import org.example.project.babygrowthtrackingapplication.data.auth.SocialAuthManager
 import org.example.project.babygrowthtrackingapplication.data.auth.SocialLoginHelper
 import org.example.project.babygrowthtrackingapplication.data.network.ApiService
