@@ -678,8 +678,8 @@ Last updated: 2025.</string>
     <string name="feeding_guide_cat_tips">Feeding Tips</string>
     <string name="feeding_guide_milk_tab_all">All</string>
     <string name="feeding_guide_milk_tab_breast">Breastfeeding</string>
-    <string name="feeding_guide_milk_tab_formula">Formula</string>
-    <string name="feeding_guide_milk_tab_combo">Combination</string>
+    <string name="feeding_guide_milk_tab_formula">Formula Feeding</string>
+    <string name="feeding_guide_milk_tab_combo">Combination Feeding</string>
     <string name="feeding_guide_frequency">FREQUENCY:</string>
     <string name="feeding_guide_duration">DURATION:</string>
     <string name="feeding_guide_hunger_signs">SIGNS OF HUNGER:</string>

@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -25,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.*
 import org.example.project.babygrowthtrackingapplication.theme.*
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.painterResource
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 import babygrowthtrackingapplication.composeapp.generated.resources.*
 
@@ -267,10 +270,11 @@ fun GuideChildSelector(
 }
 
 // ── 5. GuideCategoryGrid ─────────────────────────────────────────────────────
+// Uses the app's baby-shield logo image for each category cell (matching screenshot design)
 
 @Composable
 fun GuideCategoryGrid(
-    categories   : List<Pair<String, String>>,  // (emoji, label)
+    categories   : List<Pair<String, String>>,  // (emoji label prefix, display label)
     selectedIndex: Int,
     onSelect     : (Int) -> Unit,
     modifier     : Modifier = Modifier
@@ -304,6 +308,7 @@ fun GuideCategoryGrid(
                                 .padding(dimensions.spacingSmall),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
+                            // Use app logo image with color tint matching the design
                             Box(
                                 modifier = Modifier
                                     .size(dimensions.avatarLarge + dimensions.spacingSmall)
@@ -319,11 +324,22 @@ fun GuideCategoryGrid(
                                     ),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(emoji, fontSize = (dimensions.iconXLarge.value - 14f).sp)
+                                Image(
+                                    painter = painterResource(Res.drawable.application_logo_without_background),
+                                    contentDescription = label,
+                                    modifier = Modifier
+                                        .size(dimensions.avatarLarge - dimensions.spacingSmall)
+                                        .padding(4.dp),
+                                    contentScale = ContentScale.Fit,
+                                    colorFilter = if (isSelected)
+                                        ColorFilter.tint(GuidePink)
+                                    else
+                                        ColorFilter.tint(GuidePurple.copy(0.85f))
+                                )
                             }
                             Spacer(Modifier.height(dimensions.spacingXSmall))
                             Text(
-                                text       = label,
+                                text       = "$emoji $label",
                                 style      = MaterialTheme.typography.labelMedium,
                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                 color      = if (isSelected) GuidePink else MaterialTheme.colorScheme.onBackground,
@@ -467,7 +483,7 @@ fun LullabyCard(
                 }
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text       = lullaby.title,
+                        text       = "🎵 ${lullaby.title}",
                         style      = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
                         color      = Color.White
@@ -660,10 +676,11 @@ fun GuideTabRow(
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text       = label,
+                    text       = label.uppercase(),
                     style      = MaterialTheme.typography.labelMedium,
                     fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                    color      = if (selected) Color.White else GuidePink
+                    color      = if (selected) Color.White else GuidePink,
+                    letterSpacing = 0.5.sp
                 )
             }
         }
