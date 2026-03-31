@@ -1,434 +1,592 @@
 {
-  "version": "1.0",
-  "guide_type": "feeding",
-  "age_ranges": [
+  "guide_id": "feeding_guide",
+  "title": {
+    "en": "Feeding Guide",
+    "ku_sorani": "ڕێنمایی خواردن",
+    "ku_badini": "Rêberiya Xwarinê",
+    "ar": "دليل التغذية"
+  },
+  "subtitle": {
+    "en": "Help {childName} Eat Well",
+    "ku_sorani": "یارمەتیدانی {childName} بۆ خواردنی باش",
+    "ku_badini": "Alîkariya {childName} bo Xwarinek Baş",
+    "ar": "ساعد {childName} على التغذية الجيدة"
+  },
+  "strategies": [
     {
-      "id": "0_3m",
-      "label_en": "0–3 Months",
-      "label_ar": "0–3 أشهر",
-      "label_ku": "0–3 مانگ",
-      "label_ckb": "0–3 مانگ",
-      "min_months": 0,
-      "max_months": 3,
-      "milk_feeding": [
+      "id": "milk_feeding",
+      "icon": "milk",
+      "title": {
+        "en": "Milk Feeding",
+        "ku_sorani": "خواردنی شیر",
+        "ku_badini": "Xwarina Şîrê",
+        "ar": "الرضاعة"
+      },
+      "tabs": [
         {
-          "id": "mf_0_3_1",
-          "sub_type": "breastfeeding",
-          "title_en": "Exclusive Breastfeeding",
-          "title_ar": "الرضاعة الطبيعية الحصرية",
-          "title_ku": "شیرخواری تەنها",
-          "title_ckb": "شیرخواری تەنها",
-          "frequency_en": "8–12 feeds per day",
-          "frequency_ar": "8–12 رضعة يومياً",
-          "frequency_ku": "8–12 جار لە ڕۆژدا",
-          "frequency_ckb": "8–12 جار لە ڕۆژدا",
-          "duration_en": "10–45 minutes per feed\nUntil baby seems satisfied",
-          "duration_ar": "10–45 دقيقة لكل رضعة\nحتى يبدو الطفل راضياً",
-          "duration_ku": "10–45 خولەک هەر جار\nتا منداڵ ئارام بێت",
-          "duration_ckb": "10–45 خولەک هەر جار\nتا منداڵ ئارام بێت",
-          "hunger_signs_en": ["Rooting (turning head)", "Sucking on hands/fists", "Smacking lips", "Crying (late sign)"],
-          "hunger_signs_ar": ["الجذر (تحريك الرأس)", "مص اليدين/القبضتين", "تسمع الشفاه", "البكاء (إشارة متأخرة)"],
-          "hunger_signs_ku": ["سەرپێوی (سەر گێڕانەوە)", "دەست/مشتی مکانەوە", "تۆپی قووچ", "گریان (نیشانەی دواماوە)"],
-          "hunger_signs_ckb": ["سەرپێوی (سەر گێڕانەوە)", "دەست/مشتی مکانەوە", "تۆپی قووچ", "گریان (نیشانەی دواماوە)"],
-          "fullness_signs_en": ["Turns head away", "Closes mouth", "Relaxed hands", "Falls asleep"],
-          "fullness_signs_ar": ["يحول رأسه بعيداً", "يغلق فمه", "يرخي يديه", "يغفو"],
-          "fullness_signs_ku": ["سەر دەگێڕێتەوە", "دەمی دادەخات", "دەستەکانی ئارام دەبن", "دەنووێت"],
-          "fullness_signs_ckb": ["سەر دەگێڕێتەوە", "دەمی دادەخات", "دەستەکانی ئارام دەبن", "دەنووێت"],
-          "tip_en": "Feed on demand, not by schedule.",
-          "tip_ar": "أرضع عند الطلب، وليس حسب الجدول.",
-          "tip_ku": "لەگەڵ داواکاری خوارکی بدە، نە بەپێی خشتە.",
-          "tip_ckb": "لەگەڵ داواکاری خوارکی بدە، نە بەپێی خشتە."
+          "id": "all",
+          "label": {
+            "en": "All",
+            "ku_sorani": "هەموو",
+            "ku_badini": "Hemû",
+            "ar": "الكل"
+          }
         },
         {
-          "id": "mf_0_3_2",
-          "sub_type": "formula",
-          "title_en": "Formula Feeding",
-          "title_ar": "الرضاعة بالحليب الصناعي",
-          "title_ku": "خواردنی شیری دروستکراو",
-          "title_ckb": "خواردنی شیری دروستکراو",
-          "frequency_en": "Every 2–3 hours",
-          "frequency_ar": "كل 2–3 ساعات",
-          "frequency_ku": "هەر 2–3 کاتژمێر",
-          "frequency_ckb": "هەر 2–3 کاتژمێر",
-          "duration_en": "As long as baby wants",
-          "duration_ar": "طالما يريد الطفل",
-          "duration_ku": "تا منداڵی دەوێت",
-          "duration_ckb": "تا منداڵی دەوێت",
-          "hunger_signs_en": ["Rooting", "Sucking motions", "Fussiness", "Hands to mouth"],
-          "hunger_signs_ar": ["الجذر", "حركات المص", "الانزعاج", "اليدان إلى الفم"],
-          "hunger_signs_ku": ["سەرپێوی", "جووڵەی مکانەوە", "توندی", "دەست بۆ دەم"],
-          "hunger_signs_ckb": ["سەرپێوی", "جووڵەی مکانەوە", "توندی", "دەست بۆ دەم"],
-          "fullness_signs_en": ["Pushing bottle away", "Slowing down", "Turning head", "Falling asleep"],
-          "fullness_signs_ar": ["دفع الزجاجة بعيداً", "التباطؤ", "إدارة الرأس", "النوم"],
-          "fullness_signs_ku": ["بووتڵ دەدایەوە", "هێواش دەبێت", "سەر دەگێڕێتەوە", "دەنووێت"],
-          "fullness_signs_ckb": ["بووتڵ دەدایەوە", "هێواش دەبێت", "سەر دەگێڕێتەوە", "دەنووێت"],
-          "tip_en": "Newborns take 1.5–3 oz per feed (45–90 mL).",
-          "tip_ar": "المواليد الجدد يأخذون 1.5–3 أونصة لكل رضعة.",
-          "tip_ku": "نوێزانەکان 1.5–3 ئاونس هەر جار دەخوەن.",
-          "tip_ckb": "نوێزانەکان 1.5–3 ئاونس هەر جار دەخوەن."
+          "id": "breastfeeding",
+          "label": {
+            "en": "Breastfeeding",
+            "ku_sorani": "مەمکدانەوە",
+            "ku_badini": "Şîrdêbûn",
+            "ar": "الرضاعة الطبيعية"
+          }
         },
         {
-          "id": "mf_0_3_3",
-          "sub_type": "combination",
-          "title_en": "Combination Feeding",
-          "title_ar": "الرضاعة المختلطة",
-          "title_ku": "تێکەڵکاریی خواردن",
-          "title_ckb": "تێکەڵکاریی خواردن",
-          "frequency_en": "Mix of breast and bottle",
-          "frequency_ar": "مزيج من الثدي والزجاجة",
-          "frequency_ku": "تێکەڵەی شیرو بووتڵ",
-          "frequency_ckb": "تێکەڵەی شیرو بووتڵ",
-          "duration_en": "Varies by feed type",
-          "duration_ar": "يختلف حسب نوع الرضاعة",
-          "duration_ku": "جیاوازە بەپێی جۆری خواردن",
-          "duration_ckb": "جیاوازە بەپێی جۆری خواردن",
-          "hunger_signs_en": ["Same as breastfeeding cues"],
-          "hunger_signs_ar": ["نفس إشارات الرضاعة الطبيعية"],
-          "hunger_signs_ku": ["هەمان نیشانەکانی شیرخواری"],
-          "hunger_signs_ckb": ["هەمان نیشانەکانی شیرخواری"],
-          "fullness_signs_en": ["Same satisfaction cues"],
-          "fullness_signs_ar": ["نفس إشارات الشبع"],
-          "fullness_signs_ku": ["هەمان نیشانەکانی تێرە"],
-          "fullness_signs_ckb": ["هەمان نیشانەکانی تێرە"],
-          "tip_en": "Introduce bottle early (2–4 weeks) if combining.",
-          "tip_ar": "أدخل الزجاجة مبكراً (2–4 أسابيع) إذا كنت تجمع.",
-          "tip_ku": "بووتڵ زووتر دابنێ (2–4 هەفتە) ئەگەر تێکەڵ دەکەیت.",
-          "tip_ckb": "بووتڵ زووتر دابنێ (2–4 هەفتە) ئەگەر تێکەڵ دەکەیت."
+          "id": "formula_feeding",
+          "label": {
+            "en": "Formula Feeding",
+            "ku_sorani": "شیری دەرمانسازانە",
+            "ku_badini": "Şîrê Formulê",
+            "ar": "الرضاعة الصناعية"
+          }
+        },
+        {
+          "id": "combination",
+          "label": {
+            "en": "Combination",
+            "ku_sorani": "تێکەڵ",
+            "ku_badini": "Tevlihev",
+            "ar": "التغذية المختلطة"
+          }
         }
       ],
-      "solid_foods": [],
-      "sample_schedule": [
+      "age_ranges": [
         {
-          "id": "sch_0_3_1",
-          "sub_type": "breastfeeding",
-          "title_en": "Breastfeeding Schedule",
-          "title_ar": "جدول الرضاعة الطبيعية",
-          "title_ku": "خشتەی شیرخواری",
-          "title_ckb": "خشتەی شیرخواری",
-          "entries_en": ["6:00 AM – Feed", "8:30 AM – Feed", "11:00 AM – Feed", "1:30 PM – Feed", "4:00 PM – Feed", "6:30 PM – Feed", "9:00 PM – Feed", "12:00 AM – Feed", "3:00 AM – Feed"],
-          "entries_ar": ["6:00 صباحاً – رضاعة", "8:30 صباحاً – رضاعة", "11:00 صباحاً – رضاعة"],
-          "entries_ku": ["6:00 بەیانی – خواردن", "8:30 بەیانی – خواردن", "11:00 بەیانی – خواردن"],
-          "entries_ckb": ["6:00 بەیانی – خواردن", "8:30 بەیانی – خواردن", "11:00 بەیانی – خواردن"],
-          "tip_en": "This is a guideline — follow baby's cues.",
-          "tip_ar": "هذا مجرد دليل — اتبع إشارات طفلك.",
-          "tip_ku": "ئەمە رێنماییەکە — بانگەوازەکانی منداڵت بگرە چاو.",
-          "tip_ckb": "ئەمە رێنماییەکە — بانگەوازەکانی منداڵت بگرە چاو."
-        }
-      ],
-      "foods_to_avoid": [
-        {
-          "id": "fa_0_3_1",
-          "title_en": "Honey",
-          "title_ar": "العسل",
-          "title_ku": "هەنگوین",
-          "title_ckb": "هەنگوین",
-          "reason_en": "Risk of infant botulism — never give honey under 12 months.",
-          "reason_ar": "خطر التسمم الغذائي — لا تعط العسل تحت 12 شهراً.",
-          "reason_ku": "مەترسیی بوتولیزم — هیچ کاتێک هەنگوین لە ژێر 12 مانگدا مەدە.",
-          "reason_ckb": "مەترسیی بوتولیزم — هیچ کاتێک هەنگوین لە ژێر 12 مانگدا مەدە.",
-          "icon": "🍯"
+          "min_months": 0,
+          "max_months": 5,
+          "label": {
+            "en": "0-5 Months",
+            "ku_sorani": "٠-٥ مانگ",
+            "ku_badini": "0-5 Meh",
+            "ar": "0-5 أشهر"
+          },
+          "items": [
+            {
+              "id": "mf_bf_01_1",
+              "tab_id": "breastfeeding",
+              "title": {
+                "en": "Exclusive Breastfeeding",
+                "ku_sorani": "مەمکدانەوەی تایبەت",
+                "ku_badini": "Şîrdêbûna Taybet",
+                "ar": "الرضاعة الطبيعية الحصرية"
+              },
+              "description": {
+                "en": "FREQUENCY:\n8-12 feeds per day\n\nDURATION:\n10-45 minutes per feed\nUntil baby seems satisfied\n\nSIGNS OF HUNGER:\n• Rooting (turning head)\n• Sucking on hands/fists\n• Smacking lips\n• Crying (late sign)\n\nSIGNS OF FULLNESS:\n• Turns head away\n• Closes mouth\n• Relaxed hands\n• Falls asleep",
+                "ku_sorani": "دووبارەبوونەوە:\n٨-١٢ دابینکردن لە ڕۆژدا\n\nکاتژمێر:\n١٠-٤٥ خولەک بۆ هەر دابینکردنێک\nتاوەکو منداڵ تێرببێت\n\nنیشانەکانی برسێتی:\n• ماستکردن (سەرگێڕانەوە)\n• مژین دەست/مشت\n• تیلکردنی لێو\n• گریان (نیشانەی دوو)\n\nنیشانەکانی تێربوون:\n• سەر دەگێڕێتەوە\n• دەمی دادەخات\n• دەست ئارامبوون\n• دەخەوێت",
+                "ku_badini": "DUBARE BÛNE:\n8-12 xwarin/roj\n\nDIRÊJÎ:\n10-45 xulek bo her xwarinek\nTa pitik têr bibe\n\nNÎŞANEYÊN BIRÇÎBÛNÊ:\n• Zuqumbûn\n• Destên xwe dimije\n• Lêv vedike û datêne\n• Girî (nîşana dereng)\n\nNÎŞANEYÊN TÊRBÛNÊ:\n• Serê xwe dizivirîne\n• Devê xwe digire\n• Destên xwe bêhêz dike\n• Dixewê",
+                "ar": "التكرار:\n8-12 رضعة في اليوم\n\nالمدة:\n10-45 دقيقة للرضعة\nحتى يبدو الطفل ممتلئاً\n\nعلامات الجوع:\n• البحث (تحريك الرأس)\n• مص اليدين/القبضتين\n• تضغيط الشفاه\n• البكاء (علامة متأخرة)\n\nعلامات الشبع:\n• تحويل الرأس بعيداً\n• إغلاق الفم\n• يدان مسترخيتان\n• النوم"
+              },
+              "tip": {
+                "en": "Feed on demand, not by schedule.",
+                "ku_sorani": "لە پشت داواکاری خواردن بدە، نەک لە پشت جەدوەڵ.",
+                "ku_badini": "Li gorî daxwazê bixwêne, ne li gorî bernameye.",
+                "ar": "أرضع عند الطلب لا وفق جدول."
+              }
+            },
+            {
+              "id": "mf_ff_01_1",
+              "tab_id": "formula_feeding",
+              "title": {
+                "en": "Formula Feeding Basics",
+                "ku_sorani": "بنچینەکانی خواردنی شیری دەرمانسازانە",
+                "ku_badini": "Bingehên Xwarina Formulê",
+                "ar": "أساسيات الرضاعة الصناعية"
+              },
+              "description": {
+                "en": "FREQUENCY:\n8-12 feeds per day (every 2-3 hours)\n\nAMOUNT:\n• Week 1: 15-30 ml per feed\n• Weeks 2-4: 60-90 ml per feed\n• 1-2 months: 90-120 ml per feed\n• 3-4 months: 120-180 ml per feed\n\nSAFETY:\n• Always hold baby during feeding — never prop bottle.\n• Discard unused formula after 1 hour at room temperature.\n• Prepare with safe water (boiled and cooled for newborns).",
+                "ku_sorani": "دووبارەبوونەوە:\n٨-١٢ دابینکردن لە ڕۆژدا (هەموو ٢-٣ کاتژمێر)\n\nئەندازە:\n• هەفتەی ١: ١٥-٣٠ مل\n• هەفتەی ٢-٤: ٦٠-٩٠ مل\n• ١-٢ مانگ: ٩٠-١٢٠ مل\n• ٣-٤ مانگ: ١٢٠-١٨٠ مل\n\nئەمنیەت:\n• هەموو کات منداڵ بگرە کاتی خوارندن — شووشەت بەردەست مەکە.\n• شیری ئامادەنەکراوی بمێنێت پاش ١ کاتژمێر فرو بکەرەوە.",
+                "ku_badini": "DUBARE BÛNE:\n8-12 xwarin/roj (her 2-3 saet)\n\nMIQDAR:\n• Hefta 1: 15-30 ml\n• Hefte 2-4: 60-90 ml\n• 1-2 meh: 90-120 ml\n• 3-4 meh: 120-180 ml\n\nEMNIYET:\n• Herkê pitikê bigire dema xwaridinê.\n• Şîrê nehatî xwarin piştî 1 saetê berde.",
+                "ar": "التكرار:\n8-12 رضعة يومياً (كل 2-3 ساعات)\n\nالكمية:\n• الأسبوع 1: 15-30 مل\n• الأسابيع 2-4: 60-90 مل\n• 1-2 أشهر: 90-120 مل\n• 3-4 أشهر: 120-180 مل\n\nالسلامة:\n• احمل الطفل دائماً أثناء الرضاعة.\n• تخلص من الحليب غير المستخدم بعد ساعة."
+              },
+              "tip": {
+                "en": "Feed on demand. Hunger cues are the best guide.",
+                "ku_sorani": "لە پشت داواکاری خواردن بدە. نیشانەی برسێتی باشترین ڕێنماییە.",
+                "ku_badini": "Li gorî daxwazê bixwêne.",
+                "ar": "أرضع عند الطلب. إشارات الجوع هي أفضل دليل."
+              }
+            },
+            {
+              "id": "mf_comb_01_1",
+              "tab_id": "combination",
+              "title": {
+                "en": "Combination Feeding",
+                "ku_sorani": "خواردنی تێکەڵ",
+                "ku_badini": "Xwarina Tevlihev",
+                "ar": "التغذية المختلطة"
+              },
+              "description": {
+                "en": "Combining breast milk and formula is perfectly fine. Tips:\n\n• Offer breast first, then top up with formula if needed.\n• Introduce bottle gradually (from 3-4 weeks) to avoid nipple confusion.\n• Keep at least 1 breastfeed per day to maintain milk supply.\n• Stay consistent with feeding schedule to manage supply.",
+                "ku_sorani": "تێکەڵکردنی شیری مەمک و شیری دەرمانسازانە کاملاً باشە.\n\n• پێشەوە مەمک پێبدە، دوا شیری دەرمانسازانە زیاد بکە ئەگەر پێویستی بوو.\n• بە هێواشی شووشە داخڵ بکە (لە ٣-٤ هەفتەوە).\n• لانی کەم ١ دابینکردنی مەمک بپارێزە.",
+                "ku_badini": "Tevlîhevkirina şîrê mê û formulê temam baş e.\n\n• Pêşî mê pêbide, piştre formula zêde bike.\n• Şûşê hêdî hêdî têxe (ji 3-4 hefteyî).\n• Herî kêm 1 xwarina mê biparêze.",
+                "ar": "الجمع بين حليب الثدي والحليب الصناعي أمر طبيعي تماماً.\n\n• قدمي الثدي أولاً ثم أضيفي الحليب الصناعي عند الحاجة.\n• قدمي الزجاجة تدريجياً (من 3-4 أسابيع).\n• حافظي على رضعة ثدي واحدة على الأقل يومياً."
+              },
+              "tip": null
+            }
+          ]
         },
         {
-          "id": "fa_0_3_2",
-          "title_en": "Cow's Milk",
-          "title_ar": "حليب البقر",
-          "title_ku": "شیری مانگا",
-          "title_ckb": "شیری مانگا",
-          "reason_en": "Kidneys can't handle the protein load. Breast milk or formula only under 12 months.",
-          "reason_ar": "لا تستطيع الكليتان التعامل مع حمل البروتين. حليب الثدي أو الحليب الصناعي فقط تحت 12 شهراً.",
-          "reason_ku": "گورچیلەکان ناتوانن بار پرۆتینەکان بگرن. تەنها شیری دایک یان شیری دروستکراو لە ژێر 12 مانگدا.",
-          "reason_ckb": "گورچیلەکان ناتوانن بار پرۆتینەکان بگرن. تەنها شیری دایک یان شیری دروستکراو لە ژێر 12 مانگدا.",
-          "icon": "🥛"
-        },
-        {
-          "id": "fa_0_3_3",
-          "title_en": "Solid Foods",
-          "title_ar": "الأطعمة الصلبة",
-          "title_ku": "خواردنی سەخت",
-          "title_ckb": "خواردنی سەخت",
-          "reason_en": "Digestive system is not ready. Only breast milk or formula for the first 6 months.",
-          "reason_ar": "الجهاز الهضمي ليس مستعداً. حليب الثدي أو الحليب الصناعي فقط لأول 6 أشهر.",
-          "reason_ku": "سیستەمی گواستنەوەی خواردن ئامادە نییە. تەنها شیری دایک یان شیری دروستکراو بۆ 6 مانگی یەکەم.",
-          "reason_ckb": "سیستەمی گواستنەوەی خواردن ئامادە نییە. تەنها شیری دایک یان شیری دروستکراو بۆ 6 مانگی یەکەم.",
-          "icon": "🥄"
-        }
-      ],
-      "feeding_tips": [
-        {
-          "id": "ft_0_3_1",
-          "title_en": "Track Wet Diapers",
-          "title_ar": "تتبع الحفاضات المبللة",
-          "title_ku": "شوێنکەوتنی جانتاوەی تەر",
-          "title_ckb": "شوێنکەوتنی جانتاوەی تەر",
-          "description_en": "6+ wet diapers per day indicates adequate milk intake. Less may signal low supply.",
-          "description_ar": "6 حفاضات مبللة أو أكثر يومياً يشير إلى تناول كافٍ للحليب.",
-          "description_ku": "6 جانتاوەی تەر یان زیاتر لە ڕۆژدا نیشانی وەرگرتنی شیری پێویست دەدات.",
-          "description_ckb": "6 جانتاوەی تەر یان زیاتر لە ڕۆژدا نیشانی وەرگرتنی شیری پێویست دەدات.",
-          "tip_en": "Keep a feeding log for the first few weeks.",
-          "tip_ar": "احتفظ بسجل التغذية للأسابيع القليلة الأولى.",
-          "tip_ku": "تۆمارکردنی خواردن بۆ چەند هەفتەی یەکەم بگرە.",
-          "tip_ckb": "تۆمارکردنی خواردن بۆ چەند هەفتەی یەکەم بگرە.",
-          "icon": "📊"
-        },
-        {
-          "id": "ft_0_3_2",
-          "title_en": "Burp After Every Feed",
-          "title_ar": "التجشؤ بعد كل رضعة",
-          "title_ku": "دەم پیشکانی دوای هەر خواردنێک",
-          "title_ckb": "دەم پیشکانی دوای هەر خواردنێک",
-          "description_en": "Burp your baby mid-feed and at the end. This reduces gas and spit-up.",
-          "description_ar": "جشئ طفلك في منتصف الرضاعة وفي النهاية. يقلل ذلك من الغازات والقيء.",
-          "description_ku": "منداڵت لەنێوانی خواردن و لە کۆتایی دا دەمی پیشکاندانێ. ئەمە گازو دووپات کەمدەکاتەوە.",
-          "description_ckb": "منداڵت لەنێوانی خواردن و لە کۆتایی دا دەمی پیشکاندانێ. ئەمە گازو دووپات کەمدەکاتەوە.",
-          "tip_en": "Try different burping positions to find what works.",
-          "tip_ar": "جرب أوضاع التجشؤ المختلفة للعثور على ما يصلح.",
-          "tip_ku": "شێوازەکانی جیاوازی پیشکانی تاقی بکەرەوە.",
-          "tip_ckb": "شێوازەکانی جیاوازی پیشکانی تاقی بکەرەوە.",
-          "icon": "👶"
+          "min_months": 6,
+          "max_months": 8,
+          "label": {
+            "en": "6-8 Months",
+            "ku_sorani": "٦-٨ مانگ",
+            "ku_badini": "6-8 Meh",
+            "ar": "6-8 أشهر"
+          },
+          "items": [
+            {
+              "id": "mf_bf_68_1",
+              "tab_id": "breastfeeding",
+              "title": {
+                "en": "Breastfeeding + Solids Introduction",
+                "ku_sorani": "مەمکدانەوە + داخڵکردنی خواردنی جامد",
+                "ku_badini": "Şîrdêbûn + Destpêkirina Xwarinên Hişk",
+                "ar": "الرضاعة الطبيعية + بدء الأطعمة الصلبة"
+              },
+              "description": {
+                "en": "Continue breastfeeding on demand (4-6 times/day). Breast milk remains the primary nutrition source even after solids begin.\n\n• Offer breast milk before solid foods.\n• Introduce solids as complement, not replacement.\n• Maintain night feeds if baby requests.",
+                "ku_sorani": "بەردەوام بە مەمکدانەوەی لە پشت داواکاری (٤-٦ جار/ڕۆژ). شیری مەمک سەرچاوەی سەرەکیی خۆراکە.\n\n• شیر لە پێش خواردنی جامد پێبدە.\n• خواردنی جامد بە دووپاتک داخڵ بکە، نەک جێگرەوە.",
+                "ku_badini": "Berdewam bi şîrdêbûna li gorî daxwazê (4-6 caran/roj).\n\n• Şîr berî xwarinên hişk bide.\n• Xwarinên hişk wek temam, ne cîgir.",
+                "ar": "استمر في الرضاعة الطبيعية حسب الطلب (4-6 مرات/يوم). يبقى حليب الثدي المصدر الغذائي الرئيسي.\n\n• قدم حليب الثدي قبل الأطعمة الصلبة.\n• أدخل الأطعمة كمكمل لا بديل."
+              },
+              "tip": {
+                "en": "Breast milk supply adjusts naturally as solids increase. No need to supplement unless medically advised.",
+                "ku_sorani": "بەرهەمهێنانی شیری مەمک بە سروشتی ئیستیقرار دەکات.",
+                "ku_badini": "Hilberîna şîr bi xwezayî adapte dibe.",
+                "ar": "ينتظم إنتاج حليب الثدي تلقائياً مع زيادة الأطعمة الصلبة."
+              }
+            }
+          ]
         }
       ]
     },
     {
-      "id": "4_6m",
-      "label_en": "4–6 Months",
-      "label_ar": "4–6 أشهر",
-      "label_ku": "4–6 مانگ",
-      "label_ckb": "4–6 مانگ",
-      "min_months": 4,
-      "max_months": 6,
-      "milk_feeding": [
+      "id": "solid_foods",
+      "icon": "solid_foods",
+      "title": {
+        "en": "Solid Foods",
+        "ku_sorani": "خواردنی جامد",
+        "ku_badini": "Xwarinên Hişk",
+        "ar": "الأطعمة الصلبة"
+      },
+      "tabs": null,
+      "age_ranges": [
         {
-          "id": "mf_4_6_1",
-          "sub_type": "breastfeeding",
-          "title_en": "Breastfeeding at 4–6 Months",
-          "title_ar": "الرضاعة الطبيعية في 4–6 أشهر",
-          "title_ku": "شیرخواری لە 4–6 مانگدا",
-          "title_ckb": "شیرخواری لە 4–6 مانگدا",
-          "frequency_en": "5–7 feeds per day",
-          "frequency_ar": "5–7 رضعات يومياً",
-          "frequency_ku": "5–7 جار لە ڕۆژدا",
-          "frequency_ckb": "5–7 جار لە ڕۆژدا",
-          "duration_en": "10–20 minutes per feed",
-          "duration_ar": "10–20 دقيقة لكل رضعة",
-          "duration_ku": "10–20 خولەک هەر جار",
-          "duration_ckb": "10–20 خولەک هەر جار",
-          "hunger_signs_en": ["Rooting", "Fussiness", "Chewing hands"],
-          "hunger_signs_ar": ["الجذر", "الانزعاج", "مضغ اليدين"],
-          "hunger_signs_ku": ["سەرپێوی", "توندی", "چانەی دەست"],
-          "hunger_signs_ckb": ["سەرپێوی", "توندی", "چانەی دەست"],
-          "fullness_signs_en": ["Turning away", "Distracted by surroundings", "Relaxed"],
-          "fullness_signs_ar": ["الالتفات بعيداً", "الانشغال بالمحيط", "الاسترخاء"],
-          "fullness_signs_ku": ["دوور دەکەوێتەوە", "بادەدرانی ژینگە", "ئارام"],
-          "fullness_signs_ckb": ["دوور دەکەوێتەوە", "بادەدرانی ژینگە", "ئارام"],
-          "tip_en": "You may notice feeding efficiency improves — sessions get shorter.",
-          "tip_ar": "قد تلاحظ تحسن كفاءة الرضاعة — تصبح الجلسات أقصر.",
-          "tip_ku": "دەتتوانی ببینی کارایی خواردن باشتر دەبێت — دانیشتنەکان کورتر دەبن.",
-          "tip_ckb": "دەتتوانی ببینی کارایی خواردن باشتر دەبێت — دانیشتنەکان کورتر دەبن."
-        }
-      ],
-      "solid_foods": [
-        {
-          "id": "sf_4_6_1",
-          "title_en": "Starting Solids — Signs of Readiness",
-          "title_ar": "بدء الأطعمة الصلبة — علامات الاستعداد",
-          "title_ku": "دەستپێکردنی خواردنی سەخت — نیشانەکانی ئامادەیی",
-          "title_ckb": "دەستپێکردنی خواردنی سەخت — نیشانەکانی ئامادەیی",
-          "description_en": "Most babies are ready between 4–6 months. Look for: sitting with support, showing interest in food, loss of tongue-thrust reflex.",
-          "description_ar": "معظم الأطفال مستعدون بين 4–6 أشهر. ابحث عن: الجلوس بدعم، وإظهار الاهتمام بالطعام.",
-          "description_ku": "زۆرینەی منداڵان لە نێوان 4–6 مانگدا ئامادەن. گەڕان بۆ: نیشتنی بەپشتەوانە، ئولەیلاندن بۆ خواردن.",
-          "description_ckb": "زۆرینەی منداڵان لە نێوان 4–6 مانگدا ئامادەن. گەڕان بۆ: نیشتنی بەپشتەوانە، ئولەیلاندن بۆ خواردن.",
-          "foods_en": ["Single-grain infant cereal", "Pureed vegetables (sweet potato, peas)", "Pureed fruits (banana, avocado)"],
-          "foods_ar": ["حبوب أطفال أحادية الحبوب", "خضروات مهروسة (بطاطا حلوة، بازلاء)", "فواكه مهروسة (موز، أفوكادو)"],
-          "foods_ku": ["غلەی منداڵی تاک-دانەیی", "سەوزەی پووڕکراو (سوی شیرین، نووک)", "میوەی پووڕکراو (مۆز، ئاڤۆکادۆ)"],
-          "foods_ckb": ["غلەی منداڵی تاک-دانەیی", "سەوزەی پووڕکراو (سوی شیرین، نووک)", "میوەی پووڕکراو (مۆز، ئاڤۆکادۆ)"],
-          "tip_en": "Always check with your pediatrician before starting solids.",
-          "tip_ar": "تحقق دائمًا مع طبيب الأطفال قبل بدء الأطعمة الصلبة.",
-          "tip_ku": "هەمیشە پێش دەستپێکردنی خواردنی سەخت لەگەڵ پزیشکی منداڵ کۆبوو.",
-          "tip_ckb": "هەمیشە پێش دەستپێکردنی خواردنی سەخت لەگەڵ پزیشکی منداڵ کۆبوو."
-        }
-      ],
-      "sample_schedule": [
-        {
-          "id": "sch_4_6_1",
-          "sub_type": "breastfeeding",
-          "title_en": "Daily Feeding Schedule",
-          "title_ar": "جدول التغذية اليومي",
-          "title_ku": "خشتەی خواردنی ڕۆژانە",
-          "title_ckb": "خشتەی خواردنی ڕۆژانە",
-          "entries_en": ["7:00 AM – Breastfeed", "10:00 AM – Breastfeed", "1:00 PM – Breastfeed + first taste of solids", "4:00 PM – Breastfeed", "7:00 PM – Breastfeed"],
-          "entries_ar": ["7:00 صباحاً – رضاعة طبيعية", "10:00 صباحاً – رضاعة طبيعية", "1:00 مساءً – رضاعة + أول تذوق للأطعمة"],
-          "entries_ku": ["7:00 بەیانی – شیرخواری", "10:00 بەیانی – شیرخواری", "1:00 دوانیوەڕۆ – شیرخواری + یەکەم چێشت"],
-          "entries_ckb": ["7:00 بەیانی – شیرخواری", "10:00 بەیانی – شیرخواری", "1:00 دوانیوەڕۆ – شیرخواری + یەکەم چێشت"],
-          "tip_en": "Breast milk remains primary nutrition.",
-          "tip_ar": "حليب الثدي يبقى التغذية الأساسية.",
-          "tip_ku": "شیری دایک خۆراکی سەرەکی دەمێنێتەوە.",
-          "tip_ckb": "شیری دایک خۆراکی سەرەکی دەمێنێتەوە."
-        }
-      ],
-      "foods_to_avoid": [
-        {
-          "id": "fa_4_6_1",
-          "title_en": "Honey",
-          "title_ar": "العسل",
-          "title_ku": "هەنگوین",
-          "title_ckb": "هەنگوین",
-          "reason_en": "Never under 12 months — botulism risk.",
-          "reason_ar": "أبداً تحت 12 شهراً — خطر التسمم الغذائي.",
-          "reason_ku": "هیچ کاتێک لە ژێر 12 مانگدا — مەترسیی بوتولیزم.",
-          "reason_ckb": "هیچ کاتێک لە ژێر 12 مانگدا — مەترسیی بوتولیزم.",
-          "icon": "🍯"
+          "min_months": 0,
+          "max_months": 5,
+          "label": {
+            "en": "0-5 Months",
+            "ku_sorani": "٠-٥ مانگ",
+            "ku_badini": "0-5 Meh",
+            "ar": "0-5 أشهر"
+          },
+          "items": [
+            {
+              "id": "sf_05_1",
+              "title": {
+                "en": "Not Ready for Solids Yet",
+                "ku_sorani": "هێشتا ئامادە نییە بۆ خواردنی جامد",
+                "ku_badini": "Hê bo Xwarinên Hişk Amade Nîne",
+                "ar": "غير مستعد للأطعمة الصلبة بعد"
+              },
+              "description": {
+                "en": "Babies should not start solid foods before 6 months. At this age, breast milk or formula provides all the nutrition they need.\n\nWHY WAIT:\n• Digestive system is still developing.\n• Risk of allergies increases if introduced too early.\n• Milk provides all necessary nutrients.",
+                "ku_sorani": "منداڵان نابێت خواردنی جامد لە پێش ٦ مانگ دەست پێ بکەن.\n\nبۆچی چاوەڕوانی بکەی:\n• سیستەمی ئیندیژنە هێشتا گەشەیدەکات.\n• مەترسی ئالێرژی زیاددەبێت ئەگەر زووتر داخڵ بکرێت.\n• شیر هەموو خۆراکی پێویستی دابین دەکات.",
+                "ku_badini": "Zarok divê berî 6 mehî dest bi xwarinên hişk nekin.\n\nBÊJÇI BISEKINE:\n• Pergala hevsaziyê hê xwe pêş dixe.\n• Rîska alerjiyê zêde dibe.\n• Şîr hemû xurekên hewce dide.",
+                "ar": "لا ينبغي البدء بالأطعمة الصلبة قبل 6 أشهر.\n\nلماذا تنتظر:\n• الجهاز الهضمي لا يزال يتطور.\n• خطر الحساسية يزيد مع الإدخال المبكر.\n• الحليب يوفر جميع العناصر الغذائية."
+              },
+              "tip": {
+                "en": "If baby seems unsatisfied on milk alone, consult your pediatrician — never add cereal to bottles.",
+                "ku_sorani": "ئەگەر منداڵ لە شیری تەنیا تێر نییە، پزیشکی منداڵت بپرسە.",
+                "ku_badini": "Eger pitik ji şîrê tenê têr nabe, bijîjkê pitikan bipirse.",
+                "ar": "إذا بدا الطفل غير مرتاح على الحليب فقط، استشر طبيب الأطفال."
+              }
+            }
+          ]
         },
         {
-          "id": "fa_4_6_2",
-          "title_en": "Added Salt & Sugar",
-          "title_ar": "الملح والسكر المضاف",
-          "title_ku": "خوێ و شەکر زیادکراو",
-          "title_ckb": "خوێ و شەکر زیادکراو",
-          "reason_en": "Kidneys can't process excess sodium. Avoid all added salt and sugar.",
-          "reason_ar": "لا تستطيع الكليتان معالجة الصوديوم الزائد. تجنب كل الملح والسكر المضاف.",
-          "reason_ku": "گورچیلەکان نایتوانن سۆدیومی زیادە کارپێبکەن. خودانی هەموو خوێ و شەکری زیادکراو.",
-          "reason_ckb": "گورچیلەکان نایتوانن سۆدیومی زیادە کارپێبکەن. خودانی هەموو خوێ و شەکری زیادکراو.",
-          "icon": "🧂"
-        }
-      ],
-      "feeding_tips": [
+          "min_months": 6,
+          "max_months": 8,
+          "label": {
+            "en": "6-8 Months",
+            "ku_sorani": "٦-٨ مانگ",
+            "ku_badini": "6-8 Meh",
+            "ar": "6-8 أشهر"
+          },
+          "items": [
+            {
+              "id": "sf_68_1",
+              "title": {
+                "en": "Starting Solids — First Foods",
+                "ku_sorani": "دەستپێکردنی خواردنی جامد — خواردنە یەکەمەکان",
+                "ku_badini": "Destpêkirina Hişkan — Xwarinên Yekem",
+                "ar": "بدء الأطعمة الصلبة — الأطعمة الأولى"
+              },
+              "description": {
+                "en": "SIGNS OF READINESS:\n• Can sit with support\n• Good head control\n• Shows interest in food\n• Tongue-thrust reflex gone\n\nFIRST FOODS (single ingredient, pureed):\n• Pureed vegetables: sweet potato, carrot, peas\n• Pureed fruits: apple, pear, banana\n• Iron-fortified baby cereals\n• Pureed meats\n\nHOW TO START:\n• 1-2 teaspoons once a day\n• Gradually increase amount and frequency\n• Wait 3-5 days between new foods to watch for reactions",
+                "ku_sorani": "نیشانەکانی ئامادەیی:\n• دەتوانێت بنیشێت لەگەڵ پاڵپشتی\n• کۆنترۆڵی سەری باشە\n• قیزانی خواردن نیشان دەدات\n\nخواردنەی یەکەمەکان (یەک پێکهاتە، هەڵپناوی):\n• سەوزەی هەڵپناو: کارتۆڵی شیرین، گەزەر\n• میوەی هەڵپناو: سێو، مرووک، مۆز\n• شلانی منداڵی پتەودار بە ئاسن\n\nچۆنیەتی دەستپێکردن:\n• ١-٢ قاشۆی چای ١ جار لە ڕۆژدا\n• بە هێواشی زیادی بکە\n• ٣-٥ ڕۆژ چاوەڕوانی بکە لەنێوان خواردنی نوێ",
+                "ku_badini": "NÎŞANEYÊN AMADEBÛNÊ:\n• Dikare binestnê bi piştgirî\n• Serê xwe baş digire\n• Eleqa li xwarinê nîşan dide\n\nXWARINÊN YEKEM:\n• Paqijkirî: kartola şîrin, gêzer\n• Mêwe: sêv, hirmê, mûz\n• Grûpên pitikê yên bi hesin\n\nÇAWA DEST PÊ BIKE:\n• 1-2 qutik caran di rojê de\n• Hêdî zêde bike\n• 3-5 roj bisekine di navbera xwarinên nû",
+                "ar": "علامات الاستعداد:\n• يجلس بدعم\n• يتحكم في رأسه جيداً\n• يُبدي اهتماماً بالطعام\n\nالأطعمة الأولى (مفردة المكون، مهروسة):\n• خضروات مهروسة: بطاطا حلوة، جزر\n• فواكه مهروسة: تفاح، كمثرى، موز\n• حبوب مدعمة بالحديد\n\nكيف تبدأ:\n• ملعقة صغيرة مرة يومياً\n• زد الكمية تدريجياً\n• انتظر 3-5 أيام بين كل طعام جديد"
+              },
+              "tip": {
+                "en": "Baby-led weaning (offering soft finger foods) can be introduced alongside purees from 6 months.",
+                "ku_sorani": "فطامی منداڵ-ڕێبەری (پێشکەشکردنی خواردنی نەرمی ئەنگوستی) دەتوانرێت لەگەڵ هەڵپناو لە ٦ مانگ دەست پێ بکرێت.",
+                "ku_badini": "Werankirina pitik-rêber dikare ligel paqijkirî ji 6 mehî dest pê bike.",
+                "ar": "يمكن تقديم أصابع الطعام اللينة جنباً إلى جنب مع المهروسات من 6 أشهر."
+              }
+            },
+            {
+              "id": "sf_68_2",
+              "title": {
+                "en": "Texture Progression",
+                "ku_sorani": "پێشکەوتنی تازیانەکەی",
+                "ku_badini": "Pêşkeftina Texture",
+                "ar": "تطور القوام"
+              },
+              "description": {
+                "en": "6 months: Smooth, thin purees (no lumps)\n7 months: Thicker purees, mashed foods\n8 months: Soft lumps, minced foods, soft finger foods\n\nNever give:\n• Honey (before 1 year)\n• Whole cow's milk as main drink (before 1 year)\n• Choking hazards (whole grapes, nuts, raw carrots)\n• Added salt or sugar",
+                "ku_sorani": "٦ مانگ: هەڵپناوی نەرم و تین\n٧ مانگ: هەڵپناوی قورستر، خواردنی دروشتکراو\n٨ مانگ: گۆچکی نەرم، خواردنی بچووک، خواردنی ئەنگوستی نەرم\n\nهەرگیز نەدە:\n• شان (پێش ١ ساڵ)\n• شیری مانگا بەتەنیا (پێش ١ ساڵ)\n• مەترسییەکانی خەنگی",
+                "ku_badini": "6 meh: Paqijkirî nerm û tenik\n7 meh: Paqijkirî qurs, xwarin hejandin\n8 meh: Çirçirk nerm, xwarina tiliyê\n\nQet nede:\n• Hingiv (berî 1 salî)\n• Şîrê çêlek wek vexwarina sereke\n• Tiştên xenî",
+                "ar": "6 أشهر: مهروسات ناعمة رقيقة\n7 أشهر: مهروسات أثقل، طعام مهروس باليد\n8 أشهر: كتل لينة، أصابع طعام ناعمة\n\nلا تعطِ أبداً:\n• العسل (قبل سنة)\n• حليب البقر كمشروب رئيسي (قبل سنة)\n• مخاطر الاختناق"
+              },
+              "tip": null
+            }
+          ]
+        },
         {
-          "id": "ft_4_6_1",
-          "title_en": "One New Food at a Time",
-          "title_ar": "طعام جديد واحد في كل مرة",
-          "title_ku": "یەک خواردنی نوێ هەر جار",
-          "title_ckb": "یەک خواردنی نوێ هەر جار",
-          "description_en": "Introduce one new food every 3–5 days to spot allergic reactions.",
-          "description_ar": "أدخل طعامًا جديدًا واحدًا كل 3–5 أيام لاكتشاف ردود الفعل التحسسية.",
-          "description_ku": "هەر 3–5 ڕۆژ یەک خواردنی نوێ دابنێ بۆ دیتنی وەڵامدانەوەی ئالەرژی.",
-          "description_ckb": "هەر 3–5 ڕۆژ یەک خواردنی نوێ دابنێ بۆ دیتنی وەڵامدانەوەی ئالەرژی.",
-          "tip_en": "Introduce common allergens early (with doctor guidance).",
-          "tip_ar": "أدخل مسببات الحساسية الشائعة مبكراً (بتوجيه من الطبيب).",
-          "tip_ku": "مادە ئالەرژیەکان زوو دابنێ (بەرێنماییی پزیشک).",
-          "tip_ckb": "مادە ئالەرژیەکان زوو دابنێ (بەرێنماییی پزیشک).",
-          "icon": "🥣"
+          "min_months": 9,
+          "max_months": 11,
+          "label": {
+            "en": "9-11 Months",
+            "ku_sorani": "٩-١١ مانگ",
+            "ku_badini": "9-11 Meh",
+            "ar": "9-11 شهر"
+          },
+          "items": [
+            {
+              "id": "sf_911_1",
+              "title": {
+                "en": "Advancing Texture & Self-Feeding",
+                "ku_sorani": "پێشکەوتنی تازیانەکە و خواردنی سەربەخۆ",
+                "ku_badini": "Pêşkeftina Texture û Xwarina Serbixwe",
+                "ar": "تطور القوام والأكل المستقل"
+              },
+              "description": {
+                "en": "At 9-11 months:\n• Minced, chopped, and mashed family foods\n• Soft finger foods (soft cooked veggies, ripe fruit pieces)\n• Begin transitioning to family mealtimes\n• 3 meals + 1-2 snacks per day\n• Continue breast milk or formula (3-4 times/day)\n\nENCOURAGE SELF-FEEDING:\n• Let baby use hands and attempt spoon\n• Expect mess — it's developmental!\n• Offer variety of colors and textures",
+                "ku_sorani": "لە ٩-١١ مانگ:\n• خواردنی خانەواوە بچووککراو\n• خواردنی ئەنگوستی نەرم\n• ٣ خواردن + ١-٢ خواردنی کەمپشتی لە ڕۆژدا\n• بەردەوامی شیر (٣-٤ جار/ڕۆژ)\n\nهاندانی خواردنی سەربەخۆ:\n• بهێڵ منداڵ دەستی بەکار بهێنێت\n• چاوەڕوانی ئاڵودەبوون بکە",
+                "ku_badini": "Di 9-11 mehî de:\n• Xwarinên malbatê yên biçûk kirî\n• Xwarinên tilî yên nerm\n• 3 xwarin + 1-2 xwarinên piçûk/roj\n• Şîr berdewam bike (3-4 caran/roj)\n\nPROTEK XWARINA SERBIXWE:\n• Bihêle pitik dest bikar bîne\n• Ristekirinê hêvî bike",
+                "ar": "في 9-11 شهراً:\n• أطعمة عائلية مفرومة ومهروسة\n• أصابع طعام لينة\n• 3 وجبات + 1-2 وجبات خفيفة/يوم\n• الحليب 3-4 مرات يومياً\n\nشجع الأكل المستقل:\n• اسمح للطفل باستخدام يديه\n• توقع الفوضى — هذا طبيعي!"
+              },
+              "tip": {
+                "en": "Responsive feeding — follow baby's hunger and fullness cues, not a strict quantity target.",
+                "ku_sorani": "خواردنی وەڵامدەرەوە — شوێن نیشانەکانی برسێتی و تێربوونی منداڵ بکەوە.",
+                "ku_badini": "Xwarina bersivdar — li gorî nîşaneyên birçîbûn û têrbûnê bixwêne.",
+                "ar": "التغذية التجاوبية — اتبع إشارات الجوع والشبع لدى الطفل."
+              }
+            }
+          ]
+        },
+        {
+          "min_months": 12,
+          "max_months": 18,
+          "label": {
+            "en": "12-18 Months",
+            "ku_sorani": "١٢-١٨ مانگ",
+            "ku_badini": "12-18 Meh",
+            "ar": "12-18 شهر"
+          },
+          "items": [
+            {
+              "id": "sf_1218_1",
+              "title": {
+                "en": "Transitioning to Family Foods",
+                "ku_sorani": "گواستنەوە بۆ خواردنی خانەواوە",
+                "ku_badini": "Veguhestina bo Xwarinên Malbatê",
+                "ar": "الانتقال لأطعمة الأسرة"
+              },
+              "description": {
+                "en": "At 12 months, baby can eat most family foods with minor modifications:\n• Cut food into small pieces (1 cm)\n• Avoid added salt and sugar\n• Full-fat dairy is now appropriate (yogurt, cheese)\n• Can transition to whole cow's milk (instead of formula)\n\nMEAL PATTERN:\n• 3 main meals + 2 snacks/day\n• Milk: 2-3 times/day (not more than 500 ml)\n• Water with meals",
+                "ku_sorani": "لە ١٢ مانگ، منداڵ دەتوانێت زۆرینەی خواردنی خانەواوە بخوات:\n• خواردن بچووک بکە (١ سانتیمەتر)\n• خێو و شەکر زیاد مەکە\n• شیری مانگا تەواو دەکرێت (لە جیاتی فۆرموڵا)\n\nشێوازی خواردن:\n• ٣ خواردنی سەرەکی + ٢ خواردنی کەمپشتی/ڕۆژ\n• شیر: ٢-٣ جار/ڕۆژ (نەک زیاتر لە ٥٠٠ مل)",
+                "ku_badini": "Di 12 mehî de, pitik dikare piraniya xwarinên malbatê bixwe:\n• Xwarin qut bike (1 cm)\n• Xwê û şekir zêde neke\n• Şîrê çêlek temam niha guncaw e\n\nŞÊWAZA XWARINÊ:\n• 3 xwarin + 2 xwarinên piçûk/roj\n• Şîr: 2-3 caran/roj",
+                "ar": "في 12 شهراً يمكن للطفل تناول معظم أطعمة الأسرة:\n• قطع الطعام إلى قطع صغيرة (1 سم)\n• تجنب الملح والسكر المضاف\n• منتجات الألبان كاملة الدسم مناسبة الآن\n\nnنمط الوجبات:\n• 3 وجبات رئيسية + 2 وجبات خفيفة/يوم\n• الحليب: 2-3 مرات/يوم (لا أكثر من 500 مل)"
+              },
+              "tip": {
+                "en": "It can take 10-15 exposures to a new food before a child accepts it. Keep offering, don't give up!",
+                "ku_sorani": "دەتوانێت ١٠-١٥ دووباردانەوە پێویست بێت پێش وەرگرتنی خواردنێکی نوێ. بەردەوام پێشکەش بکە!",
+                "ku_badini": "Dibe ku 10-15 caran pêş were ku zarok xwarinek nû qebûl bike.",
+                "ar": "قد يحتاج من 10-15 تعرضاً قبل أن يقبل الطفل طعاماً جديداً. استمر!"
+              }
+            }
+          ]
         }
       ]
     },
     {
-      "id": "7_12m",
-      "label_en": "7–12 Months",
-      "label_ar": "7–12 شهراً",
-      "label_ku": "7–12 مانگ",
-      "label_ckb": "7–12 مانگ",
-      "min_months": 7,
-      "max_months": 12,
-      "milk_feeding": [
+      "id": "sample_schedule",
+      "icon": "schedule",
+      "title": {
+        "en": "Sample Schedule",
+        "ku_sorani": "جەدوەڵی نموونە",
+        "ku_badini": "Bernameya Nimûne",
+        "ar": "جدول نموذجي"
+      },
+      "tabs": null,
+      "age_ranges": [
         {
-          "id": "mf_7_12_1",
-          "sub_type": "breastfeeding",
-          "title_en": "Breastfeeding + Solids",
-          "title_ar": "الرضاعة الطبيعية + الأطعمة الصلبة",
-          "title_ku": "شیرخواری + خواردنی سەخت",
-          "title_ckb": "شیرخواری + خواردنی سەخت",
-          "frequency_en": "4–5 feeds per day",
-          "frequency_ar": "4–5 رضعات يومياً",
-          "frequency_ku": "4–5 جار لە ڕۆژدا",
-          "frequency_ckb": "4–5 جار لە ڕۆژدا",
-          "duration_en": "Varies — shorter as solids increase",
-          "duration_ar": "يتفاوت — أقصر مع زيادة الأطعمة الصلبة",
-          "duration_ku": "جیاوازە — کورتر ئەگەر خواردنی سەخت زیاد بێت",
-          "duration_ckb": "جیاوازە — کورتر ئەگەر خواردنی سەخت زیاد بێت",
-          "hunger_signs_en": ["Reaching for food", "Opening mouth when food approaches", "Excitement at meal time"],
-          "hunger_signs_ar": ["الوصول للطعام", "فتح الفم عند اقتراب الطعام", "الإثارة وقت الوجبة"],
-          "hunger_signs_ku": ["گەیشتن بۆ خواردن", "کردنەوەی دەم کاتێک خواردن نزیک دەبێت", "شاباشیی کاتی خواردنی"],
-          "hunger_signs_ckb": ["گەیشتن بۆ خواردن", "کردنەوەی دەم کاتێک خواردن نزیک دەبێت", "شاباشیی کاتی خواردنی"],
-          "fullness_signs_en": ["Turning head away from spoon", "Sealing lips", "Playing with food"],
-          "fullness_signs_ar": ["إبعاد الرأس عن الملعقة", "إغلاق الشفتين", "العب بالطعام"],
-          "fullness_signs_ku": ["سەر دووریکردنەوە لە قاشۆ", "داخستنی قووچ", "یاریکردن بە خواردن"],
-          "fullness_signs_ckb": ["سەر دووریکردنەوە لە قاشۆ", "داخستنی قووچ", "یاریکردن بە خواردن"],
-          "tip_en": "Breast milk or formula remains primary until 12 months.",
-          "tip_ar": "حليب الثدي أو الحليب الصناعي يبقى أساسياً حتى 12 شهراً.",
-          "tip_ku": "شیری دایک یان شیری دروستکراو تا 12 مانگ سەرەکی دەمێنێتەوە.",
-          "tip_ckb": "شیری دایک یان شیری دروستکراو تا 12 مانگ سەرەکی دەمێنێتەوە."
-        }
-      ],
-      "solid_foods": [
-        {
-          "id": "sf_7_12_1",
-          "title_en": "Expanding the Menu",
-          "title_ar": "توسيع القائمة",
-          "title_ku": "بەرفراوانکردنی لیستەی خواردن",
-          "title_ckb": "بەرفراوانکردنی لیستەی خواردن",
-          "description_en": "Offer a variety of textures and flavors. Move from purees to mashed and soft lumpy foods.",
-          "description_ar": "قدم مجموعة متنوعة من القوام والنكهات. انتقل من المهروس إلى المسحوق والأطعمة الطرية.",
-          "description_ku": "جۆراوجۆری خواردن و تامەکان پێشکەش بکە. لە پووڕکراو بچۆ بۆ چەورکراو و خواردنی نووم.",
-          "description_ckb": "جۆراوجۆری خواردن و تامەکان پێشکەش بکە. لە پووڕکراو بچۆ بۆ چەورکراو و خواردنی نووم.",
-          "foods_en": ["Soft cooked vegetables", "Soft fruits", "Mashed legumes (lentils, beans)", "Soft fish", "Egg yolk (from 6 months)", "Small pasta pieces"],
-          "foods_ar": ["خضروات مطبوخة طرية", "فواكه طرية", "بقوليات مهروسة (عدس، فاصوليا)", "سمك طري", "صفار البيض (من 6 أشهر)"],
-          "foods_ku": ["سەوزەی کوکراوی نووم", "میوەی نووم", "دانەوەشانی چەورکراو (مەرجی، فاصوڵیا)", "ماسیی نووم", "زردی هێلکە (لە 6 مانگ)"],
-          "foods_ckb": ["سەوزەی کوکراوی نووم", "میوەی نووم", "دانەوەشانی چەورکراو (مەرجی، فاصوڵیا)", "ماسیی نووم", "زردی هێلکە (لە 6 مانگ)"],
-          "tip_en": "Introduce finger foods around 8–9 months when baby has pincer grasp.",
-          "tip_ar": "أدخل أطعمة الأصابع حول 8–9 أشهر عندما يكون للطفل قبضة قرصية.",
-          "tip_ckb": "خواردنی تەلووچکەی دابنێ لە دەوری 8–9 مانگدا کە منداڵ توانای گرتنی خۆیەتی.",
-          "tip_ku": "خواردنی تەلووچکەی دابنێ لە دەوری 8–9 مانگدا کە منداڵ توانای گرتنی خۆیەتی."
-        }
-      ],
-      "sample_schedule": [
-        {
-          "id": "sch_7_12_1",
-          "sub_type": "combination",
-          "title_en": "Milk + Solids Schedule",
-          "title_ar": "جدول الحليب + الأطعمة الصلبة",
-          "title_ku": "خشتەی شیر + خواردنی سەخت",
-          "title_ckb": "خشتەی شیر + خواردنی سەخت",
-          "entries_en": ["7:00 AM – Breastfeed/Formula", "8:00 AM – Breakfast (puree + cereal)", "11:00 AM – Breastfeed/Formula + lunch puree", "3:00 PM – Breastfeed/Formula + snack", "6:00 PM – Dinner puree", "7:00 PM – Bedtime breastfeed/formula"],
-          "entries_ar": ["7:00 صباحاً – رضاعة", "8:00 صباحاً – إفطار (هريسة + حبوب)", "11:00 صباحاً – رضاعة + غداء"],
-          "entries_ku": ["7:00 بەیانی – شیرخواری", "8:00 بەیانی – بەیانی خواردن (پووڕ + غلە)", "11:00 بەیانی – شیرخواری + نیوەڕۆ"],
-          "entries_ckb": ["7:00 بەیانی – شیرخواری", "8:00 بەیانی – بەیانی خواردن (پووڕ + غلە)", "11:00 بەیانی – شیرخواری + نیوەڕۆ"],
-          "tip_en": "Offer milk before solids — milk is still most important.",
-          "tip_ar": "قدم الحليب قبل الأطعمة الصلبة — الحليب لا يزال الأهم.",
-          "tip_ku": "شیر پێش خواردنی سەخت پێشکەش بکە — شیر هێشتا گرنگترە.",
-          "tip_ckb": "شیر پێش خواردنی سەخت پێشکەش بکە — شیر هێشتا گرنگترە."
-        }
-      ],
-      "foods_to_avoid": [
-        {
-          "id": "fa_7_12_1",
-          "title_en": "Whole Nuts & Large Seeds",
-          "title_ar": "المكسرات الكاملة والبذور الكبيرة",
-          "title_ku": "گیزەی تەواو و تۆوی گەورە",
-          "title_ckb": "گیزەی تەواو و تۆوی گەورە",
-          "reason_en": "Choking hazard. Use nut butters thinned with water instead.",
-          "reason_ar": "خطر الاختناق. استخدم زبدة الجوز المخففة بالماء بدلاً من ذلك.",
-          "reason_ku": "مەترسیی گیر هەستانی قووچ. بجێگای پەنیری گیزە ئاو تێکەڵکراو بەکاربێنە.",
-          "reason_ckb": "مەترسیی گیر هەستانی قووچ. بجێگای پەنیری گیزە ئاو تێکەڵکراو بەکاربێنە.",
-          "icon": "🥜"
+          "min_months": 0,
+          "max_months": 2,
+          "label": {
+            "en": "0-2 Months",
+            "ku_sorani": "٠-٢ مانگ",
+            "ku_badini": "0-2 Meh",
+            "ar": "0-2 أشهر"
+          },
+          "items": [
+            {
+              "id": "ss_sched_02_1",
+              "title": {
+                "en": "No Fixed Schedule Yet",
+                "ku_sorani": "هێشتا جەدوەڵی دیاریکراو نییە",
+                "ku_badini": "Hê Bernameya Diyar Tune",
+                "ar": "لا جدول ثابت بعد"
+              },
+              "description": {
+                "en": "At 0-2 months, follow baby's cues entirely. A typical day might look like:\n\n• Wake → Feed (every 2-3 hours around the clock)\n• Brief awake window (45-60 min)\n• Sleep (45-120 min)\n• Repeat\n\nTypical day includes:\n• 8-12 feeds\n• 4-6 sleep periods\n• No predictable schedule yet",
+                "ku_sorani": "لە ٠-٢ مانگ، تەواو شوێن نیشانەکانی منداڵ بکەوە.\n\n• بیداریی → خوارندن (هەموو ٢-٣ کاتژمێر)\n• کاتی کورتی بیداری (٤٥-٦٠ خولەک)\n• خەوتن (٤٥-١٢٠ خولەک)\n• دووبارە\n\nڕۆژی معتادی بریتییە لە:\n• ٨-١٢ خواردن\n• ٤-٦ کاتی خەوتن",
+                "ku_badini": "Di 0-2 mehî de, temam li gorî nîşaneyên pitikê bixebitî.\n\n• Hişyarbûn → Xwarin (her 2-3 saet)\n• Pencereya hişyarbûnê ya kurt (45-60 xulek)\n• Xewtin (45-120 xulek)\n• Dîsa bûn\n\nRojeke tîpîk:\n• 8-12 xwarin\n• 4-6 xewtin",
+                "ar": "في 0-2 أشهر، اتبع إشارات طفلك تماماً.\n\n• استيقاظ → تغذية (كل 2-3 ساعات)\n• فترة يقظة قصيرة (45-60 دقيقة)\n• نوم (45-120 دقيقة)\n• تكرار\n\nيوم نموذجي:\n• 8-12 رضعة\n• 4-6 فترات نوم"
+              },
+              "tip": {
+                "en": "Write down feeding and sleep times for the first few weeks to help spot patterns.",
+                "ku_sorani": "کاتەکانی خوارندن و خەوتن لە چەند هەفتەی یەکەم بنووسە بۆ ئاماژەپێکردنی شێوازەکان.",
+                "ku_badini": "Wext û demên xwarin û xewê di çend hefteyên yekem de binivîse.",
+                "ar": "دوّن أوقات التغذية والنوم في الأسابيع الأولى لرصد الأنماط."
+              }
+            }
+          ]
         },
         {
-          "id": "fa_7_12_2",
-          "title_en": "Raw Honey & Maple Syrup",
-          "title_ar": "العسل الخام وشراب القيقب",
-          "title_ku": "هەنگوینی خاو و شەربەتی دارچەنکی",
-          "title_ckb": "هەنگوینی خاو و شەربەتی دارچەنکی",
-          "reason_en": "Botulism risk under 12 months. No added sweeteners.",
-          "reason_ar": "خطر التسمم الغذائي تحت 12 شهراً. بدون محليات مضافة.",
-          "reason_ku": "مەترسیی بوتولیزم لە ژێر 12 مانگدا. بێ شیرینکەری زیادکراو.",
-          "reason_ckb": "مەترسیی بوتولیزم لە ژێر 12 مانگدا. بێ شیرینکەری زیادکراو.",
-          "icon": "🍯"
+          "min_months": 6,
+          "max_months": 8,
+          "label": {
+            "en": "6-8 Months",
+            "ku_sorani": "٦-٨ مانگ",
+            "ku_badini": "6-8 Meh",
+            "ar": "6-8 أشهر"
+          },
+          "items": [
+            {
+              "id": "ss_sched_68_1",
+              "title": {
+                "en": "Sample Day Schedule (6-8 Months)",
+                "ku_sorani": "جەدوەڵی ڕۆژانەی نموونە (٦-٨ مانگ)",
+                "ku_badini": "Bernameya Rojê ya Nimûne (6-8 Meh)",
+                "ar": "جدول يوم نموذجي (6-8 أشهر)"
+              },
+              "description": {
+                "en": "7:00 AM — Wake up + Milk feed\n8:30 AM — Morning nap (1-1.5 hrs)\n10:00 AM — Wake + Milk feed\n11:00 AM — Solid food: Breakfast\n12:00 PM — Midday nap (1-1.5 hrs)\n1:30 PM — Wake + Milk feed\n3:00 PM — Afternoon nap (30-45 min)\n4:00 PM — Wake + Solid food: Snack\n5:30 PM — Milk feed\n6:00 PM — Solid food: Dinner\n6:30 PM — Bath\n7:00 PM — Milk feed + Bedtime",
+                "ku_sorani": "٧:٠٠ بەیانی — بیداری + خواردنی شیر\n٨:٣٠ بەیانی — خەوتنی بەیانی (١-١.٥ کاتژمێر)\n١٠:٠٠ بەیانی — بیداری + خواردنی شیر\n١١:٠٠ بەیانی — خواردنی جامد: تازەخواردن\n١٢:٠٠ نیوەڕۆ — خەوتنی نیوەڕۆ\n١:٣٠ دوانیوەڕۆ — بیداری + خواردنی شیر\n٣:٠٠ دوانیوەڕۆ — خەوتنی دوانیوەڕۆ\n٤:٠٠ دوانیوەڕۆ — بیداری + خواردنی جامد\n٧:٠٠ ئێوارە — خواردنی شیر + خەوتن",
+                "ku_badini": "7:00 sibehê — Hişyarbûn + Şîr\n8:30 — Xewa sibehê (1-1.5 saet)\n10:00 — Hişyarbûn + Şîr\n11:00 — Xwarina hişk: Taştê\n12:00 — Xewa nîvro\n1:30 êvarê — Hişyarbûn + Şîr\n3:00 — Xewa piştî nîvro\n4:00 — Hişyarbûn + Xwarin\n7:00 êvarê — Şîr + Xewtin",
+                "ar": "7:00 صباحاً — استيقاظ + رضاعة\n8:30 — قيلولة صباحية (1-1.5 ساعة)\n10:00 — استيقاظ + رضاعة\n11:00 — طعام صلب: إفطار\n12:00 — قيلولة منتصف النهار\n1:30 — استيقاظ + رضاعة\n3:00 — قيلولة بعد الظهر\n4:00 — استيقاظ + طعام صلب\n7:00 مساءً — رضاعة + النوم"
+              },
+              "tip": {
+                "en": "This is a guide, not a strict rule. Adjust times based on your baby's wake time.",
+                "ku_sorani": "ئەمە ڕێنماییە، نەک یاسایەکی سەخت. کات لە پشت کاتی بیداریی منداڵت رێک بخە.",
+                "ku_badini": "Ev rêber e, ne qaîdeyeke hişk. Li gorî wextê hişyarbûna pitikê rêk bike.",
+                "ar": "هذا دليل لا قاعدة صارمة. اضبط المواعيد حسب وقت استيقاظ طفلك."
+              }
+            }
+          ]
         }
-      ],
-      "feeding_tips": [
+      ]
+    },
+    {
+      "id": "foods_to_avoid",
+      "icon": "avoid",
+      "title": {
+        "en": "Foods to Avoid",
+        "ku_sorani": "خواردنەکانی لێی بپارێزە",
+        "ku_badini": "Xwarinên Ji Wan Biparêze",
+        "ar": "الأطعمة التي يجب تجنبها"
+      },
+      "tabs": null,
+      "age_ranges": [
         {
-          "id": "ft_7_12_1",
-          "title_en": "Make Mealtimes Social",
-          "title_ar": "اجعل أوقات الوجبات اجتماعية",
-          "title_ku": "کاتی خواردنی کۆمەڵایەتی بکە",
-          "title_ckb": "کاتی خواردنی کۆمەڵایەتی بکە",
-          "description_en": "Eat together as a family. Babies learn by watching you eat — they are more likely to try new foods.",
-          "description_ar": "تناول الطعام معاً كعائلة. يتعلم الأطفال بمراقبتك تناول الطعام.",
-          "description_ku": "وەک خێزان پێکەوە بخوەن. منداڵان لە سەیرکردنی خواردنت فێر دەبن.",
-          "description_ckb": "وەک خێزان پێکەوە بخوەن. منداڵان لە سەیرکردنی خواردنت فێر دەبن.",
-          "tip_en": "Let baby self-feed with fingers — it builds independence.",
-          "tip_ar": "دع الطفل يتغذى بنفسه بأصابعه — يبني الاستقلالية.",
-          "tip_ku": "بگذرێ منداڵ خۆی بە تەلووچکەی بخوات — سەربەخۆیی دروست دەکات.",
-          "tip_ckb": "بگذرێ منداڵ خۆی بە تەلووچکەی بخوات — سەربەخۆیی دروست دەکات.",
-          "icon": "👨‍👩‍👧"
+          "min_months": 0,
+          "max_months": 5,
+          "label": {
+            "en": "0-5 Months",
+            "ku_sorani": "٠-٥ مانگ",
+            "ku_badini": "0-5 Meh",
+            "ar": "0-5 أشهر"
+          },
+          "items": [
+            {
+              "id": "fa_05_1",
+              "title": {
+                "en": "Avoid All Solids",
+                "ku_sorani": "دووری لە هەموو خواردنی جامد",
+                "ku_badini": "Ji Hemû Hişkan Dûr Bixwe",
+                "ar": "تجنب جميع الأطعمة الصلبة"
+              },
+              "description": {
+                "en": "Before 6 months, only breast milk or formula should be given. Never give:\n• Water (can cause hyponatremia)\n• Juice\n• Solid foods\n• Baby rice/cereal in bottle\n• Herbal teas",
+                "ku_sorani": "پێش ٦ مانگ، تەنها شیری مەمک یان فۆرموڵا دەبێت بدرێت.\n\nهەرگیز نەدە:\n• ئاو (دەتوانێت هیپۆناتریمیا دروست بکات)\n• ئاوی میوە\n• خواردنی جامد\n• برنج/غلایەی منداڵ لە شووشە",
+                "ku_badini": "Berî 6 mehî, tenê şîr an formula divê bê dayîn.\n\nQet nede:\n• Av (hîponatrîmî)\n• Ava mêweyê\n• Xwarinên hişk\n• Tûn/grûp di şûşê de",
+                "ar": "قبل 6 أشهر، يُعطى حليب الثدي أو الحليب الصناعي فقط. لا تعطِ أبداً:\n• الماء (يسبب نقص صوديوم الدم)\n• العصائر\n• الأطعمة الصلبة\n• الأرز أو الحبوب في الزجاجة\n• الشاي الأعشاب"
+              },
+              "tip": null
+            }
+          ]
+        },
+        {
+          "min_months": 6,
+          "max_months": 11,
+          "label": {
+            "en": "6-11 Months",
+            "ku_sorani": "٦-١١ مانگ",
+            "ku_badini": "6-11 Meh",
+            "ar": "6-11 شهر"
+          },
+          "items": [
+            {
+              "id": "fa_611_1",
+              "title": {
+                "en": "Foods to Avoid at 6-11 Months",
+                "ku_sorani": "خواردنەکانی لە ٦-١١ مانگ لێی بپارێزە",
+                "ku_badini": "Xwarinên Biçêjin di 6-11 Mehî de",
+                "ar": "الأطعمة التي يجب تجنبها في 6-11 أشهر"
+              },
+              "description": {
+                "en": "NEVER give:\n🚫 Honey — risk of infant botulism\n🚫 Whole cow's milk as main drink\n🚫 Added salt or sugar\n🚫 Choking hazards: whole grapes, whole nuts, large chunks of raw vegetables, popcorn, hard candy\n🚫 Unpasteurized foods\n🚫 Shark, swordfish, king mackerel (high mercury)\n🚫 Sugary drinks including juice\n\nLIMIT:\n⚠️ Allergenic foods can be introduced but watch carefully: peanuts, eggs, tree nuts, fish, wheat, dairy, soy, sesame",
+                "ku_sorani": "هەرگیز نەدە:\n🚫 شان — مەترسی بوتۆلیزمی منداڵ\n🚫 شیری مانگای تەواو بەتەنیا\n🚫 خێو یان شەکری زیاد\n🚫 مەترسییەکانی خەنگی: ترێی تەواو، میوەی قاچ تەواو\n🚫 خواردنی نەسترانراو\n🚫 خواردنی شیرین\n\nسنوردار بکە:\n⚠️ خواردنی ئالێرژیزا دەتوانرێت داخڵ بکرێت بەڵام باریزانە بباوێڕ: فستق، هێلکە، میوەی قاچ",
+                "ku_badini": "QET NEDE:\n🚫 Hingiv — rîska botalîzma pitikê\n🚫 Şîrê çêlek wek vexwarina sereke\n🚫 Xwê û şekir zêde\n🚫 Tiştên xenî: tirî yên temam\n🚫 Xwarinên nestewarkirî\n🚫 Vexwarinên şekir\n\nSINOR BIKE:\n⚠️ Xwarinên alerji dikarin bên destnîşankirin lê bi baldarî: fistiq, hêk",
+                "ar": "لا تعطِ أبداً:\n🚫 العسل — خطر التسمم البوتوليني\n🚫 حليب البقر كمشروب رئيسي\n🚫 الملح أو السكر المضاف\n🚫 مخاطر الاختناق: عنب كامل، مكسرات كاملة\n🚫 أطعمة غير مبسترة\n🚫 المشروبات السكرية\n\nقيّد:\n⚠️ يمكن إدخال الأطعمة المسببة للحساسية لكن بمراقبة: فول سوداني، بيض"
+              },
+              "tip": {
+                "en": "Early introduction of allergens (before 12 months) may actually reduce allergy risk. Ask your doctor.",
+                "ku_sorani": "داخڵکردنی زوویانەی ئالێرژیزاکان (پێش ١٢ مانگ) لەوانەیە مەترسی ئالێرژی کەم بکاتەوە. پزیشکت بپرسە.",
+                "ku_badini": "Destnîşankirina zû ya alerjiyan (berî 12 mehî) dibe ku rîska alerjiyê kêm bike.",
+                "ar": "قد يقلل الإدخال المبكر لمسببات الحساسية (قبل 12 شهراً) من خطر الحساسية. اسأل طبيبك."
+              }
+            }
+          ]
+        },
+        {
+          "min_months": 12,
+          "max_months": 72,
+          "label": {
+            "en": "12+ Months",
+            "ku_sorani": "١٢+ مانگ",
+            "ku_badini": "12+ Meh",
+            "ar": "12+ شهر"
+          },
+          "items": [
+            {
+              "id": "fa_12p_1",
+              "title": {
+                "en": "Foods to Still Avoid After 12 Months",
+                "ku_sorani": "خواردنەکانی کە لەدوای ١٢ مانگیش لێی بپارێزە",
+                "ku_badini": "Xwarinên ku piştî 12 Mehî jî lê biparêze",
+                "ar": "أطعمة يجب تجنبها حتى بعد 12 شهراً"
+              },
+              "description": {
+                "en": "Even after 12 months, avoid:\n🚫 Honey (until 1 year is fine to introduce after)\n🚫 Choking hazards: whole grapes (cut lengthwise), whole cherry tomatoes, large nuts\n🚫 High-mercury fish\n🚫 Sugary drinks and processed snacks\n🚫 Excessive salt and sugar in cooking\n\nTODDLER EATING TIPS:\n• Division of responsibility: you decide what and when; child decides how much.\n• Avoid using food as reward or punishment.\n• Model healthy eating habits.",
+                "ku_sorani": "تەنانەت لەدوای ١٢ مانگ، دووری لێی بگرە:\n🚫 مەترسییەکانی خەنگی\n🚫 ماسیی مەرکوری بەرز\n🚫 خواردنی شیرین و ناخواستنی\n🚫 خێو و شەکری زۆر\n\nئیشارەتەکانی خواردنی منداڵانی کچکانی:\n• دابەشکردنی بەرپرسیاری: تۆ دیاری دەکەی چی و کەی؛ منداڵ چەندی دیاری دەکات.\n• خواردن بکە ڕەتکردن یان سزا.",
+                "ku_badini": "Tevî piştî 12 mehî, ji van dûr bimîne:\n🚫 Tiştên xenî\n🚫 Masiyên bi giraniya merkurê bilind\n🚫 Vexwarinên şekir\n🚫 Xwê û şekira zêde\n\nŞÎRETÊN XWARINA ZAROKAN:\n• Parvekirina berpirsyariyê: tu diyar dikî çi û kengê.",
+                "ar": "حتى بعد 12 شهراً، تجنب:\n🚫 مخاطر الاختناق: عنب مقطوع طولياً\n🚫 أسماك الزئبق العالي\n🚫 المشروبات السكرية\n🚫 الملح والسكر الزائد\n\nنصائح تغذية الأطفال الصغار:\n• تقسيم المسؤولية: أنت تقرر ماذا ومتى؛ الطفل يقرر كم.\n• لا تستخدم الطعام مكافأة أو عقاباً."
+              },
+              "tip": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "feeding_tips",
+      "icon": "tips",
+      "title": {
+        "en": "Feeding Tips",
+        "ku_sorani": "ئیشارەتەکانی خواردن",
+        "ku_badini": "Şîretên Xwarinê",
+        "ar": "نصائح التغذية"
+      },
+      "tabs": null,
+      "age_ranges": [
+        {
+          "min_months": 0,
+          "max_months": 72,
+          "label": {
+            "en": "All Ages",
+            "ku_sorani": "هەموو تەمەنەکان",
+            "ku_badini": "Hemû Temen",
+            "ar": "جميع الأعمار"
+          },
+          "items": [
+            {
+              "id": "ft_all_1",
+              "title": {
+                "en": "Signs of a Good Feed",
+                "ku_sorani": "نیشانەکانی خوارندنی باش",
+                "ku_badini": "Nîşaneyên Xwarineke Baş",
+                "ar": "علامات الرضاعة الجيدة"
+              },
+              "description": {
+                "en": "Your baby is feeding well if:\n✓ Produces 6+ wet diapers per day (after day 4)\n✓ Has regular bowel movements\n✓ Gains weight steadily (2 oz/week in first 3 months)\n✓ Seems satisfied after feeds\n✓ Is alert and active when awake\n✓ Skin has good turgor (springs back when gently pinched)",
+                "ku_sorani": "منداڵەکەت باش دەخوات ئەگەر:\n✓ لە ڕۆژدا ٦+ پێرستی تەر دروست دەکات (لەدوای ڕۆژی ٤)\n✓ بار بەرپرسیانەی ڕێکی هەیە\n✓ کێشی بە ئیستیقرار زیاد دەبێت\n✓ لەدوای خوارندن تێرببوون نیشان دەدات\n✓ هوشیار و چالاکە",
+                "ku_badini": "Pitika te baş dixwe eger:\n✓ Di rojê de 6+ beze tê de ab hebe (piştî roja 4)\n✓ Gireka xwe bi rêkûpêk dike\n✓ Girsa xwe bi domdarî zêde dike\n✓ Piştî xwarinê têr xuya dike\n✓ Hişyar û çalak e",
+                "ar": "طفلك يتغذى جيداً إذا:\n✓ ينتج 6+ حفاضات مبللة يومياً (بعد اليوم 4)\n✓ لديه حركات أمعاء منتظمة\n✓ يزداد وزنه بثبات\n✓ يبدو مكتفياً بعد الرضعات\n✓ يقظ ونشيط"
+              },
+              "tip": {
+                "en": "Track feeding times and diapers in the first weeks using a simple notebook or app.",
+                "ku_sorani": "کاتەکانی خوارندن و پێرستەکان لە هەفتەی یەکەمدا تۆمار بکە.",
+                "ku_badini": "Wextên xwarin û bezên di hefteyên yekem de tomar bike.",
+                "ar": "سجّل أوقات الرضاعة والحفاضات في الأسابيع الأولى."
+              }
+            },
+            {
+              "id": "ft_all_2",
+              "title": {
+                "en": "Feeding in Public",
+                "ku_sorani": "خوارندن لە شوێنی گشتی",
+                "ku_badini": "Xwarin li Cihê Giştî",
+                "ar": "الرضاعة في الأماكن العامة"
+              },
+              "description": {
+                "en": "Breastfeeding in public is natural and supported. Tips:\n• Wear nursing-friendly clothing (easy access)\n• Use a nursing cover if you prefer privacy\n• Practice at home first to build confidence\n• Know your rights — breastfeeding in public is legally protected in most countries\n• A hungry baby cannot wait — prioritize feeding over comfort",
+                "ku_sorani": "مەمکدانەوە لە شوێنی گشتی سروشتیە و پشتیوانییەکەی هەیە.\n\n• جلوبەرگی مەمکدانەوەپێکری بلووز بکە\n• ئەگەر ئارەزووی تازەی هەیت، پاردانەوەی مەمکدانەوە بەکار بهێنە\n• پێشتر لە ماڵ ئەزموون بکە\n• منداڵی برسی نمەتوانێت چاوەڕوانی بکات",
+                "ku_badini": "Şîrdêbûna li cihê giştî xwezayî ye.\n\n• Cilên guncaw bo şîrdêbûnê li xwe bike\n• Pêçê bikar bîne eger razî nî\n• Li malê pêşî biceribîne\n• Pitika birçî nikare bisekine",
+                "ar": "الرضاعة الطبيعية في الأماكن العامة طبيعية ومدعومة.\n• ارتدي ملابس مناسبة للرضاعة\n• استخدمي غطاء الرضاعة إن أردت الخصوصية\n• تدربي في المنزل أولاً\n• الطفل الجائع لا يستطيع الانتظار"
+              },
+              "tip": null
+            },
+            {
+              "id": "ft_all_3",
+              "title": {
+                "en": "When to Seek Help",
+                "ku_sorani": "کەی یارمەتی بخوازیت",
+                "ku_badini": "Kengê Alîkariyê Bixwaze",
+                "ar": "متى تطلب المساعدة"
+              },
+              "description": {
+                "en": "See your doctor or lactation consultant if:\n🔴 Baby loses more than 10% of birth weight\n🔴 Baby is not back to birth weight by 2 weeks\n🔴 Fewer than 6 wet diapers/day after day 4\n🔴 Baby seems constantly hungry\n🔴 Painful breastfeeding (may indicate latch issues)\n🔴 Signs of dehydration: sunken fontanelle, no tears\n🔴 Baby is not gaining weight appropriately",
+                "ku_sorani": "پزیشک یان مشاوری شیردانەوەت بپرسە ئەگەر:\n🔴 منداڵ زیاتر لە %١٠ی کێشی لەدایکبوونی دەبازێت\n🔴 منداڵ لە ٢ هەفتەدا بۆ کێشی لەدایکبوون دەگەڕێتەوە\n🔴 لە ڕۆژی ٤ بەرد، لە ٦ پێرستی تەر کەمتر لە ڕۆژدا\n🔴 منداڵ بە بردەوامی برسی دیارئدات\n🔴 دەردی مەمکدانەوە",
+                "ku_badini": "Bijîjk an şêwirmendê şîrdêbûnê bibîne eger:\n🔴 Pitik ji %10ê giraniya lêdayikbûnê zêde winda bike\n🔴 Di 2 hefteyî de nehata giraniya lêdayikbûnê\n🔴 Piştî roja 4, kêmtir ji 6 bezên tê de ab\n🔴 Şîrdêbûna bi êş",
+                "ar": "راجع الطبيب أو مستشار الرضاعة إذا:\n🔴 خسر الطفل أكثر من 10% من وزن الولادة\n🔴 لم يعد لوزن الولادة في أسبوعين\n🔴 أقل من 6 حفاضات مبللة يومياً بعد اليوم 4\n🔴 الطفل يبدو جائعاً باستمرار\n🔴 ألم في الرضاعة"
+              },
+              "tip": null
+            }
+          ]
         }
       ]
     }

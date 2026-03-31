@@ -1,575 +1,770 @@
 {
-  "version": "1.0",
-  "guide_type": "sleep",
-  "age_ranges": [
+  "guide_id": "sleep_guide",
+  "title": {
+    "en": "Sleep Guide",
+    "ku_sorani": "ڕێنمایی خەوتن",
+    "ku_badini": "Rêberiya Xewê",
+    "ar": "دليل النوم"
+  },
+  "subtitle": {
+    "en": "Help {childName} Sleep Better",
+    "ku_sorani": "یارمەتیدانی {childName} بۆ خەوتنی باشتر",
+    "ku_badini": "Alîkariya {childName} bo Xeweke Baştir",
+    "ar": "ساعد {childName} على النوم بشكل أفضل"
+  },
+  "strategies": [
     {
-      "id": "0_3m",
-      "label_en": "0–3 Months",
-      "label_ar": "0–3 أشهر",
-      "label_ku": "0–3 مانگ",
-      "label_ckb": "0–3 مانگ",
-      "min_months": 0,
-      "max_months": 3,
-      "sleep_strategies": [
-        {
-          "id": "ss_0_3_1",
-          "title_en": "Swaddle for Security",
-          "title_ar": "لف الطفل للشعور بالأمان",
-          "title_ku": "پێچانەوە بۆ ئارامی",
-          "title_ckb": "پێچانەوە بۆ ئارامی",
-          "description_en": "Wrap your baby snugly in a thin blanket. Swaddling mimics the womb and helps reduce the startle reflex that wakes newborns.",
-          "description_ar": "لفّ طفلك بشكل محكم في بطانية رقيقة. يحاكي الإمساك الرحم ويساعد في تقليل منعكس الصرع الذي يوقظ الأطفال حديثي الولادة.",
-          "description_ku": "منداڵەکەت بە نەرمی لە پاڵاوێکی تازەدا بپێچەوە. پێچانەوە ژینگەی مناڵبوون دروست دەکات و چالاکی هەڵەوەزراو کەمدەکاتەوە.",
-          "description_ckb": "منداڵەکەت بە نەرمی لە پاڵاوێکی تازەدا بپێچەوە. پێچانەوە ژینگەی مناڵبوون دروست دەکات.",
-          "tip_en": "Always place swaddled babies on their back to sleep.",
-          "tip_ar": "ضع دائمًا الأطفال المقمطين على ظهورهم للنوم.",
-          "tip_ku": "هەمیشە منداڵە پێچراوەکان لە پشت خواردنیشتن بۆ خەو دابنێ.",
-          "tip_ckb": "هەمیشە منداڵە پێچراوەکان لە پشت خواردنیشتن بۆ خەو دابنێ."
-        },
-        {
-          "id": "ss_0_3_2",
-          "title_en": "White Noise for Calm",
-          "title_ar": "الضوضاء البيضاء للهدوء",
-          "title_ku": "دەنگی سپی بۆ ئارامی",
-          "title_ckb": "دەنگی سپی بۆ ئارامی",
-          "description_en": "Use a white noise machine or fan. The constant sound drowns out household noises that might startle your baby awake.",
-          "description_ar": "استخدم جهاز الضوضاء البيضاء أو المروحة. الصوت المستمر يغرق أصوات المنزل التي قد توقظ طفلك.",
-          "description_ku": "ئامێری دەنگی سپی یان فانێک بەکاربێنە. دەنگی بەردەوام دەنگەکانی ماڵ دادەپۆشێت.",
-          "description_ckb": "ئامێری دەنگی سپی یان فانێک بەکاربێنە. دەنگی بەردەوام دەنگەکانی ماڵ دادەپۆشێت.",
-          "tip_en": "Keep volume at about 65 dB — similar to a shower.",
-          "tip_ar": "اجعل الصوت حوالي 65 ديسيبل — مشابه لصوت الدش.",
-          "tip_ku": "دەنگ لە نزیکەی 65 دیسیبێل بگرە — وەک دەنگی دووشی.",
-          "tip_ckb": "دەنگ لە نزیکەی 65 دیسیبێل بگرە — وەک دەنگی دووشی."
-        },
-        {
-          "id": "ss_0_3_3",
-          "title_en": "Consistent Bedtime Routine",
-          "title_ar": "روتين وقت النوم المتسق",
-          "title_ku": "ڕووتینی کاتی خەوی بەردەوام",
-          "title_ckb": "ڕووتینی کاتی خەوی بەردەوام",
-          "description_en": "A short bedtime routine (bath, feed, song) signals sleep time. Start with 10–15 minute routines.",
-          "description_ar": "يشير الروتين القصير لوقت النوم (حمام، تغذية، أغنية) إلى وقت النوم.",
-          "description_ku": "ڕووتینی کورتی کاتی خەو (مان، خواردن، گۆرانی) کاتی خەو دیاری دەکات.",
-          "description_ckb": "ڕووتینی کورتی کاتی خەو (مان، خواردن، گۆرانی) کاتی خەو دیاری دەکات.",
-          "tip_en": "Put baby down drowsy but awake to build self-soothing skills.",
-          "tip_ar": "ضع الطفل نعسانًا لكن مستيقظًا لبناء مهارات التهدئة الذاتية.",
-          "tip_ku": "منداڵ لەکاتی نووستنەوە بەلام بەیاخیش دابنێ بۆ ئەوەی خۆی ئارام بکاتەوە.",
-          "tip_ckb": "منداڵ لەکاتی نووستنەوە بەلام بەیاخیش دابنێ."
-        }
-      ],
-      "sleep_needs": {
-        "id": "sn_0_3",
-        "total_sleep_en": "14–17 hours",
-        "total_sleep_ar": "14–17 ساعة",
-        "total_sleep_ku": "14–17 کاتژمێر",
-        "total_sleep_ckb": "14–17 کاتژمێر",
-        "night_sleep_en": "8–9 hrs (interrupted)",
-        "night_sleep_ar": "8–9 ساعات (متقطعة)",
-        "night_sleep_ku": "8–9 کاتژمێر (بڕاو)",
-        "night_sleep_ckb": "8–9 کاتژمێر (بڕاو)",
-        "daytime_sleep_en": "6–8 hrs",
-        "daytime_sleep_ar": "6–8 ساعات",
-        "daytime_sleep_ku": "6–8 کاتژمێر",
-        "daytime_sleep_ckb": "6–8 کاتژمێر",
-        "nap_schedule": [
-          {
-            "name_en": "Morning Nap",
-            "name_ar": "قيلولة الصباح",
-            "name_ku": "نووستنی بەیانی",
-            "name_ckb": "نووستنی بەیانی",
-            "time_en": "Every 45–60 min after waking",
-            "time_ar": "كل 45-60 دقيقة بعد الاستيقاظ",
-            "time_ku": "هەر 45–60 خولەک دوای هەستانەوە",
-            "time_ckb": "هەر 45–60 خولەک دوای هەستانەوە",
-            "duration_en": "30–90 minutes",
-            "duration_ar": "30–90 دقيقة",
-            "duration_ku": "30–90 خولەک",
-            "duration_ckb": "30–90 خولەک"
-          }
-        ],
-        "tips_en": ["Newborns can't distinguish day and night yet", "Night feeds are normal and necessary", "Watch for sleep cues: yawning, eye rubbing", "Sleep cycles are short (45 minutes)"],
-        "tips_ar": ["لا يستطيع المواليد الجدد التمييز بين الليل والنهار", "الرضاعة الليلية طبيعية وضرورية", "راقب إشارات النوم: التثاؤب، فرك العينين"],
-        "tips_ku": ["نوێزانەکان هێشتا ڕۆژ و شەو جیا ناکەنەوە", "خواردنی شەوانە ئاساییە و پێویستە", "بانگەوازەکانی خەو بگرە چاو: دانووان، مالیشتنی چاو"],
-        "tips_ckb": ["نوێزانەکان هێشتا ڕۆژ و شەو جیا ناکەنەوە", "خواردنی شەوانە ئاساییە و پێویستە", "بانگەوازەکانی خەو بگرە چاو: دانووان، مالیشتنی چاو"],
-        "tip_en": "Sleep when your baby sleeps to catch up on rest.",
-        "tip_ar": "نم عندما ينام طفلك لتعويض الراحة.",
-        "tip_ku": "کاتێک منداڵەکەت دەنووێت تۆش بنوێ.",
-        "tip_ckb": "کاتێک منداڵەکەت دەنووێت تۆش بنوێ."
+      "id": "sleep_strategies",
+      "icon": "strategy",
+      "title": {
+        "en": "Sleep Strategies",
+        "ku_sorani": "ستراتیژیەکانی خەوتن",
+        "ku_badini": "Stratejiyên Xewê",
+        "ar": "استراتيجيات النوم"
       },
-      "environments": [
+      "tabs": null,
+      "age_ranges": [
         {
-          "id": "env_0_3_1",
-          "type": "bedtime",
-          "title_en": "Room Temperature",
-          "title_ar": "درجة حرارة الغرفة",
-          "title_ku": "گەرمای ژوور",
-          "title_ckb": "گەرمای ژوور",
-          "icon": "🌡️",
-          "value_en": "18–21°C (65–70°F)",
-          "value_ar": "18–21°م",
-          "value_ku": "18–21 پلە",
-          "value_ckb": "18–21 پلە",
-          "why_en": "Babies sleep best in cool rooms. Overheating increases SIDS risk.",
-          "why_ar": "ينام الأطفال بشكل أفضل في الغرف الباردة. الإفراط في التسخين يزيد من خطر موت المهد المفاجئ.",
-          "why_ku": "منداڵان باشترین خەوی خۆیان لە ژوورە ساردەکاندا دەکەن. گەرمای زیادە مەترسی SIDS زیاد دەکات.",
-          "why_ckb": "منداڵان باشترین خەوی خۆیان لە ژوورە ساردەکاندا دەکەن. گەرمای زیادە مەترسی SIDS زیاد دەکات.",
-          "tips_en": ["Check neck — should feel warm, not sweaty", "Dress baby in one layer more than you", "Avoid heavy blankets"],
-          "tips_ar": ["تحقق من الرقبة — يجب أن تكون دافئة وليست مبللة", "ألبس الطفل طبقة واحدة أكثر منك"],
-          "tips_ku": ["مل بپشکنە — دەبێت گەرم بێت، نە خوێداو", "منداڵ یەک چین زیاتر لە تۆ بپۆشێ"],
-          "tips_ckb": ["مل بپشکنە — دەبێت گەرم بێت، نە خوێداو", "منداڵ یەک چین زیاتر لە تۆ بپۆشێ"],
-          "tip_en": "A sleep sack is a safe alternative to blankets.",
-          "tip_ar": "كيس النوم بديل آمن للبطانيات.",
-          "tip_ku": "کیسەی خەو بەرگرێکی پارێزراوە بۆ پاڵاوەکان.",
-          "tip_ckb": "کیسەی خەو بەرگرێکی پارێزراوە بۆ پاڵاوەکان."
+          "min_months": 0,
+          "max_months": 1,
+          "label": {
+            "en": "0-1 Month",
+            "ku_sorani": "٠-١ مانگ",
+            "ku_badini": "0-1 Meh",
+            "ar": "0-1 شهر"
+          },
+          "items": [
+            {
+              "id": "ss_01_1",
+              "title": {
+                "en": "Follow Baby's Cues",
+                "ku_sorani": "شوێن نیشانەکانی منداڵ بکەوە",
+                "ku_badini": "Nîşanên Pitikê Bişopîne",
+                "ar": "اتبع إشارات طفلك"
+              },
+              "description": {
+                "en": "Newborns sleep 16-18 hours a day in short stretches. Let your baby lead sleep timing — they are not yet ready for a schedule.",
+                "ku_sorani": "منداڵی نوێ لە ٢٤ کاتژمێردا ١٦-١٨ کاتژمێر دەخەوێت. بهێڵە منداڵەکەت کاتی خەوتن دیاری بکات.",
+                "ku_badini": "Pitikê nû di rojê de 16-18 saet dixewê. Bihêle pitik wextê xewê diyar bike.",
+                "ar": "ينام المواليد 16-18 ساعة يومياً. اتبع إيقاع طفلك ولا تفرض جدولاً بعد."
+              },
+              "tip": {
+                "en": "Sleep when baby sleeps to recover your own energy.",
+                "ku_sorani": "کاتێک منداڵەکەت دەخەوێت تۆش بخەوە.",
+                "ku_badini": "Dema pitik dixewê, tu jî bixewê.",
+                "ar": "نم حين ينام طفلك لتستعيد طاقتك."
+              }
+            },
+            {
+              "id": "ss_01_2",
+              "title": {
+                "en": "Swaddling",
+                "ku_sorani": "پێچانەوە",
+                "ku_badini": "Pêçan",
+                "ar": "اللف بالقماش"
+              },
+              "description": {
+                "en": "Wrapping your newborn snugly in a blanket mimics the womb and can reduce the startle reflex that wakes them up.",
+                "ku_sorani": "پێچانەوەی منداڵی نوێ ناوی مانگی مادەر دەبەستێتەوە و ترسی ناخوازراوی کەمدەکاتەوە.",
+                "ku_badini": "Pêçana pitikê hestê malê dide û refleksa ترسê kêm dike.",
+                "ar": "لف المولود يحاكي الرحم ويقلل من منعكس الفزع الذي يوقظه."
+              },
+              "tip": {
+                "en": "Stop swaddling once baby shows signs of rolling over (usually 2 months).",
+                "ku_sorani": "کاتێک منداڵ نیشانەی سوڕانەوە پیشان دا، پێچانەوە بپشکنە.",
+                "ku_badini": "Gava pitik nîşanên zivirînê nîşan bide, pêçanê bisekinîne.",
+                "ar": "أوقف اللف عند ظهور علامات الانقلاب (عادة في شهرين)."
+              }
+            }
+          ]
         },
         {
-          "id": "env_0_3_2",
-          "type": "bedtime",
-          "title_en": "Lighting",
-          "title_ar": "الإضاءة",
-          "title_ku": "ڕووناکی",
-          "title_ckb": "ڕووناکی",
-          "icon": "🌙",
-          "value_en": "Complete Darkness",
-          "value_ar": "ظلام تام",
-          "value_ku": "تاریکی تەواو",
-          "value_ckb": "تاریکی تەواو",
-          "why_en": "Light disrupts melatonin production, the hormone that regulates sleep.",
-          "why_ar": "الضوء يعطل إنتاج الميلاتونين، الهرمون الذي ينظم النوم.",
-          "why_ku": "ڕووناکی بەرهەمهێنانی مێلاتۆنین ڕێکاندەکات، ئەو هۆرمۆنەی خەو ڕێکدەخات.",
-          "why_ckb": "ڕووناکی بەرهەمهێنانی مێلاتۆنین ڕێکاندەکات، ئەو هۆرمۆنەی خەو ڕێکدەخات.",
-          "tips_en": ["Use blackout curtains", "Cover LED lights", "No night lights needed under 6 months"],
-          "tips_ar": ["استخدم ستائر التعتيم", "غطِّ أضواء LED", "لا حاجة لأضواء الليل تحت 6 أشهر"],
-          "tips_ku": ["پەردەی تاریککەر بەکاربێنە", "ڕووناکەکانی LED بپۆشێ"],
-          "tips_ckb": ["پەردەی تاریککەر بەکاربێنە", "ڕووناکەکانی LED بپۆشێ"],
-          "tip_en": "Use a dim red light only if needed for night feeds.",
-          "tip_ar": "استخدم ضوءًا أحمر خافتًا فقط إذا لزم الأمر للرضاعة الليلية.",
-          "tip_ku": "تەنها ئەگەر پێویست بوو بۆ خواردنی شەوانە ڕووناکی سووری نزم بەکاربێنە.",
-          "tip_ckb": "تەنها ئەگەر پێویست بوو بۆ خواردنی شەوانە ڕووناکی سووری نزم بەکاربێنە."
+          "min_months": 2,
+          "max_months": 3,
+          "label": {
+            "en": "2-3 Months",
+            "ku_sorani": "٢-٣ مانگ",
+            "ku_badini": "2-3 Meh",
+            "ar": "2-3 أشهر"
+          },
+          "items": [
+            {
+              "id": "ss_23_1",
+              "title": {
+                "en": "Introduce a Bedtime Routine",
+                "ku_sorani": "روتینی کاتی خەوتن دابنێ",
+                "ku_badini": "Rutîna Xewê Dest Pê Bike",
+                "ar": "ابدأ روتيناً لوقت النوم"
+              },
+              "description": {
+                "en": "A consistent routine (bath → feed → song → sleep) signals to your baby that sleep is coming. Do this at the same time every night.",
+                "ku_sorani": "روتینی ئیستیقراری (مەندەڵ → خواردن → گۆرانی → خەوتن) نیشانەی خەوتن دەدات.",
+                "ku_badini": "Rutîna domdar (serşok → xwarin → stran → xew) nîşanê xewê dide pitikê.",
+                "ar": "روتين منتظم (استحمام → رضاعة → أغنية → نوم) يرسل إشارة النوم لطفلك."
+              },
+              "tip": {
+                "en": "Consistency is more important than perfection. Aim for the same sequence every night.",
+                "ku_sorani": "ئیستیقرار گرنگتر لە کەمالەتە. هەموو شەو ئامانجت ئاوا بێت.",
+                "ku_badini": "Domdarî ji kamilbûnê girîngtir e.",
+                "ar": "الاتساق أهم من الكمال. احرص على نفس التسلسل كل ليلة."
+              }
+            },
+            {
+              "id": "ss_23_2",
+              "title": {
+                "en": "Drowsy But Awake",
+                "ku_sorani": "خەومناڵ بەڵام بیداری",
+                "ku_badini": "Bi Xew Lê Hişyar",
+                "ar": "نعسان لكن مستيقظ"
+              },
+              "description": {
+                "en": "Put baby down when drowsy but still awake. This teaches them to fall asleep independently, a crucial self-soothing skill.",
+                "ku_sorani": "منداڵ بخە خوارەوە کاتێک خەومناڵە بەڵام هێشتا بیداری. ئەمە فێری خووکرانەوەی سەربەخۆیانەی دەکات.",
+                "ku_badini": "Pitikê dêxe xwarê dema bi xew e lê hê hişyar e.",
+                "ar": "ضع الطفل في سريره وهو نعسان لكن مستيقظ. هذا يعلمه النوم باستقلالية."
+              },
+              "tip": null
+            }
+          ]
         },
         {
-          "id": "env_0_3_3",
-          "type": "nap",
-          "title_en": "Nap Environment",
-          "title_ar": "بيئة القيلولة",
-          "title_ku": "ژینگەی نووستن",
-          "title_ckb": "ژینگەی نووستن",
-          "icon": "☀️",
-          "value_en": "Slightly Lighter than Night",
-          "value_ar": "أخف قليلاً من الليل",
-          "value_ku": "کەمێک ڕووناکتر لە شەو",
-          "value_ckb": "کەمێک ڕووناکتر لە شەو",
-          "why_en": "Slight light during naps helps babies tell day from night.",
-          "why_ar": "الضوء الخفيف أثناء القيلولة يساعد الأطفال على التمييز بين الليل والنهار.",
-          "why_ku": "ڕووناکی کەم لە کاتی نووستن منداڵان یارمەتی دەدات ڕۆژ لە شەو جیابکەنەوە.",
-          "why_ckb": "ڕووناکی کەم لە کاتی نووستن منداڵان یارمەتی دەدات ڕۆژ لە شەو جیابکەنەوە.",
-          "tips_en": ["Allow some ambient light", "Keep noise at moderate level", "Nap in the same safe sleep space"],
-          "tips_ar": ["السماح ببعض الضوء المحيطي", "اجعل الصوت في مستوى معتدل"],
-          "tips_ku": ["ڕووناکی هەژماری ڕێگەدەرێت", "دەنگ لە ئاستی نێوەڕاست بگرە"],
-          "tips_ckb": ["ڕووناکی هەژماری ڕێگەدەرێت", "دەنگ لە ئاستی نێوەڕاست بگرە"],
-          "tip_en": "Consistency in nap location aids faster settling.",
-          "tip_ar": "الاتساق في موقع القيلولة يساعد على الاستقرار السريع.",
-          "tip_ku": "یەکسانی شوێنی نووستن یارمەتی خێراتر دانیشتن دەدات.",
-          "tip_ckb": "یەکسانی شوێنی نووستن یارمەتی خێراتر دانیشتن دەدات."
-        }
-      ],
-      "lullabies": [
-        {
-          "id": "lul_1",
-          "title_en": "Lale Lale Kurdan",
-          "title_ar": "لالە لالە کوردان",
-          "title_ku": "لالە لالە کوردان",
-          "title_ckb": "لالە لالە کوردان",
-          "language": "Kurdish",
-          "duration": "3:45",
-          "audio_url": "https://example.com/audio/lale_lale_kurdan.mp3",
-          "description_en": "Traditional Kurdish lullaby",
-          "description_ar": "أغنية تهويد كردية تقليدية",
-          "description_ku": "گۆرانیی مینۆیی کوردیی کلاسیکی",
-          "description_ckb": "گۆرانیی مینۆیی کوردیی کلاسیکی"
+          "min_months": 4,
+          "max_months": 6,
+          "label": {
+            "en": "4-6 Months",
+            "ku_sorani": "٤-٦ مانگ",
+            "ku_badini": "4-6 Meh",
+            "ar": "4-6 أشهر"
+          },
+          "items": [
+            {
+              "id": "ss_46_1",
+              "title": {
+                "en": "The 4-Month Sleep Regression",
+                "ku_sorani": "پاشڕۆی خەوتنی مانگی ٤",
+                "ku_badini": "Regresyona Xewê ya 4 Mehî",
+                "ar": "انتكاسة نوم الشهر الرابع"
+              },
+              "description": {
+                "en": "Around 4 months, sleep patterns shift to adult-like cycles. Expect more night wakings. This is normal and temporary — stay consistent with your routine.",
+                "ku_sorani": "نزیکەی ٤ مانگ، شێوازی خەوتن دەگۆڕێت. بزانە ئەمە ئادی و کاتیە.",
+                "ku_badini": "Derdora 4 mehî, şêweya xewê diguhure. Ev normal û demkî ye.",
+                "ar": "حول الشهر الرابع تتغير أنماط النوم. توقع استيقاظات أكثر ليلاً — هذا طبيعي ومؤقت."
+              },
+              "tip": {
+                "en": "Avoid creating new sleep associations (like nursing to sleep) during this phase.",
+                "ku_sorani": "لە ئەم قۆناغەدا خۆت لە دروستکردنی پەیوەندیەکانی نوێی خەوتن بپارێزە.",
+                "ku_badini": "Di vê qonaxê de girêdanên xewê yên nû çêneke.",
+                "ar": "تجنب خلق ارتباطات نوم جديدة (كالرضاعة للنوم) خلال هذه المرحلة."
+              }
+            },
+            {
+              "id": "ss_46_2",
+              "title": {
+                "en": "Establish a Nap Schedule",
+                "ku_sorani": "جەدوەڵی خەوتنی ڕۆژانە دابنێ",
+                "ku_badini": "Bernameya Xewên Rojê Diyar Bike",
+                "ar": "ضع جدولاً لقيلولات النهار"
+              },
+              "description": {
+                "en": "By 4-6 months, aim for 3 naps a day: morning, midday, and late afternoon. Watch for sleepy cues 1.5-2 hours after waking.",
+                "ku_sorani": "لە ٤-٦ مانگ، ئامانجت ٣ خەوتنی ڕۆژانە بێت.",
+                "ku_badini": "Di 4-6 mehî de, armanc 3 xewên rojê bin.",
+                "ar": "في 4-6 أشهر، استهدف 3 قيلولات: صباحاً وظهراً وآخر الظهيرة."
+              },
+              "tip": {
+                "en": "An overtired baby is harder to settle. Don't let awake windows stretch too long.",
+                "ku_sorani": "منداڵی زۆر مانده ئاسانتر نابێتەوە. ماوەی بیداری زیادە درێژ مەکە.",
+                "ku_badini": "Pitikê pir westiyayî dijwartir radibe. Pencereyên hişyarbûnê zêde dirêj neke.",
+                "ar": "الطفل المتعب جداً أصعب تهدئةً. لا تطل فترات الاستيقاظ كثيراً."
+              }
+            }
+          ]
         },
         {
-          "id": "lul_2",
-          "title_en": "Nana Ya Nana",
-          "title_ar": "نانا يا نانا",
-          "title_ku": "نانا یا نانا",
-          "title_ckb": "نانا یا نانا",
-          "language": "Arabic",
-          "duration": "4:12",
-          "audio_url": "https://example.com/audio/nana_ya_nana.mp3",
-          "description_en": "Classic Arabic lullaby",
-          "description_ar": "أغنية تهويد عربية كلاسيكية",
-          "description_ku": "گۆرانیی مینۆیی عەرەبیی کلاسیکی",
-          "description_ckb": "گۆرانیی مینۆیی عەرەبیی کلاسیکی"
+          "min_months": 7,
+          "max_months": 9,
+          "label": {
+            "en": "7-9 Months",
+            "ku_sorani": "٧-٩ مانگ",
+            "ku_badini": "7-9 Meh",
+            "ar": "7-9 أشهر"
+          },
+          "items": [
+            {
+              "id": "ss_79_1",
+              "title": {
+                "en": "Put Sara to Bed at the Same Time Every Night",
+                "ku_sorani": "هەموو شەو سارا بخە خوارەوە لەهەمان کات",
+                "ku_badini": "Her şev Sarê di heman wextî de bixwêne",
+                "ar": "ضعي سارة في السرير في نفس الوقت كل ليلة"
+              },
+              "description": {
+                "en": "Consistency in bedtime (7-8 PM) helps regulate your baby's circadian rhythm. A predictable schedule reduces night wakings.",
+                "ku_sorani": "ئیستیقرار لە کاتی خەوتن (٧-٨ ئێوارە) سیستەمی خەوتنی منداڵت بهێز دەکات.",
+                "ku_badini": "Domdarî di wextê xewê de (7-8 êvarê) rîtma xwezayî ya pitikê rêk dixe.",
+                "ar": "الاتساق في وقت النوم (7-8 مساءً) ينظم ساعة طفلك البيولوجية ويقلل الاستيقاظ الليلي."
+              },
+              "tip": {
+                "en": "Feed on demand, not by schedule.",
+                "ku_sorani": "لە پشت داواکاری خواردن بدە، نەک لە پشت جەدوەڵ.",
+                "ku_badini": "Li gorî daxwazê bixwêne, ne li gorî bernameye.",
+                "ar": "أرضع عند الطلب وليس وفق جدول."
+              }
+            },
+            {
+              "id": "ss_79_2",
+              "title": {
+                "en": "Gradual Fading Method",
+                "ku_sorani": "ڕێکارەی کەمکردنەوەی هێواش",
+                "ku_badini": "Rêbaza Vekişîna Hêdî",
+                "ar": "طريقة التلاشي التدريجي"
+              },
+              "description": {
+                "en": "Slowly reduce your presence at bedtime. Sit next to the crib the first week, then move farther away each week until baby falls asleep alone.",
+                "ku_sorani": "بە هێواشی ئامادەبوونت لە کاتی خەوتن کەمدەکەیتەوە.",
+                "ku_badini": "Hêdî hêdî hebûna xwe di wextê xewê de kêm bike.",
+                "ar": "قلل حضورك تدريجياً عند النوم. اجلس بجانب السرير الأسبوع الأول ثم ابتعد أسبوعاً بعد أسبوع."
+              },
+              "tip": null
+            }
+          ]
         },
         {
-          "id": "lul_3",
-          "title_en": "Twinkle Twinkle Little Star",
-          "title_ar": "لمعان النجمة الصغيرة",
-          "title_ku": "ئەستێرەی بچووک دەدرەخشێ",
-          "title_ckb": "ئەستێرەی بچووک دەدرەخشێ",
-          "language": "English",
-          "duration": "2:30",
-          "audio_url": "https://example.com/audio/twinkle_twinkle.mp3",
-          "description_en": "Classic English nursery rhyme",
-          "description_ar": "قافية الحضانة الإنجليزية الكلاسيكية",
-          "description_ku": "ئەغانییە کلاسیکیەکەی ئینگلیزی",
-          "description_ckb": "ئەغانییە کلاسیکیەکەی ئینگلیزی"
+          "min_months": 10,
+          "max_months": 12,
+          "label": {
+            "en": "10-12 Months",
+            "ku_sorani": "١٠-١٢ مانگ",
+            "ku_badini": "10-12 Meh",
+            "ar": "10-12 شهر"
+          },
+          "items": [
+            {
+              "id": "ss_1012_1",
+              "title": {
+                "en": "Transition to 2 Naps",
+                "ku_sorani": "گواستنەوە بۆ ٢ خەوتنی ڕۆژانە",
+                "ku_badini": "Veguhestina bo 2 Xewên Rojê",
+                "ar": "الانتقال إلى قيلولتين"
+              },
+              "description": {
+                "en": "Most babies around 10 months consolidate to 2 naps. Morning nap: 9:00-10:30 AM. Afternoon nap: 1:00-2:30 PM.",
+                "ku_sorani": "زۆرینەی منداڵان نزیکەی ١٠ مانگ بۆ ٢ خەوتنی ڕۆژانە دەگوازنەوە.",
+                "ku_badini": "Piraniya pitikan derdora 10 mehî diçin 2 xewên rojê.",
+                "ar": "معظم الأطفال حول 10 أشهر يتحولون لقيلولتين. صباحاً: 9-10:30. ظهراً: 1-2:30."
+              },
+              "tip": {
+                "en": "Avoid naps after 4 PM to protect night sleep.",
+                "ku_sorani": "خەوتن لەدوای ٤ دوانیوەڕۆ بپارێزە بۆ خاتری خەوتنی شەو.",
+                "ku_badini": "Xewên piştî 4 êvarê ji bo xewê şevê neke.",
+                "ar": "تجنب القيلولة بعد الساعة 4 مساءً للحفاظ على نوم الليل."
+              }
+            }
+          ]
         },
         {
-          "id": "lul_4",
-          "title_en": "Daye Daye",
-          "title_ar": "داية داية",
-          "title_ku": "دایە دایە",
-          "title_ckb": "دایە دایە",
-          "language": "Kurdish",
-          "duration": "3:10",
-          "audio_url": "https://example.com/audio/daye_daye.mp3",
-          "description_en": "Kurdish Badini lullaby",
-          "description_ar": "أغنية تهويد بادينية كردية",
-          "description_ku": "گۆرانیی مینۆیی کوردیی بادینی",
-          "description_ckb": "گۆرانیی مینۆیی کوردیی بادینی"
+          "min_months": 13,
+          "max_months": 18,
+          "label": {
+            "en": "13-18 Months",
+            "ku_sorani": "١٣-١٨ مانگ",
+            "ku_badini": "13-18 Meh",
+            "ar": "13-18 شهر"
+          },
+          "items": [
+            {
+              "id": "ss_1318_1",
+              "title": {
+                "en": "Transition to 1 Nap",
+                "ku_sorani": "گواستنەوە بۆ ١ خەوتنی ڕۆژانە",
+                "ku_badini": "Veguhestina bo 1 Xeweke Rojê",
+                "ar": "الانتقال إلى قيلولة واحدة"
+              },
+              "description": {
+                "en": "Between 13-18 months, most toddlers drop to one midday nap (12:00-2:00 PM). This transition may take several weeks and bedtime may need to move earlier temporarily.",
+                "ku_sorani": "لەنێوان ١٣-١٨ مانگ، زۆرینەی منداڵان بۆ ١ خەوتنی نیوەڕۆ دەگوازنەوە.",
+                "ku_badini": "Di 13-18 mehî de, piraniya pitikan diçin 1 xeweke nîvro.",
+                "ar": "بين 13-18 شهراً، يتحول معظم الأطفال لقيلولة منتصف النهار (12-2 ظهراً)."
+              },
+              "tip": {
+                "en": "Signs ready for 1 nap: resisting morning nap, or morning nap ruins afternoon nap.",
+                "ku_sorani": "نیشانەی ئامادەبوون بۆ ١ خەوتن: بەرلەبوون دژی خەوتنی بەیانی.",
+                "ku_badini": "Nîşaneyên amadebûna bo 1 xewê: berxwedana li hemberî xewê sibehê.",
+                "ar": "علامات الاستعداد لقيلولة واحدة: مقاومة قيلولة الصباح."
+              }
+            }
+          ]
         },
         {
-          "id": "lul_5",
-          "title_en": "Ya Omri",
-          "title_ar": "يا عمري",
-          "title_ku": "یا عومری",
-          "title_ckb": "یا عومری",
-          "language": "Arabic",
-          "duration": "3:55",
-          "audio_url": "https://example.com/audio/ya_omri.mp3",
-          "description_en": "Classic Arabic lullaby",
-          "description_ar": "أغنية تهويد عربية",
-          "description_ku": "گۆرانیی مینۆیی عەرەبی",
-          "description_ckb": "گۆرانیی مینۆیی عەرەبی"
+          "min_months": 19,
+          "max_months": 24,
+          "label": {
+            "en": "19-24 Months",
+            "ku_sorani": "١٩-٢٤ مانگ",
+            "ku_badini": "19-24 Meh",
+            "ar": "19-24 شهر"
+          },
+          "items": [
+            {
+              "id": "ss_1924_1",
+              "title": {
+                "en": "Manage Bedtime Resistance",
+                "ku_sorani": "بەڕێوەبردنی بەرلەبوون لە کاتی خەوتن",
+                "ku_badini": "Berxwedana Wextê Xewê Birêve Bibe",
+                "ar": "التعامل مع مقاومة وقت النوم"
+              },
+              "description": {
+                "en": "Toddlers often resist bedtime due to FOMO (fear of missing out). Set clear boundaries and a consistent routine. Offer limited choices (which pajamas, which book) to give a sense of control.",
+                "ku_sorani": "منداڵانی قۆناغی پیاوکچکانە زۆرجار دژی خەوتن دەبن. سنوری ڕوون دابنێ.",
+                "ku_badini": "Pitikên biçûk gelek caran li hemberî xewê berxwedan dikin.",
+                "ar": "يقاوم الأطفال الصغار النوم خوفاً من فوات شيء. ضع حدوداً واضحة وروتيناً منتظماً."
+              },
+              "tip": {
+                "en": "A visual bedtime chart can help toddlers understand and accept the routine.",
+                "ku_sorani": "چارتی بینراوی خەوتن دەتوانێت یارمەتی منداڵان بدات.",
+                "ku_badini": "Nexşeya xewê ya dîtbarî dikare alîkariya pitikan bike.",
+                "ar": "جدول نوم بصري يساعد الأطفال على فهم الروتين وقبوله."
+              }
+            }
+          ]
         },
         {
-          "id": "lul_6",
-          "title_en": "Hush Little Baby",
-          "title_ar": "اهدأ أيها الطفل الصغير",
-          "title_ku": "ئارام بوو منداڵە بچووکەکەم",
-          "title_ckb": "ئارام بوو منداڵە بچووکەکەم",
-          "language": "English",
-          "duration": "2:48",
-          "audio_url": "https://example.com/audio/hush_little_baby.mp3",
-          "description_en": "Classic English lullaby",
-          "description_ar": "أغنية تهويد إنجليزية كلاسيكية",
-          "description_ku": "گۆرانیی مینۆیی ئینگلیزیی کلاسیکی",
-          "description_ckb": "گۆرانیی مینۆیی ئینگلیزیی کلاسیکی"
+          "min_months": 25,
+          "max_months": 36,
+          "label": {
+            "en": "2-3 Years",
+            "ku_sorani": "٢-٣ ساڵ",
+            "ku_badini": "2-3 Sal",
+            "ar": "2-3 سنوات"
+          },
+          "items": [
+            {
+              "id": "ss_2436_1",
+              "title": {
+                "en": "Transition from Crib to Bed",
+                "ku_sorani": "گواستنەوە لە گۆلکە بۆ جێگا",
+                "ku_badini": "Veguhestina ji Beşikê bo Nivîn",
+                "ar": "الانتقال من السرير الطفولي إلى السرير العادي"
+              },
+              "description": {
+                "en": "Most children transition to a toddler bed between 2-3 years. Use a bed rail, keep the same bedtime routine, and make it a positive celebration.",
+                "ku_sorani": "زۆرینەی منداڵان لەنێوان ٢-٣ ساڵ بۆ جێگای منداڵانی کۆچی دەکەن.",
+                "ku_badini": "Piraniya zarokan di 2-3 salî de diçin nivîna zarokan.",
+                "ar": "معظم الأطفال ينتقلون للسرير العادي بين 2-3 سنوات. استخدم حاجزاً جانبياً واحتفل بالانتقال."
+              },
+              "tip": {
+                "en": "Let your child help choose their new bed or bedding to build excitement.",
+                "ku_sorani": "بهێڵە منداڵەکەت یارمەتی هەڵبژاردنی جێگای نوێیان بدات.",
+                "ku_badini": "Bihêle zaroka te alîkariya hilbijartina nivîna nû bike.",
+                "ar": "دع طفلك يساعد في اختيار سريره الجديد لبناء الحماس."
+              }
+            }
+          ]
         }
       ]
     },
     {
-      "id": "4_6m",
-      "label_en": "4–6 Months",
-      "label_ar": "4–6 أشهر",
-      "label_ku": "4–6 مانگ",
-      "label_ckb": "4–6 مانگ",
-      "min_months": 4,
-      "max_months": 6,
-      "sleep_strategies": [
-        {
-          "id": "ss_4_6_1",
-          "title_en": "Establish a Sleep Schedule",
-          "title_ar": "وضع جدول للنوم",
-          "title_ku": "دروستکردنی خشتەی خەو",
-          "title_ckb": "دروستکردنی خشتەی خەو",
-          "description_en": "Put your baby to bed at the same time every night (7–8 PM). Predictability helps regulate the body clock.",
-          "description_ar": "ضع طفلك في السرير في نفس الوقت كل ليلة (7–8 مساءً). الانتظام يساعد في تنظيم الساعة البيولوجية.",
-          "description_ku": "هەر شەو لە هەمان کاتدا منداڵت بخەوێنە (7–8 ئێوارە). ئیستیقرار کاتژمێری جەستە ڕێکدەخات.",
-          "description_ckb": "هەر شەو لە هەمان کاتدا منداڵت بخەوێنە (7–8 ئێوارە). ئیستیقرار کاتژمێری جەستە ڕێکدەخات.",
-          "tip_en": "Bedtime window: 7–8 PM works best for most babies.",
-          "tip_ar": "نافذة وقت النوم: 7–8 مساءً تعمل بشكل أفضل لمعظم الأطفال.",
-          "tip_ku": "کاتژمێری خەو: 7–8 ئێوارە بۆ زۆرینەی منداڵان باشترە.",
-          "tip_ckb": "کاتژمێری خەو: 7–8 ئێوارە بۆ زۆرینەی منداڵان باشترە."
-        },
-        {
-          "id": "ss_4_6_2",
-          "title_en": "Sleep Training Introduction",
-          "title_ar": "مقدمة تدريب النوم",
-          "title_ku": "دەستپێکردنی ڕاهێنانی خەو",
-          "title_ckb": "دەستپێکردنی ڕاهێنانی خەو",
-          "description_en": "Around 4 months, babies can start learning to self-soothe. Lay drowsy but awake and wait 2–3 minutes before responding to fussing.",
-          "description_ar": "حول 4 أشهر، يمكن للأطفال البدء في تعلم التهدئة الذاتية.",
-          "description_ku": "لە دەوری 4 مانگ، منداڵان دەتوانن دەستبکەن بە فێربوونی خۆیان ئارامکردنەوە.",
-          "description_ckb": "لە دەوری 4 مانگ، منداڵان دەتوانن دەستبکەن بە فێربوونی خۆیان ئارامکردنەوە.",
-          "tip_en": "Consistency is key — pick one method and stick to it.",
-          "tip_ar": "الاتساق هو المفتاح — اختر طريقة واحدة وتمسك بها.",
-          "tip_ku": "یەکسانی مفتاحەکەیە — یەک ڕێگا هەڵبژێرە و پێ بمێنەرە.",
-          "tip_ckb": "یەکسانی مفتاحەکەیە — یەک ڕێگا هەڵبژێرە و پێ بمێنەرە."
-        }
-      ],
-      "sleep_needs": {
-        "id": "sn_4_6",
-        "total_sleep_en": "12–16 hours",
-        "total_sleep_ar": "12–16 ساعة",
-        "total_sleep_ku": "12–16 کاتژمێر",
-        "total_sleep_ckb": "12–16 کاتژمێر",
-        "night_sleep_en": "9–10 hrs",
-        "night_sleep_ar": "9–10 ساعات",
-        "night_sleep_ku": "9–10 کاتژمێر",
-        "night_sleep_ckb": "9–10 کاتژمێر",
-        "daytime_sleep_en": "3–4 hrs (2–3 naps)",
-        "daytime_sleep_ar": "3–4 ساعات (2–3 قيلولات)",
-        "daytime_sleep_ku": "3–4 کاتژمێر (2–3 نووستن)",
-        "daytime_sleep_ckb": "3–4 کاتژمێر (2–3 نووستن)",
-        "nap_schedule": [
-          {
-            "name_en": "Morning Nap",
-            "name_ar": "قيلولة الصباح",
-            "name_ku": "نووستنی بەیانی",
-            "name_ckb": "نووستنی بەیانی",
-            "time_en": "9:00–10:30 AM",
-            "time_ar": "9:00–10:30 صباحًا",
-            "time_ku": "9:00–10:30 بەیانی",
-            "time_ckb": "9:00–10:30 بەیانی",
-            "duration_en": "1–1.5 hours",
-            "duration_ar": "1–1.5 ساعة",
-            "duration_ku": "1–1.5 کاتژمێر",
-            "duration_ckb": "1–1.5 کاتژمێر"
-          },
-          {
-            "name_en": "Afternoon Nap",
-            "name_ar": "قيلولة بعد الظهر",
-            "name_ku": "نووستنی دوانیوەڕۆ",
-            "name_ckb": "نووستنی دوانیوەڕۆ",
-            "time_en": "1:00–2:30 PM",
-            "time_ar": "1:00–2:30 بعد الظهر",
-            "time_ku": "1:00–2:30 دوانیوەڕۆ",
-            "time_ckb": "1:00–2:30 دوانیوەڕۆ",
-            "duration_en": "1–1.5 hours",
-            "duration_ar": "1–1.5 ساعة",
-            "duration_ku": "1–1.5 کاتژمێر",
-            "duration_ckb": "1–1.5 کاتژمێر"
-          }
-        ],
-        "tips_en": ["Sleep regression happens around 4 months — be patient", "Naps consolidate from 3–4 to 2", "Night feedings may reduce to 1–2", "Watch for tired cues: ear pulling, eye rubbing"],
-        "tips_ar": ["يحدث تراجع النوم حول 4 أشهر — كن صبورًا", "تتوحد القيلولات من 3-4 إلى 2"],
-        "tips_ku": ["توگایەوەی خەو لە دەوری 4 مانگدا دەبێت — سەبر بکە", "نووستنەکان لە 3-4 بۆ 2 دەگوازرێنەوە"],
-        "tips_ckb": ["توگایەوەی خەو لە دەوری 4 مانگدا دەبێت — سەبر بکە", "نووستنەکان لە 3-4 بۆ 2 دەگوازرێنەوە"],
-        "tip_en": "Around 4 months most babies drop to 2 naps.",
-        "tip_ar": "حول 4 أشهر ينزل معظم الأطفال إلى قيلولتين.",
-        "tip_ku": "لە دەوری 4 مانگ زۆرینەی منداڵان بۆ 2 نووستن دادەکەون.",
-        "tip_ckb": "لە دەوری 4 مانگ زۆرینەی منداڵان بۆ 2 نووستن دادەکەون."
+      "id": "sleep_needs",
+      "icon": "sleep_needs",
+      "title": {
+        "en": "Sleep Needs",
+        "ku_sorani": "پێداویستیەکانی خەوتن",
+        "ku_badini": "Pêdiviyên Xewê",
+        "ar": "احتياجات النوم"
       },
-      "environments": [
+      "tabs": null,
+      "age_ranges": [
         {
-          "id": "env_4_6_1",
-          "type": "bedtime",
-          "title_en": "Room Temperature",
-          "title_ar": "درجة حرارة الغرفة",
-          "title_ku": "گەرمای ژوور",
-          "title_ckb": "گەرمای ژوور",
-          "icon": "🌡️",
-          "value_en": "18–21°C (65–70°F)",
-          "value_ar": "18–21°م",
-          "value_ku": "18–21 پلە",
-          "value_ckb": "18–21 پلە",
-          "why_en": "Cool room temperature promotes deeper, longer sleep cycles.",
-          "why_ar": "درجة الحرارة الباردة في الغرفة تعزز دورات نوم أعمق وأطول.",
-          "why_ku": "گەرمای کەمی ژوور بەرهەمهێنانی خەوی قووڵتر و درێژتر دەکات.",
-          "why_ckb": "گەرمای کەمی ژوور بەرهەمهێنانی خەوی قووڵتر و درێژتر دەکات.",
-          "tips_en": ["Use a room thermometer", "Sleep sack instead of blanket", "Avoid over-bundling"],
-          "tips_ar": ["استخدم مقياس حرارة الغرفة", "استخدم كيس النوم بدلاً من البطانية"],
-          "tips_ku": ["تەرمامیتری ژوور بەکاربێنە", "کیسەی خەو بجێگای پاڵاو بەکاربێنە"],
-          "tips_ckb": ["تەرمامیتری ژوور بەکاربێنە", "کیسەی خەو بجێگای پاڵاو بەکاربێنە"],
-          "tip_en": "Use a baby monitor with temperature display.",
-          "tip_ar": "استخدم جهاز مراقبة الطفل مع عرض درجة الحرارة.",
-          "tip_ku": "مانیتۆری منداڵ بەکاربێنە کە گەرما پیشان دەدات.",
-          "tip_ckb": "مانیتۆری منداڵ بەکاربێنە کە گەرما پیشان دەدات."
+          "min_months": 0,
+          "max_months": 1,
+          "label": {
+            "en": "0-1 Month",
+            "ku_sorani": "٠-١ مانگ",
+            "ku_badini": "0-1 Meh",
+            "ar": "0-1 شهر"
+          },
+          "items": [
+            {
+              "id": "sn_01_1",
+              "title": {
+                "en": "Total Sleep: 16-18 Hours/Day",
+                "ku_sorani": "کۆی خەوتن: ١٦-١٨ کاتژمێر/ڕۆژ",
+                "ku_badini": "Tevaya Xewê: 16-18 Saet/Roj",
+                "ar": "إجمالي النوم: 16-18 ساعة/يوم"
+              },
+              "description": {
+                "en": "Night: 8-9 hours (in segments)\nDaytime: 7-9 hours across 3-5 naps\n\nNewborns have no circadian rhythm yet. They sleep in short bursts of 2-4 hours around the clock.",
+                "ku_sorani": "شەو: ٨-٩ کاتژمێر\nڕۆژ: ٧-٩ کاتژمێر لە ٣-٥ خەوتن\n\nمنداڵی نوێ هێشتا ساعتی بیولۆژی نییە.",
+                "ku_badini": "Şev: 8-9 saet\nRoj: 7-9 saet di 3-5 xewê de\n\nPitikê nû hê saeta biyolojîk tune.",
+                "ar": "الليل: 8-9 ساعات (على فترات)\nالنهار: 7-9 ساعات في 3-5 قيلولات\n\nالمواليد لا يملكون إيقاعاً بيولوجياً بعد."
+              },
+              "tip": {
+                "en": "Nap times vary widely at this age. Focus on total sleep, not schedule.",
+                "ku_sorani": "کاتەکانی خەوتن لەم تەمەنەدا زۆر جیاواز دەبن. سەرنجت بدە لە کۆی خەوتن.",
+                "ku_badini": "Di vê temenî de wextên xewê gelek cuda dibin.",
+                "ar": "أوقات القيلولة تتباين كثيراً في هذا العمر. ركز على إجمالي النوم لا الجدول."
+              }
+            }
+          ]
         },
         {
-          "id": "env_4_6_2",
-          "type": "nap",
-          "title_en": "Nap Space",
-          "title_ar": "مساحة القيلولة",
-          "title_ku": "شوێنی نووستن",
-          "title_ckb": "شوێنی نووستن",
-          "icon": "🛏️",
-          "value_en": "Same Crib Every Time",
-          "value_ar": "نفس السرير في كل مرة",
-          "value_ku": "هەمان مانجەرە هەر جار",
-          "value_ckb": "هەمان مانجەرە هەر جار",
-          "why_en": "Consistency in sleep location helps babies associate that space with sleep.",
-          "why_ar": "الاتساق في موقع النوم يساعد الأطفال على ربط ذلك المكان بالنوم.",
-          "why_ku": "یەکسانی شوێنی خەو یارمەتی منداڵان دەدات ئەو شوێنە بە خەوەوە بگرتبکەن.",
-          "why_ckb": "یەکسانی شوێنی خەو یارمەتی منداڵان دەدات ئەو شوێنە بە خەوەوە بگرتبکەن.",
-          "tips_en": ["Firm, flat mattress", "No pillows or loose bedding", "Baby should see familiar surroundings"],
-          "tips_ar": ["مرتبة صلبة ومسطحة", "بدون وسائد أو أغطية فضفاضة"],
-          "tips_ku": ["دۆشەکی سەخت و ئاستیی", "بێ بالیف یان فراشی خۆیەتی"],
-          "tips_ckb": ["دۆشەکی سەخت و ئاستیی", "بێ بالیف یان فراشی خۆیەتی"],
-          "tip_en": "Avoid using car seats or bouncers for naps.",
-          "tip_ar": "تجنب استخدام مقاعد السيارة أو الكراسي المتأرجحة للقيلولة.",
-          "tip_ku": "خودان لە بەکارهێنانی کورسیی ئوتومبێل یان لانلاوی بۆ نووستن.",
-          "tip_ckb": "خودان لە بەکارهێنانی کورسیی ئوتومبێل یان لانلاوی بۆ نووستن."
-        }
-      ],
-      "lullabies": [
-        {
-          "id": "lul_7",
-          "title_en": "Lale Lale Kurdan",
-          "title_ar": "لالە لالە کوردان",
-          "title_ku": "لالە لالە کوردان",
-          "title_ckb": "لالە لالە کوردان",
-          "language": "Kurdish",
-          "duration": "3:45",
-          "audio_url": "https://example.com/audio/lale_lale_kurdan.mp3",
-          "description_en": "Traditional Kurdish lullaby",
-          "description_ar": "أغنية تهويد كردية تقليدية",
-          "description_ku": "گۆرانیی مینۆیی کوردیی کلاسیکی",
-          "description_ckb": "گۆرانیی مینۆیی کوردیی کلاسیکی"
+          "min_months": 2,
+          "max_months": 3,
+          "label": {
+            "en": "2-3 Months",
+            "ku_sorani": "٢-٣ مانگ",
+            "ku_badini": "2-3 Meh",
+            "ar": "2-3 أشهر"
+          },
+          "items": [
+            {
+              "id": "sn_23_1",
+              "title": {
+                "en": "Total Sleep: 14-17 Hours/Day",
+                "ku_sorani": "کۆی خەوتن: ١٤-١٧ کاتژمێر/ڕۆژ",
+                "ku_badini": "Tevaya Xewê: 14-17 Saet/Roj",
+                "ar": "إجمالي النوم: 14-17 ساعة/يوم"
+              },
+              "description": {
+                "en": "Night: 10-12 hours\nDaytime: 4-5 hours across 3-4 naps\n\nThe circadian rhythm begins to develop. Baby may start showing longer night stretches of 4-6 hours.",
+                "ku_sorani": "شەو: ١٠-١٢ کاتژمێر\nڕۆژ: ٤-٥ کاتژمێر لە ٣-٤ خەوتن\n\nساعتی بیولۆژی دەست دەکات بە گەشەکردن.",
+                "ku_badini": "Şev: 10-12 saet\nRoj: 4-5 saet di 3-4 xewê de.",
+                "ar": "الليل: 10-12 ساعة\nالنهار: 4-5 ساعات في 3-4 قيلولات\n\nتبدأ الساعة البيولوجية بالتطور."
+              },
+              "tip": null
+            }
+          ]
         },
         {
-          "id": "lul_8",
-          "title_en": "Rock-a-bye Baby",
-          "title_ar": "هزي أيها الطفل",
-          "title_ku": "منداڵەکەم بلوێنمەوە",
-          "title_ckb": "منداڵەکەم بلوێنمەوە",
-          "language": "English",
-          "duration": "2:15",
-          "audio_url": "https://example.com/audio/rock_a_bye.mp3",
-          "description_en": "Classic English lullaby",
-          "description_ar": "أغنية تهويد إنجليزية كلاسيكية",
-          "description_ku": "گۆرانیی مینۆیی ئینگلیزیی کلاسیکی",
-          "description_ckb": "گۆرانیی مینۆیی ئینگلیزیی کلاسیکی"
+          "min_months": 7,
+          "max_months": 9,
+          "label": {
+            "en": "7-9 Months",
+            "ku_sorani": "٧-٩ مانگ",
+            "ku_badini": "7-9 Meh",
+            "ar": "7-9 أشهر"
+          },
+          "items": [
+            {
+              "id": "sn_79_1",
+              "title": {
+                "en": "How Much Sleep Does Sara Need?",
+                "ku_sorani": "سارا چەند خەوتن پێویستیەتی؟",
+                "ku_badini": "Sarê çiqas xew hewce dike?",
+                "ar": "كم يحتاج طفلك من النوم؟"
+              },
+              "description": {
+                "en": "Total Sleep: 12-15 hours\nNight: 10-12 hrs\nDaytime: 2-3 hrs\n\nTotal Nap:\nMorning Nap: 9:00-10:30 AM (Duration: 1-1.5 hours)\nAfternoon Nap: 1:00-2:30 PM (Duration: 1-1.5 hours)",
+                "ku_sorani": "کۆی خەوتن: ١٢-١٥ کاتژمێر\nشەو: ١٠-١٢ کاتژمێر\nڕۆژ: ٢-٣ کاتژمێر\n\nخەوتنی بەیانی: ٩:٠٠-١٠:٣٠\nخەوتنی دوانیوەڕۆ: ١:٠٠-٢:٣٠",
+                "ku_badini": "Tevaya Xewê: 12-15 saet\nŞev: 10-12 saet\nRoj: 2-3 saet\n\nXewa Sibehê: 9:00-10:30\nXewa Nîvro: 1:00-2:30",
+                "ar": "إجمالي النوم: 12-15 ساعة\nالليل: 10-12 ساعة\nالنهار: 2-3 ساعات\n\nقيلولة الصباح: 9:00-10:30\nقيلولة الظهر: 1:00-2:30"
+              },
+              "tip": {
+                "en": "Tips for This Age:\n• Most babies drop to 2 naps\n• Night sleep becomes longer\n• May sleep through the night\n• Avoid naps after 4 PM",
+                "ku_sorani": "• زۆرینەی منداڵان بۆ ٢ خەوتن دەچن\n• خەوتنی شەو درێژدەبێتەوە\n• لەوانەیە شەوی تەواو بخەون\n• خەوتن لەدوای ٤ دوانیوەڕۆ بپارێزە",
+                "ku_badini": "• Piraniya pitikan diçin 2 xewê\n• Xewa şevê dirêjtir dibe\n• Dibe ku tevaya şevê bixewê\n• Xewên piştî 4 êvarê neke",
+                "ar": "• معظم الأطفال ينتقلون لقيلولتين\n• يصبح نوم الليل أطول\n• قد ينام طوال الليل\n• تجنب القيلولة بعد الساعة 4"
+              }
+            }
+          ]
         }
       ]
     },
     {
-      "id": "7_12m",
-      "label_en": "7–12 Months",
-      "label_ar": "7–12 شهراً",
-      "label_ku": "7–12 مانگ",
-      "label_ckb": "7–12 مانگ",
-      "min_months": 7,
-      "max_months": 12,
-      "sleep_strategies": [
+      "id": "environment",
+      "icon": "environment",
+      "title": {
+        "en": "Environment",
+        "ku_sorani": "ژینگە",
+        "ku_badini": "Jîngehê",
+        "ar": "البيئة"
+      },
+      "tabs": [
         {
-          "id": "ss_7_12_1",
-          "title_en": "Object Permanence & Sleep",
-          "title_ar": "ثبات الموضوع والنوم",
-          "title_ku": "ماندوویی شت و خەو",
-          "title_ckb": "ماندوویی شت و خەو",
-          "description_en": "Babies now understand you exist when out of sight. Use a comfort object like a small stuffed animal to ease separation anxiety at bedtime.",
-          "description_ar": "يفهم الأطفال الآن أنك موجود عندما لا تكون في مجال رؤيتهم. استخدم كائنًا مريحًا مثل حيوان محشو صغير.",
-          "description_ku": "منداڵان ئێستا تێدەگەن کە تۆ بوونت هەیە کاتێک دور دەبیتەوە. شتێکی ئاسوودەکار بەکاربێنە.",
-          "description_ckb": "منداڵان ئێستا تێدەگەن کە تۆ بوونت هەیە کاتێک دور دەبیتەوە. شتێکی ئاسوودەکار بەکاربێنە.",
-          "tip_en": "Choose a small, safe lovey with no detachable parts.",
-          "tip_ar": "اختر حيوانًا صغيرًا آمنًا بدون أجزاء قابلة للفصل.",
-          "tip_ku": "حیوانچەیەکی بچووک و پارێزراو بەبێ ئەندامی جیابوونەوە هەڵبژێرە.",
-          "tip_ckb": "حیوانچەیەکی بچووک و پارێزراو بەبێ ئەندامی جیابوونەوە هەڵبژێرە."
+          "id": "bedtime",
+          "label": {
+            "en": "Bedtime",
+            "ku_sorani": "کاتی خەوتن",
+            "ku_badini": "Wextê Xewê",
+            "ar": "وقت النوم"
+          }
         },
         {
-          "id": "ss_7_12_2",
-          "title_en": "Consistent Wake Windows",
-          "title_ar": "نوافذ الصحو المتسقة",
-          "title_ku": "پەنجەرەی بەیاریی یەکسان",
-          "title_ckb": "پەنجەرەی بەیاریی یەکسان",
-          "description_en": "Keep wake windows at 2.5–3.5 hours. Overtired babies fight sleep harder. Watch for tired cues and start the nap routine proactively.",
-          "description_ar": "احتفظ بنوافذ الصحو من 2.5 إلى 3.5 ساعة. الأطفال المتعبون جدًا يقاومون النوم بشكل أكبر.",
-          "description_ku": "پەنجەرەی بەیاری لە 2.5–3.5 کاتژمێر بگرە. منداڵانی تازەبوو زیاتر دژی خەو دەکەن.",
-          "description_ckb": "پەنجەرەی بەیاری لە 2.5–3.5 کاتژمێر بگرە. منداڵانی تازەبوو زیاتر دژی خەو دەکەن.",
-          "tip_en": "Don't wait until baby is overtired — start routine at first yawn.",
-          "tip_ar": "لا تنتظر حتى يتعب الطفل كثيرًا — ابدأ الروتين عند أول تثاؤب.",
-          "tip_ku": "چاوەڕوان مەبە تا منداڵ زۆر ماندوو بێت — لە یەکەم دانووان دەستبکە.",
-          "tip_ckb": "چاوەڕوان مەبە تا منداڵ زۆر ماندوو بێت — لە یەکەم دانووان دەستبکە."
-        }
-      ],
-      "sleep_needs": {
-        "id": "sn_7_12",
-        "total_sleep_en": "12–15 hours",
-        "total_sleep_ar": "12–15 ساعة",
-        "total_sleep_ku": "12–15 کاتژمێر",
-        "total_sleep_ckb": "12–15 کاتژمێر",
-        "night_sleep_en": "10–11 hrs",
-        "night_sleep_ar": "10–11 ساعات",
-        "night_sleep_ku": "10–11 کاتژمێر",
-        "night_sleep_ckb": "10–11 کاتژمێر",
-        "daytime_sleep_en": "2–3 hrs (2 naps)",
-        "daytime_sleep_ar": "2–3 ساعات (قيلولتان)",
-        "daytime_sleep_ku": "2–3 کاتژمێر (2 نووستن)",
-        "daytime_sleep_ckb": "2–3 کاتژمێر (2 نووستن)",
-        "nap_schedule": [
-          {
-            "name_en": "Morning Nap",
-            "name_ar": "قيلولة الصباح",
-            "name_ku": "نووستنی بەیانی",
-            "name_ckb": "نووستنی بەیانی",
-            "time_en": "9:00–10:30 AM",
-            "time_ar": "9:00–10:30 صباحًا",
-            "time_ku": "9:00–10:30 بەیانی",
-            "time_ckb": "9:00–10:30 بەیانی",
-            "duration_en": "1–1.5 hours",
-            "duration_ar": "1–1.5 ساعة",
-            "duration_ku": "1–1.5 کاتژمێر",
-            "duration_ckb": "1–1.5 کاتژمێر"
-          },
-          {
-            "name_en": "Afternoon Nap",
-            "name_ar": "قيلولة بعد الظهر",
-            "name_ku": "نووستنی دوانیوەڕۆ",
-            "name_ckb": "نووستنی دوانیوەڕۆ",
-            "time_en": "1:00–2:30 PM",
-            "time_ar": "1:00–2:30 بعد الظهر",
-            "time_ku": "1:00–2:30 دوانیوەڕۆ",
-            "time_ckb": "1:00–2:30 دوانیوەڕۆ",
-            "duration_en": "1–1.5 hours",
-            "duration_ar": "1–1.5 ساعة",
-            "duration_ku": "1–1.5 کاتژمێر",
-            "duration_ckb": "1–1.5 کاتژمێر"
+          "id": "naps",
+          "label": {
+            "en": "Naps",
+            "ku_sorani": "خەوتنی ڕۆژانە",
+            "ku_badini": "Xewên Rojê",
+            "ar": "القيلولة"
           }
-        ],
-        "tips_en": ["Most babies sleep through the night by 9 months", "Separation anxiety peaks — be extra consistent", "May drop morning nap around 12 months", "Avoid naps after 4 PM"],
-        "tips_ar": ["ينام معظم الأطفال طوال الليل بحلول 9 أشهر", "تبلغ قلق الفراق ذروتها — كن أكثر اتساقًا"],
-        "tips_ku": ["زۆرینەی منداڵان لە 9 مانگدا شەوانی دەنووێن", "سەربەستنەکەوتن گەهاو بەرزترین خاڵی خۆی — زیاتر یەکسان بوو"],
-        "tips_ckb": ["زۆرینەی منداڵان لە 9 مانگدا شەوانی دەنووێن", "سەربەستنەکەوتن گەهاو بەرزترین خاڵی خۆی — زیاتر یەکسان بوو"],
-        "tip_en": "Night wakings for comfort are normal — stay calm.",
-        "tip_ar": "الاستيقاظ ليلاً للراحة أمر طبيعي — ابق هادئًا.",
-        "tip_ku": "بەیانیبوونەوە بۆ ئارامی ئاساییە — ئارام بوو.",
-        "tip_ckb": "بەیانیبوونەوە بۆ ئارامی ئاساییە — ئارام بوو."
-      },
-      "environments": [
-        {
-          "id": "env_7_12_1",
-          "type": "bedtime",
-          "title_en": "Noise Level",
-          "title_ar": "مستوى الضوضاء",
-          "title_ku": "ئاستی دەنگ",
-          "title_ckb": "ئاستی دەنگ",
-          "icon": "🔇",
-          "value_en": "White Noise 65 dB",
-          "value_ar": "ضوضاء بيضاء 65 ديسيبل",
-          "value_ku": "دەنگی سپی 65 دیسیبێل",
-          "value_ckb": "دەنگی سپی 65 دیسیبێل",
-          "why_en": "Consistent background sound masks household noises and helps babies sleep longer stretches.",
-          "why_ar": "الصوت الخلفي المتسق يخفي أصوات المنزل ويساعد الأطفال على النوم لفترات أطول.",
-          "why_ku": "دەنگی پشتەوانە یەکسان دەنگەکانی ماڵ دادەپۆشێت و منداڵان بەمدی درێژتر دەخەوێنێت.",
-          "why_ckb": "دەنگی پشتەوانە یەکسان دەنگەکانی ماڵ دادەپۆشێت و منداڵان بەمدی درێژتر دەخەوێنێت.",
-          "tips_en": ["Place machine across room, not next to crib", "Use steady, non-varying sounds", "Rain, ocean, or fan sounds work well"],
-          "tips_ar": ["ضع الجهاز عبر الغرفة، وليس بجانب السرير"],
-          "tips_ku": ["ئامێرەکە لە دووری سەتڵکە بگرە، نە لە تەنیشتی"],
-          "tips_ckb": ["ئامێرەکە لە دووری سەتڵکە بگرە، نە لە تەنیشتی"],
-          "tip_en": "Avoid sudden silence — keep white noise on all night.",
-          "tip_ar": "تجنب الصمت المفاجئ — اجعل الضوضاء البيضاء تعمل طوال الليل.",
-          "tip_ku": "خودان لە بێدەنگیی یەکدەفاو — دەنگی سپی هەمووشەو بگرە.",
-          "tip_ckb": "خودان لە بێدەنگیی یەکدەفاو — دەنگی سپی هەمووشەو بگرە."
         }
       ],
-      "lullabies": [
+      "age_ranges": [
         {
-          "id": "lul_9",
-          "title_en": "Lale Lale Kurdan",
-          "title_ar": "لالە لالە کوردان",
-          "title_ku": "لالە لالە کوردان",
-          "title_ckb": "لالە لالە کوردان",
-          "language": "Kurdish",
-          "duration": "3:45",
-          "audio_url": "https://example.com/audio/lale_lale_kurdan.mp3",
-          "description_en": "Traditional Kurdish lullaby",
-          "description_ar": "أغنية تهويد كردية تقليدية",
-          "description_ku": "گۆرانیی مینۆیی کوردیی کلاسیکی",
-          "description_ckb": "گۆرانیی مینۆیی کوردیی کلاسیکی"
+          "min_months": 0,
+          "max_months": 72,
+          "label": {
+            "en": "All Ages",
+            "ku_sorani": "هەموو تەمەنەکان",
+            "ku_badini": "Hemû Temen",
+            "ar": "جميع الأعمار"
+          },
+          "items": [
+            {
+              "id": "env_bedtime_1",
+              "tab_id": "bedtime",
+              "title": {
+                "en": "Room Temperature",
+                "ku_sorani": "پلەی گەرمای ژوور",
+                "ku_badini": "Germahiya Ode",
+                "ar": "درجة حرارة الغرفة"
+              },
+              "description": {
+                "en": "18-21°C (65-70°F)\n\nWhy it matters: Babies sleep best in cool rooms. Overheating increases the risk of sleep-related issues and can cause frequent night wakings.\n\nTips:\n• Check the baby's neck — it should feel warm, not sweaty.\n• Do not rely on hands or feet, as they are naturally cooler.\n• Remove one layer of clothing if the room feels warm.",
+                "ku_sorani": "١٨-٢١°C\n\nبۆچی گرنگە: منداڵان لە ژوورە ساردەکاندا باشتر دەخەون. زۆر گەرم کردن خەوتنی منداڵ خراپدەکات.\n\n• پشتیکۆی منداڵ بپشکنە — دەبێت گەرم بێت نەک خواری.\n• پشت دەست و پێ مەگرە چونکە بە سروشت ساردترن.\n• یەک چین جل لابدە ئەگەر ژوور گەرم بیت.",
+                "ku_badini": "18-21°C\n\nBebê di odeyên sard de çêtir dixewê. Germahiya zêde rêjeya pirsgirêkên xewê zêde dike.\n\n• Pişta pitikê kontrol bike — divê germ be, ne xwêdêr.\n• Dest û lingên pitikê bi xwezayî sartir in.",
+                "ar": "18-21°C (65-70°F)\n\nلماذا يهم: الأطفال ينامون بشكل أفضل في الغرف الباردة. الإفراط في التدفئة يزيد من مخاطر مشكلات النوم.\n\nنصائح:\n• تحقق من رقبة الطفل — يجب أن تكون دافئة لا عرقاً.\n• لا تعتمد على اليدين والقدمين فهي أبرد طبيعياً.\n• أزل طبقة ملابس إذا كانت الغرفة دافئة."
+              },
+              "tip": null
+            },
+            {
+              "id": "env_bedtime_2",
+              "tab_id": "bedtime",
+              "title": {
+                "en": "Lighting",
+                "ku_sorani": "ڕووناکی",
+                "ku_badini": "Ronahî",
+                "ar": "الإضاءة"
+              },
+              "description": {
+                "en": "Recommended: Complete darkness\n\nWhat to do:\n✓ Blackout curtains.\n✓ Cover any LED lights.\n✗ No night lights.\n\nWhy it matters: Even small amounts of light can disrupt melatonin, the hormone that helps the baby sleep.",
+                "ku_sorani": "پێشنیار: تاریکی تەواو\n\nچی بکەیت:\n✓ پەردەی تاریک.\n✓ LED پەردە بکە.\n✗ چرای شەو نەبێت.\n\nبۆچی گرنگە: تەنانەت ئەندازەی کەمی ڕووناکی دەتوانێت مێلاتۆنین کەم بکاتەوە.",
+                "ku_badini": "Pêşniyar: Tarîtiya temam\n\n✓ Perdeya reş.\n✓ LED bipo.\n✗ Çiraya şevê tune be.\n\nTêra ronahiya biçûk jî melatonin xwar dike.",
+                "ar": "موصى به: الظلام التام\n\nماذا تفعل:\n✓ ستائر معتمة.\n✓ غطِّ أي أضواء LED.\n✗ لا ضوء ليلي.\n\nلماذا يهم: حتى الكميات الصغيرة من الضوء تعطل الميلاتونين."
+              },
+              "tip": null
+            },
+            {
+              "id": "env_bedtime_3",
+              "tab_id": "bedtime",
+              "title": {
+                "en": "White Noise",
+                "ku_sorani": "دەنگی سپی",
+                "ku_badini": "Dengê Spî",
+                "ar": "الضوضاء البيضاء"
+              },
+              "description": {
+                "en": "Volume: 65-70 dB (similar to shower sound)\n\nWhy it works: White noise mimics the sounds heard in the womb and masks household noises that could startle baby awake.\n\nTips:\n• Place machine at least 2 meters from baby.\n• Use all night, not just to fall asleep.\n• Fan, rain, or shushing sounds also work.",
+                "ku_sorani": "دەنگ: ٦٥-٧٠ dB\n\nبۆچی کاردەکات: دەنگی سپی دەنگەکانی ناو مانگی مادەر بەست دەکاتەوە.\n\n• دەستگا لانی کەم ٢ مەتر دوور لە منداڵ بکە.\n• تەمامی شەو بگەڕێنەرەوە، نەک تەنها بۆ خەوتن.",
+                "ku_badini": "Deng: 65-70 dB\n\nBinemala derdorê zarokan vedigire û nêzîkahiya zikmakê dişibihe.\n\n• Amûrê herî kêm 2 metirî dûr ji pitikê bixe.\n• Tevaya şevê bixebitîne.",
+                "ar": "الحجم: 65-70 ديسيبل (مثل صوت الدش)\n\nلماذا يعمل: الضوضاء البيضاء تحاكي أصوات الرحم وتحجب أصوات المنزل.\n\n• ضع الجهاز على بُعد متريْن على الأقل.\n• شغّله طوال الليل."
+              },
+              "tip": null
+            },
+            {
+              "id": "env_naps_1",
+              "tab_id": "naps",
+              "title": {
+                "en": "Nap Environment Tips",
+                "ku_sorani": "ئیشارەتەکانی ژینگەی خەوتنی ڕۆژانە",
+                "ku_badini": "Şîretên Jîngeha Xewên Rojê",
+                "ar": "نصائح بيئة القيلولة"
+              },
+              "description": {
+                "en": "For naps, the environment can be slightly less strict:\n\n• Light: Dim (blackout preferred but not required)\n• Noise: White noise still helpful\n• Location: Consistent nap location helps build associations\n• Duration: Don't let naps exceed 2 hours to protect night sleep",
+                "ku_sorani": "بۆ خەوتنی ڕۆژانە، ژینگە دەتوانێت کەمێک کەمتر سەخت بێت:\n\n• ڕووناکی: تاریکی کەم (تاریکی تەواو باشترە)\n• دەنگ: دەنگی سپی هێشتا بەسوودە\n• شوێن: شوێنی ئیستیقراری باشترە\n• درێژایی: خەوتن لە ٢ کاتژمێر تێپەڕ نەکات",
+                "ku_badini": "Bo xewên rojê, jîngeh dikare hinekî kêmtir hişk be:\n\n• Ronahî: Kêm (tarîtî çêtir e)\n• Deng: Dengê spî dîsa alîkar e\n• Cih: Cihekî domdar çêtir e\n• Dirêjî: Xew ji 2 seetî zêde nebe",
+                "ar": "للقيلولة، البيئة يمكن أن تكون أقل صرامة:\n\n• الإضاءة: خافتة (الظلام التام مفضل)\n• الضوضاء: الضوضاء البيضاء لا تزال مفيدة\n• المكان: مكان ثابت للقيلولة يبني ارتباطات\n• المدة: لا تتجاوز ساعتين لحماية نوم الليل"
+              },
+              "tip": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "lullabies",
+      "icon": "lullabies",
+      "title": {
+        "en": "Lullabies",
+        "ku_sorani": "لاڵۆکە",
+        "ku_badini": "Lorî",
+        "ar": "الأغاني الهادئة"
+      },
+      "tabs": [
+        {
+          "id": "kurdish",
+          "label": {
+            "en": "Kurdish",
+            "ku_sorani": "کوردی",
+            "ku_badini": "Kurdî",
+            "ar": "كردي"
+          }
+        },
+        {
+          "id": "arabic",
+          "label": {
+            "en": "Arabic",
+            "ku_sorani": "عەرەبی",
+            "ku_badini": "Erebî",
+            "ar": "عربي"
+          }
+        },
+        {
+          "id": "english",
+          "label": {
+            "en": "English",
+            "ku_sorani": "ئینگلیزی",
+            "ku_badini": "Îngilîzî",
+            "ar": "إنجليزي"
+          }
+        }
+      ],
+      "age_ranges": [
+        {
+          "min_months": 0,
+          "max_months": 72,
+          "label": {
+            "en": "All Ages",
+            "ku_sorani": "هەموو تەمەنەکان",
+            "ku_badini": "Hemû Temen",
+            "ar": "جميع الأعمار"
+          },
+          "items": [
+            {
+              "id": "lul_ku_1",
+              "tab_id": "kurdish",
+              "title": {
+                "en": "Lale Lale Kurdan",
+                "ku_sorani": "لاڵە لاڵە کوردان",
+                "ku_badini": "Lalê Lalê Kurdan",
+                "ar": "لاله لاله كوردان"
+              },
+              "description": {
+                "en": "Traditional Kurdish lullaby\nDuration: 3:45",
+                "ku_sorani": "لاڵۆکەی کوردی نەوەیی\nکاتژمێر: ٣:٤٥",
+                "ku_badini": "Lorîya Kurdî ya kevnarî\nDirêjî: 3:45",
+                "ar": "تهليلة كردية تقليدية\nالمدة: 3:45"
+              },
+              "tip": null,
+              "media": {
+                "type": "audio",
+                "asset_key": "lullaby_lale_lale_kurdan",
+                "duration_seconds": 225
+              }
+            },
+            {
+              "id": "lul_ku_2",
+              "tab_id": "kurdish",
+              "title": {
+                "en": "Dilber Dilber",
+                "ku_sorani": "دڵبەر دڵبەر",
+                "ku_badini": "Dilber Dilber",
+                "ar": "دلبر دلبر"
+              },
+              "description": {
+                "en": "Traditional Kurdish lullaby\nDuration: 4:10",
+                "ku_sorani": "لاڵۆکەی کوردی نەوەیی\nکاتژمێر: ٤:١٠",
+                "ku_badini": "Lorîya Kurdî ya kevnarî\nDirêjî: 4:10",
+                "ar": "تهليلة كردية تقليدية\nالمدة: 4:10"
+              },
+              "tip": null,
+              "media": {
+                "type": "audio",
+                "asset_key": "lullaby_dilber_dilber",
+                "duration_seconds": 250
+              }
+            },
+            {
+              "id": "lul_ar_1",
+              "tab_id": "arabic",
+              "title": {
+                "en": "Ya Mulay",
+                "ku_sorani": "یا مولای",
+                "ku_badini": "Ya Mulay",
+                "ar": "يا مولاي"
+              },
+              "description": {
+                "en": "Traditional Arabic lullaby\nDuration: 3:30",
+                "ku_sorani": "لاڵۆکەی عەرەبی نەوەیی\nکاتژمێر: ٣:٣٠",
+                "ku_badini": "Lorîya Erebî ya kevnarî\nDirêjî: 3:30",
+                "ar": "تهليلة عربية تقليدية\nالمدة: 3:30"
+              },
+              "tip": null,
+              "media": {
+                "type": "audio",
+                "asset_key": "lullaby_ya_mulay",
+                "duration_seconds": 210
+              }
+            },
+            {
+              "id": "lul_ar_2",
+              "tab_id": "arabic",
+              "title": {
+                "en": "Nami Nami",
+                "ku_sorani": "نامی نامی",
+                "ku_badini": "Namî Namî",
+                "ar": "نامي نامي"
+              },
+              "description": {
+                "en": "Traditional Arabic lullaby\nDuration: 2:55",
+                "ku_sorani": "لاڵۆکەی عەرەبی نەوەیی\nکاتژمێر: ٢:٥٥",
+                "ku_badini": "Lorîya Erebî ya kevnarî\nDirêjî: 2:55",
+                "ar": "تهليلة عربية تقليدية\nالمدة: 2:55"
+              },
+              "tip": null,
+              "media": {
+                "type": "audio",
+                "asset_key": "lullaby_nami_nami",
+                "duration_seconds": 175
+              }
+            },
+            {
+              "id": "lul_en_1",
+              "tab_id": "english",
+              "title": {
+                "en": "Twinkle Twinkle",
+                "ku_sorani": "تڤینکل تڤینکل",
+                "ku_badini": "Twinkle Twinkle",
+                "ar": "تويكل تويكل"
+              },
+              "description": {
+                "en": "Classic English lullaby\nDuration: 2:15",
+                "ku_sorani": "لاڵۆکەی ئینگلیزی کلاسیک\nکاتژمێر: ٢:١٥",
+                "ku_badini": "Lorîya Îngilîzî ya klasîk\nDirêjî: 2:15",
+                "ar": "تهليلة إنجليزية كلاسيكية\nالمدة: 2:15"
+              },
+              "tip": null,
+              "media": {
+                "type": "audio",
+                "asset_key": "lullaby_twinkle",
+                "duration_seconds": 135
+              }
+            },
+            {
+              "id": "lul_en_2",
+              "tab_id": "english",
+              "title": {
+                "en": "Hush Little Baby",
+                "ku_sorani": "ئاگر، منداڵە بچووکە",
+                "ku_badini": "Hush Little Baby",
+                "ar": "هاي أيها الطفل الصغير"
+              },
+              "description": {
+                "en": "Classic English lullaby\nDuration: 3:00",
+                "ku_sorani": "لاڵۆکەی ئینگلیزی کلاسیک\nکاتژمێر: ٣:٠٠",
+                "ku_badini": "Lorîya Îngilîzî ya klasîk\nDirêjî: 3:00",
+                "ar": "تهليلة إنجليزية كلاسيكية\nالمدة: 3:00"
+              },
+              "tip": null,
+              "media": {
+                "type": "audio",
+                "asset_key": "lullaby_hush_little_baby",
+                "duration_seconds": 180
+              }
+            }
+          ]
         }
       ]
     }
