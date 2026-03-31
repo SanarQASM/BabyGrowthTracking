@@ -247,7 +247,7 @@ private fun SleepStrategiesContent(
         ageRange.sleepStrategies.forEach { strategy ->
             val vote = viewModel.getVote(strategy.id)
             GuideStrategyCard(
-                sectionLabel = "SLEEP STRATEGIES",
+                sectionLabel = stringResource(Res.string.sleep_guide_cat_strategies).uppercase(),
                 title        = strategy.title,
                 description  = strategy.description,
                 tip          = strategy.tip,
@@ -273,10 +273,18 @@ private fun SleepNeedsContent(
     val vote       = viewModel.getVote(need.id)
 
     GuideSectionCard(title = "How Much Sleep Does ${ageRange.label}?") {
+        // Age note inside card
+        Text(
+            text  = "Age: ${ageRange.label}",
+            style = MaterialTheme.typography.labelSmall,
+            color = GuidePink,
+            fontWeight = FontWeight.SemiBold
+        )
+        Spacer(Modifier.height(dimensions.spacingSmall))
         // Sleep duration
         NeedInfoRow(stringResource(Res.string.sleep_guide_total_sleep), need.totalSleep)
-        NeedInfoRow(stringResource(Res.string.sleep_guide_night), need.nightSleep)
-        NeedInfoRow(stringResource(Res.string.sleep_guide_daytime), need.daytimeSleep)
+        NeedInfoRow("  ${stringResource(Res.string.sleep_guide_night)}", need.nightSleep)
+        NeedInfoRow("  ${stringResource(Res.string.sleep_guide_daytime)}", need.daytimeSleep)
 
         if (need.napSchedule.isNotEmpty()) {
             Spacer(Modifier.height(dimensions.spacingSmall))
@@ -290,15 +298,22 @@ private fun SleepNeedsContent(
             )
             need.napSchedule.forEach { nap ->
                 Spacer(Modifier.height(4.dp))
-                Text(
-                    text  = "${nap.name}: ${nap.time}",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(0.85f)
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text  = "${nap.name}: ${nap.time}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(0.85f),
+                        modifier = Modifier.weight(1f)
+                    )
+                }
                 Text(
                     text  = "Duration: ${nap.duration}",
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color.White.copy(0.7f)
+                    color = Color.White.copy(0.7f),
+                    modifier = Modifier.padding(start = dimensions.spacingSmall)
                 )
             }
         }
