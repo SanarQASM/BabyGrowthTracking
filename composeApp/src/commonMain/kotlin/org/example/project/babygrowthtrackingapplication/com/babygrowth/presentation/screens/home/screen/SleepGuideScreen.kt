@@ -356,7 +356,7 @@ private fun SleepNeedsContent(
 private fun NeedInfoRow(label: String, value: String) {
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(label, style = MaterialTheme.typography.bodySmall,
-             fontWeight = FontWeight.Bold, color = Color.White)
+            fontWeight = FontWeight.Bold, color = Color.White)
         Text(value, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(0.85f))
     }
 }
@@ -388,7 +388,7 @@ private fun EnvironmentContent(
             else -> null
         }
         val filtered = if (envType == null) ageRange.environments
-                       else ageRange.environments.filter { it.type == envType }
+        else ageRange.environments.filter { it.type == envType }
 
         filtered.forEach { item ->
             val vote = viewModel.getVote(item.id)
@@ -438,7 +438,7 @@ private fun LullabiesContent(
             else -> null
         }
         val filtered = if (selectedLang == null) ageRange.lullabies
-                       else ageRange.lullabies.filter { it.language.equals(selectedLang, ignoreCase = true) }
+        else ageRange.lullabies.filter { it.language.equals(selectedLang, ignoreCase = true) }
 
         filtered.forEach { lullaby ->
             val vote = viewModel.getVote(lullaby.id)

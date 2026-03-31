@@ -228,7 +228,7 @@ private fun MilkFeedingContent(
             else -> null
         }
         val filtered = if (filterType == null) ageRange.milkFeeding
-                       else ageRange.milkFeeding.filter { it.subType == filterType }
+        else ageRange.milkFeeding.filter { it.subType == filterType }
 
         filtered.forEach { item ->
             val vote = viewModel.getVote(item.id)
@@ -252,7 +252,7 @@ private fun MilkFeedingCard(
         if (item.hungerSigns.isNotEmpty()) {
             Spacer(Modifier.height(dimensions.spacingSmall))
             Text(stringResource(Res.string.feeding_guide_hunger_signs), style = MaterialTheme.typography.labelMedium,
-                 fontWeight = FontWeight.Bold, color = GuidePink)
+                fontWeight = FontWeight.Bold, color = GuidePink)
             item.hungerSigns.forEach { sign ->
                 BulletPoint(sign)
             }
@@ -260,7 +260,7 @@ private fun MilkFeedingCard(
         if (item.fullnessSigns.isNotEmpty()) {
             Spacer(Modifier.height(dimensions.spacingSmall))
             Text(stringResource(Res.string.feeding_guide_fullness_signs), style = MaterialTheme.typography.labelMedium,
-                 fontWeight = FontWeight.Bold, color = GuidePink)
+                fontWeight = FontWeight.Bold, color = GuidePink)
             item.fullnessSigns.forEach { sign ->
                 BulletPoint(sign)
             }
@@ -314,11 +314,11 @@ private fun SolidFoodsContent(
             val vote = viewModel.getVote(item.id)
             GuideSectionCard(title = item.title) {
                 Text(item.description, style = MaterialTheme.typography.bodySmall,
-                     color = Color.White.copy(0.85f))
+                    color = Color.White.copy(0.85f))
                 if (item.foods.isNotEmpty()) {
                     Spacer(Modifier.height(dimensions.spacingSmall))
                     Text(stringResource(Res.string.feeding_guide_recommended_foods), style = MaterialTheme.typography.labelMedium,
-                         fontWeight = FontWeight.Bold, color = GuidePink)
+                        fontWeight = FontWeight.Bold, color = GuidePink)
                     item.foods.forEach { food -> BulletPoint(food) }
                 }
                 if (item.tip.isNotBlank()) {
@@ -443,7 +443,7 @@ private fun FeedingTipsContent(
             val vote = viewModel.getVote(item.id)
             GuideSectionCard(title = "${item.icon} ${item.title}") {
                 Text(item.description, style = MaterialTheme.typography.bodySmall,
-                     color = Color.White.copy(0.85f))
+                    color = Color.White.copy(0.85f))
                 if (item.tip.isNotBlank()) {
                     Spacer(Modifier.height(dimensions.spacingSmall))
                     TipBox(item.tip)
@@ -469,7 +469,7 @@ private fun FeedingTipsContent(
 private fun FeedingInfoRow(label: String, value: String) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(label, style = MaterialTheme.typography.labelSmall,
-             fontWeight = FontWeight.Bold, color = GuidePink)
+            fontWeight = FontWeight.Bold, color = GuidePink)
         Text(value, style = MaterialTheme.typography.bodySmall, color = Color.White.copy(0.85f))
     }
 }

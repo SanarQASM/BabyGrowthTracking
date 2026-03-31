@@ -593,7 +593,7 @@ Last updated: 2025.</string>
     <string name="settings_family_history_sub">Medical family background</string>
     <string name="settings_family_history_set">Information set</string>
     <string name="settings_family_history_not_set">Not set — tap to add</string>
-    
+
     <!-- Family History Screen title / actions -->
     <string name="family_history_title">Family History</string>
     <string name="family_history_save">Save</string>
