@@ -7,10 +7,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.Language
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HealthRecordViewModel
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HomeViewModel
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.SettingsViewModel
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.FamilyHistoryViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.*
 import org.example.project.babygrowthtrackingapplication.data.network.BabyResponse
 import org.example.project.babygrowthtrackingapplication.theme.GenderTheme
 import org.example.project.babygrowthtrackingapplication.ui.components.BottomNavigationBar
@@ -24,6 +21,7 @@ fun HomeScreen(
     healthRecordViewModel     : HealthRecordViewModel,
     settingsViewModel         : SettingsViewModel,
     familyHistoryViewModel    : FamilyHistoryViewModel,
+    guideViewModel            : GuideViewModel,
     currentLanguage           : Language = Language.ENGLISH,
     onLanguageChange          : (Language) -> Unit = {},
     onDarkModeChange          : (Boolean) -> Unit = {},
@@ -39,8 +37,8 @@ fun HomeScreen(
     onViewAllMeasurementsById : (String) -> Unit = {},
     onNavigateToWelcome       : () -> Unit = {},
     onNavigateToFamilyHistory : (String, String) -> Unit = { _, _ -> },
-    onSleepGuide              : () -> Unit = {},
-    onFeedingGuide            : () -> Unit = {},
+    onNavigateToSleepGuide    : () -> Unit = {},
+    onNavigateToFeedingGuide  : () -> Unit = {},
 ) {
     val state       = viewModel.uiState
     val useSideRail = rememberUseSideRail()
@@ -71,6 +69,7 @@ fun HomeScreen(
                     healthRecordViewModel     = healthRecordViewModel,
                     settingsViewModel         = settingsViewModel,
                     familyHistoryViewModel    = familyHistoryViewModel,
+                    guideViewModel            = guideViewModel,
                     state                     = state,
                     currentLanguage           = currentLanguage,
                     onLanguageChange          = onLanguageChange,
@@ -85,13 +84,14 @@ fun HomeScreen(
                     onViewAllMeasurementsById = onViewAllMeasurementsById,
                     onNavigateToWelcome       = onNavigateToWelcome,
                     onNavigateToFamilyHistory = onNavigateToFamilyHistory,
-                    onSleepGuide              = onSleepGuide,
-                    onFeedingGuide            = onFeedingGuide,
+                    onNavigateToSleepGuide    = onNavigateToSleepGuide,
+                    onNavigateToFeedingGuide  = onNavigateToFeedingGuide,
                     bottomPadding             = androidx.compose.ui.unit.Dp(0f)
                 )
             }
         }
     } else {
+        // ── PORTRAIT: Standard bottom navigation ──────────────────────────────
         Scaffold(
             bottomBar = {
                 BottomNavigationBar(
@@ -113,6 +113,7 @@ fun HomeScreen(
                     healthRecordViewModel     = healthRecordViewModel,
                     settingsViewModel         = settingsViewModel,
                     familyHistoryViewModel    = familyHistoryViewModel,
+                    guideViewModel            = guideViewModel,
                     state                     = state,
                     currentLanguage           = currentLanguage,
                     onLanguageChange          = onLanguageChange,
@@ -127,9 +128,9 @@ fun HomeScreen(
                     onViewAllMeasurementsById = onViewAllMeasurementsById,
                     onNavigateToWelcome       = onNavigateToWelcome,
                     onNavigateToFamilyHistory = onNavigateToFamilyHistory,
-                    onSleepGuide              = onSleepGuide,
-                    onFeedingGuide            = onFeedingGuide,
-                    bottomPadding             = androidx.compose.ui.unit.Dp(0f)
+                    onNavigateToSleepGuide    = onNavigateToSleepGuide,
+                    onNavigateToFeedingGuide  = onNavigateToFeedingGuide,
+                    bottomPadding             = paddingValues.calculateBottomPadding()
                 )
             }
         }
@@ -143,6 +144,7 @@ private fun TabContent(
     healthRecordViewModel     : HealthRecordViewModel,
     settingsViewModel         : SettingsViewModel,
     familyHistoryViewModel    : FamilyHistoryViewModel,
+    guideViewModel            : GuideViewModel,
     state                     : org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HomeUiState,
     currentLanguage           : Language,
     onLanguageChange          : (Language) -> Unit,
@@ -157,8 +159,8 @@ private fun TabContent(
     onViewAllMeasurementsById : (String) -> Unit,
     onNavigateToWelcome       : () -> Unit,
     onNavigateToFamilyHistory : (String, String) -> Unit,
-    onSleepGuide              : () -> Unit,
-    onFeedingGuide            : () -> Unit,
+    onNavigateToSleepGuide    : () -> Unit,
+    onNavigateToFeedingGuide  : () -> Unit,
     bottomPadding             : androidx.compose.ui.unit.Dp,
 ) {
     when (selectedTab) {
@@ -166,8 +168,8 @@ private fun TabContent(
             HomeTabContent(
                 viewModel      = viewModel,
                 onAddBaby      = onAddBaby,
-                onSleepGuide   = onSleepGuide,
-                onFeedingGuide = onFeedingGuide
+                onSleepGuide   = onNavigateToSleepGuide,
+                onFeedingGuide = onNavigateToFeedingGuide
             )
 
         NavigationTab.BABY ->

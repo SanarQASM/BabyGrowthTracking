@@ -29,6 +29,7 @@ import org.example.project.babygrowthtrackingapplication.com.babygrowth.presenta
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HealthRecordViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.SettingsViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.FamilyHistoryViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.GuideViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.AllMeasurementsScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.FamilyHistoryScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.SleepGuideScreen
@@ -38,6 +39,7 @@ import org.example.project.babygrowthtrackingapplication.data.auth.SocialLoginHe
 import org.example.project.babygrowthtrackingapplication.data.network.ApiService
 import org.example.project.babygrowthtrackingapplication.data.network.BabyResponse
 import org.example.project.babygrowthtrackingapplication.data.repository.AccountRepository
+import org.example.project.babygrowthtrackingapplication.data.repository.GuideRepository
 import org.example.project.babygrowthtrackingapplication.theme.GenderTheme
 import org.example.project.babygrowthtrackingapplication.ui.components.NavigationTab
 
@@ -126,7 +128,8 @@ fun AppNavigation(
         FamilyHistoryViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
 
-    val guideViewModel = remember { GuideViewModel() }
+    val guideRepository = remember { GuideRepository(apiService) }
+    val guideViewModel  = remember { GuideViewModel(repository = guideRepository) }
 
     val signupViewModel = remember {
         SignupViewModel(
@@ -147,8 +150,6 @@ fun AppNavigation(
     val enterNewPasswordViewModel = remember {
         EnterNewPasswordViewModel(authRepository = repository)
     }
-
-    // FIX: removed duplicate `var currentLanguage` — now received as a parameter from App.kt
 
     InitializeSocialAuth(socialAuthManager)
     DisposableEffect(Unit) {
@@ -207,7 +208,9 @@ fun AppNavigation(
                     Screen.BabyProfile,
                     Screen.AddMeasurement,
                     Screen.AllMeasurements,
-                    Screen.FamilyHistory ->
+                    Screen.FamilyHistory,
+                    Screen.SleepGuide,
+                    Screen.FeedingGuide ->
                         slideInHorizontally(
                             initialOffsetX = { it },
                             animationSpec  = tween(400, easing = FastOutSlowInEasing)
@@ -232,6 +235,7 @@ fun AppNavigation(
                             currentScreen = when {
                                 repository.isLoggedIn() -> {
                                     homeViewModel.loadHomeData()
+                                    settingsViewModel.refreshProfile() // ✅ Refresh profile if already logged in
                                     Screen.Home
                                 }
                                 !preferencesManager.isOnboardingComplete() -> Screen.Onboarding
@@ -265,6 +269,7 @@ fun AppNavigation(
                         onBackClick           = { currentScreen = Screen.Welcome },
                         onLoginSuccess        = {
                             homeViewModel.loadHomeData()
+                            settingsViewModel.refreshProfile() // ✅ Sync profile immediately on login
                             currentScreen = Screen.Home
                         },
                         onForgotPasswordClick = { currentScreen = Screen.ForgotPassword },
@@ -287,6 +292,7 @@ fun AppNavigation(
                         },
                         onSocialSignupSuccess = {
                             homeViewModel.loadHomeData()
+                            settingsViewModel.refreshProfile() // ✅ Sync profile on social login
                             currentScreen = Screen.Home
                         },
                         sharedTransitionScope = this@SharedTransitionLayout,
@@ -345,6 +351,7 @@ fun AppNavigation(
                         onVerificationSuccess = {
                             preferencesManager.setUserLoggedIn(true)
                             homeViewModel.loadHomeData()
+                            settingsViewModel.refreshProfile() // ✅ Sync profile after verification
                             currentScreen = Screen.Home
                         },
                         sharedTransitionScope = this@SharedTransitionLayout,
@@ -369,13 +376,14 @@ fun AppNavigation(
                         healthRecordViewModel = healthRecordViewModel,
                         settingsViewModel     = settingsViewModel,
                         familyHistoryViewModel = familyHistoryViewModel,
+                        guideViewModel        = guideViewModel,
                         currentLanguage       = currentLanguage,
                         onLanguageChange      = { newLanguage ->
                             preferencesManager.setLanguage(newLanguage)
-                            onLanguageChange(newLanguage)   // FIX: bubble to App.kt, no duplicate state
+                            onLanguageChange(newLanguage)
                         },
-                        onDarkModeChange    = onDarkModeChange,     // FIX: wired through
-                        onGenderThemeChange = onGenderThemeChange,  // FIX: wired through
+                        onDarkModeChange    = onDarkModeChange,
+                        onGenderThemeChange = onGenderThemeChange,
                         selectedTab  = selectedTab,
                         onTabChange  = { selectedTab = it },
                         onAddBaby    = {
@@ -428,39 +436,13 @@ fun AppNavigation(
                                 currentScreen = Screen.FamilyHistory
                             }
                         },
-                        onSleepGuide   = {
+                        onNavigateToSleepGuide = {
                             originTab = selectedTab
                             currentScreen = Screen.SleepGuide
                         },
-                        onFeedingGuide = {
+                        onNavigateToFeedingGuide = {
                             originTab = selectedTab
                             currentScreen = Screen.FeedingGuide
-                        },
-                    )
-                }
-
-                // ── Sleep Guide ───────────────────────────────────────────────────────
-                Screen.SleepGuide -> {
-                    SleepGuideScreen(
-                        babies    = homeViewModel.uiState.babies,
-                        viewModel = guideViewModel,
-                        language  = currentLanguage.code,
-                        onBack    = {
-                            selectedTab   = originTab
-                            currentScreen = Screen.Home
-                        }
-                    )
-                }
-
-                // ── Feeding Guide ─────────────────────────────────────────────────────
-                Screen.FeedingGuide -> {
-                    FeedingGuideScreen(
-                        babies    = homeViewModel.uiState.babies,
-                        viewModel = guideViewModel,
-                        language  = currentLanguage.code,
-                        onBack    = {
-                            selectedTab   = originTab
-                            currentScreen = Screen.Home
                         }
                     )
                 }
@@ -624,6 +606,32 @@ fun AppNavigation(
                             }
                         )
                     }
+                }
+
+                // ── Sleep Guide ───────────────────────────────────────────────
+                Screen.SleepGuide -> {
+                    SleepGuideScreen(
+                        babies    = homeViewModel.uiState.babies,
+                        viewModel = guideViewModel,
+                        language  = currentLanguage.code,
+                        onBack    = {
+                            selectedTab   = originTab
+                            currentScreen = Screen.Home
+                        }
+                    )
+                }
+
+                // ── Feeding Guide ─────────────────────────────────────────────
+                Screen.FeedingGuide -> {
+                    FeedingGuideScreen(
+                        babies    = homeViewModel.uiState.babies,
+                        viewModel = guideViewModel,
+                        language  = currentLanguage.code,
+                        onBack    = {
+                            selectedTab   = originTab
+                            currentScreen = Screen.Home
+                        }
+                    )
                 }
 
             } // end when(screen)
