@@ -637,4 +637,7 @@
     <string name="child_illnesses_error_update">نووکرن سەرنەکەفت: %1$s</string>
     <string name="child_illnesses_success_resolved">وەک چارەسەربووی هاتە نیشانکرن</string>
     <string name="child_illnesses_success_activated">وەک چالاک هاتە نیشانکرن</string>
+    <string name="child_illnesses_emoji_caduceus">⚕️</string>
+    <string name="child_illnesses_summary_empty_hint">چ تۆمارێن نەخۆشیێ نینن — لێرە کلیک بکە بۆ زێدەکرنێ</string>
+    <string name="child_illnesses_records_all_resolved">%1$d تۆمار — هەمی چارەسەربووینە</string>
 </resources>

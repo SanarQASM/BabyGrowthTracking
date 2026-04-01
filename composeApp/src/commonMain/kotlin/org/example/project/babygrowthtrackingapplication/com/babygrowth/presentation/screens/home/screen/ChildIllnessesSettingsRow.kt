@@ -14,17 +14,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import babygrowthtrackingapplication.composeapp.generated.resources.Res
+import babygrowthtrackingapplication.composeapp.generated.resources.child_illnesses_emoji_caduceus
+import babygrowthtrackingapplication.composeapp.generated.resources.child_illnesses_emoji_hospital
+import babygrowthtrackingapplication.composeapp.generated.resources.child_illnesses_records_all_resolved
+import babygrowthtrackingapplication.composeapp.generated.resources.child_illnesses_summary_active_total
+import babygrowthtrackingapplication.composeapp.generated.resources.child_illnesses_summary_empty_hint
+import babygrowthtrackingapplication.composeapp.generated.resources.child_illnesses_title
 import org.example.project.babygrowthtrackingapplication.theme.LocalDimensions
+import org.jetbrains.compose.resources.stringResource
 
-/**
- * Row shown in Settings > Information section for Child Illnesses.
- * Shown below FamilyHistorySettingsRow.
- * Shows active illness count if records exist, or "No records" warning.
- */
 @Composable
 fun ChildIllnessesSettingsRow(
-    illnessCount : Int,      // total number of illness records
-    activeCount  : Int,      // number of active (unresolved) illnesses
+    illnessCount : Int,
+    activeCount  : Int,
     babyName     : String,
     onClick      : () -> Unit
 ) {
@@ -51,7 +54,8 @@ fun ChildIllnessesSettingsRow(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text  = if (hasRecords) "🏥" else "⚕️",
+                text  = if (hasRecords) stringResource(Res.string.child_illnesses_emoji_hospital)
+                else stringResource(Res.string.child_illnesses_emoji_caduceus),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -59,22 +63,29 @@ fun ChildIllnessesSettingsRow(
         // Labels
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text       = "Child Illnesses",
+                text       = stringResource(Res.string.child_illnesses_title),
                 style      = MaterialTheme.typography.bodyMedium,
                 color      = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.Medium
             )
             Text(
                 text = when {
-                    !hasRecords -> "No illness records — tap to add"
-                    activeCount > 0 -> "$activeCount active · $illnessCount total record(s)"
-                    else -> "$illnessCount record(s) — all resolved"
+                    !hasRecords     -> stringResource(Res.string.child_illnesses_summary_empty_hint)
+                    activeCount > 0 -> stringResource(
+                        Res.string.child_illnesses_summary_active_total,
+                        activeCount,
+                        illnessCount
+                    )
+                    else            -> stringResource(
+                        Res.string.child_illnesses_records_all_resolved,
+                        illnessCount
+                    )
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = when {
-                    !hasRecords  -> MaterialTheme.colorScheme.error
-                    activeCount > 0 -> Color(0xFFFFA726) // warning orange for active illnesses
-                    else         -> Color(0xFF22C55E)    // green for all resolved
+                    !hasRecords     -> MaterialTheme.colorScheme.error
+                    activeCount > 0 -> Color(0xFFFFA726)
+                    else            -> Color(0xFF22C55E)
                 }
             )
         }

@@ -641,4 +641,8 @@ Last updated: 2025.</string>
     <string name="child_illnesses_error_update">Update failed: %1$s</string>
     <string name="child_illnesses_success_resolved">Marked as resolved</string>
     <string name="child_illnesses_success_activated">Marked as active</string>
+    <!-- NEW: ChildIllnessesSettingsRow -->
+    <string name="child_illnesses_emoji_caduceus">⚕️</string>
+    <string name="child_illnesses_summary_empty_hint">No illness records — tap to add</string>
+    <string name="child_illnesses_records_all_resolved">%1$d record(s) — all resolved</string>
 </resources>

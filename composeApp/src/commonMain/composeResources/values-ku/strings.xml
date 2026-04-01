@@ -633,4 +633,7 @@
     <string name="child_illnesses_error_update">کێشە لە نوێکردنەوە: %1$s</string>
     <string name="child_illnesses_success_resolved">وەک چاکبووەوە دیاریکرا</string>
     <string name="child_illnesses_success_activated">وەک بەردەوام دیاریکرا</string>
+    <string name="child_illnesses_emoji_caduceus">⚕️</string>
+    <string name="child_illnesses_summary_empty_hint">تۆماری نەخۆشی نییە — کلیک بکە بۆ زێدەکردن</string>
+    <string name="child_illnesses_records_all_resolved">%1$d تۆمار — هەمووی چارەسەر بووە</string>
 </resources>

@@ -637,4 +637,7 @@
     <string name="child_illnesses_error_update">فشل التحديث: %1$s</string>
     <string name="child_illnesses_success_resolved">تم التحديد كمحلول</string>
     <string name="child_illnesses_success_activated">تم التحديد كنشط</string>
+    <string name="child_illnesses_emoji_caduceus">⚕️</string>
+    <string name="child_illnesses_summary_empty_hint">لا توجد سجلات أمراض — اضغط للإضافة</string>
+    <string name="child_illnesses_records_all_resolved">%1$d سجل — تم الشفاء منها جميعاً</string>
 </resources>
