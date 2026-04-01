@@ -25,7 +25,7 @@
     <string name="login_forget_password">نسيت كلمة المرور؟</string>
     <string name="login_button">تسجيل الدخول</string>
 
-    <string name="signup_page_title">صفحة إنشاء الحساب</string>
+    <string name="signup_page_title">صفحة إنشاء حساب</string>
     <string name="signup_full_name_placeholder">الاسم الكامل</string>
     <string name="signup_email_placeholder">البريد الإلكتروني</string>
     <string name="signup_password_placeholder">كلمة المرور</string>
@@ -37,54 +37,54 @@
 
     <string name="forgot_password_title">نسيت كلمة المرور</string>
     <string name="forgot_password_send_code">إرسال الرمز</string>
-    <string name="forgot_password_description">أدخل بريدك الإلكتروني وسنرسل لك رمزاً مكوناً من 6 أرقام لإعادة تعيين كلمة المرور.</string>
-    <string name="forgot_password_email_placeholder">البريد الإلكتروني</string>
-    <string name="forgot_password_email_icon_description">أيقونة البريد</string>
+    <string name="forgot_password_description">أدخل عنوان بريدك الإلكتروني وسنرسل لك رمزاً مكوناً من 6 أرقام لإعادة تعيين كلمة المرور.</string>
+    <string name="forgot_password_email_placeholder">عنوان البريد الإلكتروني</string>
+    <string name="forgot_password_email_icon_description">أيقونة البريد الإلكتروني</string>
 
     <string name="enter_code_title">أدخل الرمز</string>
     <string name="enter_code_sent_to">تم إرسال الرمز إلى %s</string>
-    <string name="enter_code_button">تحقق من الرمز</string>
+    <string name="enter_code_button">التحقق من الرمز</string>
 
-    <string name="new_password_title">أدخل كلمة المرور الجديدة</string>
+    <string name="new_password_title">إدخال كلمة مرور جديدة</string>
     <string name="new_password_placeholder">كلمة المرور الجديدة</string>
     <string name="new_password_confirm_placeholder">تأكيد كلمة المرور</string>
     <string name="new_password_button">تحديث كلمة المرور</string>
 
-    <string name="verify_account_title">تحقق من حسابك</string>
-    <string name="verify_account_subtitle">لضمان حماية حسابك، نحتاج للتأكد من هويتك</string>
-    <string name="verify_logo_description">رسوم توضيحية للتحقق</string>
+    <string name="verify_account_title">التحقق من حسابك</string>
+    <string name="verify_account_subtitle">لضمان حماية حسابك، نحتاج إلى التحقق من هويتك</string>
+    <string name="verify_logo_description">حركة التحقق</string>
     <string name="verify_select_method">الخطوة 1: اختر طريقة التحقق</string>
     <string name="verify_enter_code">الخطوة 2: أدخل رمز التحقق</string>
-    <string name="verify_method_description">سنرسل لك رمزاً للتحقق من حسابك</string>
+    <string name="verify_method_description">سنرسل لك رمز تحقق لتأكيد حسابك</string>
     <string name="verify_email_title">التحقق عبر البريد الإلكتروني</string>
-    <string name="verify_sms_title">التحقق عبر SMS</string>
+    <string name="verify_sms_title">التحقق عبر الرسائل القصيرة</string>
     <string name="verify_send_code">إرسال الرمز</string>
     <string name="verify_code_sent_to">أدخل الرمز المكون من 6 أرقام المرسل إلى: %s</string>
-    <string name="verify_code_placeholder">أدخل الرمز (6 أرقام)</string>
+    <string name="verify_code_placeholder">أدخل الرمز من 6 أرقام</string>
     <string name="verify_code_icon_description">أيقونة رمز التحقق</string>
-    <string name="verify_didnt_receive">لم تصلك الرسالة؟</string>
-    <string name="verify_resend">إعادة إرسال</string>
+    <string name="verify_didnt_receive">لم تتلق الرمز؟</string>
+    <string name="verify_resend">إعادة الإرسال</string>
     <string name="verify_resend_in">إعادة الإرسال خلال %d ثانية</string>
-    <string name="verify_account_button">تحقق من الحساب</string>
-    <string name="verify_select_method_error">يرجى اختيار طريقة التحقق</string>
-    <string name="verify_code_incomplete">يرجى إدخال الـ 6 أرقام كاملة</string>
-    <string name="verify_code_invalid">رمز التحقق غير صحيح</string>
+    <string name="verify_account_button">التحقق من الحساب</string>
+    <string name="verify_select_method_error">يرجى تحديد طريقة التحقق</string>
+    <string name="verify_code_incomplete">يرجى إدخال جميع الأرقام الستة</string>
+    <string name="verify_code_invalid">رمز التحقق غير صالح</string>
     <string name="verify_success">تم التحقق من الحساب بنجاح!</string>
     <string name="verify_send_failed">فشل إرسال رمز التحقق</string>
     <string name="verify_network_error">حدث خطأ في الشبكة</string>
-    <string name="verify_sms_coming_soon">📱 التحقق عبر SMS قادم قريباً! يرجى استخدام البريد الإلكتروني حالياً.</string>
-    <string name="verify_error_no_email">البريد الإلكتروني غير متوفر</string>
-    <string name="verify_error_incomplete_code">يرجى إدخال رمز التحقق كاملاً</string>
+    <string name="verify_sms_coming_soon">📱 التحقق عبر الرسائل القصيرة قريباً! يرجى استخدام البريد الإلكتروني حالياً.</string>
+    <string name="verify_error_no_email">لا يوجد عنوان بريد إلكتروني متاح</string>
+    <string name="verify_error_incomplete_code">يرجى إدخال الرمز المكون من 6 أرقام بالكامل</string>
 
     <string name="onboarding_skip">تخطي</string>
     <string name="onboarding_next">التالي</string>
-    <string name="onboarding_get_started">ابدأ الآن</string>
+    <string name="onboarding_get_started">البدء</string>
     <string name="onboarding_title_1">تتبع رحلة نمو طفلك</string>
-    <string name="onboarding_desc_1">راقب الوزن، الطول، ومحيط الرأس. شاهد تطور طفلك عبر رسوم بيانية جميلة وقارنها مع معايير منظمة الصحة العالمية.</string>
-    <string name="onboarding_title_2">لا تفوت وقت الرضاعة أو النوم</string>
-    <string name="onboarding_desc_2">سجل أوقات الرضاعة، تغيير الحفاضات، وأنماط النوم. احصل على تذكيرات ذكية لبناء روتين صحي لصغيرك.</string>
-    <string name="onboarding_title_3">نصائح وإرشادات مخصصة</string>
-    <string name="onboarding_desc_3">احصل على نصائح الخبراء حول التغذية، تدريب النوم، والتطور. تتبع الإنجازات واحتفل بكل لحظة.</string>
+    <string name="onboarding_desc_1">راقب الوزن والطول ومحيط الرأس. تصور تطور طفلك مع مخططات نمو جميلة وقارنها بمعايير منظمة الصحة العالمية.</string>
+    <string name="onboarding_title_2">لا تفوت موعد رضاعة أو نوم أبداً</string>
+    <string name="onboarding_desc_2">سجل الرضاعة، تغيير الحفاضات، وأنماط النوم. احصل على تذكيرات ذكية لتأسيس روتين صحي لطفلك.</string>
+    <string name="onboarding_title_3">احصل على نصائح وإرشادات مخصصة</string>
+    <string name="onboarding_desc_3">احصل على نصائح الخبراء حول التغذية، تدريب النوم، والتطور. تتبع المعالم واحتفل بكل إنجاز معاً.</string>
 
     <string name="select_language">اختر اللغة</string>
 
@@ -97,12 +97,12 @@
     <string name="chart_filter_head">محيط الرأس</string>
     <string name="chart_legend_title">الدليل:</string>
     <string name="chart_legend_baby_weight">وزن %s</string>
-    <string name="chart_legend_who97">النطاق المرتفع (WHO 97th)</string>
-    <string name="chart_legend_who50">المعدل الطبيعي (WHO 50th)</string>
-    <string name="chart_legend_who3">النطاق المنخفض (WHO 3rd)</string>
-    <string name="chart_latest_measurement">آخر قياس:</string>
+    <string name="chart_legend_who97">النطاق العالي (منظمة الصحة العالمية 97)</string>
+    <string name="chart_legend_who50">المتوسط (منظمة الصحة العالمية 50)</string>
+    <string name="chart_legend_who3">النطاق المنخفض (منظمة الصحة العالمية 3)</string>
+    <string name="chart_latest_measurement">أحدث قياس:</string>
     <string name="chart_no_measurement">لا توجد قياسات بعد</string>
-    <string name="chart_no_measurement_desc">اضغط على \"إضافة قياس\" لتسجيل أول بيانات نمو لطفلك.</string>
+    <string name="chart_no_measurement_desc">اضغط على "إضافة قياس" لتسجيل أول بيانات نمو لطفلك.</string>
     <string name="chart_no_baby">لم يتم اختيار طفل</string>
     <string name="chart_no_baby_desc">أضف طفلاً أولاً لبدء تتبع النمو.</string>
     <string name="chart_view_all">عرض الكل</string>
@@ -113,8 +113,8 @@
     <string name="chart_height_label">الطول</string>
     <string name="chart_head_label">الرأس</string>
     <string name="chart_normal">طبيعي</string>
-    <string name="chart_above_avg">أعلى من المعدل</string>
-    <string name="chart_below_avg">أقل من المعدل</string>
+    <string name="chart_above_avg">فوق المتوسط</string>
+    <string name="chart_below_avg">أقل من المتوسط</string>
     <string name="chart_weight_unit">%s كجم</string>
     <string name="chart_height_unit">%s سم</string>
     <string name="chart_head_unit">%s سم</string>
@@ -129,39 +129,39 @@
     <string name="add_measure_saving">جاري الحفظ…</string>
     <string name="add_measure_cancel">إلغاء</string>
 
-    <string name="all_measures_title">كل القياسات</string>
-    <string name="all_measures_empty">لم يتم تسجيل قياسات بعد.</string>
+    <string name="all_measures_title">جميع القياسات</string>
+    <string name="all_measures_empty">لم يتم تسجيل أي قياسات بعد.</string>
     <string name="all_measures_delete">حذف</string>
 
-    <string name="tab_home">الرئيسية</string>
+    <string name="tab_home">تتبع نمو الطفل</string>
     <string name="tab_baby">ملف الطفل</string>
     <string name="tab_charts">مخططات النمو</string>
     <string name="tab_health_record">السجلات الصحية</string>
-    <string name="tab_bench">المراكز الصحية</string>
+    <string name="tab_bench">مقعد المستشفى</string>
     <string name="tab_settings">الإعدادات</string>
 
-    <string name="home_welcome">مرحباً بعودتك! 👋</string>
-    <string name="home_subtitle">تتبع نمو طفلك وإنجازاته</string>
+    <string name="home_welcome">مرحباً بعودتك!</string>
+    <string name="home_subtitle">تتبع نمو طفلك ومعالمه</string>
     <string name="home_welcome_title">مرحباً</string>
     <string name="home_add_more_child">إضافة طفل آخر</string>
     <string name="home_children_count_one">لديك طفل واحد</string>
     <string name="home_children_count_other">لديك %d أطفال</string>
-    <string name="home_no_babies_title">لم يتم إضافة أطفال بعد</string>
-    <string name="home_no_babies_desc">ليس لديك أي طفل مضاف.\nاضغط أدناه لإضافة طفلك الأول!</string>
+    <string name="home_no_babies_title">لم يتم إضافة أي أطفال بعد</string>
+    <string name="home_no_babies_desc">ليس لديك أي طفل بعد.\nاضغط أدناه لإضافة طفلك الأول!</string>
     <string name="home_add_first_baby">أضف طفلك الأول</string>
     <string name="home_select_child">اختر الطفل</string>
     <string name="home_select_child_hint">اختر طفلاً…</string>
-    <string name="home_next_vaccine_label">اللقاح التالي</string>
+    <string name="home_next_vaccine_label">اللقاح القادم</string>
     <string name="home_scheduled_label">مجدول</string>
     <string name="home_useful_tools">أدوات مفيدة:</string>
     <string name="home_tool_sleep">دليل النوم</string>
     <string name="home_tool_feeding">دليل التغذية</string>
     <string name="home_tool_memory">الذكريات</string>
     <string name="home_tool_add_baby">إضافة طفل</string>
-    <string name="banner_boy_label">إنه ولد</string>
-    <string name="banner_boy_sub">وسيم</string>
-    <string name="banner_girl_label">إنها بنت</string>
-    <string name="banner_girl_sub">جميلة</string>
+    <string name="banner_boy_label">إنه وسيم</string>
+    <string name="banner_boy_sub">طفل ولد</string>
+    <string name="banner_girl_label">إنها جميلة</string>
+    <string name="banner_girl_sub">طفلة بنت</string>
     <string name="banner_neutral_label">مرحباً بك في</string>
     <string name="banner_neutral_sub">تتبع نمو الطفل</string>
 
@@ -171,71 +171,71 @@
     <string name="baby_filter_archived">مؤرشف</string>
     <string name="baby_count_child">طفل</string>
     <string name="baby_count_children">أطفال</string>
-    <string name="baby_add_more_child">أضف طفلاً آخر!</string>
-    <string name="baby_see_profile">عرض الملف</string>
+    <string name="baby_add_more_child">إضافة طفل آخر!</string>
+    <string name="baby_see_profile">عرض الملف الشخصي</string>
     <string name="baby_quick_action">إجراء سريع</string>
-    <string name="baby_stat_height">الطول: %sسم</string>
-    <string name="baby_stat_weight">الوزن: %sكجم</string>
-    <string name="baby_stat_vaccines">اكتمل %d/%d من اللقاحات</string>
+    <string name="baby_stat_height">الطول: %s سم</string>
+    <string name="baby_stat_weight">الوزن: %s كجم</string>
+    <string name="baby_stat_vaccines">تم إكمال %d/%d من اللقاحات</string>
     <string name="baby_status_archived">مؤرشف</string>
     <string name="baby_action_edit">تعديل التفاصيل</string>
-    <string name="baby_action_add_vax">إضافة لقاح</string>
+    <string name="baby_action_add_vax">إضافة تطعيم</string>
     <string name="baby_action_add_measure">إضافة قياس</string>
     <string name="baby_action_growth_chart">عرض مخطط النمو</string>
     <string name="baby_action_archive">أرشفة الطفل</string>
-    <string name="baby_action_unarchive">إلغاء الأرشفة</string>
-    <string name="baby_empty_active">لا يوجد أطفال نشطون.</string>
-    <string name="baby_empty_archived">لا يوجد أطفال مؤرشفون.</string>
-    <string name="baby_empty_search">لا توجد نتائج مطابقة لبحثك.</string>
-    <string name="baby_birth_weight">وزن الولادة</string>
-    <string name="baby_birth_height">طول الولادة</string>
+    <string name="baby_action_unarchive">إلغاء أرشفة الطفل</string>
+    <string name="baby_empty_active">لم يتم العثور على أطفال نشطين.</string>
+    <string name="baby_empty_archived">لا يوجد أطفال في الأرشيف.</string>
+    <string name="baby_empty_search">لا يوجد أطفال يطابقون بحثك.</string>
+    <string name="baby_birth_weight">الوزن</string>
+    <string name="baby_birth_height">الطول</string>
     <string name="gender_male">ذكر</string>
     <string name="gender_female">أنثى</string>
 
     <string name="feature_growth_track">تتبع النمو</string>
-    <string name="feature_growth_desc">راقب الوزن، الطول والتطور</string>
-    <string name="feature_milestones">الإنجازات</string>
-    <string name="feature_milestones_desc">تتبع المراحل الهامة</string>
+    <string name="feature_growth_desc">مراقبة الوزن والطول والتطور</string>
+    <string name="feature_milestones">المعالم</string>
+    <string name="feature_milestones_desc">تتبع المعالم المهمة</string>
     <string name="feature_health_records">السجلات الصحية</string>
     <string name="feature_health_desc">المواعيد الطبية واللقاحات</string>
     <string name="feature_photo_gallery">معرض الصور</string>
     <string name="feature_photo_desc">ذكريات ثمينة</string>
     <string name="feature_feeding_log">سجل الرضاعة</string>
     <string name="feature_feeding_desc">تتبع جدول التغذية</string>
-    <string name="feature_sleep_tracker">تتبع النوم</string>
-    <string name="feature_sleep_desc">راقب أنماط النوم</string>
+    <string name="feature_sleep_tracker">متتبع النوم</string>
+    <string name="feature_sleep_desc">مراقبة أنماط النوم</string>
 
-    <string name="profile_section_basic_info">معلومات أساسية</string>
+    <string name="profile_section_basic_info">المعلومات الأساسية</string>
     <string name="profile_section_birth_measurements">قياسات الولادة</string>
-    <string name="profile_section_latest_growth">آخر سجل نمو</string>
+    <string name="profile_section_latest_growth">أحدث سجل نمو</string>
     <string name="profile_section_vaccinations">اللقاحات</string>
     <string name="profile_section_month_progress">تقدم الشهر</string>
     <string name="profile_dob">تاريخ الميلاد</string>
     <string name="profile_age">العمر</string>
     <string name="profile_gender">الجنس</string>
-    <string name="profile_days_old">العمر بالأيام</string>
-    <string name="profile_days_old_value">%d يوم</string>
-    <string name="profile_recorded_on">سُجل في</string>
+    <string name="profile_days_old">عمره بالأيام</string>
+    <string name="profile_days_old_value">%d أيام</string>
+    <string name="profile_recorded_on">مسجل في</string>
     <string name="profile_vaccinations_completed">مكتمل</string>
     <string name="profile_vaccinations_pending">قيد الانتظار</string>
-    <string name="profile_vaccinations_pending_value">متبقي %d</string>
-    <string name="profile_age_days">عمره %d يوم</string>
+    <string name="profile_vaccinations_pending_value">%d متبقي</string>
+    <string name="profile_age_days">📅 عمره %d أيام</string>
     <string name="profile_month_progress">تقدم الشهر %d</string>
     <string name="profile_height_value">%s سم</string>
     <string name="profile_weight_value">%s كجم</string>
-    <string name="profile_height_percentile">%s سم (النسبة %d)</string>
-    <string name="profile_weight_percentile">%s كجم (النسبة %d)</string>
+    <string name="profile_height_percentile">%s سم (%d %%ile)</string>
+    <string name="profile_weight_percentile">%s كجم (%d %%ile)</string>
     <string name="profile_not_recorded">غير مسجل</string>
     <string name="profile_not_recorded_value">—</string>
     <string name="profile_delete_child">حذف الطفل</string>
     <string name="profile_delete_title">حذف ملف الطفل</string>
-    <string name="profile_delete_message_1">هل أنت متأكد أنك تريد الحذف نهائياً</string>
-    <string name="profile_delete_warning">لا يمكن التراجع عن هذا الإجراء. سيتم حذف جميع سجلات النمو واللقاحات والبيانات الخاصة بهذا الطفل نهائياً.</string>
+    <string name="profile_delete_message_1">هل أنت متأكد أنك تريد حذف بشكل دائم</string>
+    <string name="profile_delete_warning">لا يمكن التراجع عن هذا الإجراء. سيتم حذف جميع سجلات النمو واللقاحات والبيانات الخاصة بهذا الطفل بشكل دائم.</string>
     <string name="profile_delete_confirm">نعم، احذف</string>
     <string name="profile_delete_cancel">إلغاء</string>
 
     <string name="add_baby_title">إضافة طفل جديد</string>
-    <string name="add_baby_section_basic_info">معلومات أساسية</string>
+    <string name="add_baby_section_basic_info">المعلومات الأساسية</string>
     <string name="add_baby_section_measurements">قياسات الولادة (اختياري)</string>
     <string name="add_baby_field_full_name">الاسم الكامل *</string>
     <string name="add_baby_field_dob">تاريخ الميلاد *</string>
@@ -250,24 +250,24 @@
     <string name="add_baby_gender_female">أنثى</string>
     <string name="add_baby_photo_section">اختر صورة</string>
     <string name="add_baby_photo_tap">اضغط للإضافة</string>
-    <string name="add_baby_photo_coming_soon">📸 رفع الصور - قريباً</string>
+    <string name="add_baby_photo_coming_soon">📸 تحميل الصورة — قريباً</string>
     <string name="add_baby_save_button">حفظ الطفل</string>
     <string name="add_baby_saving">جاري الحفظ…</string>
-    <string name="add_baby_uploading_photo">جاري رفع الصورة…</string>
+    <string name="add_baby_uploading_photo">جاري تحميل الصورة…</string>
     <string name="add_baby_clear_button">مسح النموذج</string>
-    <string name="add_baby_dismiss">إغلاق</string>
-    <string name="add_baby_photo_dialog_title">الميزة قادمة قريباً</string>
-    <string name="add_baby_photo_dialog_message">رفع صور الأطفال سيكون متاحاً في تحديث مستقبلي. انتظرونا! 🍼</string>
-    <string name="add_baby_photo_dialog_confirm">فهمت!</string>
+    <string name="add_baby_dismiss">رفض</string>
+    <string name="add_baby_photo_dialog_title">الميزة قريباً</string>
+    <string name="add_baby_photo_dialog_message">سيكون تحميل صورة الطفل متاحاً في تحديث مستقبلي. ابقَ معنا — نحن نعمل على ذلك! 🍼</string>
+    <string name="add_baby_photo_dialog_confirm">حسناً!</string>
     <string name="add_baby_date_ok">موافق</string>
     <string name="add_baby_date_cancel">إلغاء</string>
-    <string name="new_born">مولود جديد</string>
+    <string name="new_born">حديث الولادة</string>
 
-    <string name="age_newborn">مولود جديد</string>
-    <string name="age_months">عمره %d شهر</string>
-    <string name="age_months_plural">عمره %d أشهر</string>
-    <string name="age_years_only">عمره %d سنوات</string>
-    <string name="age_years_months">عمره %1$d سنة و %2$d شهر</string>
+    <string name="age_newborn">حديث الولادة</string>
+    <string name="age_months">%d شهر</string>
+    <string name="age_months_plural">%d شهور</string>
+    <string name="age_years_only">%d سنة</string>
+    <string name="age_years_months">%1$d سنة و %2$d شهر</string>
 
     <string name="month_jan">يناير</string>
     <string name="month_feb">فبراير</string>
@@ -282,100 +282,95 @@
     <string name="month_nov">نوفمبر</string>
     <string name="month_dec">ديسمبر</string>
 
-    <string name="chart_legend_parent_added">👪  أضافه الوالدان</string>
-    <string name="chart_legend_team_added">🏥  أضافه الفريق / اللقاح</string>
-    <string name="chart_legend_who_ref_weight">📊  مرجع المنظمة (وزن)</string>
-    <string name="chart_legend_who_avg">متوسط المنظمة (50)</string>
-    <string name="chart_legend_baby_measurements">👤  قياسات الطفل</string>
-    <string name="chart_legend_who_standards">📊  معايير نمو المنظمة</string>
-
+    <string name="chart_legend_parent_added">👪 أضافه أحد الوالدين</string>
+    <string name="chart_legend_team_added">🏥 تمت إضافة الفريق / التطعيم</string>
+    <string name="chart_legend_who_ref_weight">📊 مرجع منظمة الصحة (الوزن)</string>
+    <string name="chart_legend_who_avg">متوسط منظمة الصحة (50)</string>
+    <string name="chart_legend_baby_measurements">👤 قياسات الطفل</string>
+    <string name="chart_legend_who_standards">📊 معايير نمو منظمة الصحة</string>
     <string name="chart_legend_weight_kg">الوزن (كجم)</string>
     <string name="chart_legend_height_cm">الطول (سم)</string>
     <string name="chart_legend_head_cm">محيط الرأس (سم)</string>
-
     <string name="chart_legend_parent_prefix">الوالد</string>
     <string name="chart_legend_team_prefix">الفريق</string>
-
-    <string name="chart_age_months_label">العمر (أشهر)</string>
-
+    <string name="chart_age_months_label">العمر (بالأشهر)</string>
     <string name="chart_delete_measurement_title">حذف القياس</string>
-    <string name="chart_delete_measurement_desc">إزالة القياس من %1$s؟</string>
-
+    <string name="chart_delete_measurement_desc">هل تريد إزالة القياس من %1$s؟</string>
     <string name="chart_weight_empty">الوزن: —</string>
     <string name="chart_height_empty">الطول: —</string>
     <string name="chart_head_empty">محيط الرأس: —</string>
-
-    <string name="chart_percentile_suffix"> مئوية</string>
+    <string name="chart_percentile_suffix">th %%ile</string>
     <string name="chart_date_prefix_emoji">📅</string>
     <string name="chart_measurement_weight_icon">⚖️</string>
     <string name="chart_measurement_height_icon">📏</string>
     <string name="chart_measurement_head_icon">🔵</string>
+    <string name="chart_percentile_weight_icon">⚖️</string>
+    <string name="chart_percentile_height_icon">📏</string>
 
     <string name="bench_map_title">اختر المركز الصحي</string>
     <string name="bench_map_subtitle">لـ %1$s</string>
-    <string name="bench_map_loading">جاري تحميل المراكز…</string>
+    <string name="bench_map_loading">جاري تحميل المراكز الصحية…</string>
     <string name="bench_filter_all">الكل</string>
     <string name="bench_filter_near">بالقرب مني</string>
-    <string name="bench_search_hint">ابحث عن المراكز…</string>
-    <string name="bench_no_centers">لا توجد مراكز قريبة</string>
+    <string name="bench_search_hint">البحث عن المراكز…</string>
+    <string name="bench_no_centers">لم يتم العثور على مراكز قريبة</string>
     <string name="bench_centers_count">%1$d مراكز</string>
-
     <string name="bench_detail_title">تفاصيل المركز</string>
     <string name="bench_assign_button">اختر هذا المركز</string>
     <string name="bench_assign_for">اختر لـ %1$s</string>
     <string name="bench_change_hint">اضغط لتغيير المركز</string>
-    <string name="bench_assign_confirm_title">تأكيد التعيين</string>
-    <string name="bench_assign_confirm_body">تعيين %1$s لهذا المركز؟ سيتم إنشاء جدول اللقاحات تلقائياً.</string>
+    <string name="bench_assign_confirm_title">تأكيد الاختيار</string>
+    <string name="bench_assign_confirm_body">هل تريد تعيين %1$s إلى هذا المركز الصحي؟ سيتم إنشاء جدول التطعيم تلقائياً.</string>
     <string name="bench_assign_confirm">تأكيد</string>
     <string name="bench_assign_cancel">إلغاء</string>
-    <string name="bench_no_baby_hint">أضف طفلاً أولاً لاختيار المركز</string>
+    <string name="bench_no_baby_hint">أضف طفلاً أولاً لاختيار هذا المركز</string>
 
     <string name="health_record_title">السجلات الصحية</string>
-    <string name="health_record_subtitle">جدول اللقاحات والمركز الصحي</string>
+    <string name="health_record_subtitle">جدول التطعيمات والمركز الصحي</string>
     <string name="health_assigned_center">المركز الصحي المعين</string>
     <string name="health_no_assignment">لم يتم تعيين مركز بعد</string>
-    <string name="health_no_assignment_hint">اضغط لاختيار مركز قريب</string>
+    <string name="health_no_assignment_hint">اضغط لاختيار مركز صحي قريب</string>
     <string name="health_tap_to_change">اضغط لتغيير المركز</string>
     <string name="health_open_map">اختر المركز الصحي</string>
     <string name="health_select_child">اختر الطفل</string>
 
-    <string name="schedule_progress">تقدم اللقاحات</string>
-    <string name="schedule_section_overdue">متأخر - يحتاج انتباه</string>
-    <string name="schedule_section_due_soon">في الموعد قريباً</string>
-    <string name="schedule_section_upcoming">القادمة</string>
+    <string name="schedule_progress">تقدم التطعيمات</string>
+    <string name="schedule_section_overdue">متأخر — يحتاج إلى الانتباه</string>
+    <string name="schedule_section_due_soon">مستحق قريباً</string>
+    <string name="schedule_section_upcoming">قادم</string>
     <string name="schedule_section_completed">مكتمل</string>
-    <string name="schedule_dose">جرعة %1$d</string>
+    <string name="schedule_dose">الجرعة %1$d</string>
     <string name="schedule_age_months">%1$d شهر</string>
-    <string name="schedule_shift_days">+%1$d أيام معدلة</string>
+    <string name="schedule_shift_days">+%1$d أيام تعديل</string>
     <string name="schedule_no_babies">أضف طفلاً أولاً</string>
-    <string name="schedule_no_assignment_title">لا يوجد مركز صحي</string>
-    <string name="schedule_no_assignment_body">اختر مركزاً صحياً لـ %1$s لإنشاء جدول اللقاحات</string>
+    <string name="schedule_no_assignment_title">لم يتم تعيين مركز صحي بعد</string>
+    <string name="schedule_no_assignment_body">اختر مركزاً صحياً لـ %1$s لإنشاء جدول تطعيماته تلقائياً</string>
 
     <string name="health_issues_title">المشاكل الصحية</string>
     <string name="health_issue_filter_all">الكل</string>
-    <string name="health_issue_filter_ongoing">مستمرة</string>
-    <string name="health_issue_filter_resolved">تم حلها</string>
-    <string name="health_issue_add">إضافة مشكلة صحية</string>
-    <string name="health_issue_severity_mild">خفيفة</string>
-    <string name="health_issue_severity_moderate">متوسطة</string>
-    <string name="health_issue_severity_severe">شديدة</string>
-    <string name="health_issue_resolved">تم حلها</string>
-    <string name="health_issue_mark_resolved">تحديد كمحلولة</string>
+    <string name="health_issue_filter_ongoing">مستمر</string>
+    <string name="health_issue_filter_resolved">تم الحل</string>
+    <string name="health_issue_add">إضافة مشكلة صحية جديدة</string>
+    <string name="health_issue_severity_mild">خفيف</string>
+    <string name="health_issue_severity_moderate">متوسط</string>
+    <string name="health_issue_severity_severe">شديد</string>
+    <string name="health_issue_resolved">تم الحل</string>
+    <string name="health_issue_mark_resolved">تحديد كمحلول</string>
 
     <string name="appointment_title">المواعيد</string>
     <string name="appointment_filter_all">الكل</string>
     <string name="appointment_filter_upcoming">القادمة</string>
     <string name="appointment_filter_past">السابقة</string>
-    <string name="appointment_filter_cancelled">ملغاة</string>
-    <string name="appointment_add">إضافة موعد جديد</string>
+    <string name="appointment_filter_cancelled">الملغاة</string>
+    <string name="appointment_add">إضافة مواعيد جديدة</string>
     <string name="appointment_cancel">إلغاء</string>
-    <string name="appointment_status_upcoming">قادم</string>
+    <string name="appointment_status_upcoming">القادمة</string>
 
-    <string name="reschedule_title">إعادة جدولة اللقاحات</string>
-    <string name="reschedule_confirm">سيتم إعادة إنشاء الجدول المتبقي. متابعة؟</string>
-    <string name="reschedule_action">إعادة جدولة</string>
-    <string name="reschedule_banner">لقاحات متأخرة عدد (%1$d). اضغط للجدولة.</string>
-    <string name="reschedule_success">تم تحديث الجدول بنجاح.</string>
+    <string name="reschedule_title">إعادة جدولة التطعيمات</string>
+    <string name="reschedule_confirm">سيؤدي هذا إلى إعادة إنشاء جدول التطعيمات المتبقية. هل تريد المتابعة؟</string>
+    <string name="reschedule_action">إعادة الجدولة</string>
+    <string name="reschedule_banner">%1$d تطعيم(ات) متأخرة. اضغط لإعادة الجدولة.</string>
+    <string name="reschedule_success">تم إعادة إنشاء الجدول بنجاح.</string>
     <string name="nav_tab_home">الرئيسية</string>
     <string name="nav_tab_baby">الطفل</string>
     <string name="nav_tab_charts">المخططات</string>
@@ -383,23 +378,22 @@
     <string name="nav_tab_settings">الإعدادات</string>
 
     <string name="bench_section_location">📍 الموقع</string>
-    <string name="bench_section_contact">📞 التواصل</string>
+    <string name="bench_section_contact">📞 الاتصال</string>
     <string name="bench_section_hours">🕐 ساعات العمل</string>
-    <string name="bench_section_services">💉 أيام التلقيح</string>
-    <string name="bench_section_staff">👨‍⚕️ الكادر</string>
-
+    <string name="bench_section_services">💉 أيام التطعيم</string>
+    <string name="bench_section_staff">👨‍⚕️ فريق العمل</string>
     <string name="bench_label_governorate">المحافظة</string>
-    <string name="bench_label_district">القضاء</string>
+    <string name="bench_label_district">المنطقة</string>
     <string name="bench_label_address">العنوان</string>
     <string name="bench_label_directions">الاتجاهات</string>
     <string name="bench_label_phone">الهاتف</string>
-    <string name="bench_label_hours">الساعات</string>
+    <string name="bench_label_hours">ساعات العمل</string>
     <string name="bench_label_days">أيام العمل</string>
-    <string name="bench_label_vax_days">أيام اللقاحات</string>
-    <string name="bench_label_vaccines">اللقاحات المتوفرة</string>
-    <string name="bench_no_phone">لا يوجد رقم هاتف</string>
+    <string name="bench_label_vax_days">أيام التطعيم</string>
+    <string name="bench_label_vaccines">اللقاحات المتاحة</string>
+    <string name="bench_no_phone">لا يوجد رقم هاتف متاح</string>
     <string name="bench_not_specified">غير محدد</string>
-    <string name="bench_distance_km">على بعد %.1f كم</string>
+    <string name="bench_distance_km">يبعد %.1f كم</string>
 
     <string name="delete_cancel">إلغاء</string>
 
@@ -409,7 +403,7 @@
     <string name="add_measure_weight_placeholder">الوزن</string>
     <string name="add_measure_height_placeholder">الطول</string>
     <string name="add_measure_head_placeholder">محيط الرأس</string>
-    <string name="add_measure_save_button">💾  حفظ القياس</string>
+    <string name="add_measure_save_button">💾 حفظ القياس</string>
 
     <string name="settings_title">الإعدادات</string>
     <string name="settings_subtitle">إدارة حسابك وتفضيلاتك</string>
@@ -417,132 +411,132 @@
     <string name="settings_send_code">إرسال الرمز</string>
     <string name="settings_verify_code">تحقق</string>
     <string name="settings_version">الإصدار %1$s</string>
-
     <string name="settings_section_account">الحساب</string>
     <string name="settings_section_preferences">التفضيلات</string>
-    <string name="settings_section_notifications">التنبيهات</string>
+    <string name="settings_section_notifications">الإشعارات</string>
     <string name="settings_section_security">الأمان</string>
-    <string name="settings_section_about">حول التطبيق</string>
+    <string name="settings_section_about">حول</string>
     <string name="settings_section_actions">إجراءات الحساب</string>
-
     <string name="settings_edit_profile">تعديل الملف الشخصي</string>
     <string name="settings_change_password">تغيير كلمة المرور</string>
-    <string name="settings_change_pw_send_desc">سنرسل رمزاً من 6 أرقام إلى %1$s. اضغط إرسال للمتابعة.</string>
+    <string name="settings_change_pw_send_desc">سنرسل رمز إعادة تعيين من 6 أرقام إلى %1$s. اضغط إرسال للمتابعة.</string>
     <string name="settings_enter_code_title">أدخل رمز التحقق</string>
     <string name="settings_enter_code_hint">رمز من 6 أرقام</string>
     <string name="settings_new_password_title">تعيين كلمة مرور جديدة</string>
     <string name="settings_new_password">كلمة المرور الجديدة</string>
     <string name="settings_confirm_password">تأكيد كلمة المرور</string>
     <string name="settings_passwords_no_match">كلمات المرور غير متطابقة</string>
-
     <string name="settings_language">اللغة</string>
-    <string name="settings_app_theme">نمط التطبيق</string>
+    <string name="settings_app_theme">مظهر التطبيق</string>
     <string name="settings_theme_light">فاتح</string>
     <string name="settings_theme_dark">داكن</string>
-    <string name="settings_gender_theme">لون نمط الطفل</string>
-    <string name="settings_gender_girl">بنت 🎀</string>
+    <string name="settings_gender_theme">لون سمة الطفل</string>
+    <string name="settings_gender_girl">فتاة 🎀</string>
     <string name="settings_gender_boy">ولد 🚀</string>
     <string name="settings_gender_neutral">محايد 🌟</string>
-
-    <string name="settings_notif_master">تنبيهات الهاتف</string>
-    <string name="settings_notif_master_sub">تفعيل جميع التنبيهات</string>
-    <string name="settings_notif_vaccination">تذكيرات اللقاحات</string>
-    <string name="settings_notif_vaccination_sub">التذكير قبل اللقاح القادم</string>
+    <string name="settings_notif_master">دفع الإشعارات</string>
+    <string name="settings_notif_master_sub">تمكين كافة إشعارات التطبيق</string>
+    <string name="settings_notif_vaccination">تذكيرات التطعيم</string>
+    <string name="settings_notif_vaccination_sub">التذكير قبل اللقاحات القادمة</string>
     <string name="settings_notif_growth">تنبيهات النمو</string>
-    <string name="settings_notif_growth_sub">التنبيه عند إنجازات النمو</string>
+    <string name="settings_notif_growth_sub">الإخطار عند تحقيق معالم النمو</string>
     <string name="settings_notif_appointment">تذكيرات المواعيد</string>
     <string name="settings_notif_appointment_sub">التذكير قبل الزيارات المجدولة</string>
     <string name="settings_notif_reminder_days">وقت التذكير المسبق</string>
     <string name="settings_reminder_days_value">قبل %1$d أيام</string>
-
     <string name="settings_save_password">حفظ كلمة المرور</string>
-    <string name="settings_save_password_sub">تعبئة البيانات تلقائياً المرة القادمة</string>
-
+    <string name="settings_save_password_sub">ملء البيانات تلقائياً عند تسجيل الدخول القادم</string>
     <string name="settings_about_app">حول التطبيق</string>
     <string name="settings_privacy_policy">سياسة الخصوصية</string>
     <string name="settings_terms">شروط الاستخدام</string>
-    <string name="settings_contact_support">التواصل مع الدعم</string>
-    <string name="settings_about_desc">تطبيق تتبع نمو الطفل يساعد الآباء على مراقبة تطور أطفالهم مع تذكيرات ذكية ومخططات نمو.</string>
-
+    <string name="settings_contact_support">الاتصال بالدعم</string>
+    <string name="settings_about_desc">يساعد تطبيق تتبع نمو الطفل الآباء في مراقبة تطور طفلهم مع تذكيرات ذكية ومخططات نمو.</string>
     <string name="settings_logout">تسجيل الخروج</string>
     <string name="settings_logout_title">تسجيل الخروج</string>
-    <string name="settings_logout_message">ستعود لشاشة الدخول. بياناتك ستبقى آمنة.</string>
+    <string name="settings_logout_message">سيتم إعادتك إلى شاشة تسجيل الدخول. ستبقى بياناتك آمنة.</string>
     <string name="settings_logout_confirm">تسجيل الخروج</string>
     <string name="settings_delete_account">حذف الحساب</string>
     <string name="settings_delete_account_sub">لا يمكن التراجع عن هذا الإجراء</string>
     <string name="settings_delete_title">حذف الحساب</string>
-    <string name="settings_delete_message">سيتم حذف حسابك وكل سجلات الأطفال نهائياً.</string>
+    <string name="settings_delete_message">سيؤدي هذا إلى حذف حسابك وجميع سجلات الطفل بشكل دائم. لا يمكن التراجع عن هذا.</string>
     <string name="settings_delete_confirm">حذف للأبد</string>
-
     <string name="settings_field_name">الاسم</string>
     <string name="settings_field_phone">الهاتف</string>
-    <string name="settings_contact_support_intro">هل لديك سؤال أو وجدت مشكلة؟ نود السماع منك.</string>
+    <string name="settings_contact_support_intro">لديك سؤال أو وجدت خطأ؟ نود أن نسمع منك.</string>
+    <string name="settings_support_email">support@babygrowth.com</string>
+    <string name="settings_support_response_time">نرد عادة في غضون 24-48 ساعة.</string>
+    <string name="settings_privacy_policy_body">يلتزم تطبيق تتبع نمو الطفل بحماية خصوصيتك.\n\n
+• نقوم بجمع المعلومات اللازمة فقط لتوفير ميزات التطبيق (ملفات الأطفال، سجلات النمو، جداول التطعيم).\n
+• يتم تخزين بياناتك بأمان على خوادمنا ولا يتم بيعها أبدًا لأطراف ثالثة.\n
+• يمكنك حذف حسابك في أي وقت، مما يؤدي إلى إزالة كافة البيانات المرتبطة به بشكل دائم.\n
+• نستخدم التشفير القياسي في الصناعة لجميع البيانات أثناء النقل وعند التخزين.\n
+• بيانات التحليلات مجهولة المصدر وتُستخدم فقط لتحسين التطبيق.\n\n
+للأسئلة، تواصل مع support@babygrowth.com.</string>
+    <string name="settings_terms_body">باستخدام تطبيق تتبع نمو الطفل، فإنك توافق على الشروط التالية:\n\n
+1. أنت مسؤول عن دقة المعلومات التي تدخلها.\n
+2. التطبيق مخصص كأداة تتبع، وليس أداة تشخيص طبي. استشر دائماً أخصائي رعاية صحية مؤهل للحصول على المشورة الطبية.\n
+3. يجب عليك عدم إساءة استخدام الخدمة أو محاولة الوصول إلى بيانات تعود لمستخدمين آخرين.\n
+4. نحتفظ بالحق في تحديث هذه الشروط. الاستمرار في الاستخدام بعد التغييرات يشكل قبولاً.\n
+5. يتم توفير التطبيق "كما هو" دون ضمانات من أي نوع.\n\n
+آخر تحديث: 2025.</string>
 
     <string name="schedule_status_completed">مكتمل</string>
     <string name="schedule_status_overdue">متأخر</string>
-    <string name="schedule_status_due_soon">موعده قريب</string>
+    <string name="schedule_status_due_soon">مستحق قريباً</string>
     <string name="schedule_status_upcoming">قادم</string>
     <string name="schedule_status_missed">فائت</string>
-    <string name="schedule_status_rescheduled">أُعيد جدولته</string>
-    <string name="schedule_completed_on">مكتمل: %1$s</string>
-    <string name="schedule_date_label">الموعد: %1$s</string>
-    <string name="schedule_age_recommended">العمر المحدد</string>
+    <string name="schedule_status_rescheduled">تمت إعادة جدولته</string>
+    <string name="schedule_completed_on">مكتمل في: %1$s</string>
+    <string name="schedule_date_label">مجدول: %1$s</string>
+    <string name="schedule_age_recommended">العمر الموصى به</string>
     <string name="schedule_ideal_date">التاريخ المثالي</string>
-    <string name="schedule_scheduled_date">تاريخ الموعد</string>
+    <string name="schedule_scheduled_date">التاريخ المجدول</string>
     <string name="schedule_adjustment">التعديل</string>
-    <string name="schedule_completed_on_label">تاريخ الإكمال</string>
+    <string name="schedule_completed_on_label">مكتمل في</string>
     <string name="schedule_health_center">المركز الصحي</string>
     <string name="schedule_status_label">الحالة</string>
     <string name="schedule_reschedule_remaining">إعادة جدولة المتبقي</string>
-    <string name="schedule_overdue_banner_count">⚠️ %1$d لقاح متأخر</string>
-    <string name="schedule_overdue_banner_tap">اضغط لإعادة جدولة اللقاحات المتبقية</string>
-    <string name="schedule_no_vaccinations">لا توجد لقاحات</string>
+    <string name="schedule_overdue_banner_count">⚠️ %1$d تطعيم(ات) متأخرة</string>
+    <string name="schedule_overdue_banner_tap">اضغط لإعادة جدولة التطعيمات المتبقية</string>
+    <string name="schedule_no_vaccinations">لم يتم العثور على تطعيمات</string>
 
-    <!-- ── Family History - Arabic (ar) ────────────────────────────────────── -->
-
-    <string name="settings_section_information">المعلومات</string>
-    <string name="settings_family_history">التاريخ العائلي</string>
+    <string name="settings_section_information">معلومات</string>
+    <string name="settings_family_history">تاريخ العائلة</string>
     <string name="settings_family_history_sub">الخلفية الطبية للعائلة</string>
-    <string name="settings_family_history_set">تم إدخال المعلومات</string>
-    <string name="settings_family_history_not_set">لم يتم الإدخال — انقر للإضافة</string>
-
-    <string name="family_history_title">التاريخ العائلي</string>
+    <string name="settings_family_history_set">تم تعيين المعلومات</string>
+    <string name="settings_family_history_not_set">لم يتم التعيين — اضغط للإضافة</string>
+    <string name="family_history_title">تاريخ العائلة</string>
     <string name="family_history_save">حفظ</string>
     <string name="family_history_edit">تعديل</string>
     <string name="family_history_delete">حذف</string>
-    <string name="family_history_saved">تم حفظ التاريخ العائلي بنجاح</string>
-    <string name="family_history_deleted">تم حذف التاريخ العائلي</string>
-    <string name="family_history_confirm_delete_title">حذف التاريخ العائلي</string>
-    <string name="family_history_confirm_delete_msg">هل أنت متأكد من حذف جميع معلومات التاريخ العائلي؟ لا يمكن التراجع عن هذا.</string>
-    <string name="family_history_not_set_alert_title">لم يتم إدخال التاريخ العائلي</string>
-    <string name="family_history_not_set_alert_msg">يرجى ملء التاريخ الطبي للعائلة. هذه المعلومات تساعد في تتبع الأمراض الوراثية لصحة طفلك.</string>
+    <string name="family_history_saved">تم حفظ تاريخ العائلة بنجاح</string>
+    <string name="family_history_deleted">تم حذف تاريخ العائلة</string>
+    <string name="family_history_confirm_delete_title">حذف تاريخ العائلة</string>
+    <string name="family_history_confirm_delete_msg">هل أنت متأكد أنك تريد حذف جميع معلومات تاريخ العائلة؟ لا يمكن التراجع عن هذا.</string>
+    <string name="family_history_not_set_alert_title">لم يتم تعيين تاريخ العائلة</string>
+    <string name="family_history_not_set_alert_msg">يرجى ملء التاريخ الطبي للعائلة. تساعد هذه المعلومات في تتبع الحالات الوراثية لصحة طفلك.</string>
     <string name="family_history_add_info">إضافة معلومات</string>
-    <string name="family_history_status_set">✅ تم إدخال المعلومات</string>
-    <string name="family_history_status_not_set">⚠️ لم يتم الملء بعد</string>
-
+    <string name="family_history_status_set">✅ تم تعيين المعلومات</string>
+    <string name="family_history_status_not_set">⚠️ لم يتم ملؤها بعد</string>
     <string name="fh_heredity">الوراثة</string>
     <string name="fh_blood_diseases">أمراض الدم</string>
     <string name="fh_cardiovascular">أمراض القلب والأوعية الدموية</string>
-    <string name="fh_metabolic">أمراض الأيض</string>
+    <string name="fh_metabolic">الأمراض الأيضية</string>
     <string name="fh_appendicitis">التهاب الزائدة الدودية</string>
-    <string name="fh_tuberculosis">السل</string>
-    <string name="fh_parkinsonism">الباركنسونية</string>
+    <string name="fh_tuberculosis">مرض السل</string>
+    <string name="fh_parkinsonism">مرض باركنسون</string>
     <string name="fh_allergies">الحساسية</string>
     <string name="fh_others">أخرى</string>
-
     <string name="fh_placeholder_heredity">أدخل معلومات الوراثة…</string>
     <string name="fh_placeholder_blood">أدخل تاريخ أمراض الدم…</string>
-    <string name="fh_placeholder_cardiovascular">أدخل تاريخ أمراض القلب والأوعية…</string>
-    <string name="fh_placeholder_metabolic">أدخل تاريخ أمراض الأيض…</string>
-    <string name="fh_placeholder_appendicitis">أدخل تاريخ التهاب الزائدة…</string>
-    <string name="fh_placeholder_tuberculosis">أدخل تاريخ مرض السل…</string>
-    <string name="fh_placeholder_parkinsonism">أدخل تاريخ الباركنسون…</string>
+    <string name="fh_placeholder_cardiovascular">أدخل تاريخ أمراض القلب والأوعية الدموية…</string>
+    <string name="fh_placeholder_metabolic">أدخل تاريخ الأمراض الأيضية…</string>
+    <string name="fh_placeholder_appendicitis">أدخل تاريخ التهاب الزائدة الدودية…</string>
+    <string name="fh_placeholder_tuberculosis">أدخل تاريخ السل…</string>
+    <string name="fh_placeholder_parkinsonism">أدخل تاريخ باركنسون…</string>
     <string name="fh_placeholder_allergies">أدخل معلومات الحساسية…</string>
     <string name="fh_placeholder_others">أدخل الحالات الأخرى…</string>
 
-    <!-- ── Guide Screens ──────────────────────────────────────────────────── -->
-
-    <!-- Sleep Guide -->
     <string name="sleep_guide_title">دليل النوم</string>
     <string name="sleep_guide_header">ساعد %s على النوم بشكل أفضل 💤</string>
     <string name="sleep_guide_select_child">اختر الطفل</string>
@@ -550,51 +544,50 @@
     <string name="sleep_guide_cat_strategies">استراتيجيات النوم</string>
     <string name="sleep_guide_cat_needs">احتياجات النوم</string>
     <string name="sleep_guide_cat_environment">البيئة</string>
-    <string name="sleep_guide_cat_lullabies">الأغاني</string>
+    <string name="sleep_guide_cat_lullabies">التهويدات</string>
     <string name="sleep_guide_env_tab_all">الكل</string>
     <string name="sleep_guide_env_tab_bedtime">وقت النوم</string>
     <string name="sleep_guide_env_tab_naps">القيلولة</string>
-    <string name="sleep_guide_lullabies_title">الأغاني والأصوات 🎵</string>
+    <string name="sleep_guide_lullabies_title">التهويدات والأصوات 🎵</string>
     <string name="sleep_guide_lang_all">الكل</string>
-    <string name="sleep_guide_lang_kurdish">كردي</string>
-    <string name="sleep_guide_lang_arabic">عربي</string>
-    <string name="sleep_guide_lang_english">إنجليزي</string>
-    <string name="sleep_guide_now_playing">يُشغَّل الآن:</string>
+    <string name="sleep_guide_lang_kurdish">الكردية</string>
+    <string name="sleep_guide_lang_arabic">العربية</string>
+    <string name="sleep_guide_lang_english">الإنجليزية</string>
+    <string name="sleep_guide_now_playing">يشتغل الآن:</string>
     <string name="sleep_guide_play">تشغيل</string>
-    <string name="sleep_guide_pause">إيقاف</string>
+    <string name="sleep_guide_pause">إيقاف مؤقت</string>
     <string name="sleep_guide_download">تحميل</string>
-    <string name="sleep_guide_useful_for">مفيد لـ %d مستخدم</string>
+    <string name="sleep_guide_useful_for">مفيد لـ %d مستخدمين</string>
     <string name="sleep_guide_useful">مفيد</string>
     <string name="sleep_guide_useless">غير مفيد</string>
     <string name="sleep_guide_why_matters">لماذا يهم:</string>
     <string name="sleep_guide_tips">نصائح:</string>
-    <string name="sleep_guide_total_sleep">مجموع النوم:</string>
+    <string name="sleep_guide_total_sleep">إجمالي النوم:</string>
     <string name="sleep_guide_night">الليل:</string>
     <string name="sleep_guide_daytime">النهار:</string>
-    <string name="sleep_guide_total_nap">مجموع القيلولة</string>
+    <string name="sleep_guide_total_nap">إجمالي القيلولة</string>
     <string name="sleep_guide_duration">المدة: %s</string>
     <string name="sleep_guide_months">%d أشهر</string>
     <string name="sleep_guide_tips_for_age">نصائح لهذا العمر</string>
-    <string name="sleep_guide_no_data">لا يوجد دليل نوم لهذا العمر.</string>
+    <string name="sleep_guide_no_data">لا يتوفر دليل نوم لهذا العمر.</string>
 
-    <!-- Feeding Guide -->
     <string name="feeding_guide_title">دليل التغذية</string>
-    <string name="feeding_guide_header">ساعد %s على الأكل بشكل صحي 🍼</string>
-    <string name="feeding_guide_cat_milk">الرضاعة</string>
+    <string name="feeding_guide_header">ساعد %s على الأكل جيداً 🍼</string>
+    <string name="feeding_guide_cat_milk">تغذية الحليب</string>
     <string name="feeding_guide_cat_solid">الأطعمة الصلبة</string>
-    <string name="feeding_guide_cat_schedule">الجدول النموذجي</string>
-    <string name="feeding_guide_cat_avoid">الأطعمة المحظورة</string>
+    <string name="feeding_guide_cat_schedule">نموذج جدول</string>
+    <string name="feeding_guide_cat_avoid">أطعمة يجب تجنبها</string>
     <string name="feeding_guide_cat_tips">نصائح التغذية</string>
     <string name="feeding_guide_milk_tab_all">الكل</string>
     <string name="feeding_guide_milk_tab_breast">الرضاعة الطبيعية</string>
-    <string name="feeding_guide_milk_tab_formula">الحليب الصناعي</string>
-    <string name="feeding_guide_milk_tab_combo">مختلط</string>
+    <string name="feeding_guide_milk_tab_formula">الرضاعة الصناعية</string>
+    <string name="feeding_guide_milk_tab_combo">الرضاعة المختلطة</string>
     <string name="feeding_guide_frequency">التكرار:</string>
     <string name="feeding_guide_duration">المدة:</string>
     <string name="feeding_guide_hunger_signs">علامات الجوع:</string>
     <string name="feeding_guide_fullness_signs">علامات الشبع:</string>
     <string name="feeding_guide_tip_label">نصيحة:</string>
-    <string name="feeding_guide_recommended_foods">الأطعمة المقترحة:</string>
-    <string name="feeding_guide_no_solid">الأطعمة الصلبة غير مناسبة لهذا العمر.</string>
-    <string name="feeding_guide_no_data">لا يوجد دليل تغذية لهذا العمر.</string>
+    <string name="feeding_guide_recommended_foods">الأطعمة الموصى بها:</string>
+    <string name="feeding_guide_no_solid">لا ينصح بالأطعمة الصلبة لهذا العمر.</string>
+    <string name="feeding_guide_no_data">لا يتوفر دليل تغذية لهذا العمر.</string>
 </resources>

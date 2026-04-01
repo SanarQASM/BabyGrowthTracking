@@ -1,14 +1,3 @@
-// ═════════════════════════════════════════════════════════════════════════════
-// SettingsTabContent — LANDSCAPE IMPROVEMENT
-//
-// In landscape mode the settings list is split into a two-column layout:
-//  • Left column  (fixed ~280 dp): section navigation / profile summary
-//  • Right column (remaining width): content of the currently active section
-//
-// This avoids the "too airy / stretched" feel of a single long list on a
-// wide screen. All dialogs and portrait behaviour are unchanged.
-// ═════════════════════════════════════════════════════════════════════════════
-
 package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen
 
 import androidx.compose.animation.*
@@ -44,7 +33,7 @@ import org.example.project.babygrowthtrackingapplication.theme.customColors
 import org.jetbrains.compose.resources.stringResource
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Dialog enum — unchanged
+// Dialog enum
 // ─────────────────────────────────────────────────────────────────────────────
 private enum class SettingsDialog {
     NONE,
@@ -67,17 +56,18 @@ private enum class SettingsSection {
 
 @Composable
 fun SettingsTabContent(
-    viewModel           : SettingsViewModel,
-    onLanguageChange    : (Language) -> Unit    = {},
-    onDarkModeChange    : (Boolean) -> Unit     = {},
-    onGenderThemeChange : (GenderTheme) -> Unit = {},
-    onNavigateToWelcome : () -> Unit            = {},
-
-    // ✅ NEW: Connection to Family History
-    onNavigateToFamilyHistory: (babyId: String, babyName: String) -> Unit = { _, _ -> },
-    selectedBabyId: String? = null,
-    selectedBabyName: String = "",
-    familyHistoryIsSet: Boolean = false,
+    viewModel                  : SettingsViewModel,
+    onLanguageChange           : (Language) -> Unit    = {},
+    onDarkModeChange           : (Boolean) -> Unit     = {},
+    onGenderThemeChange        : (GenderTheme) -> Unit = {},
+    onNavigateToWelcome        : () -> Unit            = {},
+    onNavigateToFamilyHistory  : (babyId: String, babyName: String) -> Unit = { _, _ -> },
+    onNavigateToChildIllnesses : (babyId: String, babyName: String) -> Unit = { _, _ -> },  // ← NEW
+    selectedBabyId             : String?  = null,
+    selectedBabyName           : String   = "",
+    familyHistoryIsSet         : Boolean  = false,
+    childIllnessCount          : Int      = 0,    // ← NEW
+    childIllnessActiveCount    : Int      = 0,    // ← NEW
 ) {
     val state       = viewModel.uiState
     val dim         = LocalDimensions.current
@@ -85,17 +75,15 @@ fun SettingsTabContent(
     val snackbar    = remember { SnackbarHostState() }
     val isLandscape = LocalIsLandscape.current
 
-    var dialog      by remember { mutableStateOf(SettingsDialog.NONE) }
-    var resetCode   by remember { mutableStateOf("") }
-
-    // Landscape section selection state
+    var dialog          by remember { mutableStateOf(SettingsDialog.NONE) }
+    var resetCode       by remember { mutableStateOf("") }
     var selectedSection by remember { mutableStateOf(SettingsSection.ACCOUNT) }
 
     LaunchedEffect(state.navigateToWelcome) { if (state.navigateToWelcome) onNavigateToWelcome() }
     LaunchedEffect(state.successMessage) { state.successMessage?.let { snackbar.showSnackbar(it); viewModel.clearMessages() } }
     LaunchedEffect(state.errorMessage)   { state.errorMessage?.let   { snackbar.showSnackbar(it); viewModel.clearMessages() } }
 
-    // ── Dialogs — identical to original ─────────────────────────────────────
+    // ── Dialogs ───────────────────────────────────────────────────────────────
     when (dialog) {
         SettingsDialog.EDIT_PROFILE -> EditProfileDialog(
             initialName = state.userName, initialPhone = state.userPhone, isLoading = state.isLoading,
@@ -181,8 +169,9 @@ fun SettingsTabContent(
 
     Scaffold(snackbarHost = { SnackbarHost(snackbar) }, containerColor = Color.Transparent) { inner ->
         if (isLandscape) {
-            // ── LANDSCAPE: left nav rail + right content pane ─────────────────
+            // ── LANDSCAPE ─────────────────────────────────────────────────────
             Row(modifier = Modifier.fillMaxSize().padding(inner)) {
+
                 // Left navigation rail
                 Column(modifier = Modifier
                     .width(240.dp)
@@ -216,7 +205,6 @@ fun SettingsTabContent(
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     Spacer(Modifier.height(dim.spacingSmall))
 
-                    // Section nav items
                     data class NavItem(val section: SettingsSection, val emoji: String, val label: String)
                     val navItems = buildList {
                         add(NavItem(SettingsSection.ACCOUNT,       "👤", stringResource(Res.string.settings_section_account)))
@@ -256,13 +244,13 @@ fun SettingsTabContent(
 
                 VerticalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-                // Right content pane — shows only the selected section
+                // Right content pane
                 Column(modifier = Modifier.weight(1f).fillMaxHeight()
                     .verticalScroll(rememberScrollState())
                     .padding(dim.spacingLarge),
                     verticalArrangement = Arrangement.spacedBy(dim.spacingMedium)) {
 
-                    val hPad = Modifier  // no extra horizontal padding needed in pane
+                    val hPad = Modifier
 
                     when (selectedSection) {
                         SettingsSection.ACCOUNT -> {
@@ -349,13 +337,24 @@ fun SettingsTabContent(
                         SettingsSection.INFORMATION -> {
                             SectionLabel("👨‍👩‍👧‍👦", stringResource(Res.string.settings_section_information), hPad)
                             SettingsCard(hPad) {
+                                // Family History row
                                 FamilyHistorySettingsRow(
                                     isSet    = familyHistoryIsSet,
                                     babyName = selectedBabyName,
                                     onClick  = {
-                                        if (selectedBabyId != null) {
+                                        if (selectedBabyId != null)
                                             onNavigateToFamilyHistory(selectedBabyId, selectedBabyName)
-                                        }
+                                    }
+                                )
+                                RowDivider()
+                                // Child Illnesses row ← NEW
+                                ChildIllnessesSettingsRow(
+                                    illnessCount = childIllnessCount,
+                                    activeCount  = childIllnessActiveCount,
+                                    babyName     = selectedBabyName,
+                                    onClick      = {
+                                        if (selectedBabyId != null)
+                                            onNavigateToChildIllnesses(selectedBabyId, selectedBabyName)
                                     }
                                 )
                             }
@@ -399,7 +398,7 @@ fun SettingsTabContent(
                 }
             }
         } else {
-            // ── PORTRAIT: original single-column list ─────────────────────────
+            // ── PORTRAIT ──────────────────────────────────────────────────────
             val hPad = Modifier.padding(horizontal = dim.screenPadding)
             Column(modifier = Modifier.fillMaxSize().padding(inner).verticalScroll(rememberScrollState())) {
                 Box(modifier = Modifier.fillMaxWidth()
@@ -484,10 +483,9 @@ fun SettingsTabContent(
                     Spacer(Modifier.height(dim.spacingMedium))
                 }
 
-                Spacer(Modifier.height(dim.spacingMedium))
-
                 SectionLabel("ℹ️", stringResource(Res.string.settings_section_information), hPad)
                 SettingsCard(hPad) {
+                    // Family History row
                     FamilyHistorySettingsRow(
                         isSet    = familyHistoryIsSet,
                         babyName = selectedBabyName,
@@ -496,8 +494,18 @@ fun SettingsTabContent(
                                 onNavigateToFamilyHistory(selectedBabyId, selectedBabyName)
                         }
                     )
+                    RowDivider()
+                    // Child Illnesses row ← NEW
+                    ChildIllnessesSettingsRow(
+                        illnessCount = childIllnessCount,
+                        activeCount  = childIllnessActiveCount,
+                        babyName     = selectedBabyName,
+                        onClick      = {
+                            if (selectedBabyId != null)
+                                onNavigateToChildIllnesses(selectedBabyId, selectedBabyName)
+                        }
+                    )
                 }
-
                 Spacer(Modifier.height(dim.spacingMedium))
 
                 SectionLabel("ℹ️", stringResource(Res.string.settings_section_about), hPad)
@@ -539,7 +547,7 @@ fun SettingsTabContent(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Atom composables — identical to originals
+// Atom composables — unchanged
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -653,7 +661,7 @@ private fun DangerRow(icon: ImageVector, label: String, subtitle: String? = null
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Dialog composables — identical to originals
+// Dialog composables — unchanged
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable

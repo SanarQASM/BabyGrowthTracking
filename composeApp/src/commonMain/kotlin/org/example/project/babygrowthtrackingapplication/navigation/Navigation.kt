@@ -29,8 +29,10 @@ import org.example.project.babygrowthtrackingapplication.com.babygrowth.presenta
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HealthRecordViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.SettingsViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.FamilyHistoryViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.ChildIllnessesViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.GuideViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.AllMeasurementsScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.ChildIllnessesScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.FamilyHistoryScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.SleepGuideScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.FeedingGuideScreen
@@ -64,6 +66,7 @@ enum class Screen {
     AddMeasurement,
     AllMeasurements,
     FamilyHistory,
+    ChildIllnesses,   // ← NEW
     SleepGuide,
     FeedingGuide
 }
@@ -75,10 +78,8 @@ enum class Screen {
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AppNavigation(
-    // FIX: receive language from App.kt — eliminates the duplicate state bug
     currentLanguage     : Language              = Language.ENGLISH,
     onLanguageChange    : (Language) -> Unit    = {},
-    // FIX: new callbacks so App.kt BabyGrowthTheme actually re-composes
     onDarkModeChange    : (Boolean) -> Unit     = {},
     onGenderThemeChange : (GenderTheme) -> Unit = {},
 ) {
@@ -88,10 +89,11 @@ fun AppNavigation(
     var resetEmail by remember { mutableStateOf("") }
     var resetCode  by remember { mutableStateOf("") }
 
-    var selectedBaby        by remember { mutableStateOf<BabyResponse?>(null) }
-    var measurementBaby     by remember { mutableStateOf<BabyResponse?>(null) }
-    var allMeasurementsBaby by remember { mutableStateOf<BabyResponse?>(null) }
-    var familyHistoryBaby   by remember { mutableStateOf<BabyResponse?>(null) }
+    var selectedBaby          by remember { mutableStateOf<BabyResponse?>(null) }
+    var measurementBaby       by remember { mutableStateOf<BabyResponse?>(null) }
+    var allMeasurementsBaby   by remember { mutableStateOf<BabyResponse?>(null) }
+    var familyHistoryBaby     by remember { mutableStateOf<BabyResponse?>(null) }
+    var childIllnessesBaby    by remember { mutableStateOf<BabyResponse?>(null) }  // ← NEW
 
     var selectedTab by remember { mutableStateOf(NavigationTab.HOME) }
     var originTab   by remember { mutableStateOf(NavigationTab.HOME) }
@@ -128,6 +130,11 @@ fun AppNavigation(
         FamilyHistoryViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
 
+    // ── NEW: ChildIllnesses ViewModel ─────────────────────────────────────────
+    val childIllnessesViewModel = remember {
+        ChildIllnessesViewModel(apiService = apiService, preferencesManager = preferencesManager)
+    }
+
     val guideRepository = remember { GuideRepository(apiService) }
     val guideViewModel  = remember { GuideViewModel(repository = guideRepository) }
 
@@ -160,6 +167,7 @@ fun AppNavigation(
             healthRecordViewModel.onDestroy()
             settingsViewModel.onDestroy()
             familyHistoryViewModel.onDestroy()
+            childIllnessesViewModel.onDestroy()   // ← NEW
             guideViewModel.onDestroy()
             cleanupSocialAuth(socialAuthManager)
         }
@@ -209,6 +217,7 @@ fun AppNavigation(
                     Screen.AddMeasurement,
                     Screen.AllMeasurements,
                     Screen.FamilyHistory,
+                    Screen.ChildIllnesses,   // ← NEW
                     Screen.SleepGuide,
                     Screen.FeedingGuide ->
                         slideInHorizontally(
@@ -235,7 +244,7 @@ fun AppNavigation(
                             currentScreen = when {
                                 repository.isLoggedIn() -> {
                                     homeViewModel.loadHomeData()
-                                    settingsViewModel.refreshProfile() // ✅ Refresh profile if already logged in
+                                    settingsViewModel.refreshProfile()
                                     Screen.Home
                                 }
                                 !preferencesManager.isOnboardingComplete() -> Screen.Onboarding
@@ -269,7 +278,7 @@ fun AppNavigation(
                         onBackClick           = { currentScreen = Screen.Welcome },
                         onLoginSuccess        = {
                             homeViewModel.loadHomeData()
-                            settingsViewModel.refreshProfile() // ✅ Sync profile immediately on login
+                            settingsViewModel.refreshProfile()
                             currentScreen = Screen.Home
                         },
                         onForgotPasswordClick = { currentScreen = Screen.ForgotPassword },
@@ -292,7 +301,7 @@ fun AppNavigation(
                         },
                         onSocialSignupSuccess = {
                             homeViewModel.loadHomeData()
-                            settingsViewModel.refreshProfile() // ✅ Sync profile on social login
+                            settingsViewModel.refreshProfile()
                             currentScreen = Screen.Home
                         },
                         sharedTransitionScope = this@SharedTransitionLayout,
@@ -351,7 +360,7 @@ fun AppNavigation(
                         onVerificationSuccess = {
                             preferencesManager.setUserLoggedIn(true)
                             homeViewModel.loadHomeData()
-                            settingsViewModel.refreshProfile() // ✅ Sync profile after verification
+                            settingsViewModel.refreshProfile()
                             currentScreen = Screen.Home
                         },
                         sharedTransitionScope = this@SharedTransitionLayout,
@@ -372,44 +381,45 @@ fun AppNavigation(
                 // ── Home ──────────────────────────────────────────────────────
                 Screen.Home -> {
                     HomeScreen(
-                        viewModel             = homeViewModel,
-                        healthRecordViewModel = healthRecordViewModel,
-                        settingsViewModel     = settingsViewModel,
-                        familyHistoryViewModel = familyHistoryViewModel,
-                        guideViewModel        = guideViewModel,
-                        currentLanguage       = currentLanguage,
-                        onLanguageChange      = { newLanguage ->
+                        viewModel                  = homeViewModel,
+                        healthRecordViewModel      = healthRecordViewModel,
+                        settingsViewModel          = settingsViewModel,
+                        familyHistoryViewModel     = familyHistoryViewModel,
+                        childIllnessesViewModel    = childIllnessesViewModel,  // ← NEW
+                        guideViewModel             = guideViewModel,
+                        currentLanguage            = currentLanguage,
+                        onLanguageChange           = { newLanguage ->
                             preferencesManager.setLanguage(newLanguage)
                             onLanguageChange(newLanguage)
                         },
-                        onDarkModeChange    = onDarkModeChange,
-                        onGenderThemeChange = onGenderThemeChange,
-                        selectedTab  = selectedTab,
-                        onTabChange  = { selectedTab = it },
-                        onAddBaby    = {
+                        onDarkModeChange           = onDarkModeChange,
+                        onGenderThemeChange        = onGenderThemeChange,
+                        selectedTab                = selectedTab,
+                        onTabChange                = { selectedTab = it },
+                        onAddBaby                  = {
                             originTab = selectedTab
                             addBabyViewModel.resetForm()
                             currentScreen = Screen.AddBaby
                         },
-                        onSeeProfile = { baby ->
+                        onSeeProfile               = { baby ->
                             originTab     = selectedTab
                             selectedBaby  = baby
                             currentScreen = Screen.BabyProfile
                         },
-                        onEditDetails = { baby ->
+                        onEditDetails              = { baby ->
                             originTab = selectedTab
                             addBabyViewModel.prefillFromBaby(baby)
                             currentScreen = Screen.EditBaby
                         },
-                        onAddMeasurement = { baby ->
+                        onAddMeasurement           = { baby ->
                             originTab       = selectedTab
                             measurementBaby = baby
                             currentScreen   = Screen.AddMeasurement
                         },
-                        onViewGrowthChart = { _ ->
+                        onViewGrowthChart          = { _ ->
                             selectedTab = NavigationTab.CHARTS
                         },
-                        onAddMeasurementById = { babyId ->
+                        onAddMeasurementById       = { babyId ->
                             val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
                             if (baby != null) {
                                 originTab       = selectedTab
@@ -417,7 +427,7 @@ fun AppNavigation(
                                 currentScreen   = Screen.AddMeasurement
                             }
                         },
-                        onViewAllMeasurementsById = { babyId ->
+                        onViewAllMeasurementsById  = { babyId ->
                             originTab = selectedTab
                             val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
                             if (baby != null) {
@@ -425,10 +435,10 @@ fun AppNavigation(
                                 currentScreen       = Screen.AllMeasurements
                             }
                         },
-                        onNavigateToWelcome = {
+                        onNavigateToWelcome        = {
                             currentScreen = Screen.Welcome
                         },
-                        onNavigateToFamilyHistory = { babyId, babyName ->
+                        onNavigateToFamilyHistory  = { babyId, babyName ->
                             val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
                             if (baby != null) {
                                 familyHistoryBaby = baby
@@ -436,12 +446,20 @@ fun AppNavigation(
                                 currentScreen = Screen.FamilyHistory
                             }
                         },
-                        onNavigateToSleepGuide = {
-                            originTab = selectedTab
+                        onNavigateToChildIllnesses = { babyId, babyName ->   // ← NEW
+                            val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
+                            if (baby != null) {
+                                childIllnessesBaby = baby
+                                childIllnessesViewModel.loadIllnesses(babyId)
+                                currentScreen = Screen.ChildIllnesses
+                            }
+                        },
+                        onNavigateToSleepGuide     = {
+                            originTab     = selectedTab
                             currentScreen = Screen.SleepGuide
                         },
-                        onNavigateToFeedingGuide = {
-                            originTab = selectedTab
+                        onNavigateToFeedingGuide   = {
+                            originTab     = selectedTab
                             currentScreen = Screen.FeedingGuide
                         }
                     )
@@ -603,6 +621,24 @@ fun AppNavigation(
                             onBack    = {
                                 familyHistoryBaby = null
                                 currentScreen     = Screen.Home
+                            }
+                        )
+                    }
+                }
+
+                // ── Child Illnesses ───────────────────────────────────────────  ← NEW
+                Screen.ChildIllnesses -> {
+                    val baby = childIllnessesBaby
+                    if (baby == null) {
+                        currentScreen = Screen.Home
+                    } else {
+                        ChildIllnessesScreen(
+                            babyId    = baby.babyId,
+                            babyName  = baby.fullName,
+                            viewModel = childIllnessesViewModel,
+                            onBack    = {
+                                childIllnessesBaby = null
+                                currentScreen      = Screen.Home
                             }
                         )
                     }

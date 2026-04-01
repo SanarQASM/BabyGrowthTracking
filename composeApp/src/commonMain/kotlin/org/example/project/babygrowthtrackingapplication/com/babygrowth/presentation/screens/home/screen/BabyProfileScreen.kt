@@ -12,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -42,6 +41,10 @@ fun BabyProfileScreen(
     val customColors = MaterialTheme.customColors
     val dimensions   = LocalDimensions.current
     val isLandscape  = LocalIsLandscape.current
+
+    // FIX: Read localised unit strings once so all value rows are consistent
+    val unitKg = stringResource(Res.string.add_baby_unit_kg)
+    val unitCm = stringResource(Res.string.add_baby_unit_cm)
 
     var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -120,8 +123,9 @@ fun BabyProfileScreen(
                         textAlign  = TextAlign.Center
                     )
 
+                    // FIX: use shared formatAge (previously private formatProfileAge — deduplicated)
                     Text(
-                        text  = formatProfileAge(baby.ageInMonths),
+                        text  = formatAge(baby.ageInMonths),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f),
                         textAlign = TextAlign.Center
@@ -160,9 +164,11 @@ fun BabyProfileScreen(
                     verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
                 ) {
                     ProfileSectionCard(title = stringResource(Res.string.profile_section_basic_info)) {
-                        ProfileInfoRow("🎂", stringResource(Res.string.profile_dob), formatProfileDate(baby.dateOfBirth))
+                        // FIX: use shared formatDate instead of private formatProfileDate
+                        ProfileInfoRow("🎂", stringResource(Res.string.profile_dob), formatDate(baby.dateOfBirth))
                         ProfileInfoDivider()
-                        ProfileInfoRow("🗓️", stringResource(Res.string.profile_days_old), "${baby.ageInDays} days")
+                        ProfileInfoRow("🗓️", stringResource(Res.string.profile_days_old),
+                            stringResource(Res.string.profile_days_old_value, baby.ageInDays))
                         ProfileInfoDivider()
                         ProfileInfoRow(
                             if (isFemale) "♀" else "♂",
@@ -172,20 +178,23 @@ fun BabyProfileScreen(
                     }
 
                     ProfileSectionCard(title = stringResource(Res.string.profile_section_birth_measurements)) {
+                        // FIX: use localised unit string instead of hardcoded "kg" / "cm"
                         ProfileInfoRow(
                             "⚖️", stringResource(Res.string.chart_legend_weight_kg),
-                            if (baby.birthWeight != null && baby.birthWeight > 0.0) "${baby.birthWeight} kg"
+                            if (baby.birthWeight != null && baby.birthWeight > 0.0)
+                                "${baby.birthWeight} $unitKg"
                             else stringResource(Res.string.profile_not_recorded)
                         )
                         ProfileInfoDivider()
                         ProfileInfoRow(
                             "📏", stringResource(Res.string.chart_legend_height_cm),
-                            if (baby.birthHeight != null && baby.birthHeight > 0.0) "${baby.birthHeight} cm"
+                            if (baby.birthHeight != null && baby.birthHeight > 0.0)
+                                "${baby.birthHeight} $unitCm"
                             else stringResource(Res.string.profile_not_recorded)
                         )
                         baby.birthHeadCircumference?.takeIf { it > 0.0 }?.let { hc ->
                             ProfileInfoDivider()
-                            ProfileInfoRow("🔵", stringResource(Res.string.chart_legend_head_cm), "$hc cm")
+                            ProfileInfoRow("🔵", stringResource(Res.string.chart_legend_head_cm), "$hc $unitCm")
                         }
                     }
 
@@ -196,8 +205,9 @@ fun BabyProfileScreen(
                                 "⚖️", stringResource(Res.string.chart_legend_weight_kg),
                                 when {
                                     latestGrowth.weight == null -> stringResource(Res.string.profile_not_recorded)
-                                    weightPct != null           -> "${latestGrowth.weight} kg (${weightPct}th %ile)"
-                                    else                        -> "${latestGrowth.weight} kg"
+                                    weightPct != null           ->
+                                        "${latestGrowth.weight} $unitKg (${weightPct}${stringResource(Res.string.chart_percentile_suffix)})"
+                                    else                        -> "${latestGrowth.weight} $unitKg"
                                 }
                             )
                             ProfileInfoDivider()
@@ -206,16 +216,18 @@ fun BabyProfileScreen(
                                 "📏", stringResource(Res.string.chart_legend_height_cm),
                                 when {
                                     latestGrowth.height == null -> stringResource(Res.string.profile_not_recorded)
-                                    heightPct != null           -> "${latestGrowth.height} cm (${heightPct}th %ile)"
-                                    else                        -> "${latestGrowth.height} cm"
+                                    heightPct != null           ->
+                                        "${latestGrowth.height} $unitCm (${heightPct}${stringResource(Res.string.chart_percentile_suffix)})"
+                                    else                        -> "${latestGrowth.height} $unitCm"
                                 }
                             )
                             latestGrowth.headCircumference?.let { hc ->
                                 ProfileInfoDivider()
-                                ProfileInfoRow("🔵", stringResource(Res.string.chart_legend_head_cm), "$hc cm")
+                                ProfileInfoRow("🔵", stringResource(Res.string.chart_legend_head_cm), "$hc $unitCm")
                             }
                             ProfileInfoDivider()
-                            ProfileInfoRow("📅", stringResource(Res.string.profile_recorded_on), formatProfileDate(latestGrowth.measurementDate))
+                            ProfileInfoRow("📅", stringResource(Res.string.profile_recorded_on),
+                                formatDate(latestGrowth.measurementDate))
                         }
                     }
 
@@ -226,7 +238,8 @@ fun BabyProfileScreen(
                             ProfileInfoRow("✅", stringResource(Res.string.profile_vaccinations_completed), "$done / ${vaccinations.size}")
                             if (pending > 0) {
                                 ProfileInfoDivider()
-                                ProfileInfoRow("💉", stringResource(Res.string.profile_vaccinations_pending), "$pending remaining")
+                                ProfileInfoRow("💉", stringResource(Res.string.profile_vaccinations_pending),
+                                    stringResource(Res.string.profile_vaccinations_pending_value, pending))
                             }
                         }
                     }
@@ -278,7 +291,8 @@ fun BabyProfileScreen(
                         Spacer(Modifier.height(dimensions.spacingMedium))
                         Text(baby.fullName, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary)
                         Spacer(Modifier.height(dimensions.spacingXSmall))
-                        Text(formatProfileAge(baby.ageInMonths), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f))
+                        // FIX: use shared formatAge
+                        Text(formatAge(baby.ageInMonths), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f))
                         Spacer(Modifier.height(dimensions.spacingXLarge))
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
                             ProfileQuickActionButton("📏", stringResource(Res.string.baby_action_add_measure), onAddMeasurement, Modifier.weight(1f))
@@ -295,9 +309,11 @@ fun BabyProfileScreen(
                     verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
                 ) {
                     ProfileSectionCard(title = stringResource(Res.string.profile_section_basic_info)) {
-                        ProfileInfoRow("🎂", stringResource(Res.string.profile_dob), formatProfileDate(baby.dateOfBirth))
+                        // FIX: use shared formatDate
+                        ProfileInfoRow("🎂", stringResource(Res.string.profile_dob), formatDate(baby.dateOfBirth))
                         ProfileInfoDivider()
-                        ProfileInfoRow("🗓️", stringResource(Res.string.profile_days_old), "${baby.ageInDays} days")
+                        ProfileInfoRow("🗓️", stringResource(Res.string.profile_days_old),
+                            stringResource(Res.string.profile_days_old_value, baby.ageInDays))
                         ProfileInfoDivider()
                         ProfileInfoRow(
                             if (isFemale) "♀" else "♂",
@@ -307,20 +323,23 @@ fun BabyProfileScreen(
                     }
 
                     ProfileSectionCard(title = stringResource(Res.string.profile_section_birth_measurements)) {
+                        // FIX: use localised unit string
                         ProfileInfoRow(
                             "⚖️", stringResource(Res.string.chart_legend_weight_kg),
-                            if (baby.birthWeight != null && baby.birthWeight > 0.0) "${baby.birthWeight} kg"
+                            if (baby.birthWeight != null && baby.birthWeight > 0.0)
+                                "${baby.birthWeight} $unitKg"
                             else stringResource(Res.string.profile_not_recorded)
                         )
                         ProfileInfoDivider()
                         ProfileInfoRow(
                             "📏", stringResource(Res.string.chart_legend_height_cm),
-                            if (baby.birthHeight != null && baby.birthHeight > 0.0) "${baby.birthHeight} cm"
+                            if (baby.birthHeight != null && baby.birthHeight > 0.0)
+                                "${baby.birthHeight} $unitCm"
                             else stringResource(Res.string.profile_not_recorded)
                         )
                         baby.birthHeadCircumference?.takeIf { it > 0.0 }?.let { hc ->
                             ProfileInfoDivider()
-                            ProfileInfoRow("🔵", stringResource(Res.string.chart_legend_head_cm), "$hc cm")
+                            ProfileInfoRow("🔵", stringResource(Res.string.chart_legend_head_cm), "$hc $unitCm")
                         }
                     }
 
@@ -331,8 +350,9 @@ fun BabyProfileScreen(
                                 "⚖️", stringResource(Res.string.chart_legend_weight_kg),
                                 when {
                                     latestGrowth.weight == null -> stringResource(Res.string.profile_not_recorded)
-                                    weightPct != null           -> "${latestGrowth.weight} kg (${weightPct}th %ile)"
-                                    else                        -> "${latestGrowth.weight} kg"
+                                    weightPct != null           ->
+                                        "${latestGrowth.weight} $unitKg (${weightPct}${stringResource(Res.string.chart_percentile_suffix)})"
+                                    else                        -> "${latestGrowth.weight} $unitKg"
                                 }
                             )
                             ProfileInfoDivider()
@@ -341,20 +361,23 @@ fun BabyProfileScreen(
                                 "📏", stringResource(Res.string.chart_legend_height_cm),
                                 when {
                                     latestGrowth.height == null -> stringResource(Res.string.profile_not_recorded)
-                                    heightPct != null           -> "${latestGrowth.height} cm (${heightPct}th %ile)"
-                                    else                        -> "${latestGrowth.height} cm"
+                                    heightPct != null           ->
+                                        "${latestGrowth.height} $unitCm (${heightPct}${stringResource(Res.string.chart_percentile_suffix)})"
+                                    else                        -> "${latestGrowth.height} $unitCm"
                                 }
                             )
                             latestGrowth.headCircumference?.let { hc ->
                                 ProfileInfoDivider()
-                                ProfileInfoRow("🔵", stringResource(Res.string.chart_legend_head_cm), "$hc cm")
+                                ProfileInfoRow("🔵", stringResource(Res.string.chart_legend_head_cm), "$hc $unitCm")
                             }
                             ProfileInfoDivider()
-                            ProfileInfoRow("📅", stringResource(Res.string.profile_recorded_on), formatProfileDate(latestGrowth.measurementDate))
+                            ProfileInfoRow("📅", stringResource(Res.string.profile_recorded_on),
+                                formatDate(latestGrowth.measurementDate))
                         }
                     } else {
                         ProfileSectionCard(title = stringResource(Res.string.profile_section_latest_growth)) {
-                            ProfileInfoRow("📊", stringResource(Res.string.profile_section_latest_growth), stringResource(Res.string.chart_no_measurement))
+                            ProfileInfoRow("📊", stringResource(Res.string.profile_section_latest_growth),
+                                stringResource(Res.string.chart_no_measurement))
                         }
                     }
 
@@ -365,7 +388,8 @@ fun BabyProfileScreen(
                             ProfileInfoRow("✅", stringResource(Res.string.profile_vaccinations_completed), "$done / ${vaccinations.size}")
                             if (pending > 0) {
                                 ProfileInfoDivider()
-                                ProfileInfoRow("💉", stringResource(Res.string.profile_vaccinations_pending), "$pending remaining")
+                                ProfileInfoRow("💉", stringResource(Res.string.profile_vaccinations_pending),
+                                    stringResource(Res.string.profile_vaccinations_pending_value, pending))
                             }
                         }
                     }
@@ -497,34 +521,4 @@ private fun ProfileQuickActionButton(emoji: String, label: String, onClick: () -
         Text(emoji, fontSize = dimensions.profileQuickActionEmojiSize)
         Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onPrimary, textAlign = TextAlign.Center, maxLines = 2, fontSize = dimensions.profileQuickActionLabelSize, lineHeight = dimensions.profileQuickActionLineHeight)
     }
-}
-
-@Composable
-private fun formatProfileAge(months: Int): String = when {
-    months < 1  -> stringResource(Res.string.age_newborn)
-    months < 12 -> if (months == 1) stringResource(Res.string.age_months, months)
-    else           stringResource(Res.string.age_months_plural, months)
-    else -> {
-        val y = months / 12
-        val m = months % 12
-        if (m == 0) stringResource(Res.string.age_years_only, y)
-        else        stringResource(Res.string.age_years_months, y, m)
-    }
-}
-
-@Composable
-private fun formatProfileDate(dateStr: String): String {
-    val parts = dateStr.split("-")
-    if (parts.size != 3) return dateStr
-    val monthIndex = parts[1].toIntOrNull() ?: return dateStr
-    val monthNames = listOf("",
-        stringResource(Res.string.month_jan), stringResource(Res.string.month_feb),
-        stringResource(Res.string.month_mar), stringResource(Res.string.month_apr),
-        stringResource(Res.string.month_may), stringResource(Res.string.month_jun),
-        stringResource(Res.string.month_jul), stringResource(Res.string.month_aug),
-        stringResource(Res.string.month_sep), stringResource(Res.string.month_oct),
-        stringResource(Res.string.month_nov), stringResource(Res.string.month_dec)
-    )
-    val month = monthNames.getOrElse(monthIndex) { parts[1] }
-    return "$month ${parts[2]}, ${parts[0]}"
 }

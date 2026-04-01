@@ -11,7 +11,7 @@ import java.time.LocalDateTime
 import java.util.*
 
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/v1/notifications")
 @CrossOrigin(origins = ["*"])
 class NotificationController(private val notificationRepository: NotificationRepository) {
 

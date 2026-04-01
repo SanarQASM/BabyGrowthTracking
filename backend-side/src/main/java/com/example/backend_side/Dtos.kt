@@ -7,6 +7,8 @@ import jakarta.validation.constraints.*
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.time.format.DateTimeParseException
 
 // ============================================================
 // Dtos.kt  — FIXED
@@ -353,6 +355,26 @@ data class FamilyHistoryResponse(
     val createdAt              : LocalDateTime? = null,
     val updatedAt              : LocalDateTime? = null
 )
+
+data class ChildIllnessRequest(
+    val babyId: String,
+    val illnessName: String,
+    val diagnosisDate: String? = null,   // accepted as "yyyy-MM-dd"
+    val notes: String? = null,
+    val isActive: Boolean = true
+) {
+    /** Safely parse to LocalDate; returns null on blank or bad format */
+    fun parsedDiagnosisDate(): LocalDate? {
+        if (diagnosisDate.isNullOrBlank()) return null
+        return try {
+            LocalDate.parse(diagnosisDate.trim(), DateTimeFormatter.ISO_LOCAL_DATE)
+        } catch (e: DateTimeParseException) {
+            throw IllegalArgumentException(
+                "Invalid diagnosisDate format '${diagnosisDate}'. Expected yyyy-MM-dd."
+            )
+        }
+    }
+}
 
 // ============================================================
 // HEALTH ISSUE DTOs

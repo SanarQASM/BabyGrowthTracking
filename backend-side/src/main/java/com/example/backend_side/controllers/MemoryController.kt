@@ -9,7 +9,7 @@ import java.time.LocalDate
 import java.util.*
 
 @RestController
-@RequestMapping("/api/memories")
+@RequestMapping("/v1/memories")
 @CrossOrigin(origins = ["*"])
 class MemoryController(private val memoryRepository: MemoryRepository) {
 

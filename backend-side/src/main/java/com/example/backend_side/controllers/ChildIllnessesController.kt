@@ -1,6 +1,8 @@
 package com.example.backend_side.controllers
 
+import com.example.backend_side.ChildIllnessRequest
 import com.example.backend_side.entity.ChildIllnesses
+import com.example.backend_side.repositories.BabyRepository
 import com.example.backend_side.repositories.ChildIllnessesRepository
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -8,80 +10,101 @@ import org.springframework.web.bind.annotation.*
 import java.util.*
 
 @RestController
-@RequestMapping("/api/child-illnesses")
+@RequestMapping("/v1/child-illnesses")
 @CrossOrigin(origins = ["*"])
-class ChildIllnessesController(private val childIllnessesRepository: ChildIllnessesRepository) {
+class ChildIllnessesController(
+    private val childIllnessesRepository: ChildIllnessesRepository,
+    private val babyRepository: BabyRepository          // inject baby repo to resolve entity
+) {
+
+    // ── helpers ──────────────────────────────────────────────────────────────
+
+    private fun ok(body: Any)   = ResponseEntity.ok(body)
+    private fun notFound()      = ResponseEntity.notFound().build<Any>()
+    private fun badRequest(msg: String) =
+        ResponseEntity.badRequest().body(mapOf("error" to msg))
+
+    private fun ChildIllnessRequest.toEntity(existingId: String? = null): ChildIllnesses {
+        val baby = babyRepository.findById(babyId).orElseThrow {
+            NoSuchElementException("Baby '$babyId' not found")
+        }
+        return ChildIllnesses(
+            illnessId     = existingId ?: UUID.randomUUID().toString(),
+            baby          = baby,
+            illnessName   = illnessName.trim(),
+            diagnosisDate = parsedDiagnosisDate(),   // safe parse
+            notes         = notes?.trim(),
+            isActive      = isActive
+        )
+    }
+
+    // ── endpoints ─────────────────────────────────────────────────────────────
 
     @GetMapping
-    fun getAllChildIllnesses(): ResponseEntity<List<ChildIllnesses>> {
-        return ResponseEntity.ok(childIllnessesRepository.findAll())
-    }
+    fun getAllChildIllnesses() = ok(childIllnessesRepository.findAll())
 
     @GetMapping("/{illnessId}")
-    fun getChildIllnessById(@PathVariable illnessId: String): ResponseEntity<ChildIllnesses> {
-        return childIllnessesRepository.findById(illnessId)
-            .map { ResponseEntity.ok(it) }
-            .orElse(ResponseEntity.notFound().build())
-    }
+    fun getChildIllnessById(@PathVariable illnessId: String): ResponseEntity<*> =
+        childIllnessesRepository.findById(illnessId)
+            .map { ok(it) }.orElse(notFound())
 
     @GetMapping("/baby/{babyId}")
-    fun getIllnessesByBaby(@PathVariable babyId: String): ResponseEntity<List<ChildIllnesses>> {
-        return ResponseEntity.ok(childIllnessesRepository.findByBaby_BabyId(babyId))
-    }
+    fun getIllnessesByBaby(@PathVariable babyId: String) =
+        ok(childIllnessesRepository.findByBaby_BabyId(babyId))
 
     @GetMapping("/baby/{babyId}/active")
     fun getActiveIllnessesByBaby(
         @PathVariable babyId: String,
         @RequestParam(defaultValue = "true") isActive: Boolean
-    ): ResponseEntity<List<ChildIllnesses>> {
-        return ResponseEntity.ok(childIllnessesRepository.findByBaby_BabyIdAndIsActive(babyId, isActive))
-    }
+    ) = ok(childIllnessesRepository.findByBaby_BabyIdAndIsActive(babyId, isActive))
 
     @GetMapping("/baby/{babyId}/count")
-    fun countActiveIllnesses(@PathVariable babyId: String): ResponseEntity<Map<String, Long>> {
-        val count = childIllnessesRepository.countActiveIllnessesByBaby(babyId)
-        return ResponseEntity.ok(mapOf("count" to count))
-    }
+    fun countActiveIllnesses(@PathVariable babyId: String) =
+        ok(mapOf("count" to childIllnessesRepository.countActiveIllnessesByBaby(babyId)))
 
     @PostMapping
-    fun createChildIllness(@RequestBody childIllness: ChildIllnesses): ResponseEntity<ChildIllnesses> {
-        if (childIllness.illnessId.isEmpty()) {
-            childIllness.illnessId = UUID.randomUUID().toString()
+    fun createChildIllness(@RequestBody request: ChildIllnessRequest): ResponseEntity<*> {
+        return try {
+            val entity = request.toEntity()
+            ResponseEntity.status(HttpStatus.CREATED).body(childIllnessesRepository.save(entity))
+        } catch (e: IllegalArgumentException) {
+            badRequest(e.message ?: "Invalid request")
+        } catch (e: NoSuchElementException) {
+            badRequest(e.message ?: "Baby not found")
         }
-        val savedIllness = childIllnessesRepository.save(childIllness)
-        return ResponseEntity.status(HttpStatus.CREATED).body(savedIllness)
     }
 
     @PutMapping("/{illnessId}")
     fun updateChildIllness(
         @PathVariable illnessId: String,
-        @RequestBody childIllness: ChildIllnesses
-    ): ResponseEntity<ChildIllnesses> {
-        return if (childIllnessesRepository.existsById(illnessId)) {
-            childIllness.illnessId = illnessId
-            ResponseEntity.ok(childIllnessesRepository.save(childIllness))
-        } else {
-            ResponseEntity.notFound().build()
+        @RequestBody request: ChildIllnessRequest
+    ): ResponseEntity<*> {
+        if (!childIllnessesRepository.existsById(illnessId)) return notFound()
+        return try {
+            val entity = request.toEntity(existingId = illnessId)
+            ok(childIllnessesRepository.save(entity))
+        } catch (e: IllegalArgumentException) {
+            badRequest(e.message ?: "Invalid request")
         }
     }
 
     @PatchMapping("/{illnessId}/deactivate")
-    fun deactivateIllness(@PathVariable illnessId: String): ResponseEntity<ChildIllnesses> {
-        return childIllnessesRepository.findById(illnessId)
-            .map { illness ->
-                illness.isActive = false
-                ResponseEntity.ok(childIllnessesRepository.save(illness))
-            }
-            .orElse(ResponseEntity.notFound().build())
-    }
+    fun deactivateIllness(@PathVariable illnessId: String): ResponseEntity<*> =
+        childIllnessesRepository.findById(illnessId).map { illness ->
+            illness.isActive = false
+            ok(childIllnessesRepository.save(illness))
+        }.orElse(notFound())
 
     @DeleteMapping("/{illnessId}")
     fun deleteChildIllness(@PathVariable illnessId: String): ResponseEntity<Void> {
-        return if (childIllnessesRepository.existsById(illnessId)) {
-            childIllnessesRepository.deleteById(illnessId)
-            ResponseEntity.noContent().build()
-        } else {
-            ResponseEntity.notFound().build()
-        }
+        if (!childIllnessesRepository.existsById(illnessId))
+            return ResponseEntity.notFound().build()
+        childIllnessesRepository.deleteById(illnessId)
+        return ResponseEntity.noContent().build()
     }
+
+    // ── global date-format error handler for this controller ──────────────────
+    @ExceptionHandler(IllegalArgumentException::class)
+    fun handleBadDate(e: IllegalArgumentException) =
+        ResponseEntity.badRequest().body(mapOf("error" to (e.message ?: "Bad request")))
 }

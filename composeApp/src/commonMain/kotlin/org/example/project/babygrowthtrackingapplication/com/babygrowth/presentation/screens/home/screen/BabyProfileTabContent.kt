@@ -449,23 +449,20 @@ private fun BabyCard(
     val dimensions          = LocalDimensions.current
     var quickActionExpanded by remember { mutableStateOf(false) }
 
+    // FIX: Read localised unit strings once per card composition
+    val unitKg = stringResource(Res.string.add_baby_unit_kg)
+    val unitCm = stringResource(Res.string.add_baby_unit_cm)
+
     val isFemale = baby.gender.equals("FEMALE", ignoreCase = true) ||
             baby.gender.equals("GIRL",   ignoreCase = true)
 
-    // ── FIX: theme-aware gradient matching HomeTabContent's BabyInfoCard ─────
-    // OLD: hardcoded 0.8f/0.7f opacity — always vivid, ignores dark mode,
-    //      and used opposite gradient directions for girl vs boy.
-    // NEW: same low-opacity approach as HomeTabContent so both screens look
-    //      consistent, and the alpha adapts to dark/light mode correctly.
     val isDark  = LocalIsDarkTheme.current
     val cardBg: Brush = if (!baby.isActive) {
-        // Archived: neutral surface — clearly visually de-emphasised
         Brush.horizontalGradient(listOf(
             MaterialTheme.colorScheme.surfaceVariant,
             MaterialTheme.colorScheme.surface
         ))
     } else {
-        // Active: subtle tinted gradient driven entirely by the current theme
         Brush.horizontalGradient(listOf(
             customColors.accentGradientStart.copy(alpha = if (isDark) 0.25f else 0.18f),
             customColors.accentGradientEnd  .copy(alpha = if (isDark) 0.12f else 0.08f),
@@ -473,7 +470,6 @@ private fun BabyCard(
         ))
     }
 
-    // Text color that works on the new low-opacity background
     val contentColor = MaterialTheme.colorScheme.onBackground
 
     val doneVaccines  = vaccinations.count { it.status.equals("ADMINISTERED", ignoreCase = true) }
@@ -605,6 +601,7 @@ private fun BabyCard(
                 Spacer(Modifier.height(dimensions.babyCardSpacerAfterAvatar))
 
                 // Gender + age row
+                // FIX: use shared formatAge instead of private formatAgeBaby
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text  = if (isFemale) "♀" else "♂",
@@ -613,7 +610,7 @@ private fun BabyCard(
                     )
                     Spacer(Modifier.width(dimensions.babyCardGenderSpacerW))
                     Text(
-                        text  = "${formatAgeBaby(baby.ageInMonths)} • ${
+                        text  = "${formatAge(baby.ageInMonths)} • ${
                             if (isFemale) stringResource(Res.string.gender_female)
                             else          stringResource(Res.string.gender_male)
                         }",
@@ -624,7 +621,7 @@ private fun BabyCard(
 
                 Spacer(Modifier.height(dimensions.babyCardSpacerAfterAvatar))
 
-                // 3 measurement chips
+                // 3 measurement chips — FIX: use localised unit strings
                 Row(
                     modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
@@ -632,21 +629,21 @@ private fun BabyCard(
                     MeasurementChip(
                         icon        = "⚖️",
                         label       = stringResource(Res.string.baby_birth_weight),
-                        value       = displayWeight?.let { "$it kg" } ?: "—",
+                        value       = displayWeight?.let { "$it $unitKg" } ?: "—",
                         accentColor = customColors.accentGradientStart,
                         modifier    = Modifier.weight(1f)
                     )
                     MeasurementChip(
                         icon        = "📏",
                         label       = stringResource(Res.string.baby_birth_height),
-                        value       = displayHeight?.let { "$it cm" } ?: "—",
+                        value       = displayHeight?.let { "$it $unitCm" } ?: "—",
                         accentColor = customColors.accentGradientStart,
                         modifier    = Modifier.weight(1f)
                     )
                     MeasurementChip(
                         icon        = "🔵",
                         label       = stringResource(Res.string.add_measure_head),
-                        value       = displayHead?.let { "$it cm" } ?: "—",
+                        value       = displayHead?.let { "$it $unitCm" } ?: "—",
                         accentColor = customColors.accentGradientStart,
                         modifier    = Modifier.weight(1f)
                     )
@@ -662,20 +659,20 @@ private fun BabyCard(
                     )
                 }
 
-                // Percentile sub-row
+                // Percentile sub-row — FIX: use localised unit strings
                 if (heightPct != null || weightPct != null) {
                     Spacer(Modifier.height(dimensions.babyCardStatSpacer))
                     Row(horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
                         heightPct?.let {
                             Text(
-                                "📊 Height: ${it}th %ile",
+                                "📊 ${stringResource(Res.string.chart_height_label)}: ${it}${stringResource(Res.string.chart_percentile_suffix)}",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = customColors.accentGradientStart.copy(0.8f)
                             )
                         }
                         weightPct?.let {
                             Text(
-                                "⚖️ Weight: ${it}th %ile",
+                                "⚖️ ${stringResource(Res.string.chart_weight_label)}: ${it}${stringResource(Res.string.chart_percentile_suffix)}",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = customColors.accentGradientStart.copy(0.8f)
                             )
@@ -941,25 +938,4 @@ private fun BabyCardSkeleton() {
                 RoundedCornerShape(dimensions.chartCardCornerRadius)
             )
     )
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// AGE FORMATTER
-// ─────────────────────────────────────────────────────────────────────────────
-
-@Composable
-private fun formatAgeBaby(months: Int): String = when {
-    months < 1  -> stringResource(Res.string.age_newborn)
-    months < 12 -> if (months == 1)
-        stringResource(Res.string.age_months, months)
-    else
-        stringResource(Res.string.age_months_plural, months)
-    else -> {
-        val y = months / 12
-        val m = months % 12
-        if (m == 0)
-            stringResource(Res.string.age_years_only, y)
-        else
-            stringResource(Res.string.age_years_months, y, m)
-    }
 }

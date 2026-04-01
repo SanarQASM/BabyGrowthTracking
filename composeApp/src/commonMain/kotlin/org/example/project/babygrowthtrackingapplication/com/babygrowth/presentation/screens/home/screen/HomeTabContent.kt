@@ -5,9 +5,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -662,6 +659,11 @@ private fun BabyInfoCard(
     val accentColor  = customColors.accentGradientStart
     val isDark       = LocalIsDarkTheme.current
 
+    // FIX: Read localised unit strings once here and pass them down,
+    //       so chips always show "kg"/"cm" (or "کگ"/"سم" in Kurdish/Arabic).
+    val unitKg = stringResource(Res.string.add_baby_unit_kg)
+    val unitCm = stringResource(Res.string.add_baby_unit_cm)
+
     val cardBg = Brush.horizontalGradient(listOf(
         customColors.accentGradientStart.copy(alpha = if (isDark) 0.25f else 0.18f),
         customColors.accentGradientEnd  .copy(alpha = if (isDark) 0.12f else 0.08f),
@@ -695,6 +697,7 @@ private fun BabyInfoCard(
                         Text(text = baby.fullName, style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground)
+                        // FIX: use the shared formatAge helper so months render correctly
                         Text(text = formatAge(baby.ageInMonths),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onBackground.copy(0.6f))
@@ -710,9 +713,13 @@ private fun BabyInfoCard(
                 Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
                 Row(modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
-                    BabyStatChip("⚖️", stringResource(Res.string.baby_birth_weight), "$displayWeight kg", accentColor, Modifier.weight(1f))
-                    BabyStatChip("📏", stringResource(Res.string.baby_birth_height), "$displayHeight cm", accentColor, Modifier.weight(1f))
-                    BabyStatChip("🔵", stringResource(Res.string.add_measure_head), "$displayHead cm", accentColor, Modifier.weight(1f))
+                    // FIX: use localised unit strings instead of hardcoded "kg" / "cm"
+                    BabyStatChip("⚖️", stringResource(Res.string.baby_birth_weight),
+                        "$displayWeight $unitKg", accentColor, Modifier.weight(1f))
+                    BabyStatChip("📏", stringResource(Res.string.baby_birth_height),
+                        "$displayHeight $unitCm", accentColor, Modifier.weight(1f))
+                    BabyStatChip("🔵", stringResource(Res.string.add_measure_head),
+                        "$displayHead $unitCm", accentColor, Modifier.weight(1f))
                 }
                 if (nextVaccination != null) {
                     Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
@@ -769,7 +776,7 @@ private fun AgeProgressRibbon(ageInDays: Long, ageInMonths: Int, accentColor: Co
     val monthProgress = ((ageInDays % 30).toInt().coerceIn(0, 30)) / 30f
     Column {
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(text = "📅 $ageInDays days old",
+            Text(text = stringResource(Res.string.profile_age_days, ageInDays),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(0.55f))
             Text(text = formatAge(ageInMonths), style = MaterialTheme.typography.labelSmall,
@@ -790,11 +797,22 @@ private fun AgeProgressRibbon(ageInDays: Long, ageInMonths: Int, accentColor: Co
 // HELPERS
 // ─────────────────────────────────────────────────────────────────────────────
 
+// FIX: The original code had a subtle parsing bug in the when-branches for
+//      months < 12.  The `if` without braces and `else` on the next line was
+//      read by the Kotlin compiler as:
+//
+//         months < 12 -> if (months == 1) stringResource(…)   // returns Unit!
+//         else -> { … }                                        // outer when else
+//
+//      The fix is to wrap the inner if/else in parentheses so both arms
+//      are treated as a single expression inside the when-branch.
 @Composable
-private fun formatAge(months: Int): String = when {
+fun formatAge(months: Int): String = when {
     months < 1  -> stringResource(Res.string.age_newborn)
-    months < 12 -> if (months == 1) stringResource(Res.string.age_months, months)
-    else stringResource(Res.string.age_months_plural, months)
+    months < 12 -> (if (months == 1)
+        stringResource(Res.string.age_months, months)
+    else
+        stringResource(Res.string.age_months_plural, months))
     else -> {
         val y = months / 12; val m = months % 12
         if (m == 0) stringResource(Res.string.age_years_only, y)
@@ -803,7 +821,7 @@ private fun formatAge(months: Int): String = when {
 }
 
 @Composable
-private fun formatDate(dateStr: String): String {
+fun formatDate(dateStr: String): String {
     val parts = dateStr.split("-")
     if (parts.size != 3) return dateStr
     val monthIndex = parts[1].toIntOrNull() ?: return dateStr

@@ -48,7 +48,6 @@ class ApiService(
             const val AUTH_VERIFY_RESET     = "/v1/auth/verify-reset-code"
             const val AUTH_RESET_PASSWORD   = "/v1/auth/reset-password"
 
-
             const val USERS = "/v1/users"
             fun user(id: String) = "$USERS/$id"
 
@@ -68,14 +67,15 @@ class ApiService(
             fun upcomingVaccinations(babyId: String) = "$VACCINATIONS/baby/$babyId/upcoming"
             fun rescheduleVaccinations(babyId: String) = "$VACCINATION_SCHEDULES/baby/$babyId/reschedule"
 
-
             const val FAMILY_HISTORY = "/v1/family-history"
-            fun familyHistoryByBaby(babyId: String) = "$FAMILY_HISTORY/baby/$babyId"
-            fun familyHistoryById(historyId: String) = "$FAMILY_HISTORY/$historyId"
+            fun familyHistoryByBaby(babyId: String)  = "$FAMILY_HISTORY/baby/$babyId"
+            fun familyHistoryById(historyId: String)  = "$FAMILY_HISTORY/$historyId"
 
-
+            // ── Child Illnesses ───────────────────────────────────────────────
             const val CHILD_ILLNESSES = "/v1/child-illnesses"
-            fun childIllnessesByBaby(babyId: String) = "$CHILD_ILLNESSES/baby/$babyId"
+            fun childIllnessesByBaby(babyId: String)       = "$CHILD_ILLNESSES/baby/$babyId"
+            fun childIllnessById(illnessId: String)        = "$CHILD_ILLNESSES/$illnessId"
+            fun childIllnessDeactivate(illnessId: String)  = "$CHILD_ILLNESSES/$illnessId/deactivate"
 
             const val PRE_CHECK_INVESTIGATIONS = "/v1/pre-check-investigations"
             fun preCheckInvestigationsByBaby(babyId: String) = "$PRE_CHECK_INVESTIGATIONS/baby/$babyId"
@@ -83,10 +83,10 @@ class ApiService(
             const val HEALTH = "/v1/health"
 
             // Benches
-            const val BENCHES = "/v1/benches"
-            const val BENCH_ASSIGNMENTS = "/v1/bench-assignments"
-            fun activeAssignment(babyId: String)  = "$BENCH_ASSIGNMENTS/baby/$babyId/active"
-            fun changeBench(babyId: String)        = "$BENCH_ASSIGNMENTS/baby/$babyId/change-bench"
+            const val BENCHES            = "/v1/benches"
+            const val BENCH_ASSIGNMENTS  = "/v1/bench-assignments"
+            fun activeAssignment(babyId: String) = "$BENCH_ASSIGNMENTS/baby/$babyId/active"
+            fun changeBench(babyId: String)      = "$BENCH_ASSIGNMENTS/baby/$babyId/change-bench"
 
             // Vaccination schedules
             const val VACCINATION_SCHEDULES = "/v1/vaccination-schedules"
@@ -94,13 +94,13 @@ class ApiService(
 
             // Health issues
             const val HEALTH_ISSUES = "/v1/health-issues"
-            fun healthIssuesByBaby(babyId: String) = "$HEALTH_ISSUES/baby/$babyId"
-            fun resolveHealthIssue(issueId: String) = "$HEALTH_ISSUES/$issueId/resolve"
+            fun healthIssuesByBaby(babyId: String)    = "$HEALTH_ISSUES/baby/$babyId"
+            fun resolveHealthIssue(issueId: String)   = "$HEALTH_ISSUES/$issueId/resolve"
 
             // Appointments
             const val APPOINTMENTS = "/v1/appointments"
-            fun appointmentsByBaby(babyId: String)   = "$APPOINTMENTS/baby/$babyId"
-            fun cancelAppointment(appointmentId: String) = "$APPOINTMENTS/$appointmentId/cancel"
+            fun appointmentsByBaby(babyId: String)        = "$APPOINTMENTS/baby/$babyId"
+            fun cancelAppointment(appointmentId: String)  = "$APPOINTMENTS/$appointmentId/cancel"
         }
     }
 
@@ -164,7 +164,6 @@ class ApiService(
     suspend fun getAllUsers(page: Int = 0, size: Int = 10): ApiResult<PageResponse<UserResponse>> =
         makeRequest { client.get("$BASE_URL${Endpoints.USERS}") { parameter("page", page); parameter("size", size) } }
 
-    // ✅ NEW: Delete user account
     suspend fun deleteUser(userId: String): ApiResult<Unit> =
         makeRequest { client.delete("$BASE_URL${Endpoints.user(userId)}") }
 
@@ -258,9 +257,9 @@ class ApiService(
         rescheduleOverdue : Boolean  = true
     ): ApiResult<RescheduleResultUi> = safeCall {
         val request = RescheduleRequest(
-            shiftReason = shiftReason,
+            shiftReason       = shiftReason,
             rescheduleOverdue = rescheduleOverdue,
-            notes = notes
+            notes             = notes
         )
         val resp = client.post(
             "$BASE_URL${Endpoints.rescheduleVaccinations(babyId)}"
@@ -277,11 +276,11 @@ class ApiService(
         }
 
     suspend fun createHealthIssue(
-        babyId: String,
-        title: String,
-        description: String?,
-        severity: String?,
-        issueDate: String
+        babyId      : String,
+        title       : String,
+        description : String?,
+        severity    : String?,
+        issueDate   : String
     ): ApiResult<HealthIssueUi> =
         safeCall {
             val body = buildMap<String, String?> {
@@ -309,13 +308,13 @@ class ApiService(
         }
 
     suspend fun createAppointment(
-        babyId: String,
-        type: String,
-        date: String,
-        time: String?,
-        doctorName: String?,
-        location: String?,
-        notes: String?
+        babyId     : String,
+        type       : String,
+        date       : String,
+        time       : String?,
+        doctorName : String?,
+        location   : String?,
+        notes      : String?
     ): ApiResult<AppointmentUi> =
         safeCall {
             val body = buildMap<String, String?> {
@@ -341,7 +340,8 @@ class ApiService(
     suspend fun checkHealth(): ApiResult<HealthResponse> =
         makeRequest { client.get("$BASE_URL${Endpoints.HEALTH}") }
 
-    // ── GET family history for a baby ─────────────────────────────────────────────
+    // ── Family History ────────────────────────────────────────────────────────
+
     suspend fun getFamilyHistory(babyId: String): ApiResult<FamilyHistoryNet?> =
         safeCall {
             val resp = client.get("$BASE_URL${Endpoints.familyHistoryByBaby(babyId)}")
@@ -352,29 +352,56 @@ class ApiService(
             }
         }
 
-    // ── POST create family history ────────────────────────────────────────────────
     suspend fun createFamilyHistory(request: FamilyHistoryRequest): ApiResult<FamilyHistoryNet> =
         safeCall {
             val resp = client.post("$BASE_URL${Endpoints.FAMILY_HISTORY}") { setBody(request) }
             resp.body<ApiSingleResponse<FamilyHistoryNet>>().data!!
         }
 
-    // ── PUT update family history ─────────────────────────────────────────────────
     suspend fun updateFamilyHistory(historyId: String, request: FamilyHistoryRequest): ApiResult<FamilyHistoryNet> =
         safeCall {
             val resp = client.put("$BASE_URL${Endpoints.familyHistoryById(historyId)}") { setBody(request) }
             resp.body<ApiSingleResponse<FamilyHistoryNet>>().data!!
         }
 
-    // ── DELETE family history ─────────────────────────────────────────────────────
     suspend fun deleteFamilyHistory(historyId: String): ApiResult<Unit> =
         safeCall {
             client.delete("$BASE_URL${Endpoints.familyHistoryById(historyId)}")
         }
 
+    // ── Child Illnesses ───────────────────────────────────────────────────────
+
+    suspend fun getChildIllnesses(babyId: String): ApiResult<List<ChildIllnessNet>> =
+        safeCall {
+            val resp = client.get("$BASE_URL${Endpoints.childIllnessesByBaby(babyId)}")
+            resp.body<List<ChildIllnessNet>>()
+        }
+
+    suspend fun createChildIllness(request: ChildIllnessRequest): ApiResult<ChildIllnessNet> =
+        safeCall {
+            val resp = client.post("$BASE_URL${Endpoints.CHILD_ILLNESSES}") { setBody(request) }
+            resp.body<ApiSingleResponse<ChildIllnessNet>>().data!!
+        }
+
+    suspend fun updateChildIllness(illnessId: String, request: ChildIllnessRequest): ApiResult<ChildIllnessNet> =
+        safeCall {
+            val resp = client.put("$BASE_URL${Endpoints.childIllnessById(illnessId)}") { setBody(request) }
+            resp.body<ApiSingleResponse<ChildIllnessNet>>().data!!
+        }
+
+    suspend fun deactivateChildIllness(illnessId: String): ApiResult<ChildIllnessNet> =
+        safeCall {
+            val resp = client.patch("$BASE_URL${Endpoints.childIllnessDeactivate(illnessId)}")
+            resp.body<ApiSingleResponse<ChildIllnessNet>>().data!!
+        }
+
+    suspend fun deleteChildIllness(illnessId: String): ApiResult<Unit> =
+        safeCall {
+            client.delete("$BASE_URL${Endpoints.childIllnessById(illnessId)}")
+        }
+
     // ── Request helpers ───────────────────────────────────────────────────────
 
-    /** Wraps structured backend responses (AuthApiResponse envelope). */
     private suspend inline fun <reified T> makeRequest(
         crossinline request: suspend () -> HttpResponse
     ): ApiResult<T> = try {
@@ -387,7 +414,6 @@ class ApiService(
                 else
                     ApiResult.Error(apiResponse.message ?: "Unknown error")
             }
-            // ✅ NEW: Handle 204 No Content (e.g. DELETE endpoints)
             HttpStatusCode.NoContent -> {
                 @Suppress("UNCHECKED_CAST")
                 ApiResult.Success(Unit as T)
@@ -405,7 +431,6 @@ class ApiService(
         ApiResult.Error("Network error: ${e.message ?: "Unknown error"}")
     }
 
-    /** Lightweight wrapper for raw calls that map their own response bodies. */
     private suspend fun <T> safeCall(block: suspend () -> T): ApiResult<T> = try {
         ApiResult.Success(block())
     } catch (e: HttpRequestTimeoutException) {
@@ -437,7 +462,7 @@ data class ApiSingleResponse<T>(
 )
 
 // =============================================================================
-// DTOs — field names must match backend exactly
+// DTOs
 // =============================================================================
 
 // ── Auth ──────────────────────────────────────────────────────────────────────
@@ -580,8 +605,8 @@ data class ApiSingleResponse<T>(
     val administeredDate: String? = null, val status: String,
     val location: String? = null, val notes: String? = null, val createdAt: String
 )
-@Serializable
-data class RescheduleRequest(
+
+@Serializable data class RescheduleRequest(
     val shiftReason: String,
     val rescheduleOverdue: Boolean,
     val notes: String? = null
@@ -617,7 +642,7 @@ data class RescheduleRequest(
     val benchNameEn: String,
     val benchNameAr: String,
     val governorate: String,
-    val isActive: Boolean = true   // ✅ FIX: added default — prevents crash when field is absent
+    val isActive: Boolean = true
 )
 
 // ── Vaccination Schedules ─────────────────────────────────────────────────────
@@ -630,12 +655,10 @@ data class RescheduleRequest(
     val benchNameEn          : String,
     val benchNameAr          : String,
     val vaccineId            : Int,
-    // ── Multilingual vaccine names ─────────────────────────────────────────
-    val vaccineName          : String,           // English (always present)
-    val vaccineNameAr        : String? = null,   // Arabic
-    val vaccineNameKu        : String? = null,   // Kurdish Sorani
-    val vaccineNameCkb       : String? = null,   // Kurdish Badini
-    // ── Multilingual descriptions ──────────────────────────────────────────
+    val vaccineName          : String,
+    val vaccineNameAr        : String? = null,
+    val vaccineNameKu        : String? = null,
+    val vaccineNameCkb       : String? = null,
     val description          : String? = null,
     val descriptionAr        : String? = null,
     val descriptionKu        : String? = null,
@@ -654,6 +677,7 @@ data class RescheduleRequest(
     val createdAt            : String? = null,
     val updatedAt            : String? = null
 )
+
 // ── Health Issues ─────────────────────────────────────────────────────────────
 
 @Serializable data class HealthIssueNet(
@@ -667,49 +691,71 @@ data class RescheduleRequest(
     val resolutionDate: String? = null,
     val resolvedNotes: String? = null
 )
-// FamilyHistoryRequest
+
+// ── Family History ────────────────────────────────────────────────────────────
 
 @Serializable data class FamilyHistoryRequest(
-    val babyId: String,
-    val heredity: String? = null,
-    val bloodDiseases: String? = null,
-    val cardiovascularDiseases: String? = null,
-    val metabolicDiseases: String? = null,
-    val appendicitis: String? = null,
-    val tuberculosis: String? = null,
-    val parkinsonism: String? = null,
-    val allergies: String? = null,
-    val others: String? = null
+    val babyId                 : String,
+    val heredity               : String? = null,
+    val bloodDiseases          : String? = null,
+    val cardiovascularDiseases : String? = null,
+    val metabolicDiseases      : String? = null,
+    val appendicitis           : String? = null,
+    val tuberculosis           : String? = null,
+    val parkinsonism           : String? = null,
+    val allergies              : String? = null,
+    val others                 : String? = null
 )
 
 @Serializable data class FamilyHistoryNet(
-    val historyId: String = "",
-    val babyId: String = "",
-    val heredity: String? = null,
-    val bloodDiseases: String? = null,
-    val cardiovascularDiseases: String? = null,
-    val metabolicDiseases: String? = null,
-    val appendicitis: String? = null,
-    val tuberculosis: String? = null,
-    val parkinsonism: String? = null,
-    val allergies: String? = null,
-    val others: String? = null
+    val historyId              : String  = "",
+    val babyId                 : String  = "",
+    val heredity               : String? = null,
+    val bloodDiseases          : String? = null,
+    val cardiovascularDiseases : String? = null,
+    val metabolicDiseases      : String? = null,
+    val appendicitis           : String? = null,
+    val tuberculosis           : String? = null,
+    val parkinsonism           : String? = null,
+    val allergies              : String? = null,
+    val others                 : String? = null
+)
+
+// ── Child Illnesses ───────────────────────────────────────────────────────────
+
+@Serializable data class ChildIllnessNet(
+    val illnessId     : String,
+    val babyId        : String,
+    val illnessName   : String,
+    val diagnosisDate : String?  = null,
+    val notes         : String?  = null,
+    val isActive      : Boolean  = true,
+    val createdAt     : String?  = null,
+    val updatedAt     : String?  = null
+)
+
+@Serializable data class ChildIllnessRequest(
+    val babyId        : String,
+    val illnessName   : String,
+    val diagnosisDate : String?  = null,
+    val notes         : String?  = null,
+    val isActive      : Boolean  = true
 )
 
 // ── Appointments ──────────────────────────────────────────────────────────────
 
 @Serializable data class AppointmentNet(
-    val appointmentId: String,
-    val babyId: String,
-    val babyName: String,
-    val appointmentType: String,
-    val scheduledDate: String,
-    val scheduledTime: String? = null,
-    val durationMinutes: Int = 30,
-    val status: String,
-    val doctorName: String? = null,
-    val location: String? = null,
-    val notes: String? = null
+    val appointmentId   : String,
+    val babyId          : String,
+    val babyName        : String,
+    val appointmentType : String,
+    val scheduledDate   : String,
+    val scheduledTime   : String? = null,
+    val durationMinutes : Int = 30,
+    val status          : String,
+    val doctorName      : String? = null,
+    val location        : String? = null,
+    val notes           : String? = null
 )
 
 // =============================================================================

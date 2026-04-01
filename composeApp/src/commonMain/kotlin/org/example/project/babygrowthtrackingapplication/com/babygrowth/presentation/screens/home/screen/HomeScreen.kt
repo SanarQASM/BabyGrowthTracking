@@ -17,28 +17,30 @@ import org.example.project.babygrowthtrackingapplication.ui.components.rememberU
 
 @Composable
 fun HomeScreen(
-    viewModel                 : HomeViewModel,
-    healthRecordViewModel     : HealthRecordViewModel,
-    settingsViewModel         : SettingsViewModel,
-    familyHistoryViewModel    : FamilyHistoryViewModel,
-    guideViewModel            : GuideViewModel,
-    currentLanguage           : Language = Language.ENGLISH,
-    onLanguageChange          : (Language) -> Unit = {},
-    onDarkModeChange          : (Boolean) -> Unit = {},
-    onGenderThemeChange       : (GenderTheme) -> Unit = {},
-    selectedTab               : NavigationTab = NavigationTab.HOME,
-    onTabChange               : (NavigationTab) -> Unit = {},
-    onAddBaby                 : () -> Unit = {},
-    onSeeProfile              : (BabyResponse) -> Unit = {},
-    onEditDetails             : (BabyResponse) -> Unit = {},
-    onAddMeasurement          : (BabyResponse) -> Unit = {},
-    onViewGrowthChart         : (BabyResponse) -> Unit = {},
-    onAddMeasurementById      : (String) -> Unit = {},
-    onViewAllMeasurementsById : (String) -> Unit = {},
-    onNavigateToWelcome       : () -> Unit = {},
-    onNavigateToFamilyHistory : (String, String) -> Unit = { _, _ -> },
-    onNavigateToSleepGuide    : () -> Unit = {},
-    onNavigateToFeedingGuide  : () -> Unit = {},
+    viewModel                  : HomeViewModel,
+    healthRecordViewModel      : HealthRecordViewModel,
+    settingsViewModel          : SettingsViewModel,
+    familyHistoryViewModel     : FamilyHistoryViewModel,
+    childIllnessesViewModel    : ChildIllnessesViewModel,         // ← NEW
+    guideViewModel             : GuideViewModel,
+    currentLanguage            : Language = Language.ENGLISH,
+    onLanguageChange           : (Language) -> Unit = {},
+    onDarkModeChange           : (Boolean) -> Unit = {},
+    onGenderThemeChange        : (GenderTheme) -> Unit = {},
+    selectedTab                : NavigationTab = NavigationTab.HOME,
+    onTabChange                : (NavigationTab) -> Unit = {},
+    onAddBaby                  : () -> Unit = {},
+    onSeeProfile               : (BabyResponse) -> Unit = {},
+    onEditDetails              : (BabyResponse) -> Unit = {},
+    onAddMeasurement           : (BabyResponse) -> Unit = {},
+    onViewGrowthChart          : (BabyResponse) -> Unit = {},
+    onAddMeasurementById       : (String) -> Unit = {},
+    onViewAllMeasurementsById  : (String) -> Unit = {},
+    onNavigateToWelcome        : () -> Unit = {},
+    onNavigateToFamilyHistory  : (String, String) -> Unit = { _, _ -> },
+    onNavigateToChildIllnesses : (String, String) -> Unit = { _, _ -> },  // ← NEW
+    onNavigateToSleepGuide     : () -> Unit = {},
+    onNavigateToFeedingGuide   : () -> Unit = {},
 ) {
     val state       = viewModel.uiState
     val useSideRail = rememberUseSideRail()
@@ -64,34 +66,35 @@ fun HomeScreen(
                     .background(MaterialTheme.colorScheme.background)
             ) {
                 TabContent(
-                    selectedTab               = selectedTab,
-                    viewModel                 = viewModel,
-                    healthRecordViewModel     = healthRecordViewModel,
-                    settingsViewModel         = settingsViewModel,
-                    familyHistoryViewModel    = familyHistoryViewModel,
-                    guideViewModel            = guideViewModel,
-                    state                     = state,
-                    currentLanguage           = currentLanguage,
-                    onLanguageChange          = onLanguageChange,
-                    onDarkModeChange          = onDarkModeChange,
-                    onGenderThemeChange       = onGenderThemeChange,
-                    onAddBaby                 = onAddBaby,
-                    onSeeProfile              = onSeeProfile,
-                    onEditDetails             = onEditDetails,
-                    onAddMeasurement          = onAddMeasurement,
-                    onViewGrowthChart         = onViewGrowthChart,
-                    onAddMeasurementById      = onAddMeasurementById,
-                    onViewAllMeasurementsById = onViewAllMeasurementsById,
-                    onNavigateToWelcome       = onNavigateToWelcome,
-                    onNavigateToFamilyHistory = onNavigateToFamilyHistory,
-                    onNavigateToSleepGuide    = onNavigateToSleepGuide,
-                    onNavigateToFeedingGuide  = onNavigateToFeedingGuide,
-                    bottomPadding             = androidx.compose.ui.unit.Dp(0f)
+                    selectedTab                = selectedTab,
+                    viewModel                  = viewModel,
+                    healthRecordViewModel      = healthRecordViewModel,
+                    settingsViewModel          = settingsViewModel,
+                    familyHistoryViewModel     = familyHistoryViewModel,
+                    childIllnessesViewModel    = childIllnessesViewModel,   // ← NEW
+                    guideViewModel             = guideViewModel,
+                    state                      = state,
+                    currentLanguage            = currentLanguage,
+                    onLanguageChange           = onLanguageChange,
+                    onDarkModeChange           = onDarkModeChange,
+                    onGenderThemeChange        = onGenderThemeChange,
+                    onAddBaby                  = onAddBaby,
+                    onSeeProfile               = onSeeProfile,
+                    onEditDetails              = onEditDetails,
+                    onAddMeasurement           = onAddMeasurement,
+                    onViewGrowthChart          = onViewGrowthChart,
+                    onAddMeasurementById       = onAddMeasurementById,
+                    onViewAllMeasurementsById  = onViewAllMeasurementsById,
+                    onNavigateToWelcome        = onNavigateToWelcome,
+                    onNavigateToFamilyHistory  = onNavigateToFamilyHistory,
+                    onNavigateToChildIllnesses = onNavigateToChildIllnesses,  // ← NEW
+                    onNavigateToSleepGuide     = onNavigateToSleepGuide,
+                    onNavigateToFeedingGuide   = onNavigateToFeedingGuide,
+                    bottomPadding              = androidx.compose.ui.unit.Dp(0f)
                 )
             }
         }
     } else {
-        // ── PORTRAIT: Standard bottom navigation ──────────────────────────────
         Scaffold(
             bottomBar = {
                 BottomNavigationBar(
@@ -108,29 +111,31 @@ fun HomeScreen(
                     .background(MaterialTheme.colorScheme.background)
             ) {
                 TabContent(
-                    selectedTab               = selectedTab,
-                    viewModel                 = viewModel,
-                    healthRecordViewModel     = healthRecordViewModel,
-                    settingsViewModel         = settingsViewModel,
-                    familyHistoryViewModel    = familyHistoryViewModel,
-                    guideViewModel            = guideViewModel,
-                    state                     = state,
-                    currentLanguage           = currentLanguage,
-                    onLanguageChange          = onLanguageChange,
-                    onDarkModeChange          = onDarkModeChange,
-                    onGenderThemeChange       = onGenderThemeChange,
-                    onAddBaby                 = onAddBaby,
-                    onSeeProfile              = onSeeProfile,
-                    onEditDetails             = onEditDetails,
-                    onAddMeasurement          = onAddMeasurement,
-                    onViewGrowthChart         = onViewGrowthChart,
-                    onAddMeasurementById      = onAddMeasurementById,
-                    onViewAllMeasurementsById = onViewAllMeasurementsById,
-                    onNavigateToWelcome       = onNavigateToWelcome,
-                    onNavigateToFamilyHistory = onNavigateToFamilyHistory,
-                    onNavigateToSleepGuide    = onNavigateToSleepGuide,
-                    onNavigateToFeedingGuide  = onNavigateToFeedingGuide,
-                    bottomPadding             = paddingValues.calculateBottomPadding()
+                    selectedTab                = selectedTab,
+                    viewModel                  = viewModel,
+                    healthRecordViewModel      = healthRecordViewModel,
+                    settingsViewModel          = settingsViewModel,
+                    familyHistoryViewModel     = familyHistoryViewModel,
+                    childIllnessesViewModel    = childIllnessesViewModel,   // ← NEW
+                    guideViewModel             = guideViewModel,
+                    state                      = state,
+                    currentLanguage            = currentLanguage,
+                    onLanguageChange           = onLanguageChange,
+                    onDarkModeChange           = onDarkModeChange,
+                    onGenderThemeChange        = onGenderThemeChange,
+                    onAddBaby                  = onAddBaby,
+                    onSeeProfile               = onSeeProfile,
+                    onEditDetails              = onEditDetails,
+                    onAddMeasurement           = onAddMeasurement,
+                    onViewGrowthChart          = onViewGrowthChart,
+                    onAddMeasurementById       = onAddMeasurementById,
+                    onViewAllMeasurementsById  = onViewAllMeasurementsById,
+                    onNavigateToWelcome        = onNavigateToWelcome,
+                    onNavigateToFamilyHistory  = onNavigateToFamilyHistory,
+                    onNavigateToChildIllnesses = onNavigateToChildIllnesses,  // ← NEW
+                    onNavigateToSleepGuide     = onNavigateToSleepGuide,
+                    onNavigateToFeedingGuide   = onNavigateToFeedingGuide,
+                    bottomPadding              = paddingValues.calculateBottomPadding()
                 )
             }
         }
@@ -139,29 +144,31 @@ fun HomeScreen(
 
 @Composable
 private fun TabContent(
-    selectedTab               : NavigationTab,
-    viewModel                 : HomeViewModel,
-    healthRecordViewModel     : HealthRecordViewModel,
-    settingsViewModel         : SettingsViewModel,
-    familyHistoryViewModel    : FamilyHistoryViewModel,
-    guideViewModel            : GuideViewModel,
-    state                     : org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HomeUiState,
-    currentLanguage           : Language,
-    onLanguageChange          : (Language) -> Unit,
-    onDarkModeChange          : (Boolean) -> Unit,
-    onGenderThemeChange       : (GenderTheme) -> Unit,
-    onAddBaby                 : () -> Unit,
-    onSeeProfile              : (BabyResponse) -> Unit,
-    onEditDetails             : (BabyResponse) -> Unit,
-    onAddMeasurement          : (BabyResponse) -> Unit,
-    onViewGrowthChart         : (BabyResponse) -> Unit,
-    onAddMeasurementById      : (String) -> Unit,
-    onViewAllMeasurementsById : (String) -> Unit,
-    onNavigateToWelcome       : () -> Unit,
-    onNavigateToFamilyHistory : (String, String) -> Unit,
-    onNavigateToSleepGuide    : () -> Unit,
-    onNavigateToFeedingGuide  : () -> Unit,
-    bottomPadding             : androidx.compose.ui.unit.Dp,
+    selectedTab                : NavigationTab,
+    viewModel                  : HomeViewModel,
+    healthRecordViewModel      : HealthRecordViewModel,
+    settingsViewModel          : SettingsViewModel,
+    familyHistoryViewModel     : FamilyHistoryViewModel,
+    childIllnessesViewModel    : ChildIllnessesViewModel,         // ← NEW
+    guideViewModel             : GuideViewModel,
+    state                      : HomeUiState,
+    currentLanguage            : Language,
+    onLanguageChange           : (Language) -> Unit,
+    onDarkModeChange           : (Boolean) -> Unit,
+    onGenderThemeChange        : (GenderTheme) -> Unit,
+    onAddBaby                  : () -> Unit,
+    onSeeProfile               : (BabyResponse) -> Unit,
+    onEditDetails              : (BabyResponse) -> Unit,
+    onAddMeasurement           : (BabyResponse) -> Unit,
+    onViewGrowthChart          : (BabyResponse) -> Unit,
+    onAddMeasurementById       : (String) -> Unit,
+    onViewAllMeasurementsById  : (String) -> Unit,
+    onNavigateToWelcome        : () -> Unit,
+    onNavigateToFamilyHistory  : (String, String) -> Unit,
+    onNavigateToChildIllnesses : (String, String) -> Unit,        // ← NEW
+    onNavigateToSleepGuide     : () -> Unit,
+    onNavigateToFeedingGuide   : () -> Unit,
+    bottomPadding              : androidx.compose.ui.unit.Dp,
 ) {
     when (selectedTab) {
         NavigationTab.HOME ->
@@ -197,22 +204,28 @@ private fun TabContent(
 
         NavigationTab.SETTINGS -> {
             val selectedBaby = state.selectedBaby
-            
-            // Auto-load history status for the current baby when viewing settings
+
+            // Load data for the selected baby when settings tab is shown
             LaunchedEffect(selectedBaby?.babyId) {
-                selectedBaby?.let { familyHistoryViewModel.loadFamilyHistory(it.babyId) }
+                selectedBaby?.let {
+                    familyHistoryViewModel.loadFamilyHistory(it.babyId)
+                    childIllnessesViewModel.loadIllnesses(it.babyId)   // ← NEW
+                }
             }
 
             SettingsTabContent(
-                viewModel           = settingsViewModel,
-                onLanguageChange    = onLanguageChange,
-                onDarkModeChange    = onDarkModeChange,
-                onGenderThemeChange = onGenderThemeChange,
-                onNavigateToWelcome = onNavigateToWelcome,
-                onNavigateToFamilyHistory = onNavigateToFamilyHistory,
-                selectedBabyId      = selectedBaby?.babyId,
-                selectedBabyName    = selectedBaby?.fullName ?: "",
-                familyHistoryIsSet  = familyHistoryViewModel.uiState.isSet
+                viewModel                  = settingsViewModel,
+                onLanguageChange           = onLanguageChange,
+                onDarkModeChange           = onDarkModeChange,
+                onGenderThemeChange        = onGenderThemeChange,
+                onNavigateToWelcome        = onNavigateToWelcome,
+                onNavigateToFamilyHistory  = onNavigateToFamilyHistory,
+                onNavigateToChildIllnesses = onNavigateToChildIllnesses,         // ← NEW
+                selectedBabyId             = selectedBaby?.babyId,
+                selectedBabyName           = selectedBaby?.fullName ?: "",
+                familyHistoryIsSet         = familyHistoryViewModel.uiState.isSet,
+                childIllnessCount          = childIllnessesViewModel.uiState.illnesses.size,    // ← NEW
+                childIllnessActiveCount    = childIllnessesViewModel.uiState.activeCount        // ← NEW
             )
         }
     }

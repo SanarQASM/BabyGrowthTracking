@@ -42,7 +42,7 @@
     <string name="forgot_password_email_icon_description">Email icon</string>
 
     <string name="enter_code_title">enter code</string>
-    <string name="enter_code_sent_to">Code sent to %s</string>
+    <string name="enter_code_sent_to">Code sent to %1$s</string>
     <string name="enter_code_button">verify code</string>
 
     <string name="new_password_title">enter new password</string>
@@ -59,12 +59,12 @@
     <string name="verify_email_title">Email Verification</string>
     <string name="verify_sms_title">SMS Verification</string>
     <string name="verify_send_code">Send Code</string>
-    <string name="verify_code_sent_to">Enter the 6-digit code sent to: %s</string>
+    <string name="verify_code_sent_to">Enter the 6-digit code sent to: %1$s</string>
     <string name="verify_code_placeholder">Enter 6-digit code</string>
     <string name="verify_code_icon_description">Verification code icon</string>
     <string name="verify_didnt_receive">Didn't receive the code?</string>
     <string name="verify_resend">Resend</string>
-    <string name="verify_resend_in">Resend in %d seconds</string>
+    <string name="verify_resend_in">Resend in %1$d seconds</string>
     <string name="verify_account_button">Verify Account</string>
     <string name="verify_select_method_error">Please select a verification method</string>
     <string name="verify_code_incomplete">Please enter all 6 digits</string>
@@ -96,7 +96,7 @@
     <string name="chart_filter_height">Height</string>
     <string name="chart_filter_head">Head Circum.</string>
     <string name="chart_legend_title">Legend:</string>
-    <string name="chart_legend_baby_weight">%s's weight</string>
+    <string name="chart_legend_baby_weight">%1$s's weight</string>
     <string name="chart_legend_who97">High range (WHO 97th)</string>
     <string name="chart_legend_who50">Average (WHO 50th)</string>
     <string name="chart_legend_who3">Low range (WHO 3rd)</string>
@@ -115,10 +115,10 @@
     <string name="chart_normal">Normal</string>
     <string name="chart_above_avg">Above Avg</string>
     <string name="chart_below_avg">Below Avg</string>
-    <string name="chart_weight_unit">%s kg</string>
-    <string name="chart_height_unit">%s cm</string>
-    <string name="chart_head_unit">%s cm</string>
-    <string name="chart_age_months">%d mo</string>
+    <string name="chart_weight_unit">%1$s kg</string>
+    <string name="chart_height_unit">%1$s cm</string>
+    <string name="chart_head_unit">%1$s cm</string>
+    <string name="chart_age_months">%1$d mo</string>
 
     <string name="add_measure_title">Add Measurement</string>
     <string name="add_measure_date">Measurement Date</string>
@@ -140,12 +140,12 @@
     <string name="tab_bench">Hospital Bench</string>
     <string name="tab_settings">Settings</string>
 
-    <string name="home_welcome">Welcome Back! 👋</string>
+    <string name="home_welcome">Welcome Back!</string>
     <string name="home_subtitle">Track your baby's growth and milestones</string>
     <string name="home_welcome_title">Welcome</string>
     <string name="home_add_more_child">Add More Child</string>
     <string name="home_children_count_one">You have 1 child</string>
-    <string name="home_children_count_other">You have %d children</string>
+    <string name="home_children_count_other">You have %1$d children</string>
     <string name="home_no_babies_title">No babies added yet</string>
     <string name="home_no_babies_desc">You don't have any baby yet.\nTap below to add your first one!</string>
     <string name="home_add_first_baby">Add Your First Baby</string>
@@ -173,10 +173,11 @@
     <string name="baby_count_children">Children</string>
     <string name="baby_add_more_child">Add More Child!</string>
     <string name="baby_see_profile">See Profile</string>
+    <string name="baby_SeeProfile">See Profile</string>
     <string name="baby_quick_action">Quick Action</string>
-    <string name="baby_stat_height">Height: %scm</string>
-    <string name="baby_stat_weight">Weight: %skg</string>
-    <string name="baby_stat_vaccines">%d/%d vaccines complete</string>
+    <string name="baby_stat_height">Height: %1$scm</string>
+    <string name="baby_stat_weight">Weight: %1$skg</string>
+    <string name="baby_stat_vaccines">%1$d/%2$d vaccines complete</string>
     <string name="baby_status_archived">Archived</string>
     <string name="baby_action_edit">Edit Details</string>
     <string name="baby_action_add_vax">Add Vaccination</string>
@@ -214,17 +215,17 @@
     <string name="profile_age">Age</string>
     <string name="profile_gender">Gender</string>
     <string name="profile_days_old">Days Old</string>
-    <string name="profile_days_old_value">%d days</string>
+    <string name="profile_days_old_value">%1$d days</string>
     <string name="profile_recorded_on">Recorded on</string>
     <string name="profile_vaccinations_completed">Completed</string>
     <string name="profile_vaccinations_pending">Pending</string>
-    <string name="profile_vaccinations_pending_value">%d remaining</string>
-    <string name="profile_age_days">%d days old</string>
-    <string name="profile_month_progress">Month %d progress</string>
-    <string name="profile_height_value">%s cm</string>
-    <string name="profile_weight_value">%s kg</string>
-    <string name="profile_height_percentile">%s cm (%dth %%ile)</string>
-    <string name="profile_weight_percentile">%s kg (%dth %%ile)</string>
+    <string name="profile_vaccinations_pending_value">%1$d remaining</string>
+    <string name="profile_age_days">📅 %1$d days old</string>
+    <string name="profile_month_progress">Month %1$d progress</string>
+    <string name="profile_height_value">%1$s cm</string>
+    <string name="profile_weight_value">%1$s kg</string>
+    <string name="profile_height_percentile">%1$s cm (%2$dth %%ile)</string>
+    <string name="profile_weight_percentile">%1$s kg (%2$dth %%ile)</string>
     <string name="profile_not_recorded">Not recorded</string>
     <string name="profile_not_recorded_value">—</string>
     <string name="profile_delete_child">Delete Child</string>
@@ -264,9 +265,9 @@
     <string name="new_born">Newborn</string>
 
     <string name="age_newborn">Newborn</string>
-    <string name="age_months">%d month old</string>
-    <string name="age_months_plural">%d months old</string>
-    <string name="age_years_only">%d yr old</string>
+    <string name="age_months">%1$d month old</string>
+    <string name="age_months_plural">%1$d months old</string>
+    <string name="age_years_only">%1$d yr old</string>
     <string name="age_years_months">%1$d yr %2$d mo old</string>
 
     <string name="month_jan">Jan</string>
@@ -282,68 +283,31 @@
     <string name="month_nov">Nov</string>
     <string name="month_dec">Dec</string>
 
-    <!-- ── Chart legend section headers (were hardcoded in ChartsTabContent) ── -->
     <string name="chart_legend_parent_added">👪  Parent Added</string>
     <string name="chart_legend_team_added">🏥  Team / Vaccination Added</string>
     <string name="chart_legend_who_ref_weight">📊  WHO Reference (weight)</string>
     <string name="chart_legend_who_avg">WHO Average (50th)</string>
     <string name="chart_legend_baby_measurements">👤  Baby's Measurements</string>
     <string name="chart_legend_who_standards">📊  WHO Growth Standards</string>
-
-    <!-- ── Legend row metric labels ── -->
     <string name="chart_legend_weight_kg">Weight (kg)</string>
     <string name="chart_legend_height_cm">Height (cm)</string>
     <string name="chart_legend_head_cm">Head Circumference (cm)</string>
-
-    <!-- ── Legend row prefix labels (used in single-metric rows) ── -->
     <string name="chart_legend_parent_prefix">Parent</string>
     <string name="chart_legend_team_prefix">Team</string>
-
-    <!-- ── Age axis label (was hardcoded "Age (months)") ── -->
     <string name="chart_age_months_label">Age (months)</string>
-
-    <!-- ── Delete measurement dialog (were hardcoded in MeasurementCard) ── -->
     <string name="chart_delete_measurement_title">Delete Measurement</string>
     <string name="chart_delete_measurement_desc">Remove measurement from %1$s?</string>
-
-
-    <!-- ── Empty measurement fallback values (were hardcoded "Weight: —" etc.) ── -->
     <string name="chart_weight_empty">Weight: —</string>
     <string name="chart_height_empty">Height: —</string>
     <string name="chart_head_empty">Head Circumference: —</string>
-
-    <!-- ────────────────────────────────────────────────────────────────────────
-         NEW strings extracted from previously hardcoded values in ChartsTabContent
-         ──────────────────────────────────────────────────────────────────────── -->
-
-    <!-- Standalone unit labels reused across chart value display -->
-    <!-- NOTE: add_baby_unit_kg / add_baby_unit_cm already exist and are reused;
-         the entries below are kept for semantic clarity in chart-specific contexts. -->
-
-    <!-- Percentile row suffix shown next to a numeric percentile value
-         e.g. "50th %ile"  (%%ile → %ile after resource unescaping) -->
     <string name="chart_percentile_suffix">th %%ile</string>
-
-    <!-- Emoji prefix for the date row in the Latest Measurement card -->
     <string name="chart_date_prefix_emoji">📅</string>
-
-    <!-- Measurement value templates used in Latest Measurement and History cards.
-         These combine the emoji icon + a numeric value + unit into one string,
-         constructed in Kotlin as:  "$value ${stringResource(unit)}"
-         The emoji prefix lives in these label strings so it is localisable. -->
     <string name="chart_measurement_weight_icon">⚖️</string>
     <string name="chart_measurement_height_icon">📏</string>
     <string name="chart_measurement_head_icon">🔵</string>
-
-    <!-- Percentile chip icons (kept separate so they can be localised independently) -->
     <string name="chart_percentile_weight_icon">⚖️</string>
     <string name="chart_percentile_height_icon">📏</string>
 
-    <!-- Fallback dash shown when a day part of a date string is unavailable
-         (re-uses the existing profile_not_recorded_value "—" symbol) -->
-    <!-- No new entry needed — profile_not_recorded_value ("—") is reused directly. -->
-
-    <!-- Map screen -->
     <string name="bench_map_title">Select Health Center</string>
     <string name="bench_map_subtitle">for %1$s</string>
     <string name="bench_map_loading">Loading health centers…</string>
@@ -352,8 +316,6 @@
     <string name="bench_search_hint">Search centers…</string>
     <string name="bench_no_centers">No centers found nearby</string>
     <string name="bench_centers_count">%1$d Centers</string>
-
-    <!-- Center detail -->
     <string name="bench_detail_title">Center Details</string>
     <string name="bench_assign_button">Select This Center</string>
     <string name="bench_assign_for">Select for %1$s</string>
@@ -364,7 +326,6 @@
     <string name="bench_assign_cancel">Cancel</string>
     <string name="bench_no_baby_hint">Add a baby first to select this center</string>
 
-    <!-- Health record tab -->
     <string name="health_record_title">Health Records</string>
     <string name="health_record_subtitle">Vaccination schedule &amp; health center</string>
     <string name="health_assigned_center">ASSIGNED HEALTH CENTER</string>
@@ -374,7 +335,6 @@
     <string name="health_open_map">Select Health Center</string>
     <string name="health_select_child">SELECT CHILD</string>
 
-    <!-- Vaccination schedule -->
     <string name="schedule_progress">Vaccination Progress</string>
     <string name="schedule_section_overdue">Overdue — Needs Attention</string>
     <string name="schedule_section_due_soon">Due Soon</string>
@@ -387,7 +347,6 @@
     <string name="schedule_no_assignment_title">No Health Center Assigned Yet</string>
     <string name="schedule_no_assignment_body">Select a health center for %1$s to auto-generate their vaccination schedule</string>
 
-    <!-- Health Issues -->
     <string name="health_issues_title">Health Issues</string>
     <string name="health_issue_filter_all">All</string>
     <string name="health_issue_filter_ongoing">Ongoing</string>
@@ -399,7 +358,6 @@
     <string name="health_issue_resolved">Resolved</string>
     <string name="health_issue_mark_resolved">Mark Resolved</string>
 
-    <!-- Appointments -->
     <string name="appointment_title">Appointments</string>
     <string name="appointment_filter_all">All</string>
     <string name="appointment_filter_upcoming">Upcoming</string>
@@ -409,7 +367,6 @@
     <string name="appointment_cancel">Cancel</string>
     <string name="appointment_status_upcoming">Upcoming</string>
 
-    <!-- Reschedule -->
     <string name="reschedule_title">Reschedule Vaccinations</string>
     <string name="reschedule_confirm">This will regenerate the remaining vaccination schedule. Continue?</string>
     <string name="reschedule_action">Reschedule</string>
@@ -421,14 +378,11 @@
     <string name="nav_tab_health">Health</string>
     <string name="nav_tab_settings">Settings</string>
 
-    <!-- BenchDetailScreen — section headers -->
     <string name="bench_section_location">📍 Location</string>
     <string name="bench_section_contact">📞 Contact</string>
     <string name="bench_section_hours">🕐 Working Hours</string>
     <string name="bench_section_services">💉 Vaccination Days</string>
     <string name="bench_section_staff">👨‍⚕️ Staff</string>
-
-    <!-- BenchDetailScreen — field labels -->
     <string name="bench_label_governorate">Governorate</string>
     <string name="bench_label_district">District</string>
     <string name="bench_label_address">Address</string>
@@ -440,49 +394,30 @@
     <string name="bench_label_vaccines">Available Vaccines</string>
     <string name="bench_no_phone">No phone number available</string>
     <string name="bench_not_specified">Not specified</string>
+    <string name="bench_distance_km">%1$.1f km away</string>
 
-    <!-- BenchDetailScreen — distance chip -->
-    <string name="bench_distance_km">%.1f km away</string>
-
-    <!-- Delete dialog -->
     <string name="delete_cancel">Cancel</string>
 
-    <!-- ────────────────────────────────────────────────────────────────────────
-         AddMeasurementScreen — previously hardcoded strings
-         ──────────────────────────────────────────────────────────────────────── -->
-
-    <!-- Section card titles (were "MEASUREMENT DATE" and "MEASUREMENTS") -->
     <string name="add_measure_date_section_title">MEASUREMENT DATE</string>
     <string name="add_measure_measurements_section_title">MEASUREMENTS</string>
-
-    <!-- Date field placeholder (was "YYYY-MM-DD") -->
     <string name="add_measure_date_placeholder">YYYY-MM-DD</string>
-
-    <!-- Measurement field placeholders (were "Weight", "Height", "Head Circumference") -->
     <string name="add_measure_weight_placeholder">Weight</string>
     <string name="add_measure_height_placeholder">Height</string>
     <string name="add_measure_head_placeholder">Head Circumference</string>
-
-    <!-- Save button label — includes emoji prefix (was "💾  Save Measurement") -->
     <string name="add_measure_save_button">💾  Save Measurement</string>
 
-    <!-- Settings screen — general -->
     <string name="settings_title">Settings</string>
     <string name="settings_subtitle">Manage your account and preferences</string>
     <string name="settings_save">Save</string>
     <string name="settings_send_code">Send Code</string>
     <string name="settings_verify_code">Verify</string>
     <string name="settings_version">Version %1$s</string>
-
-    <!-- Section headers -->
     <string name="settings_section_account">Account</string>
     <string name="settings_section_preferences">Preferences</string>
     <string name="settings_section_notifications">Notifications</string>
     <string name="settings_section_security">Security</string>
     <string name="settings_section_about">About</string>
     <string name="settings_section_actions">Account Actions</string>
-
-    <!-- Account section -->
     <string name="settings_edit_profile">Edit Profile</string>
     <string name="settings_change_password">Change Password</string>
     <string name="settings_change_pw_send_desc">We will send a 6-digit reset code to %1$s. Tap Send Code to continue.</string>
@@ -492,8 +427,6 @@
     <string name="settings_new_password">New Password</string>
     <string name="settings_confirm_password">Confirm Password</string>
     <string name="settings_passwords_no_match">Passwords do not match</string>
-
-    <!-- Preferences section -->
     <string name="settings_language">Language</string>
     <string name="settings_app_theme">App Theme</string>
     <string name="settings_theme_light">Light</string>
@@ -502,8 +435,6 @@
     <string name="settings_gender_girl">Girl 🎀</string>
     <string name="settings_gender_boy">Boy 🚀</string>
     <string name="settings_gender_neutral">Neutral 🌟</string>
-
-    <!-- Notifications section -->
     <string name="settings_notif_master">Push Notifications</string>
     <string name="settings_notif_master_sub">Enable all app notifications</string>
     <string name="settings_notif_vaccination">Vaccination Reminders</string>
@@ -514,19 +445,13 @@
     <string name="settings_notif_appointment_sub">Remind before scheduled visits</string>
     <string name="settings_notif_reminder_days">Reminder Lead Time</string>
     <string name="settings_reminder_days_value">%1$d days before</string>
-
-    <!-- Security section -->
     <string name="settings_save_password">Save Password</string>
     <string name="settings_save_password_sub">Auto-fill credentials on next login</string>
-
-    <!-- About section -->
     <string name="settings_about_app">About App</string>
     <string name="settings_privacy_policy">Privacy Policy</string>
     <string name="settings_terms">Terms of Use</string>
     <string name="settings_contact_support">Contact Support</string>
     <string name="settings_about_desc">Baby Growth Tracker helps parents monitor their child's development with smart reminders and growth charts.</string>
-
-    <!-- Account actions -->
     <string name="settings_logout">Log Out</string>
     <string name="settings_logout_title">Log Out</string>
     <string name="settings_logout_message">You will be returned to the login screen. Your data will remain safe.</string>
@@ -536,17 +461,11 @@
     <string name="settings_delete_title">Delete Account</string>
     <string name="settings_delete_message">This will permanently delete your account and all baby records. This cannot be undone.</string>
     <string name="settings_delete_confirm">Delete Forever</string>
-
-    <!-- ── EditProfileDialog field labels (were hardcoded "Name" / "Phone") ── -->
     <string name="settings_field_name">Name</string>
     <string name="settings_field_phone">Phone</string>
-
-    <!-- ── ContactSupportDialog body strings ── -->
-    <string name="settings_contact_support_intro">Have a question or found a bug? We\'d love to hear from you.</string>
+    <string name="settings_contact_support_intro">Have a question or found a bug? We'd love to hear from you.</string>
     <string name="settings_support_email">support@babygrowth.com</string>
     <string name="settings_support_response_time">We typically respond within 24–48 hours.</string>
-
-    <!-- ── Privacy Policy dialog body ── -->
     <string name="settings_privacy_policy_body">Baby Growth Tracker is committed to protecting your privacy.\n\n
 • We collect only the information needed to provide the app's features (baby profiles, growth records, vaccination schedules).\n
 • Your data is stored securely on our servers and is never sold to third parties.\n
@@ -554,8 +473,6 @@
 • We use industry-standard encryption for all data in transit and at rest.\n
 • Analytics data is anonymised and used only to improve the app.\n\n
 For questions, contact support@babygrowth.com.</string>
-
-    <!-- ── Terms of Use dialog body ── -->
     <string name="settings_terms_body">By using Baby Growth Tracker you agree to the following terms:\n\n
 1. You are responsible for the accuracy of the information you enter.\n
 2. The app is intended as a tracking aid, not a medical diagnostic tool. Always consult a qualified healthcare professional for medical advice.\n
@@ -584,17 +501,11 @@ Last updated: 2025.</string>
     <string name="schedule_overdue_banner_tap">Tap to reschedule remaining vaccinations</string>
     <string name="schedule_no_vaccinations">No vaccinations found</string>
 
-
-    <!-- ── Family History ──────────────────────────────────────────────────── -->
-
-    <!-- Settings section label -->
     <string name="settings_section_information">Information</string>
     <string name="settings_family_history">Family History</string>
     <string name="settings_family_history_sub">Medical family background</string>
     <string name="settings_family_history_set">Information set</string>
     <string name="settings_family_history_not_set">Not set — tap to add</string>
-
-    <!-- Family History Screen title / actions -->
     <string name="family_history_title">Family History</string>
     <string name="family_history_save">Save</string>
     <string name="family_history_edit">Edit</string>
@@ -604,12 +515,10 @@ Last updated: 2025.</string>
     <string name="family_history_confirm_delete_title">Delete Family History</string>
     <string name="family_history_confirm_delete_msg">Are you sure you want to delete all family history information? This cannot be undone.</string>
     <string name="family_history_not_set_alert_title">Family History Not Set</string>
-    <string name="family_history_not_set_alert_msg">Please fill in the family medical history. This information helps track hereditary conditions for your baby\'s health.</string>
+    <string name="family_history_not_set_alert_msg">Please fill in the family medical history. This information helps track hereditary conditions for your baby's health.</string>
     <string name="family_history_add_info">Add Information</string>
     <string name="family_history_status_set">✅ Information set</string>
     <string name="family_history_status_not_set">⚠️ Not filled yet</string>
-
-    <!-- Family History field labels -->
     <string name="fh_heredity">Heredity</string>
     <string name="fh_blood_diseases">Blood Diseases</string>
     <string name="fh_cardiovascular">Heart &amp; Vascular Diseases</string>
@@ -619,8 +528,6 @@ Last updated: 2025.</string>
     <string name="fh_parkinsonism">Parkinsonism</string>
     <string name="fh_allergies">Allergies</string>
     <string name="fh_others">Others</string>
-
-    <!-- Family History field placeholders -->
     <string name="fh_placeholder_heredity">Enter heredity information…</string>
     <string name="fh_placeholder_blood">Enter blood disease history…</string>
     <string name="fh_placeholder_cardiovascular">Enter heart and vascular disease history…</string>
@@ -631,11 +538,8 @@ Last updated: 2025.</string>
     <string name="fh_placeholder_allergies">Enter allergy information…</string>
     <string name="fh_placeholder_others">Enter other conditions…</string>
 
-    <!-- ── Guide Screens ──────────────────────────────────────────────────── -->
-
-    <!-- Sleep Guide -->
     <string name="sleep_guide_title">Sleep Guide</string>
-    <string name="sleep_guide_header">Help %s Sleep Better 💤</string>
+    <string name="sleep_guide_header">Help %1$s Sleep Better 💤</string>
     <string name="sleep_guide_select_child">SELECT CHILD</string>
     <string name="sleep_guide_select_category">SELECT CATEGORY</string>
     <string name="sleep_guide_cat_strategies">Sleep Strategies</string>
@@ -654,7 +558,7 @@ Last updated: 2025.</string>
     <string name="sleep_guide_play">Play</string>
     <string name="sleep_guide_pause">Pause</string>
     <string name="sleep_guide_download">Download</string>
-    <string name="sleep_guide_useful_for">Useful for %d Users</string>
+    <string name="sleep_guide_useful_for">Useful for %1$d Users</string>
     <string name="sleep_guide_useful">Useful</string>
     <string name="sleep_guide_useless">Useless</string>
     <string name="sleep_guide_why_matters">Why it matters:</string>
@@ -663,14 +567,13 @@ Last updated: 2025.</string>
     <string name="sleep_guide_night">Night:</string>
     <string name="sleep_guide_daytime">Daytime:</string>
     <string name="sleep_guide_total_nap">Total Nap</string>
-    <string name="sleep_guide_duration">Duration: %s</string>
-    <string name="sleep_guide_months">%d months</string>
+    <string name="sleep_guide_duration">Duration: %1$s</string>
+    <string name="sleep_guide_months">%1$d months</string>
     <string name="sleep_guide_tips_for_age">TIPS FOR THIS AGE</string>
     <string name="sleep_guide_no_data">No sleep guide available for this age.</string>
 
-    <!-- Feeding Guide -->
     <string name="feeding_guide_title">Feeding Guide</string>
-    <string name="feeding_guide_header">Help %s Eat Well 🍼</string>
+    <string name="feeding_guide_header">Help %1$s Eat Well 🍼</string>
     <string name="feeding_guide_cat_milk">Milk Feeding</string>
     <string name="feeding_guide_cat_solid">Solid Foods</string>
     <string name="feeding_guide_cat_schedule">Sample Schedule</string>
@@ -689,6 +592,53 @@ Last updated: 2025.</string>
     <string name="feeding_guide_no_solid">Solid foods are not recommended for this age.</string>
     <string name="feeding_guide_no_data">No feeding guide available for this age.</string>
 
-
-
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         Child Illnesses Screen  (newly added)
+         ═══════════════════════════════════════════════════════════════════════ -->
+    <string name="child_illnesses_title">Child Illnesses</string>
+    <string name="child_illnesses_add_cd">Add Illness</string>
+    <string name="child_illnesses_delete_title">Delete Illness Record</string>
+    <string name="child_illnesses_delete_message">Are you sure you want to delete this illness record? This action cannot be undone.</string>
+    <string name="child_illnesses_delete_confirm">Delete</string>
+    <string name="child_illnesses_summary_title">Child Illnesses</string>
+    <string name="child_illnesses_summary_active_total">%1$d active · %2$d total</string>
+    <string name="child_illnesses_summary_empty">No illness records yet</string>
+    <string name="child_illnesses_add_label">Add</string>
+    <string name="child_illnesses_records_count">%1$d record(s)</string>
+    <string name="child_illnesses_no_records">No records</string>
+    <string name="child_illnesses_landscape_add_button">Add Illness</string>
+    <string name="child_illnesses_empty_title">No Illness Records</string>
+    <string name="child_illnesses_empty_desc">Track your child's illnesses and medical history here. Add a record to get started.</string>
+    <string name="child_illnesses_add_first">Add First Illness</string>
+    <string name="child_illnesses_status_active">Active</string>
+    <string name="child_illnesses_status_resolved">Resolved</string>
+    <string name="child_illnesses_diagnosed_prefix">Diagnosed: %1$s</string>
+    <string name="child_illnesses_mark_resolved">Mark Resolved</string>
+    <string name="child_illnesses_mark_active">Mark Active</string>
+    <string name="child_illnesses_edit_cd">Edit</string>
+    <string name="child_illnesses_delete_cd">Delete</string>
+    <string name="child_illnesses_dialog_add_title">Add Illness</string>
+    <string name="child_illnesses_dialog_edit_title">Edit Illness</string>
+    <string name="child_illnesses_field_name_label">Illness Name *</string>
+    <string name="child_illnesses_field_name_placeholder">e.g. Flu, Chickenpox, Asthma</string>
+    <string name="child_illnesses_field_name_error">Illness name is required</string>
+    <string name="child_illnesses_field_date_label">Diagnosis Date</string>
+    <string name="child_illnesses_field_date_placeholder">YYYY-MM-DD</string>
+    <string name="child_illnesses_field_notes_label">Notes</string>
+    <string name="child_illnesses_field_notes_placeholder">Additional notes, treatment, etc.</string>
+    <string name="child_illnesses_toggle_active_label">Currently Active</string>
+    <string name="child_illnesses_dialog_save">Save</string>
+    <string name="child_illnesses_dialog_update">Update</string>
+    <string name="child_illnesses_emoji_hospital">🏥</string>
+    <string name="child_illnesses_emoji_warning">⚠️</string>
+    <!-- Child Illnesses — ViewModel messages (previously hardcoded) -->
+    <string name="child_illnesses_error_load">Failed to load: %1$s</string>
+    <string name="child_illnesses_success_updated">Illness updated successfully</string>
+    <string name="child_illnesses_success_added">Illness added successfully</string>
+    <string name="child_illnesses_error_save">Save failed: %1$s</string>
+    <string name="child_illnesses_success_deleted">Illness record deleted</string>
+    <string name="child_illnesses_error_delete">Delete failed: %1$s</string>
+    <string name="child_illnesses_error_update">Update failed: %1$s</string>
+    <string name="child_illnesses_success_resolved">Marked as resolved</string>
+    <string name="child_illnesses_success_activated">Marked as active</string>
 </resources>
