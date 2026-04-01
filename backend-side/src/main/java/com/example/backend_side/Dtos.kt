@@ -359,11 +359,10 @@ data class FamilyHistoryResponse(
 data class ChildIllnessRequest(
     val babyId: String,
     val illnessName: String,
-    val diagnosisDate: String? = null,   // accepted as "yyyy-MM-dd"
+    val diagnosisDate: String? = null,
     val notes: String? = null,
     val isActive: Boolean = true
 ) {
-    /** Safely parse to LocalDate; returns null on blank or bad format */
     fun parsedDiagnosisDate(): LocalDate? {
         if (diagnosisDate.isNullOrBlank()) return null
         return try {
@@ -375,6 +374,19 @@ data class ChildIllnessRequest(
         }
     }
 }
+
+// ← ADD THIS
+data class ChildIllnessResponse(
+    val illnessId     : String,
+    val babyId        : String,
+    val illnessName   : String,
+    val diagnosisDate : LocalDate?     = null,
+    val notes         : String?        = null,
+    val isActive      : Boolean        = true,
+    val createdAt     : LocalDateTime? = null,
+    val updatedAt     : LocalDateTime? = null
+)
+
 
 // ============================================================
 // HEALTH ISSUE DTOs
