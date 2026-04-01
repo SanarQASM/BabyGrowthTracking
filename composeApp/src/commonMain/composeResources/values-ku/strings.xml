@@ -636,4 +636,79 @@
     <string name="child_illnesses_emoji_caduceus">⚕️</string>
     <string name="child_illnesses_summary_empty_hint">تۆماری نەخۆشی نییە — کلیک بکە بۆ زێدەکردن</string>
     <string name="child_illnesses_records_all_resolved">%1$d تۆمار — هەمووی چارەسەر بووە</string>
+    <string name="child_dev_saved">تۆمارەکە بە سەرکەوتوویی پاشەکەوت کرا</string>
+    <string name="child_dev_error_generic">هەڵەیەک ڕوویدا. تکایە دووبارە هەوڵ بدەرەوە.</string>
+    <string name="child_dev_month_label">مانگی %1$d</string>
+    <string name="child_dev_locked_hint">داخراوە — تەمەنی منداڵەکە هێشتا نەگەیشتووەتە ئەم ئاستە</string>
+    <string name="child_dev_locked_desc">بەردەست دەبێت کاتێک تەمەنی منداڵەکە دەگاتە %1$d مانگ</string>
+    <string name="child_dev_status_recorded">✅ هەڵسەنگاندن تۆمار کرا</string>
+    <string name="child_dev_status_not_recorded">⚠️ هێشتا هەڵسەنگاندن نەکراوە</string>
+    <string name="child_dev_instruction">دەست بنێ بە هەر بڕگەیەک بۆ دیاریکردنی وەک ئەنجامدراو ✓ یان ئەنجامنەدراو ✗</string>
+    <string name="child_dev_save">پاشەکەوتکردنی هەڵسەنگاندن</string>
+    <string name="child_dev_settings_not_started">هێشتا دەست پێنەکراوە — دەست بنێ بۆ دەسپێکردن</string>
+    <string name="child_dev_settings_complete">هەموو %1$d مانگەکە هەڵسەنگاندنی بۆ کراوە ✅</string>
+    <string name="child_dev_settings_partial">%1$d / %2$d مانگ هەڵسەنگاندنی بۆ کراوە</string>
+
+    <string name="child_dev_vision_motor_title">بینین + جووڵە</string>
+    <string name="child_dev_vision_motor_subtitle">قۆناغەکانی گەشەی بینین و لێهاتووییە جووڵەییەکان</string>
+
+    <string name="vm_m1_1">سەری دەجووڵێنێت و بە چاو شوێن ڕووناکی دەکەوێت</string>
+    <string name="vm_m1_2">سەیری خەڵک دەکات و سەری دەسووڕێنێت بۆ شوێنکەوتنی شتە جووڵاوەکان</string>
+    <string name="vm_m1_3">شوێن تیشکی لایت دەکەوێت لە مەودای بینینیدا</string>
+
+    <string name="vm_m3_1">سەری ١٨٠ پلە دەسووڕێنێت بۆ شوێنکەوتنی شتە جووڵاوەکان</string>
+    <string name="vm_m3_2">بە وردی سەرنجی دەموچاوەکان دەدات و شوێن جووڵەی چاو دەکەوێت</string>
+    <string name="vm_m3_3">بە وریاییەوە سەیری جووڵەی دەستەکانی خۆی دەکات</string>
+    <string name="vm_m3_4">دایکی دەناسێتەوە و کاتێک دەبینێت زەردەخەنە دەکات</string>
+    <string name="vm_m3_5">دەستەکانی بە شێوەیەکی خۆنەویست دەکرێنەوە وەک ئەوەی بیەوێت شتێک بگرێت</string>
+
+    <string name="vm_m6_1">چاو و سەری بە ئازادی بۆ هەموو لایەک دەجووڵێنێت کاتێک سەرنجی ڕادەکێشرێت</string>
+    <string name="vm_m6_2">شوێن کەسێک دەکەوێت کە بە ناو ژوورەکەدا دەجووڵێت</string>
+    <string name="vm_m6_3">زەردەخەنە دەکات و دەنگ دەردەکات کاتێک ڕەنگدانەوەی خۆی دەبینێت</string>
+    <string name="vm_m6_4">دەست بۆ شتێکی کەوتوو (شتێکی بریقەدار) درێژ دەکات بۆ هەڵگرتنەوەی</string>
+    <string name="vm_m6_5">شتێک لە دەستێکەوە دەگوازێتەوە بۆ دەستەکەی تری بۆ ئەوەی یەکێکی تر بگرێت</string>
+
+    <string name="vm_m9_1">بە سەرنجێکی ورد و نزیکەوە سەیری شتەکان و خەڵک دەکات</string>
+    <string name="vm_m9_2">شتە بچووکەکان بە بەکارهێنانی پەنجە گەورە و شایەتمان هەڵدەگرێت</string>
+    <string name="vm_m9_3">دەست بۆ ئەو شتانە درێژ دەکات کە دەیەوێت</string>
+    <string name="vm_m9_4">سەرنجی لەسەر شتەکان دەهێڵێتەوە بۆ مەودای ١٠-١٢ مەتر</string>
+
+    <string name="vm_m12_1">پەنجە گەورە و پەنجەکانی تر بە وریایی بەکاردێنێت بۆ هەڵگرتنی شتەکان</string>
+    <string name="vm_m12_2">بە ئامانجەوە یاری بە یارییەکان دەکات</string>
+    <string name="vm_m12_3">بە مەبەست شتەکان لە دەستی بەردەدات</string>
+    <string name="vm_m12_4">کەسە ناسراوەکانی دەوروبەری دەناسێتەوە</string>
+    <string name="vm_m12_5">جلی کەسانی تر ڕادەکێشێت بۆ ئەوەی سەرنجیان ڕابکێشێت</string>
+
+    <string name="child_dev_hearing_speech_title">بیستن + قسەکردن</string>
+    <string name="child_dev_hearing_speech_subtitle">قۆناغەکانی گەشەی بیستن و زمان</string>
+
+    <string name="hs_m1_1">لە کاتی دەنگی بەرز دادەچڵەکێت؛ چاوەکانی دەنوقێنێت؛ سەرنجی دەموچاوەکان دەدات</string>
+    <string name="hs_m1_2">بۆ ماوەیەکی کەم ڕوو لە دەنگێکی نزیک دەکات (٣-٥ چرکە) کە ٣-٥ ئینج لە گوێیەوە دوور بێت</string>
+    <string name="hs_m1_3">بە توندی دەگری کاتێک برسییەتی یان ناڕەحەتە</string>
+    <string name="hs_m1_4">دەنگی مرۆڤی پێ باشترە لە دەنگەکانی تر</string>
+
+    <string name="hs_m3_1">بە دەنگی بەرز هێمن دەبێتەوە؛ چاوەکانی فراوان دەکات و سەیری دەوروبەر دەکات</string>
+    <string name="hs_m3_2">هێمن دەبێتەوە و زەردەخەنە دەکات کاتێک دەنگی دایکی دەبیستێت</string>
+    <string name="hs_m3_3">سەر و چاوەکانی بەرەو سەرچاوەی دەنگەکە دەسووڕێنێت</string>
+    <string name="hs_m3_4">دەنگی "قورەقور" یان دەنگی تایبەت دەردەکات لە کاتی شیرخواردندا</string>
+    <string name="hs_m3_5">دەجووڵێت یان کاردانەوەی دەبێت کاتێک دەنگێک لە نزیکییەوە دروست دەبێت</string>
+
+    <string name="hs_m6_1">لە ژوورەکەدا، دەستبەجێ ئاڕاستەکەی دەگۆڕێت بۆ دۆزینەوەی سەرچاوەی دەنگی دایکی</string>
+    <string name="hs_m6_2">دەنگ دەردەکات یان بە بڕگەی وەک "دا"، "تا" و هتد وەڵام دەداتەوە</string>
+    <string name="hs_m6_3">زەردەخەنە دەکات و زمانی دەجووڵێنێت بۆ لاساییکردنەوەی قسەی گەورەکان</string>
+
+    <string name="hs_m9_1">وشیار و دڵخۆشە؛ گوێ لە دەنگە ئاساییەکانی ڕۆژانە دەگرێت</string>
+    <string name="hs_m9_2">بە هێمنی و هێواشی هەوڵ دەدات لەگەڵ چاودێرەکانیدا قسە بکات (بێت و بچێت)</string>
+    <string name="hs_m9_3">هاوار دەکات بۆ ڕاکێشانی سەرنجی ئەو کەسانەی لە نزیکین</string>
+    <string name="hs_m9_4">دەنگەکانی وەک "دادا"، "بابا" و هتد دووبارە دەکاتەوە</string>
+    <string name="hs_m9_5">وەڵامی پرسیارە سادەکان دەداتەوە وەک "باوە کوا؟ / کاتژمێرەکە کوا؟"</string>
+
+    <string name="hs_m12_1">دەستبەجێ ئاوڕ دەداتەوە کاتێک ناوی خۆی دەبیستێت</string>
+    <string name="hs_m12_2">چەند وشەیەک بە ماناوە دەڵێت</string>
+    <string name="hs_m12_3">لە ڕێنماییە سادەکان تێدەگات وەک "چاوت نیشان بدە / سەرت کوا؟"</string>
+    <string name="hs_m12_4">حەزی لە پێدان و وەرگرتنی شتەکانە کاتێک گەورەکان داوای لێ دەکەن</string>
+
+    <string name="settings_child_dev_vision_motor">بینین + جووڵە</string>
+    <string name="settings_child_dev_hearing_speech">بیستن + قسەکردن</string>
+    <string name="settings_child_dev_section">گەشەی منداڵ</string>
 </resources>

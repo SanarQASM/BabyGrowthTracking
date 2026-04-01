@@ -645,4 +645,102 @@ Last updated: 2025.</string>
     <string name="child_illnesses_emoji_caduceus">⚕️</string>
     <string name="child_illnesses_summary_empty_hint">No illness records — tap to add</string>
     <string name="child_illnesses_records_all_resolved">%1$d record(s) — all resolved</string>
+    <!-- ═══════════════════════════════════════════════════════════════════════
+     CHILD DEVELOPMENT STRINGS
+     ADD THESE INSIDE <resources>...</resources> in strings.xml
+     ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- ── Shared ──────────────────────────────────────────────────────────── -->
+    <string name="child_dev_saved">Record saved successfully</string>
+    <string name="child_dev_error_generic">An error occurred. Please try again.</string>
+    <string name="child_dev_month_label">%1$d Month</string>
+    <string name="child_dev_locked_hint">Locked — baby not yet this age</string>
+    <string name="child_dev_locked_desc">Available when baby reaches %1$d month(s)</string>
+    <string name="child_dev_status_recorded">✅ Assessment recorded</string>
+    <string name="child_dev_status_not_recorded">⚠️ Not yet assessed</string>
+    <string name="child_dev_instruction">Tap each item to mark as achieved ✓ or not ✗</string>
+    <string name="child_dev_save">Save Assessment</string>
+    <string name="child_dev_settings_not_started">Not started yet — tap to begin</string>
+    <string name="child_dev_settings_complete">All %1$d months assessed ✅</string>
+    <string name="child_dev_settings_partial">%1$d / %2$d months assessed</string>
+
+    <!-- ── Screen 1: Vision + Motor ────────────────────────────────────────── -->
+    <string name="child_dev_vision_emoji">👁️</string>
+    <string name="child_dev_vision_motor_title">Seeing + Moving</string>
+    <string name="child_dev_vision_motor_subtitle">Visual tracking &amp; motor development milestones</string>
+    <!-- كوردى: بینین + جووڵە — Normal Child Development Sample -->
+
+    <!-- Month 1 -->
+    <string name="vm_m1_1">Moves head and follows light with eyes</string>
+    <string name="vm_m1_2">Watches people and turns head to follow moving objects</string>
+    <string name="vm_m1_3">Tracks a flashlight beam across their field of vision</string>
+
+    <!-- Month 3 -->
+    <string name="vm_m3_1">Turns head 180° to follow moving objects</string>
+    <string name="vm_m3_2">Attentively watches faces and tracks eye movements</string>
+    <string name="vm_m3_3">Carefully watches own hand movements</string>
+    <string name="vm_m3_4">Recognizes mother and smiles when they see her</string>
+    <string name="vm_m3_5">Hands open reflexively as if reaching for life</string>
+
+    <!-- Month 6 -->
+    <string name="vm_m6_1">Eyes and head move freely in all directions when attention is caught</string>
+    <string name="vm_m6_2">Follows a person moving across the entire room</string>
+    <string name="vm_m6_3">Smiles and vocalises when seeing own reflection</string>
+    <string name="vm_m6_4">Reaches for a dropped object (shiny object) to pick it up</string>
+    <string name="vm_m6_5">Transfers an object from hand to hand to grab another</string>
+
+    <!-- Month 9 -->
+    <string name="vm_m9_1">Watches objects and people with keen, close attention</string>
+    <string name="vm_m9_2">Picks up small objects using pincer grasp (thumb + index finger)</string>
+    <string name="vm_m9_3">Reaches toward desired objects</string>
+    <string name="vm_m9_4">Maintains attention on objects for 10–12 metres</string>
+
+    <!-- Month 12 -->
+    <string name="vm_m12_1">Uses neat pincer grasp (thumbnail &amp; large finger) to pick up objects</string>
+    <string name="vm_m12_2">Plays purposefully with toys</string>
+    <string name="vm_m12_3">Deliberately releases objects</string>
+    <string name="vm_m12_4">Recognises familiar people around them</string>
+    <string name="vm_m12_5">Tugs at others' clothing to get their attention</string>
+
+    <!-- ── Screen 2: Hearing + Speech ─────────────────────────────────────── -->
+    <string name="child_dev_hearing_emoji">👂</string>
+    <string name="child_dev_hearing_speech_title">Hearing + Talking</string>
+    <string name="child_dev_hearing_speech_subtitle">Auditory responses &amp; language development milestones</string>
+    <!-- كوردى: بیستن + ئاغاوتن — Child Development -->
+
+    <!-- Month 1 -->
+    <string name="hs_m1_1">Startles at loud sounds; eyes fix and close; pays attention to faces</string>
+    <string name="hs_m1_2">Briefly turns toward a close sound (3–5 seconds) held 3–5 inches from ear</string>
+    <string name="hs_m1_3">Cries strongly when hungry or uncomfortable</string>
+    <string name="hs_m1_4">Prefers people's voices over other sounds</string>
+
+    <!-- Month 3 -->
+    <string name="hs_m3_1">Calms to a loud sound; eyes widen and look around</string>
+    <string name="hs_m3_2">Calms and smiles when hearing mother's voice</string>
+    <string name="hs_m3_3">Turns head and eyes toward the source of a sound</string>
+    <string name="hs_m3_4">Coos, gurgles, or vocalises during milk feeding</string>
+    <string name="hs_m3_5">Stirs or reacts when a sound is made nearby</string>
+
+    <!-- Month 6 -->
+    <string name="hs_m6_1">In a room, immediately turns to find where mother's voice is coming from</string>
+    <string name="hs_m6_2">Vocalises sounds or responds with syllables such as "da", "ta", etc.</string>
+    <string name="hs_m6_3">Smiles and moves tongue to imitate adult speech</string>
+
+    <!-- Month 9 -->
+    <string name="hs_m9_1">Alert and happy; listens to everyday sounds</string>
+    <string name="hs_m9_2">Tries quietly and gradually to talk back and forth with caregivers</string>
+    <string name="hs_m9_3">Calls out or shouts to attract attention from people nearby</string>
+    <string name="hs_m9_4">Repeats sounds like "dada", "baba", etc.</string>
+    <string name="hs_m9_5">Responds to simple questions like "Where is daddy? / Where is the clock?"</string>
+
+    <!-- Month 12 -->
+    <string name="hs_m12_1">Immediately turns around when hearing own name</string>
+    <string name="hs_m12_2">Says a few words with meaning</string>
+    <string name="hs_m12_3">Understands simple instructions like "Show me your eyes / head ..."</string>
+    <string name="hs_m12_4">Enjoys giving and taking objects when asked by adults</string>
+
+    <!-- ── Settings rows (used in SettingsTabContent) ────────────────────── -->
+    <string name="settings_child_dev_vision_motor">Seeing + Moving</string>
+    <string name="settings_child_dev_hearing_speech">Hearing + Talking</string>
+    <string name="settings_child_dev_section">Child Development</string>
 </resources>

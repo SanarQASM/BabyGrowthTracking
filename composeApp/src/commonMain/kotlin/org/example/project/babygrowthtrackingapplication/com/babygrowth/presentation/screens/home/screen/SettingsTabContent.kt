@@ -62,12 +62,16 @@ fun SettingsTabContent(
     onGenderThemeChange        : (GenderTheme) -> Unit = {},
     onNavigateToWelcome        : () -> Unit            = {},
     onNavigateToFamilyHistory  : (babyId: String, babyName: String) -> Unit = { _, _ -> },
-    onNavigateToChildIllnesses : (babyId: String, babyName: String) -> Unit = { _, _ -> },  // ← NEW
+    onNavigateToChildIllnesses : (babyId: String, babyName: String) -> Unit = { _, _ -> },
+    onNavigateToVisionMotor    : (babyId: String, babyName: String) -> Unit = { _, _ -> }, // ← ADDED
+    onNavigateToHearingSpeech  : (babyId: String, babyName: String) -> Unit = { _, _ -> }, // ← ADDED
     selectedBabyId             : String?  = null,
     selectedBabyName           : String   = "",
     familyHistoryIsSet         : Boolean  = false,
-    childIllnessCount          : Int      = 0,    // ← NEW
-    childIllnessActiveCount    : Int      = 0,    // ← NEW
+    childIllnessCount          : Int      = 0,
+    childIllnessActiveCount    : Int      = 0,
+    visionMotorCount           : Int      = 0, // ← ADDED
+    hearingSpeechCount         : Int      = 0, // ← ADDED
 ) {
     val state       = viewModel.uiState
     val dim         = LocalDimensions.current
@@ -347,7 +351,7 @@ fun SettingsTabContent(
                                     }
                                 )
                                 RowDivider()
-                                // Child Illnesses row ← NEW
+                                // Child Illnesses row
                                 ChildIllnessesSettingsRow(
                                     illnessCount = childIllnessCount,
                                     activeCount  = childIllnessActiveCount,
@@ -355,6 +359,28 @@ fun SettingsTabContent(
                                     onClick      = {
                                         if (selectedBabyId != null)
                                             onNavigateToChildIllnesses(selectedBabyId, selectedBabyName)
+                                    }
+                                )
+                                RowDivider()
+                                // Vision + Motor row ← ADDED
+                                ChildDevSettingsRowItem(
+                                    emoji         = stringResource(Res.string.child_dev_vision_emoji),
+                                    title         = stringResource(Res.string.settings_child_dev_vision_motor),
+                                    assessedCount = visionMotorCount,
+                                    onClick       = {
+                                        if (selectedBabyId != null)
+                                            onNavigateToVisionMotor(selectedBabyId, selectedBabyName)
+                                    }
+                                )
+                                RowDivider()
+                                // Hearing + Speech row ← ADDED
+                                ChildDevSettingsRowItem(
+                                    emoji         = stringResource(Res.string.child_dev_hearing_emoji),
+                                    title         = stringResource(Res.string.settings_child_dev_hearing_speech),
+                                    assessedCount = hearingSpeechCount,
+                                    onClick       = {
+                                        if (selectedBabyId != null)
+                                            onNavigateToHearingSpeech(selectedBabyId, selectedBabyName)
                                     }
                                 )
                             }
@@ -483,7 +509,7 @@ fun SettingsTabContent(
                     Spacer(Modifier.height(dim.spacingMedium))
                 }
 
-                SectionLabel("ℹ️", stringResource(Res.string.settings_section_information), hPad)
+                SectionLabel("👨‍👩‍👧‍👦", stringResource(Res.string.settings_section_information), hPad)
                 SettingsCard(hPad) {
                     // Family History row
                     FamilyHistorySettingsRow(
@@ -495,7 +521,7 @@ fun SettingsTabContent(
                         }
                     )
                     RowDivider()
-                    // Child Illnesses row ← NEW
+                    // Child Illnesses row
                     ChildIllnessesSettingsRow(
                         illnessCount = childIllnessCount,
                         activeCount  = childIllnessActiveCount,
@@ -503,6 +529,28 @@ fun SettingsTabContent(
                         onClick      = {
                             if (selectedBabyId != null)
                                 onNavigateToChildIllnesses(selectedBabyId, selectedBabyName)
+                        }
+                    )
+                    RowDivider()
+                    // Vision + Motor row ← ADDED
+                    ChildDevSettingsRowItem(
+                        emoji         = stringResource(Res.string.child_dev_vision_emoji),
+                        title         = stringResource(Res.string.settings_child_dev_vision_motor),
+                        assessedCount = visionMotorCount,
+                        onClick       = {
+                            if (selectedBabyId != null)
+                                onNavigateToVisionMotor(selectedBabyId, selectedBabyName)
+                        }
+                    )
+                    RowDivider()
+                    // Hearing + Speech row ← ADDED
+                    ChildDevSettingsRowItem(
+                        emoji         = stringResource(Res.string.child_dev_hearing_emoji),
+                        title         = stringResource(Res.string.settings_child_dev_hearing_speech),
+                        assessedCount = hearingSpeechCount,
+                        onClick       = {
+                            if (selectedBabyId != null)
+                                onNavigateToHearingSpeech(selectedBabyId, selectedBabyName)
                         }
                     )
                 }
@@ -547,7 +595,7 @@ fun SettingsTabContent(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Atom composables — unchanged
+// Atom composables
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -624,6 +672,31 @@ private fun ArrowRow(icon: ImageVector, label: String, value: String? = null, on
     }
 }
 
+// ── NEW HELPER COMPOSABLE ─────────────────────────────────────────────────────
+@Composable
+fun ChildDevSettingsRowItem(emoji: String, title: String, assessedCount: Int, onClick: () -> Unit) {
+    val dim = LocalDimensions.current
+    Row(modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
+        .padding(horizontal = 16.dp, vertical = dim.spacingMedium),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(dim.spacingSmall)) {
+        Text(text = emoji)
+        Text(title, style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
+        if (assessedCount > 0) {
+            Text(
+                text = assessedCount.toString(),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Spacer(Modifier.width(4.dp))
+        Icon(Icons.Default.ChevronRight, null,
+            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f), modifier = Modifier.size(18.dp))
+    }
+}
+
 @Composable
 private fun ToggleRow(icon: ImageVector, label: String, subtitle: String? = null,
                       checked: Boolean, onToggle: (Boolean) -> Unit) {
@@ -661,7 +734,7 @@ private fun DangerRow(icon: ImageVector, label: String, subtitle: String? = null
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Dialog composables — unchanged
+// Dialog composables
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable

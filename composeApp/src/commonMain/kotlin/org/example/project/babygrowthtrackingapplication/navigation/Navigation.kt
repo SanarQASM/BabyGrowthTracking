@@ -30,10 +30,14 @@ import org.example.project.babygrowthtrackingapplication.com.babygrowth.presenta
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.SettingsViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.FamilyHistoryViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.ChildIllnessesViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.VisionMotorViewModel // ← ADDED
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HearingSpeechViewModel // ← ADDED
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.GuideViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.AllMeasurementsScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.ChildIllnessesScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.FamilyHistoryScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.VisionMotorScreen // ← ADDED
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.HearingSpeechScreen // ← ADDED
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.SleepGuideScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.FeedingGuideScreen
 import org.example.project.babygrowthtrackingapplication.data.auth.SocialAuthManager
@@ -66,7 +70,9 @@ enum class Screen {
     AddMeasurement,
     AllMeasurements,
     FamilyHistory,
-    ChildIllnesses,   // ← NEW
+    ChildIllnesses,       // ← NEW
+    ChildDevVisionMotor,  // ← ADDED
+    ChildDevHearingSpeech,// ← ADDED
     SleepGuide,
     FeedingGuide
 }
@@ -94,6 +100,10 @@ fun AppNavigation(
     var allMeasurementsBaby   by remember { mutableStateOf<BabyResponse?>(null) }
     var familyHistoryBaby     by remember { mutableStateOf<BabyResponse?>(null) }
     var childIllnessesBaby    by remember { mutableStateOf<BabyResponse?>(null) }  // ← NEW
+
+    // ── NEW: Child Dev State ──────────────────────────────────────────────────
+    var childDevBaby          by remember { mutableStateOf<BabyResponse?>(null) }
+    var childDevScreen        by remember { mutableStateOf(Screen.ChildDevVisionMotor) }
 
     var selectedTab by remember { mutableStateOf(NavigationTab.HOME) }
     var originTab   by remember { mutableStateOf(NavigationTab.HOME) }
@@ -130,9 +140,17 @@ fun AppNavigation(
         FamilyHistoryViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
 
-    // ── NEW: ChildIllnesses ViewModel ─────────────────────────────────────────
     val childIllnessesViewModel = remember {
         ChildIllnessesViewModel(apiService = apiService, preferencesManager = preferencesManager)
+    }
+
+    // ── NEW: Child Dev ViewModels ─────────────────────────────────────────────
+    val visionMotorViewModel = remember {
+        VisionMotorViewModel(apiService = apiService, preferencesManager = preferencesManager)
+    }
+
+    val hearingSpeechViewModel = remember {
+        HearingSpeechViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
 
     val guideRepository = remember { GuideRepository(apiService) }
@@ -168,6 +186,8 @@ fun AppNavigation(
             settingsViewModel.onDestroy()
             familyHistoryViewModel.onDestroy()
             childIllnessesViewModel.onDestroy()   // ← NEW
+            visionMotorViewModel.onDestroy()      // ← ADDED
+            hearingSpeechViewModel.onDestroy()    // ← ADDED
             guideViewModel.onDestroy()
             cleanupSocialAuth(socialAuthManager)
         }
@@ -217,7 +237,9 @@ fun AppNavigation(
                     Screen.AddMeasurement,
                     Screen.AllMeasurements,
                     Screen.FamilyHistory,
-                    Screen.ChildIllnesses,   // ← NEW
+                    Screen.ChildIllnesses,        // ← NEW
+                    Screen.ChildDevVisionMotor,   // ← ADDED
+                    Screen.ChildDevHearingSpeech, // ← ADDED
                     Screen.SleepGuide,
                     Screen.FeedingGuide ->
                         slideInHorizontally(
@@ -454,6 +476,24 @@ fun AppNavigation(
                                 currentScreen = Screen.ChildIllnesses
                             }
                         },
+                        // ── NEW: Vision & Motor Nav Callback ──────────────────────
+                        onNavigateToVisionMotor = { babyId, babyName ->
+                            val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
+                            if (baby != null) {
+                                childDevBaby = baby
+                                childDevScreen = Screen.ChildDevVisionMotor
+                                currentScreen = Screen.ChildDevVisionMotor
+                            }
+                        },
+                        // ── NEW: Hearing & Speech Nav Callback ────────────────────
+                        onNavigateToHearingSpeech = { babyId, babyName ->
+                            val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
+                            if (baby != null) {
+                                childDevBaby = baby
+                                childDevScreen = Screen.ChildDevHearingSpeech
+                                currentScreen = Screen.ChildDevHearingSpeech
+                            }
+                        },
                         onNavigateToSleepGuide     = {
                             originTab     = selectedTab
                             currentScreen = Screen.SleepGuide
@@ -639,6 +679,44 @@ fun AppNavigation(
                             onBack    = {
                                 childIllnessesBaby = null
                                 currentScreen      = Screen.Home
+                            }
+                        )
+                    }
+                }
+
+                // ── Child Dev: Vision & Motor ─────────────────────────────────  ← ADDED
+                Screen.ChildDevVisionMotor -> {
+                    val baby = childDevBaby
+                    if (baby == null) {
+                        currentScreen = Screen.Home
+                    } else {
+                        VisionMotorScreen(
+                            babyId        = baby.babyId,
+                            babyName      = baby.fullName,
+                            babyAgeMonths = baby.ageInMonths,
+                            viewModel     = visionMotorViewModel,
+                            onBack        = {
+                                childDevBaby  = null
+                                currentScreen = Screen.Home
+                            }
+                        )
+                    }
+                }
+
+                // ── Child Dev: Hearing & Speech ───────────────────────────────  ← ADDED
+                Screen.ChildDevHearingSpeech -> {
+                    val baby = childDevBaby
+                    if (baby == null) {
+                        currentScreen = Screen.Home
+                    } else {
+                        HearingSpeechScreen(
+                            babyId        = baby.babyId,
+                            babyName      = baby.fullName,
+                            babyAgeMonths = baby.ageInMonths,
+                            viewModel     = hearingSpeechViewModel,
+                            onBack        = {
+                                childDevBaby  = null
+                                currentScreen = Screen.Home
                             }
                         )
                     }

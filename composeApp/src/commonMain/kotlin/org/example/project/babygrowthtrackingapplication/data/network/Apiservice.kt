@@ -101,6 +101,12 @@ class ApiService(
             const val APPOINTMENTS = "/v1/appointments"
             fun appointmentsByBaby(babyId: String)        = "$APPOINTMENTS/baby/$babyId"
             fun cancelAppointment(appointmentId: String)  = "$APPOINTMENTS/$appointmentId/cancel"
+
+            // ── Child Development ─────────────────────────────────────────────
+            const val CHILD_DEV_VISION_MOTOR   = "/v1/child-development/vision-motor"
+            const val CHILD_DEV_HEARING_SPEECH = "/v1/child-development/hearing-speech"
+            fun childDevVisionMotorByBaby(babyId: String)   = "$CHILD_DEV_VISION_MOTOR/baby/$babyId"
+            fun childDevHearingSpeechByBaby(babyId: String) = "$CHILD_DEV_HEARING_SPEECH/baby/$babyId"
         }
     }
 
@@ -398,6 +404,32 @@ class ApiService(
     suspend fun deleteChildIllness(illnessId: String): ApiResult<Unit> =
         safeCall {
             client.delete("$BASE_URL${Endpoints.childIllnessById(illnessId)}")
+        }
+
+    // ── Child Development ─────────────────────────────────────────────────────
+
+    suspend fun getVisionMotorRecords(babyId: String): ApiResult<List<VisionMotorNet>> =
+        safeCall {
+            val resp = client.get("$BASE_URL${Endpoints.childDevVisionMotorByBaby(babyId)}")
+            resp.body<ApiListResponse<VisionMotorNet>>().data
+        }
+
+    suspend fun saveVisionMotorRecord(request: VisionMotorNet): ApiResult<VisionMotorNet> =
+        safeCall {
+            val resp = client.post("$BASE_URL${Endpoints.CHILD_DEV_VISION_MOTOR}") { setBody(request) }
+            resp.body<ApiSingleResponse<VisionMotorNet>>().data!!
+        }
+
+    suspend fun getHearingSpeechRecords(babyId: String): ApiResult<List<HearingSpeechNet>> =
+        safeCall {
+            val resp = client.get("$BASE_URL${Endpoints.childDevHearingSpeechByBaby(babyId)}")
+            resp.body<ApiListResponse<HearingSpeechNet>>().data
+        }
+
+    suspend fun saveHearingSpeechRecord(request: HearingSpeechNet): ApiResult<HearingSpeechNet> =
+        safeCall {
+            val resp = client.post("$BASE_URL${Endpoints.CHILD_DEV_HEARING_SPEECH}") { setBody(request) }
+            resp.body<ApiSingleResponse<HearingSpeechNet>>().data!!
         }
 
     // ── Request helpers ───────────────────────────────────────────────────────
@@ -757,6 +789,7 @@ data class ApiSingleResponse<T>(
     val location        : String? = null,
     val notes           : String? = null
 )
+
 
 // =============================================================================
 // Net → UI mappers

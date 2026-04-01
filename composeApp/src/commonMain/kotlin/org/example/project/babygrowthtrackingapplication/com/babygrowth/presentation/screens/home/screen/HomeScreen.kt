@@ -17,30 +17,34 @@ import org.example.project.babygrowthtrackingapplication.ui.components.rememberU
 
 @Composable
 fun HomeScreen(
-    viewModel                  : HomeViewModel,
-    healthRecordViewModel      : HealthRecordViewModel,
-    settingsViewModel          : SettingsViewModel,
-    familyHistoryViewModel     : FamilyHistoryViewModel,
-    childIllnessesViewModel    : ChildIllnessesViewModel,         // ← NEW
-    guideViewModel             : GuideViewModel,
-    currentLanguage            : Language = Language.ENGLISH,
-    onLanguageChange           : (Language) -> Unit = {},
-    onDarkModeChange           : (Boolean) -> Unit = {},
-    onGenderThemeChange        : (GenderTheme) -> Unit = {},
-    selectedTab                : NavigationTab = NavigationTab.HOME,
-    onTabChange                : (NavigationTab) -> Unit = {},
-    onAddBaby                  : () -> Unit = {},
-    onSeeProfile               : (BabyResponse) -> Unit = {},
-    onEditDetails              : (BabyResponse) -> Unit = {},
-    onAddMeasurement           : (BabyResponse) -> Unit = {},
-    onViewGrowthChart          : (BabyResponse) -> Unit = {},
-    onAddMeasurementById       : (String) -> Unit = {},
-    onViewAllMeasurementsById  : (String) -> Unit = {},
-    onNavigateToWelcome        : () -> Unit = {},
-    onNavigateToFamilyHistory  : (String, String) -> Unit = { _, _ -> },
-    onNavigateToChildIllnesses : (String, String) -> Unit = { _, _ -> },  // ← NEW
-    onNavigateToSleepGuide     : () -> Unit = {},
-    onNavigateToFeedingGuide   : () -> Unit = {},
+    viewModel: HomeViewModel,
+    healthRecordViewModel: HealthRecordViewModel,
+    settingsViewModel: SettingsViewModel,
+    familyHistoryViewModel: FamilyHistoryViewModel,
+    childIllnessesViewModel: ChildIllnessesViewModel,
+    guideViewModel: GuideViewModel,
+    currentLanguage: Language = Language.ENGLISH,
+    onLanguageChange: (Language) -> Unit = {},
+    onDarkModeChange: (Boolean) -> Unit = {},
+    onGenderThemeChange: (GenderTheme) -> Unit = {},
+    selectedTab: NavigationTab = NavigationTab.HOME,
+    onTabChange: (NavigationTab) -> Unit = {},
+    onAddBaby: () -> Unit = {},
+    onSeeProfile: (BabyResponse) -> Unit = {},
+    onEditDetails: (BabyResponse) -> Unit = {},
+    onAddMeasurement: (BabyResponse) -> Unit = {},
+    onViewGrowthChart: (BabyResponse) -> Unit = {},
+    onAddMeasurementById: (String) -> Unit = {},
+    onViewAllMeasurementsById: (String) -> Unit = {},
+    onNavigateToWelcome: () -> Unit = {},
+    onNavigateToFamilyHistory: (String, String) -> Unit = { _, _ -> },
+    onNavigateToChildIllnesses: (String, String) -> Unit = { _, _ -> },
+    // ── NEW: Developmental Navigation Callbacks ──────────────────────
+    onNavigateToVisionMotor: (String, String) -> Unit = { _, _ -> },
+    onNavigateToHearingSpeech: (String, String) -> Unit = { _, _ -> },
+    // ─────────────────────────────────────────────────────────────────
+    onNavigateToSleepGuide: () -> Unit = {},
+    onNavigateToFeedingGuide: () -> Unit = {},
 ) {
     val state       = viewModel.uiState
     val useSideRail = rememberUseSideRail()

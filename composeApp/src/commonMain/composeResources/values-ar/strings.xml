@@ -640,4 +640,79 @@
     <string name="child_illnesses_emoji_caduceus">⚕️</string>
     <string name="child_illnesses_summary_empty_hint">لا توجد سجلات أمراض — اضغط للإضافة</string>
     <string name="child_illnesses_records_all_resolved">%1$d سجل — تم الشفاء منها جميعاً</string>
+    <string name="child_dev_saved">تم حفظ السجل بنجاح</string>
+    <string name="child_dev_error_generic">حدث خطأ. يرجى المحاولة مرة أخرى.</string>
+    <string name="child_dev_month_label">الشهر %1$d</string>
+    <string name="child_dev_locked_hint">مغلق — الطفل لم يصل لهذا العمر بعد</string>
+    <string name="child_dev_locked_desc">سيكون متاحاً عندما يبلغ الطفل %1$d شهر/شهور</string>
+    <string name="child_dev_status_recorded">✅ تم تسجيل التقييم</string>
+    <string name="child_dev_status_not_recorded">⚠️ لم يتم التقييم بعد</string>
+    <string name="child_dev_instruction">اضغط على كل بند لتحديده كمكتمل ✓ أو غير مكتمل ✗</string>
+    <string name="child_dev_save">حفظ التقييم</string>
+    <string name="child_dev_settings_not_started">لم يبدأ بعد — اضغط للبدء</string>
+    <string name="child_dev_settings_complete">تم تقييم جميع الشهور الـ %1$d ✅</string>
+    <string name="child_dev_settings_partial">تم تقييم %1$d / %2$d شهر</string>
+
+    <string name="child_dev_vision_motor_title">الرؤية + الحركة</string>
+    <string name="child_dev_vision_motor_subtitle">مراحل تطور التتبع البصري والمهارات الحركية</string>
+
+    <string name="vm_m1_1">يحرك رأسه ويتبع الضوء بعينيه</string>
+    <string name="vm_m1_2">يراقب الأشخاص ويلفت رأسه لمتابعة الأشياء المتحركة</string>
+    <string name="vm_m1_3">يتتبع شعاع المصباح عبر مجال رؤيته</string>
+
+    <string name="vm_m3_1">يدير رأسه بـ 180 درجة لمتابعة الأشياء المتحركة</string>
+    <string name="vm_m3_2">يراقب الوجوه بانتباه ويتتبع حركة العين</string>
+    <string name="vm_m3_3">يراقب حركات يديه بعناية</string>
+    <string name="vm_m3_4">يتعرف على الأم ويبتسم عند رؤيتها</string>
+    <string name="vm_m3_5">تنفتح اليدان بشكل لا إرادي كأنما يحاول الإمساك بشيء</string>
+
+    <string name="vm_m6_1">تتحرك العينان والرأس بحرية في جميع الاتجاهات عند جذب انتباهه</string>
+    <string name="vm_m6_2">يتبع شخصاً يتحرك عبر الغرفة بأكملها</string>
+    <string name="vm_m6_3">يبتسم ويصدر أصواتاً عند رؤية انعكاس صورته</string>
+    <string name="vm_m6_4">يمد يده نحو جسم سقط (جسم لامع) لالتقاطه</string>
+    <string name="vm_m6_5">ينقل جسماً من يد إلى أخرى للإمساك بآخر</string>
+
+    <string name="vm_m9_1">يراقب الأشياء والأشخاص بانتباه شديد وعن قرب</string>
+    <string name="vm_m9_2">يلتقط الأشياء الصغيرة باستخدام الإبهام والسبابة (القبضة الكماشية)</string>
+    <string name="vm_m9_3">يمد يده نحو الأشياء التي يريدها</string>
+    <string name="vm_m9_4">يحافظ على انتباهه للأجسام لمسافة 10–12 متراً</string>
+
+    <string name="vm_m12_1">يستخدم قبضة دقيقة بالأصابع لالتقاط الأشياء</string>
+    <string name="vm_m12_2">يلعب بالألعاب بشكل هادف</string>
+    <string name="vm_m12_3">يترك الأشياء من يده عمداً</string>
+    <string name="vm_m12_4">يتعرف على الأشخاص المألوفين من حوله</string>
+    <string name="vm_m12_5">يشد ملابس الآخرين لجذب انتباههم</string>
+
+    <string name="child_dev_hearing_speech_title">السمع + الكلام</string>
+    <string name="child_dev_hearing_speech_subtitle">مراحل التطور السمعي واللغوي</string>
+
+    <string name="hs_m1_1">يفزع عند الأصوات العالية؛ يغلق عينيه؛ ينتبه للوجوه</string>
+    <string name="hs_m1_2">يلتفت لفترة وجيزة نحو صوت قريب (3–5 ثوانٍ) على بعد 3–5 بوصات من الأذن</string>
+    <string name="hs_m1_3">يبكي بقوة عند الجوع أو عدم الارتياح</string>
+    <string name="hs_m1_4">يفضل أصوات الناس على الأصوات الأخرى</string>
+
+    <string name="hs_m3_1">يهدأ عند سماع صوت عالٍ؛ تتسع عيناه وينظر حوله</string>
+    <string name="hs_m3_2">يهدأ ويبتسم عند سماع صوت أمه</string>
+    <string name="hs_m3_3">يدير رأسه وعينيه باتجاه مصدر الصوت</string>
+    <string name="hs_m3_4">يصدر أصوات "قرقرة" أو مناغاة أثناء الرضاعة</string>
+    <string name="hs_m3_5">يتحرك أو يتفاعل عند حدوث صوت في مكان قريب</string>
+
+    <string name="hs_m6_1">في الغرفة، يلتفت فوراً ليعرف من أين يأتي صوت أمه</string>
+    <string name="hs_m6_2">يصدر أصواتاً أو يستجيب بمقاطع مثل "دا"، "تا"، إلخ.</string>
+    <string name="hs_m6_3">يبتسم ويحرك لسانه لتقليد كلام الكبار</string>
+
+    <string name="hs_m9_1">منتبه وسعيد؛ يستمع إلى الأصوات اليومية</string>
+    <string name="hs_m9_2">يحاول بهدوء وتدرج التواصل بالكلام مع مقدمي الرعاية</string>
+    <string name="hs_m9_3">ينادي أو يصرخ لجذب انتباه الأشخاص القريبين</string>
+    <string name="hs_m9_4">يكرر أصواتاً مثل "دادا"، "بابا"، إلخ.</string>
+    <string name="hs_m9_5">يستجيب للأسئلة البسيطة مثل "أين بابا؟ / أين الساعة؟"</string>
+
+    <string name="hs_m12_1">يلتفت فوراً عند سماع اسمه</string>
+    <string name="hs_m12_2">ينطق بضع كلمات ذات معنى</string>
+    <string name="hs_m12_3">يفهم التعليمات البسيطة مثل "أرني عينيك / رأسك..."</string>
+    <string name="hs_m12_4">يستمتع بإعطاء وأخذ الأشياء عندما يطلب منه الكبار ذلك</string>
+
+    <string name="settings_child_dev_vision_motor">الرؤية + الحركة</string>
+    <string name="settings_child_dev_hearing_speech">السمع + الكلام</string>
+    <string name="settings_child_dev_section">تطور الطفل</string>
 </resources>
