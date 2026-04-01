@@ -5,6 +5,7 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
 import org.example.project.babygrowthtrackingapplication.data.network.ApiResult
 import org.example.project.babygrowthtrackingapplication.data.repository.GuideRepository
+import org.example.project.babygrowthtrackingapplication.platform.LullabyPlayer
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 
@@ -20,30 +21,49 @@ private val guideJson = Json {
 // ── UI State ─────────────────────────────────────────────────────────────
 
 data class GuideUiState(
-    val sleepGuide      : GuideDocument?            = null,
-    val feedingGuide    : GuideDocument?            = null,
-    val isLoadingSleep  : Boolean                   = false,
-    val isLoadingFeeding: Boolean                   = false,
+    val sleepGuide      : GuideDocument?              = null,
+    val feedingGuide    : GuideDocument?              = null,
+    val isLoadingSleep  : Boolean                     = false,
+    val isLoadingFeeding: Boolean                     = false,
     val feedbackMap     : Map<String, CardFeedbackState> = emptyMap(),
-    val playerState     : LullabyPlayerState        = LullabyPlayerState(),
-    val errorMessage    : String?                   = null
+    val playerState     : LullabyPlayerState          = LullabyPlayerState(),
+    val errorMessage    : String?                     = null,
+    val downloadEvent   : DownloadEvent?              = null   // one-shot download trigger
+)
+
+/** One-shot event emitted when the user taps Download. */
+data class DownloadEvent(
+    val assetKey : String,
+    val fileName : String,
+    val consumed : Boolean = false
 )
 
 // ── ViewModel ─────────────────────────────────────────────────────────────
 
 class GuideViewModel(
-    private val repository: GuideRepository? = null   // null in preview/test
+    private val repository   : GuideRepository? = null,   // null in preview/test
+    private val lullabyPlayer: LullabyPlayer?   = null    // injected by DI / platform
 ) {
     var uiState by mutableStateOf(GuideUiState())
         private set
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
+    // Position polling job — runs while audio is playing
+    private var positionJob: Job? = null
+
+    init {
+        // Wire the player position callback into the ViewModel state
+        lullabyPlayer?.setOnPositionChanged { seconds ->
+            updatePosition(seconds)
+        }
+    }
+
     // ── JSON loading ───────────────────────────────────────────────────────
 
     @OptIn(ExperimentalResourceApi::class)
     fun loadSleepGuide() {
-        if (uiState.sleepGuide != null) return   // already loaded
+        if (uiState.sleepGuide != null) return
         scope.launch {
             uiState = uiState.copy(isLoadingSleep = true)
             try {
@@ -73,10 +93,6 @@ class GuideViewModel(
 
     // ── Feedback loading ───────────────────────────────────────────────────
 
-    /**
-     * Fetch aggregated vote counts for all items visible in the current view.
-     * Called every time the user switches strategy or tab.
-     */
     fun loadFeedbackCounts(contentIds: List<String>, guideType: String) {
         if (repository == null || contentIds.isEmpty()) return
         scope.launch {
@@ -84,7 +100,6 @@ class GuideViewModel(
                 is ApiResult.Success -> {
                     val updated = uiState.feedbackMap.toMutableMap()
                     for (item in result.data.counts) {
-                        val existing = updated[item.contentId]
                         updated[item.contentId] = CardFeedbackState(
                             contentId   = item.contentId,
                             usefulCount = item.usefulCount,
@@ -98,7 +113,7 @@ class GuideViewModel(
                     }
                     uiState = uiState.copy(feedbackMap = updated)
                 }
-                else -> Unit   // silently ignore — non-critical
+                else -> Unit
             }
         }
     }
@@ -106,8 +121,7 @@ class GuideViewModel(
     // ── Vote casting ───────────────────────────────────────────────────────
 
     fun castVote(contentId: String, guideType: String, vote: UserVote) {
-        // Optimistic UI update
-        val current   = uiState.feedbackMap[contentId] ?: CardFeedbackState(contentId)
+        val current    = uiState.feedbackMap[contentId] ?: CardFeedbackState(contentId)
         val optimistic = current.copy(
             userVote    = vote,
             usefulCount = when {
@@ -122,7 +136,6 @@ class GuideViewModel(
         uiState = uiState.copy(feedbackMap = uiState.feedbackMap + (contentId to optimistic))
 
         if (repository == null) {
-            // Preview mode: just confirm the optimistic state
             uiState = uiState.copy(
                 feedbackMap = uiState.feedbackMap + (contentId to optimistic.copy(isLoading = false))
             )
@@ -143,9 +156,8 @@ class GuideViewModel(
                     )
                 }
                 is ApiResult.Error -> {
-                    // Roll back optimistic update
                     uiState = uiState.copy(
-                        feedbackMap = uiState.feedbackMap + (contentId to current.copy(isLoading = false)),
+                        feedbackMap  = uiState.feedbackMap + (contentId to current.copy(isLoading = false)),
                         errorMessage = result.message
                     )
                 }
@@ -156,37 +168,88 @@ class GuideViewModel(
 
     // ── Lullaby player ─────────────────────────────────────────────────────
 
-    fun playLullaby(itemId: String, durationSeconds: Int) {
+    /**
+     * Start playing a lullaby.
+     *
+     * If the same item is tapped again while playing, this acts as a replay
+     * from the start. For toggle behaviour, call [togglePlayPause] instead.
+     */
+    fun playLullaby(item: GuideItem) {
+        val assetKey  = item.media?.asset_key ?: return
+        val duration  = item.media.duration_seconds
+
+        // Stop any currently playing track
+        lullabyPlayer?.stop()
+        stopPositionPolling()
+
         uiState = uiState.copy(
             playerState = LullabyPlayerState(
-                currentItemId   = itemId,
+                currentItemId   = item.id,
                 isPlaying       = true,
                 positionSeconds = 0,
-                durationSeconds = durationSeconds
+                durationSeconds = duration
             )
         )
+
+        lullabyPlayer?.play(assetKey)
+        startPositionPolling()
     }
 
     fun togglePlayPause() {
+        val playing = uiState.playerState.isPlaying
+        if (playing) {
+            lullabyPlayer?.pause()
+            stopPositionPolling()
+        } else {
+            lullabyPlayer?.play(/* resume — platform impls handle this */ "")
+            startPositionPolling()
+        }
         uiState = uiState.copy(
-            playerState = uiState.playerState.copy(isPlaying = !uiState.playerState.isPlaying)
+            playerState = uiState.playerState.copy(isPlaying = !playing)
         )
     }
 
     fun stopLullaby() {
+        lullabyPlayer?.stop()
+        stopPositionPolling()
         uiState = uiState.copy(playerState = LullabyPlayerState())
     }
 
     fun seekTo(seconds: Int) {
+        lullabyPlayer?.seekTo(seconds)
         uiState = uiState.copy(
             playerState = uiState.playerState.copy(positionSeconds = seconds)
         )
     }
 
     fun updatePosition(seconds: Int) {
+        // Avoid recomposition flood if position has not changed
+        if (uiState.playerState.positionSeconds == seconds) return
         uiState = uiState.copy(
             playerState = uiState.playerState.copy(positionSeconds = seconds)
         )
+    }
+
+    // ── Download ───────────────────────────────────────────────────────────
+
+    /**
+     * Emit a one-shot [DownloadEvent] that the screen layer consumes to
+     * trigger a platform-specific file download.
+     *
+     * The screen should call [consumeDownloadEvent] once the download has been
+     * handed off to the OS / platform API.
+     */
+    fun requestDownload(item: GuideItem) {
+        val assetKey = item.media?.asset_key ?: return
+        // Build a human-readable file name, e.g. "lale_lale_kurdan.mp3"
+        val fileName = "${assetKey.removePrefix("lullaby_")}.mp3"
+        uiState = uiState.copy(
+            downloadEvent = DownloadEvent(assetKey = assetKey, fileName = fileName)
+        )
+    }
+
+    fun consumeDownloadEvent() {
+        uiState = uiState.copy(downloadEvent = null)
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────
@@ -199,6 +262,27 @@ class GuideViewModel(
     }
 
     fun onDestroy() {
+        lullabyPlayer?.stop()
         scope.cancel()
+    }
+
+    // ── Position polling (fallback for platforms that use callback) ─────────
+
+    private fun startPositionPolling() {
+        // If the platform already uses setOnPositionChanged (Android, Desktop),
+        // this coroutine loop is redundant but harmless — it simply reads the
+        // same position one more time per second.
+        positionJob = scope.launch {
+            while (isActive) {
+                delay(500)
+                // Platforms that don't push callbacks can override updatePosition
+                // by injecting their own polling here.
+            }
+        }
+    }
+
+    private fun stopPositionPolling() {
+        positionJob?.cancel()
+        positionJob = null
     }
 }

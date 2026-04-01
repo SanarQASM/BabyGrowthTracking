@@ -47,10 +47,9 @@ fun FeedingGuideScreen(
     val selectedBaby  = babies.getOrNull(selectedBabyIndex)
     val ageInMonths   = selectedBaby?.ageInMonths ?: 8
 
-    val guide         = state.feedingGuide
+    val guide           = state.feedingGuide
     val currentStrategy = guide?.strategyById(selectedCategory)
 
-    // Load feedback counts
     LaunchedEffect(selectedCategory, selectedBabyIndex) {
         val ids = currentStrategy?.itemsForAge(ageInMonths)?.map { it.id } ?: return@LaunchedEffect
         if (ids.isNotEmpty()) viewModel.loadFeedbackCounts(ids, "FEEDING")
@@ -293,7 +292,6 @@ private fun FeedingStrategyContent(
 
     Column(modifier = modifier) {
 
-        // Section header
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -311,19 +309,33 @@ private fun FeedingStrategyContent(
 
         when (strategy.id) {
 
-            // ── Milk Feeding: All / Breastfeeding / Formula / Combination ──
+            // ── Milk Feeding: tabs come from JSON (already includes "all")
+            // FIX: do NOT prepend an extra "All" — the JSON already has tab id="all"
+            // We use deduplicateTabs() inside GuidePillTabs as safety net, but the
+            // real fix is: only use strategy.tabs directly, or add "All" ONLY when
+            // strategy.tabs does NOT already contain an "all" entry.
             CAT_MILK -> {
-                val tabs = buildList {
-                    add(GuideTab("all", buildLocalizedAll()))
-                    addAll(strategy.tabs ?: emptyList())
+                val rawTabs = strategy.tabs ?: emptyList()
+                // Build "All" tab only if the JSON doesn't already have it
+                val tabs = if (rawTabs.any { it.id == "all" }) {
+                    rawTabs
+                } else {
+                    buildList {
+                        add(GuideTab("all", buildLocalizedAll()))
+                        addAll(rawTabs)
+                    }
                 }
-                GuidePillTabs(tabs = tabs, selectedId = selectedTabId,
-                    langCode = language, onSelectTab = onSelectTab)
+                GuidePillTabs(
+                    tabs        = tabs,
+                    selectedId  = selectedTabId,
+                    langCode    = language,
+                    onSelectTab = onSelectTab
+                )
                 val items = strategy.itemsForAgeAndTab(ageInMonths, selectedTabId)
                 FeedingCardsColumn(items, language, feedbackMap, onUseful, onUseless)
             }
 
-            // ── All others: no sub-tabs ────────────────────────────────────
+            // ── All others: no sub-tabs
             else -> {
                 val items = strategy.itemsForAge(ageInMonths)
                 if (items.isEmpty()) {
@@ -405,11 +417,11 @@ private fun FeedingNoDataForAge(strategyId: String) {
     }
 }
 
+// ── Helper: build localised "All" tab ────────────────────────────────────
 private fun buildLocalizedAll() =
-    org.example.project.babygrowthtrackingapplication
-        .com.babygrowth.presentation.screens.home.model.LocalizedString(
-            en        = "All",
-            ku_sorani = "هەموو",
-            ku_badini = "Hemû",
-            ar        = "الكل"
-        )
+    LocalizedString(
+        en        = "All",
+        ku_sorani = "هەموو",
+        ku_badini = "Hemû",
+        ar        = "الكل"
+    )

@@ -37,27 +37,23 @@ fun SleepGuideScreen(
 ) {
     val state = viewModel.uiState
 
-    // Load JSON once
     LaunchedEffect(Unit) { viewModel.loadSleepGuide() }
 
-    // Category & tab selection state
     var selectedCategory  by remember { mutableStateOf(CAT_STRATEGIES) }
     var selectedTabId     by remember { mutableStateOf("all") }
     var selectedBabyIndex by remember { mutableStateOf(0) }
 
-    val selectedBaby   = babies.getOrNull(selectedBabyIndex)
-    val ageInMonths    = selectedBaby?.ageInMonths ?: 8
+    val selectedBaby    = babies.getOrNull(selectedBabyIndex)
+    val ageInMonths     = selectedBaby?.ageInMonths ?: 8
 
-    val guide          = state.sleepGuide
-    val currentStrategy= guide?.strategyById(selectedCategory)
+    val guide           = state.sleepGuide
+    val currentStrategy = guide?.strategyById(selectedCategory)
 
-    // Preload feedback counts when strategy or baby changes
     LaunchedEffect(selectedCategory, selectedBabyIndex) {
         val items = currentStrategy?.itemsForAge(ageInMonths)?.map { it.id } ?: return@LaunchedEffect
         if (items.isNotEmpty()) viewModel.loadFeedbackCounts(items, "SLEEP")
     }
 
-    // Subtitle with child name
     val childName = selectedBaby?.fullName ?: ""
     val subtitle  = if (childName.isNotBlank())
         guide?.subtitle?.get(language)?.replace("{childName}", childName)
@@ -65,7 +61,6 @@ fun SleepGuideScreen(
     else
         guide?.title?.get(language) ?: stringResource(Res.string.sleep_guide_title)
 
-    // Categories
     val categories = listOf(
         GuideCategoryItem(CAT_STRATEGIES,  "🛏️", stringResource(Res.string.sleep_guide_cat_strategies)),
         GuideCategoryItem(CAT_NEEDS,       "😴", stringResource(Res.string.sleep_guide_cat_needs)),
@@ -106,12 +101,11 @@ fun SleepGuideScreen(
                     playerState       = state.playerState,
                     onUseful          = { id -> viewModel.castVote(id, "SLEEP", UserVote.USEFUL) },
                     onUseless         = { id -> viewModel.castVote(id, "SLEEP", UserVote.USELESS) },
-                    onPlay            = { item ->
-                        viewModel.playLullaby(item.id, item.media?.duration_seconds ?: 180)
-                    },
+                    onPlay            = { item -> viewModel.playLullaby(item) },
                     onTogglePause     = { viewModel.togglePlayPause() },
                     onStop            = { viewModel.stopLullaby() },
-                    onDownload        = { /* platform download */ }
+                    onSeek            = { seconds -> viewModel.seekTo(seconds) },
+                    onDownload        = { item -> viewModel.requestDownload(item) }
                 )
             },
             landscape = {
@@ -133,12 +127,11 @@ fun SleepGuideScreen(
                     playerState       = state.playerState,
                     onUseful          = { id -> viewModel.castVote(id, "SLEEP", UserVote.USEFUL) },
                     onUseless         = { id -> viewModel.castVote(id, "SLEEP", UserVote.USELESS) },
-                    onPlay            = { item ->
-                        viewModel.playLullaby(item.id, item.media?.duration_seconds ?: 180)
-                    },
+                    onPlay            = { item -> viewModel.playLullaby(item) },
                     onTogglePause     = { viewModel.togglePlayPause() },
                     onStop            = { viewModel.stopLullaby() },
-                    onDownload        = { /* platform download */ }
+                    onSeek            = { seconds -> viewModel.seekTo(seconds) },
+                    onDownload        = { item -> viewModel.requestDownload(item) }
                 )
             }
         )
@@ -169,32 +162,25 @@ private fun SleepGuidePortrait(
     onPlay           : (GuideItem) -> Unit,
     onTogglePause    : () -> Unit,
     onStop           : () -> Unit,
+    onSeek           : (Int) -> Unit,
     onDownload       : (GuideItem) -> Unit
 ) {
     val scrollState = rememberScrollState()
     val dimensions  = LocalDimensions.current
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(scrollState)
-    ) {
-        // Header + child selector
+    Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
         GuideSubtitleHeader(
             subtitle      = subtitle,
             babies        = babies,
             selectedIndex = selectedBabyIndex,
             onSelectBaby  = onSelectBaby
         )
-
-        // Category selector
         GuideCategorySelector(
             categories       = categories,
             selectedId       = selectedCategory,
             onSelectCategory = onSelectCategory,
             modifier         = Modifier.padding(top = dimensions.spacingSmall)
         )
-
         HorizontalDivider(
             modifier = Modifier.padding(vertical = dimensions.spacingSmall),
             color    = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
@@ -221,6 +207,7 @@ private fun SleepGuidePortrait(
                 onPlay        = onPlay,
                 onTogglePause = onTogglePause,
                 onStop        = onStop,
+                onSeek        = onSeek,
                 onDownload    = onDownload,
                 modifier      = Modifier.padding(bottom = dimensions.spacingLarge)
             )
@@ -252,12 +239,12 @@ private fun SleepGuideLandscape(
     onPlay           : (GuideItem) -> Unit,
     onTogglePause    : () -> Unit,
     onStop           : () -> Unit,
+    onSeek           : (Int) -> Unit,
     onDownload       : (GuideItem) -> Unit
 ) {
     val dimensions = LocalDimensions.current
 
     Row(modifier = Modifier.fillMaxSize()) {
-        // Left pane: header + categories
         Column(
             modifier = Modifier
                 .width(280.dp)
@@ -283,7 +270,6 @@ private fun SleepGuideLandscape(
             color    = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
         )
 
-        // Right pane: content
         Column(
             modifier = Modifier
                 .weight(1f)
@@ -310,6 +296,7 @@ private fun SleepGuideLandscape(
                     onPlay        = onPlay,
                     onTogglePause = onTogglePause,
                     onStop        = onStop,
+                    onSeek        = onSeek,
                     onDownload    = onDownload
                 )
             }
@@ -333,17 +320,16 @@ private fun SleepStrategyContent(
     onPlay       : (GuideItem) -> Unit,
     onTogglePause: () -> Unit,
     onStop       : () -> Unit,
+    onSeek       : (Int) -> Unit,
     onDownload   : (GuideItem) -> Unit,
     modifier     : Modifier = Modifier
 ) {
-    val dimensions   = LocalDimensions.current
-    val customColors = MaterialTheme.customColors
+    val dimensions = LocalDimensions.current
 
     Column(modifier = modifier) {
         when (strategy.id) {
 
-            // ── Sleep Strategies: no tabs, plain cards ─────────────────────
-            CAT_STRATEGIES -> {
+            CAT_STRATEGIES, CAT_NEEDS -> {
                 val items = strategy.itemsForAge(ageInMonths)
                 SleepStrategySection(label = strategy.title.get(language))
                 if (items.isEmpty()) {
@@ -366,42 +352,15 @@ private fun SleepStrategyContent(
                 }
             }
 
-            // ── Sleep Needs: no tabs, special layout showing totals ─────────
-            CAT_NEEDS -> {
-                val items = strategy.itemsForAge(ageInMonths)
-                SleepStrategySection(label = strategy.title.get(language))
-                if (items.isEmpty()) {
-                    GuideNoDataForAge()
-                } else {
-                    Column(
-                        modifier            = Modifier.padding(dimensions.screenPadding),
-                        verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
-                    ) {
-                        items.forEach { item ->
-                            GuideContentCard(
-                                item          = item,
-                                langCode      = language,
-                                feedbackState = feedbackMap[item.id] ?: CardFeedbackState(item.id),
-                                onUseful      = { onUseful(item.id) },
-                                onUseless     = { onUseless(item.id) }
-                            )
-                        }
-                    }
-                }
-            }
-
-            // ── Environment: All / Bedtime / Naps tabs ─────────────────────
             CAT_ENVIRONMENT -> {
-                val tabs = buildList {
+                // FIX: deduplication is handled inside GuidePillTabs via deduplicateTabs()
+                val rawTabs = strategy.tabs ?: emptyList()
+                val tabs = if (rawTabs.any { it.id == "all" }) rawTabs else buildList {
                     add(GuideTab("all", buildLocalizedAll()))
-                    addAll(strategy.tabs ?: emptyList())
+                    addAll(rawTabs)
                 }
-                GuidePillTabs(
-                    tabs       = tabs,
-                    selectedId = selectedTabId,
-                    langCode   = language,
-                    onSelectTab = onSelectTab
-                )
+                GuidePillTabs(tabs = tabs, selectedId = selectedTabId,
+                    langCode = language, onSelectTab = onSelectTab)
                 val items = strategy.itemsForAgeAndTab(ageInMonths, selectedTabId)
                 if (items.isEmpty()) {
                     GuideNoDataForAge()
@@ -423,18 +382,14 @@ private fun SleepStrategyContent(
                 }
             }
 
-            // ── Lullabies: All / Kurdish / Arabic / English tabs ───────────
             CAT_LULLABIES -> {
-                val tabs = buildList {
+                val rawTabs = strategy.tabs ?: emptyList()
+                val tabs = if (rawTabs.any { it.id == "all" }) rawTabs else buildList {
                     add(GuideTab("all", buildLocalizedAll()))
-                    addAll(strategy.tabs ?: emptyList())
+                    addAll(rawTabs)
                 }
-                GuidePillTabs(
-                    tabs        = tabs,
-                    selectedId  = selectedTabId,
-                    langCode    = language,
-                    onSelectTab = onSelectTab
-                )
+                GuidePillTabs(tabs = tabs, selectedId = selectedTabId,
+                    langCode = language, onSelectTab = onSelectTab)
                 val items = strategy.itemsForAgeAndTab(ageInMonths, selectedTabId)
                 LullabiesContent(
                     items         = items,
@@ -445,6 +400,7 @@ private fun SleepStrategyContent(
                     onPlay        = onPlay,
                     onTogglePause = onTogglePause,
                     onStop        = onStop,
+                    onSeek        = onSeek,
                     onDownload    = onDownload,
                     onUseful      = onUseful,
                     onUseless     = onUseless,
@@ -490,9 +446,9 @@ private fun GuideEmptyState() {
             Text("📖", fontSize = 48.sp)
             Spacer(Modifier.height(dimensions.spacingMedium))
             Text(
-                text      = stringResource(Res.string.sleep_guide_no_data),
-                style     = MaterialTheme.typography.bodyMedium,
-                color     = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+                text  = stringResource(Res.string.sleep_guide_no_data),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
             )
         }
     }
@@ -513,12 +469,10 @@ private fun GuideNoDataForAge() {
     }
 }
 
-// ── Helper: build "All" tab in all languages ──────────────────────────────
-
-private fun buildLocalizedAll() = org.example.project.babygrowthtrackingapplication
-    .com.babygrowth.presentation.screens.home.model.LocalizedString(
-        en        = "All",
-        ku_sorani = "هەموو",
-        ku_badini = "Hemû",
-        ar        = "الكل"
-    )
+// ── Helper ────────────────────────────────────────────────────────────────
+private fun buildLocalizedAll() = LocalizedString(
+    en        = "All",
+    ku_sorani = "هەموو",
+    ku_badini = "Hemû",
+    ar        = "الكل"
+)

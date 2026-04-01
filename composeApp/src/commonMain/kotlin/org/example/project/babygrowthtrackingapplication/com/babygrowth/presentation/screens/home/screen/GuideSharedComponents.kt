@@ -50,10 +50,7 @@ fun GuideTopBar(title: String, onBack: () -> Unit) {
         navigationIcon = {
             IconButton(onClick = onBack) {
                 Icon(
-                    imageVector        = if (isRTL)
-                        Icons.AutoMirrored.Filled.ArrowBack
-                    else
-                        Icons.AutoMirrored.Filled.ArrowBack,
+                    imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = stringResource(Res.string.common_back),
                     tint               = customColors.accentGradientStart
                 )
@@ -90,7 +87,6 @@ fun GuideSubtitleHeader(
             )
             .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingMedium)
     ) {
-        // Title
         Text(
             text       = subtitle,
             style      = MaterialTheme.typography.titleLarge,
@@ -102,7 +98,6 @@ fun GuideSubtitleHeader(
         if (babies.isNotEmpty()) {
             Spacer(Modifier.height(dimensions.spacingSmall))
 
-            // SELECT CHILD label
             Text(
                 text  = stringResource(Res.string.sleep_guide_select_child),
                 style = MaterialTheme.typography.labelSmall,
@@ -112,7 +107,6 @@ fun GuideSubtitleHeader(
             )
             Spacer(Modifier.height(4.dp))
 
-            // Dropdown
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -188,7 +182,6 @@ fun GuideCategorySelector(
         )
         Spacer(Modifier.height(dimensions.spacingSmall))
 
-        // 2-column grid
         val rows = categories.chunked(2)
         Column(verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
             rows.forEach { row ->
@@ -204,7 +197,6 @@ fun GuideCategorySelector(
                             modifier   = Modifier.weight(1f)
                         )
                     }
-                    // If odd number, fill the remaining space
                     if (row.size == 1) Spacer(Modifier.weight(1f))
                 }
             }
@@ -244,7 +236,6 @@ private fun GuideCategoryTile(
             .padding(vertical = dimensions.spacingSmall + 4.dp, horizontal = dimensions.spacingSmall),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Icon in a round container
         Box(
             modifier = Modifier
                 .size(52.dp)
@@ -267,7 +258,14 @@ private fun GuideCategoryTile(
     }
 }
 
-// ── Horizontal pill tabs (All / Bedtime / Naps etc.) ─────────────────────
+// ── Horizontal pill tabs ──────────────────────────────────────────────────
+// FIX: deduplicateTabs() ensures the "all" tab from the JSON is not doubled
+//      when callers do buildList { add(GuideTab("all", ...)); addAll(strategy.tabs) }
+
+fun deduplicateTabs(tabs: List<GuideTab>): List<GuideTab> {
+    val seen = mutableSetOf<String>()
+    return tabs.filter { seen.add(it.id) }
+}
 
 @Composable
 fun GuidePillTabs(
@@ -279,14 +277,17 @@ fun GuidePillTabs(
 ) {
     val customColors = MaterialTheme.customColors
     val dimensions   = LocalDimensions.current
+    // Deduplicate so callers that pre-pend "All" don't duplicate JSON-sourced "all" tab
+    val dedupedTabs  = remember(tabs) { deduplicateTabs(tabs) }
 
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
             .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingSmall),
         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
     ) {
-        tabs.forEach { tab ->
+        dedupedTabs.forEach { tab ->
             val selected = tab.id == selectedId
             val bg by animateColorAsState(
                 if (selected) customColors.accentGradientStart else Color.Transparent,
@@ -322,6 +323,7 @@ fun GuidePillTabs(
 }
 
 // ── Guide content card ────────────────────────────────────────────────────
+// FIX: removed border/elevation so cards have no visible border outline
 
 @Composable
 fun GuideContentCard(
@@ -345,14 +347,15 @@ fun GuideContentCard(
             else
                 customColors.accentGradientStart.copy(alpha = 0.06f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        // FIX: elevation = 0 removes the shadow border effect
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border    = null   // explicitly no border
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(dimensions.spacingMedium)
         ) {
-            // Title
             Text(
                 text       = item.title.get(langCode).uppercase(),
                 style      = MaterialTheme.typography.titleSmall,
@@ -362,7 +365,6 @@ fun GuideContentCard(
             )
             Spacer(Modifier.height(dimensions.spacingSmall))
 
-            // Description (preserves newlines)
             Text(
                 text      = item.description.get(langCode),
                 style     = MaterialTheme.typography.bodyMedium,
@@ -370,7 +372,6 @@ fun GuideContentCard(
                 textAlign = readingTextAlign()
             )
 
-            // Tip (if present)
             item.tip?.get(langCode)?.let { tip ->
                 if (tip.isNotBlank()) {
                     Spacer(Modifier.height(dimensions.spacingSmall))
@@ -396,7 +397,6 @@ fun GuideContentCard(
 
             Spacer(Modifier.height(dimensions.spacingMedium))
 
-            // Feedback row
             GuideFeedbackRow(
                 feedbackState = feedbackState,
                 onUseful      = onUseful,
@@ -406,7 +406,8 @@ fun GuideContentCard(
     }
 }
 
-// ── Feedback row (Useful for N / Useful / Useless) ───────────────────────
+// ── Feedback row ─────────────────────────────────────────────────────────
+// FIX: buttons show animated color when selected, count is always shown
 
 @Composable
 fun GuideFeedbackRow(
@@ -423,7 +424,7 @@ fun GuideFeedbackRow(
         verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
     ) {
-        // "Useful for N Users" counter
+        // "Useful for N Users" counter — always visible
         Text(
             text      = stringResource(Res.string.sleep_guide_useful_for, feedbackState.usefulCount),
             style     = MaterialTheme.typography.labelSmall,
@@ -436,7 +437,7 @@ fun GuideFeedbackRow(
             label     = stringResource(Res.string.sleep_guide_useless),
             selected  = feedbackState.userVote == UserVote.USELESS,
             isLoading = feedbackState.isLoading,
-            colorSel  = MaterialTheme.colorScheme.error.copy(alpha = 0.15f),
+            colorSel  = MaterialTheme.colorScheme.error,
             colorText = MaterialTheme.colorScheme.error,
             onClick   = onUseless
         )
@@ -446,7 +447,7 @@ fun GuideFeedbackRow(
             label     = stringResource(Res.string.sleep_guide_useful),
             selected  = feedbackState.userVote == UserVote.USEFUL,
             isLoading = feedbackState.isLoading,
-            colorSel  = customColors.accentGradientStart.copy(alpha = 0.15f),
+            colorSel  = customColors.accentGradientStart,
             colorText = customColors.accentGradientStart,
             onClick   = onUseful
         )
@@ -462,14 +463,34 @@ private fun FeedbackPill(
     colorText: Color,
     onClick  : () -> Unit
 ) {
-    val bg by animateColorAsState(
-        if (selected) colorSel else Color.Transparent, label = "pill_bg"
+    // FIX: animate both background fill and text/border when selected
+    val bgAlpha by animateFloatAsState(
+        targetValue   = if (selected) 1f else 0f,
+        animationSpec = tween(durationMillis = 200),
+        label         = "pill_bg_alpha"
     )
+    val scale by animateFloatAsState(
+        targetValue   = if (selected) 1.06f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label         = "pill_scale"
+    )
+
+    val containerColor = colorSel.copy(alpha = bgAlpha * 0.18f)
+    val currentTextColor by animateColorAsState(
+        targetValue = if (selected) colorSel else colorText.copy(alpha = 0.6f),
+        label       = "pill_text_color"
+    )
+
     Box(
         modifier = Modifier
+            .scale(scale)
             .clip(RoundedCornerShape(50))
-            .background(bg)
-            .border(1.dp, colorText.copy(alpha = 0.35f), RoundedCornerShape(50))
+            .background(containerColor)
+            .border(
+                width = if (selected) 1.5.dp else 1.dp,
+                color = if (selected) colorSel else colorText.copy(alpha = 0.35f),
+                shape = RoundedCornerShape(50)
+            )
             .clickable(enabled = !isLoading, onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 5.dp),
         contentAlignment = Alignment.Center
@@ -481,12 +502,26 @@ private fun FeedbackPill(
                 color       = colorText
             )
         } else {
-            Text(
-                text       = label,
-                style      = MaterialTheme.typography.labelSmall,
-                fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
-                color      = colorText
-            )
+            Row(
+                verticalAlignment     = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                // Show checkmark icon when selected
+                if (selected) {
+                    Text(
+                        text     = "✓",
+                        style    = MaterialTheme.typography.labelSmall,
+                        color    = currentTextColor,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Text(
+                    text       = label,
+                    style      = MaterialTheme.typography.labelSmall,
+                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
+                    color      = currentTextColor
+                )
+            }
         }
     }
 }
