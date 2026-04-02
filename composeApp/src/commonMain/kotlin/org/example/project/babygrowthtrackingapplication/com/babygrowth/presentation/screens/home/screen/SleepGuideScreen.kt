@@ -49,9 +49,15 @@ fun SleepGuideScreen(
     val guide           = state.sleepGuide
     val currentStrategy = guide?.strategyById(selectedCategory)
 
-    LaunchedEffect(selectedCategory, selectedBabyIndex) {
-        val items = currentStrategy?.itemsForAge(ageInMonths)?.map { it.id } ?: return@LaunchedEffect
-        if (items.isNotEmpty()) viewModel.loadFeedbackCounts(items, "SLEEP")
+    // FIX: The key now includes `currentStrategy` (not just selectedCategory +
+    // selectedBabyIndex). This means the effect re-fires when the guide
+    // finishes loading (currentStrategy goes null → non-null), which is the
+    // scenario where the old code silently dropped the feedback fetch.
+    // We load ALL items in the strategy (all age-ranges) so every card that
+    // could ever be rendered has counts pre-fetched.
+    LaunchedEffect(currentStrategy, selectedBabyIndex) {
+        val strategy = currentStrategy ?: return@LaunchedEffect
+        viewModel.loadFeedbackForStrategy(strategy, "SLEEP")
     }
 
     val childName = selectedBaby?.fullName ?: ""
@@ -340,6 +346,8 @@ private fun SleepStrategyContent(
                         verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
                     ) {
                         items.forEach { item ->
+                            // FIX: always fall back to a fresh CardFeedbackState if the
+                            // map entry is missing — this makes each card self-sufficient.
                             GuideContentCard(
                                 item          = item,
                                 langCode      = language,
@@ -353,14 +361,17 @@ private fun SleepStrategyContent(
             }
 
             CAT_ENVIRONMENT -> {
-                // FIX: deduplication is handled inside GuidePillTabs via deduplicateTabs()
                 val rawTabs = strategy.tabs ?: emptyList()
                 val tabs = if (rawTabs.any { it.id == "all" }) rawTabs else buildList {
                     add(GuideTab("all", buildLocalizedAll()))
                     addAll(rawTabs)
                 }
-                GuidePillTabs(tabs = tabs, selectedId = selectedTabId,
-                    langCode = language, onSelectTab = onSelectTab)
+                GuidePillTabs(
+                    tabs        = tabs,
+                    selectedId  = selectedTabId,
+                    langCode    = language,
+                    onSelectTab = onSelectTab
+                )
                 val items = strategy.itemsForAgeAndTab(ageInMonths, selectedTabId)
                 if (items.isEmpty()) {
                     GuideNoDataForAge()
@@ -388,8 +399,12 @@ private fun SleepStrategyContent(
                     add(GuideTab("all", buildLocalizedAll()))
                     addAll(rawTabs)
                 }
-                GuidePillTabs(tabs = tabs, selectedId = selectedTabId,
-                    langCode = language, onSelectTab = onSelectTab)
+                GuidePillTabs(
+                    tabs        = tabs,
+                    selectedId  = selectedTabId,
+                    langCode    = language,
+                    onSelectTab = onSelectTab
+                )
                 val items = strategy.itemsForAgeAndTab(ageInMonths, selectedTabId)
                 LullabiesContent(
                     items         = items,
@@ -424,10 +439,10 @@ private fun SleepStrategySection(label: String) {
             .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingSmall)
     ) {
         Text(
-            text       = label.uppercase(),
-            style      = MaterialTheme.typography.labelMedium,
-            fontWeight = FontWeight.Bold,
-            color      = customColors.accentGradientStart,
+            text          = label.uppercase(),
+            style         = MaterialTheme.typography.labelMedium,
+            fontWeight    = FontWeight.Bold,
+            color         = customColors.accentGradientStart,
             letterSpacing = 1.sp
         )
     }
@@ -473,6 +488,6 @@ private fun GuideNoDataForAge() {
 private fun buildLocalizedAll() = LocalizedString(
     en        = "All",
     ku_sorani = "هەموو",
-    ku_badini = "Hemû",
+    ku_badini = "هەمی",
     ar        = "الكل"
 )

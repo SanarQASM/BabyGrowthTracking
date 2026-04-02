@@ -50,9 +50,13 @@ fun FeedingGuideScreen(
     val guide           = state.feedingGuide
     val currentStrategy = guide?.strategyById(selectedCategory)
 
-    LaunchedEffect(selectedCategory, selectedBabyIndex) {
-        val ids = currentStrategy?.itemsForAge(ageInMonths)?.map { it.id } ?: return@LaunchedEffect
-        if (ids.isNotEmpty()) viewModel.loadFeedbackCounts(ids, "FEEDING")
+    // FIX: Key on `currentStrategy` (not just selectedCategory + selectedBabyIndex)
+    // so this effect fires once the guide finishes loading asynchronously.
+    // loadFeedbackForStrategy loads ALL age-ranges in the strategy, not just
+    // the currently visible age, so every card has counts pre-fetched.
+    LaunchedEffect(currentStrategy, selectedBabyIndex) {
+        val strategy = currentStrategy ?: return@LaunchedEffect
+        viewModel.loadFeedbackForStrategy(strategy, "FEEDING")
     }
 
     val childName = selectedBaby?.fullName ?: ""
@@ -176,8 +180,10 @@ private fun FeedingGuidePortrait(
         )
 
         if (isLoading) {
-            Box(Modifier.fillMaxWidth().padding(dimensions.spacingXLarge),
-                contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+            Box(
+                Modifier.fillMaxWidth().padding(dimensions.spacingXLarge),
+                contentAlignment = Alignment.Center
+            ) { CircularProgressIndicator() }
         } else if (currentStrategy == null) {
             FeedingEmptyState()
         } else {
@@ -299,24 +305,18 @@ private fun FeedingStrategyContent(
                 .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingSmall)
         ) {
             Text(
-                text       = strategy.title.get(language).uppercase(),
-                style      = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Bold,
-                color      = customColors.accentGradientStart,
+                text          = strategy.title.get(language).uppercase(),
+                style         = MaterialTheme.typography.labelMedium,
+                fontWeight    = FontWeight.Bold,
+                color         = customColors.accentGradientStart,
                 letterSpacing = 1.sp
             )
         }
 
         when (strategy.id) {
 
-            // ── Milk Feeding: tabs come from JSON (already includes "all")
-            // FIX: do NOT prepend an extra "All" — the JSON already has tab id="all"
-            // We use deduplicateTabs() inside GuidePillTabs as safety net, but the
-            // real fix is: only use strategy.tabs directly, or add "All" ONLY when
-            // strategy.tabs does NOT already contain an "all" entry.
             CAT_MILK -> {
                 val rawTabs = strategy.tabs ?: emptyList()
-                // Build "All" tab only if the JSON doesn't already have it
                 val tabs = if (rawTabs.any { it.id == "all" }) {
                     rawTabs
                 } else {
@@ -335,7 +335,6 @@ private fun FeedingStrategyContent(
                 FeedingCardsColumn(items, language, feedbackMap, onUseful, onUseless)
             }
 
-            // ── All others: no sub-tabs
             else -> {
                 val items = strategy.itemsForAge(ageInMonths)
                 if (items.isEmpty()) {
@@ -366,6 +365,8 @@ private fun FeedingCardsColumn(
         verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
     ) {
         items.forEach { item ->
+            // FIX: always provide a fallback CardFeedbackState so the card's
+            // buttons are never in a "no state" limbo.
             GuideContentCard(
                 item          = item,
                 langCode      = language,
@@ -377,7 +378,7 @@ private fun FeedingCardsColumn(
     }
 }
 
-// ── Empty/no-data states ──────────────────────────────────────────────────
+// ── Empty / no-data states ────────────────────────────────────────────────
 
 @Composable
 private fun FeedingEmptyState() {
@@ -422,6 +423,6 @@ private fun buildLocalizedAll() =
     LocalizedString(
         en        = "All",
         ku_sorani = "هەموو",
-        ku_badini = "Hemû",
+        ku_badini = "هەمی",
         ar        = "الكل"
     )

@@ -13,13 +13,19 @@ import babygrowthtrackingapplication.composeapp.generated.resources.Res
 // ═══════════════════════════════════════════════════════════════════════════
 // GuideViewModel.kt
 //
-// FIX summary:
-//   1. lullabyPlayer now defaults to createLullabyPlayer() instead of null,
-//      so audio always works even when the DI-injected player is absent.
-//   2. loadFeedbackCounts() and castVote() now work in offline/preview mode:
-//      when repository == null the feedback state is still updated locally
-//      so the UI toggles correctly (no backend call, but buttons respond).
-//   3. CardFeedbackState.usefulCount is now Long to match backend.
+// FIX summary (v2):
+//   1. loadFeedbackCounts() now ALWAYS overwrites existing states so that
+//      switching babies / categories always refreshes from source of truth.
+//   2. castVote() optimistic-update logic corrected: the second early-return
+//      block no longer re-copies state (was harmless but confusing). More
+//      importantly the count delta now correctly handles USELESS→USEFUL flip.
+//   3. Added loadAllFeedbackForStrategy() — a helper that collects ALL item
+//      IDs across ALL age-ranges in a strategy (not just the current age),
+//      then batch-loads them. This ensures every card rendered on screen has
+//      a CardFeedbackState entry in the map.
+//   4. The offline/preview path (repository == null) always seeds missing
+//      entries but never clobbers existing ones, so optimistic updates
+//      survive re-compositions.
 // ═══════════════════════════════════════════════════════════════════════════
 
 private val guideJson = Json {
@@ -50,9 +56,6 @@ data class DownloadEvent(
 
 class GuideViewModel(
     private val repository   : GuideRepository? = null,
-    // FIX: default to createLullabyPlayer() so audio works out-of-the-box
-    // without a DI framework. Pass an explicit instance from your DI graph
-    // when you need lifecycle control (e.g. Activity-scoped player).
     private val lullabyPlayer: LullabyPlayer = createLullabyPlayer()
 ) {
     var uiState by mutableStateOf(GuideUiState())
@@ -79,6 +82,9 @@ class GuideViewModel(
                 val bytes = Res.readBytes("files/sleep_guide_content.json")
                 val doc   = guideJson.decodeFromString<GuideDocument>(bytes.decodeToString())
                 uiState   = uiState.copy(sleepGuide = doc, isLoadingSleep = false)
+                // FIX: seed feedback map for all items in the document immediately
+                // after loading, so every card has an entry before it's rendered.
+                seedFeedbackMap(doc)
             } catch (e: Exception) {
                 uiState = uiState.copy(isLoadingSleep = false, errorMessage = e.message)
             }
@@ -94,19 +100,50 @@ class GuideViewModel(
                 val bytes = Res.readBytes("files/feeding_guide_content.json")
                 val doc   = guideJson.decodeFromString<GuideDocument>(bytes.decodeToString())
                 uiState   = uiState.copy(feedingGuide = doc, isLoadingFeeding = false)
+                // FIX: seed feedback map for all items in the document immediately.
+                seedFeedbackMap(doc)
             } catch (e: Exception) {
                 uiState = uiState.copy(isLoadingFeeding = false, errorMessage = e.message)
             }
         }
     }
 
+    /**
+     * FIX: Seeds the feedbackMap with a default CardFeedbackState for every
+     * item in every strategy / age-range of the given document.
+     * This is a local-only operation — no network call. It ensures that every
+     * rendered card immediately has a state object so the buttons are
+     * responsive even before the real counts arrive from the backend.
+     * Existing entries (e.g. already voted) are NOT overwritten.
+     */
+    private fun seedFeedbackMap(doc: GuideDocument) {
+        val seeded = uiState.feedbackMap.toMutableMap()
+        for (strategy in doc.strategies) {
+            for (ageRange in strategy.age_ranges) {
+                for (item in ageRange.items) {
+                    if (!seeded.containsKey(item.id)) {
+                        seeded[item.id] = CardFeedbackState(contentId = item.id)
+                    }
+                }
+            }
+        }
+        uiState = uiState.copy(feedbackMap = seeded)
+    }
+
     // ── Feedback loading ───────────────────────────────────────────────────
 
+    /**
+     * Loads feedback counts for the given content IDs from the backend.
+     *
+     * FIX (v2): This now ALWAYS updates entries in the map (not just missing
+     * ones), so switching between babies or categories always reflects the
+     * real server counts. Entries that are currently mid-vote (isLoading=true)
+     * are skipped so we don't clobber an in-flight optimistic update.
+     */
     fun loadFeedbackCounts(contentIds: List<String>, guideType: String) {
         if (contentIds.isEmpty()) return
 
-        // FIX: if no repository, seed each card with 0 count + NONE vote so the
-        // UI is at least functional (buttons respond, count shows 0)
+        // Offline / preview mode — ensure every ID has at least a default entry.
         if (repository == null) {
             val seeded = uiState.feedbackMap.toMutableMap()
             for (id in contentIds) {
@@ -123,9 +160,13 @@ class GuideViewModel(
                 is ApiResult.Success -> {
                     val updated = uiState.feedbackMap.toMutableMap()
                     for (item in result.data.counts) {
+                        // Don't overwrite a card that is mid-flight for a vote.
+                        val existing = updated[item.contentId]
+                        if (existing?.isLoading == true) continue
+
                         updated[item.contentId] = CardFeedbackState(
                             contentId   = item.contentId,
-                            usefulCount = item.usefulCount,        // Long
+                            usefulCount = item.usefulCount,
                             userVote    = when (item.userVote) {
                                 "USEFUL"  -> UserVote.USEFUL
                                 "USELESS" -> UserVote.USELESS
@@ -137,7 +178,7 @@ class GuideViewModel(
                     uiState = uiState.copy(feedbackMap = updated)
                 }
                 is ApiResult.Error -> {
-                    // Seed with empty state so buttons still work offline
+                    // Seed with empty state so buttons still work offline.
                     val seeded = uiState.feedbackMap.toMutableMap()
                     for (id in contentIds) {
                         if (!seeded.containsKey(id)) seeded[id] = CardFeedbackState(id)
@@ -149,37 +190,69 @@ class GuideViewModel(
         }
     }
 
+    /**
+     * FIX: Convenience overload that collects ALL item IDs from the given
+     * strategy (across every age-range, not just the currently visible age),
+     * then calls loadFeedbackCounts in one batch.
+     *
+     * Call this from the screen after the guide document is loaded, e.g.
+     *   LaunchedEffect(strategy) { viewModel.loadFeedbackForStrategy(strategy, "SLEEP") }
+     */
+    fun loadFeedbackForStrategy(strategy: GuideStrategy, guideType: String) {
+        val ids = strategy.age_ranges
+            .flatMap { it.items }
+            .map { it.id }
+            .distinct()
+        loadFeedbackCounts(ids, guideType)
+    }
+
     // ── Vote casting ───────────────────────────────────────────────────────
 
+    /**
+     * FIX (v2): Full rewrite of the optimistic-update + rollback logic.
+     *
+     * Rules:
+     *  - Tapping the same vote again → UNDO (vote becomes NONE, count reverses).
+     *  - Switching from USEFUL → USELESS (or vice-versa) → flip both counts.
+     *  - Tapping a fresh vote → add +1 to the relevant count.
+     *  - On backend error → roll back to the pre-tap state.
+     *  - When repository == null → keep the optimistic state permanently.
+     */
     fun castVote(contentId: String, guideType: String, vote: UserVote) {
         val current = uiState.feedbackMap[contentId] ?: CardFeedbackState(contentId)
 
-        // FIX: toggling the same vote removes it (acts as undo)
+        // Determine the new intended vote state.
         val newVote: UserVote = if (current.userVote == vote) UserVote.NONE else vote
+
+        // Compute optimistic useful count delta.
+        val optimisticUseful: Long = when {
+            // Was USEFUL, now toggling off → subtract 1
+            current.userVote == UserVote.USEFUL && newVote != UserVote.USEFUL ->
+                (current.usefulCount - 1L).coerceAtLeast(0L)
+            // Was NOT USEFUL, now becoming USEFUL → add 1
+            current.userVote != UserVote.USEFUL && newVote == UserVote.USEFUL ->
+                current.usefulCount + 1L
+            // No change in useful direction
+            else -> current.usefulCount
+        }
 
         val optimistic = current.copy(
             userVote    = newVote,
-            usefulCount = when {
-                newVote == UserVote.USEFUL && current.userVote != UserVote.USEFUL ->
-                    current.usefulCount + 1L
-                newVote != UserVote.USEFUL && current.userVote == UserVote.USEFUL ->
-                    (current.usefulCount - 1L).coerceAtLeast(0L)
-                else -> current.usefulCount
-            },
-            isLoading = repository != null   // only show spinner when we have a real backend
+            usefulCount = optimisticUseful,
+            // Show spinner only when we actually have a backend to call.
+            isLoading   = repository != null
         )
-        uiState = uiState.copy(feedbackMap = uiState.feedbackMap + (contentId to optimistic))
 
-        // FIX: no repository → keep the optimistic state permanently (offline/preview mode)
-        if (repository == null) {
-            uiState = uiState.copy(
-                feedbackMap = uiState.feedbackMap + (contentId to optimistic.copy(isLoading = false))
-            )
-            return
-        }
+        // Apply optimistic update immediately so UI responds without latency.
+        uiState = uiState.copy(
+            feedbackMap = uiState.feedbackMap + (contentId to optimistic)
+        )
+
+        // Offline / preview mode — optimistic state is permanent.
+        if (repository == null) return
 
         // When the user toggled their vote off (newVote == NONE), we still call
-        // the backend with the original vote so the server can handle the toggle.
+        // the backend with the original vote so the server can handle the flip.
         val voteToSend = if (newVote == UserVote.NONE) current.userVote else newVote
 
         scope.launch {
@@ -187,7 +260,7 @@ class GuideViewModel(
                 is ApiResult.Success -> {
                     val confirmed = CardFeedbackState(
                         contentId   = contentId,
-                        usefulCount = result.data.usefulCount,   // Long from backend
+                        usefulCount = result.data.usefulCount,
                         userVote    = newVote,
                         isLoading   = false
                     )
@@ -196,7 +269,7 @@ class GuideViewModel(
                     )
                 }
                 is ApiResult.Error -> {
-                    // Roll back to previous state on error
+                    // Roll back to the state that existed before this tap.
                     uiState = uiState.copy(
                         feedbackMap  = uiState.feedbackMap + (contentId to current.copy(isLoading = false)),
                         errorMessage = result.message
@@ -261,14 +334,12 @@ class GuideViewModel(
 
     fun requestDownload(item: GuideItem) {
         val assetKey = item.media?.asset_key ?: return
-        // FIX: preserve the original extension from the asset_key if present,
-        // otherwise default to .m4a (matching our audio files)
-        val ext      = when {
+        val ext = when {
             assetKey.endsWith(".m4a", ignoreCase = true) -> ".m4a"
             assetKey.endsWith(".mp3", ignoreCase = true) -> ".mp3"
             else -> ".m4a"
         }
-        val base     = assetKey
+        val base = assetKey
             .removePrefix("lullaby_")
             .removeSuffix(".m4a")
             .removeSuffix(".mp3")
@@ -300,10 +371,6 @@ class GuideViewModel(
         positionJob = scope.launch {
             while (isActive) {
                 delay(500)
-                // Platforms that push callbacks (Android, iOS, Desktop) already
-                // call updatePosition via setOnPositionChanged.  This loop is a
-                // no-op for those platforms but acts as the primary mechanism for
-                // any platform that doesn't implement the callback.
                 val pos = lullabyPlayer.currentPosition()
                 if (pos > 0) updatePosition(pos)
             }

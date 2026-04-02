@@ -69,6 +69,7 @@ class SecurityConfig(
             "http://localhost:8080",
             "http://10.0.2.2:8080",
             "http://127.0.0.1:8080",
+            "http://172.20.10.3:8080",
             "https://babygrowth.com",
             "https://www.babygrowth.com",
             "https://app.babygrowth.com",
