@@ -1,40 +1,40 @@
 package org.example.project.babygrowthtrackingapplication.platform
 
+// ═══════════════════════════════════════════════════════════════════════════
+// LullabyPlayer.kt  —  commonMain  (expect)
+//
+// WHY THE CONSTRUCTOR IS PARAMETER-LESS HERE
+// ───────────────────────────────────────────
+// Kotlin Multiplatform expect/actual classes must share the same constructor
+// signature in commonMain.  Android's MediaPlayer needs a Context, but we
+// cannot put platform types in commonMain.
+//
+// SOLUTION — createLullabyPlayer() factory
+// ─────────────────────────────────────────
+// An expect top-level function createLullabyPlayer() is declared here and
+// implemented in every source set.  On Android the actual reads the
+// application Context from AppContextHolder (a tiny global set in
+// Application.onCreate).  All other platforms use a no-arg constructor.
+//
+// The ViewModel calls createLullabyPlayer() once in its init block, so it
+// always gets a fully initialised, non-null player.
+// ═══════════════════════════════════════════════════════════════════════════
+
 expect class LullabyPlayer {
-
-    /** Start playback of [assetKey]. Blank string = resume after pause. */
     fun play(assetKey: String)
-
-    /** Pause playback. Resources are kept; resume with play(""). */
     fun pause()
-
-    /** Stop playback and release all native resources. */
     fun stop()
-
-    /** Seek to [seconds] from the beginning of the track. */
     fun seekTo(seconds: Int)
-
-    /**
-     * Register a callback that is called every ~500 ms during playback
-     * with the current position in seconds.
-     */
     fun setOnPositionChanged(callback: (Int) -> Unit)
-
-    /**
-     * Register a callback fired when the track finishes playing naturally.
-     * Not called when [stop] is invoked programmatically.
-     */
     fun setOnCompleted(callback: () -> Unit)
-
-    /** Returns true while audio is actively playing. */
     fun isPlaying(): Boolean
-
-    /** Current playback position in seconds (0 if nothing loaded). */
     fun currentPosition(): Int
-
-    /** Total duration of the current track in seconds (0 if nothing loaded). */
     fun duration(): Int
-
-    /** Convenience alias for [stop] — call before discarding the player. */
     fun release()
 }
+
+/**
+ * Platform factory — call this instead of a constructor.
+ * Each source set provides its own actual implementation.
+ */
+expect fun createLullabyPlayer(): LullabyPlayer

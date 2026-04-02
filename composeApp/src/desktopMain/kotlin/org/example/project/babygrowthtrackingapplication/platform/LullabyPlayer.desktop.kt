@@ -6,26 +6,25 @@ import java.io.BufferedInputStream
 import javax.sound.sampled.*
 
 // ═══════════════════════════════════════════════════════════════════════════
-// LullabyPlayer.desktop.kt  —  desktopMain  (JVM / Compose Desktop)
+// LullabyPlayer.desktop.kt  —  desktopMain  (Compose for Desktop / JVM)
 //
-// Audio backend : javax.sound.sampled.Clip (built-in JVM; supports WAV,
-//                 AIFF, AU out of the box).
-//                 For MP3 support add the mp3spi library to your Gradle:
-//                   implementation("com.googlecode.soundlibs:mp3spi:1.9.5.4")
-//                 With mp3spi on the classpath AudioSystem.getClip() will
-//                 accept MP3 streams transparently.
+// AUDIO FILES
+// ───────────
+// Place MP3s in:  src/desktopMain/resources/
+// (Gradle copies them to the classpath root so they are found at "/<name>")
+// File names must match asset_key + ".mp3", e.g.:
+//   src/desktopMain/resources/lullaby_lale_lale_kurdan.mp3
 //
-// Asset lookup  : Classpath resource "/<assetKey>.mp3"
-//                 Place audio files in src/desktopMain/resources/ (or the
-//                 shared composeResources that Gradle copies there).
+// MP3 SUPPORT
+// ───────────
+// javax.sound.sampled supports WAV/AIFF natively.
+// For MP3 add to your desktop Gradle module:
+//   implementation("com.googlecode.soundlibs:mp3spi:1.9.5.4")
+// With mp3spi on the classpath, AudioSystem handles MP3 transparently.
 //
-// Position poll : Coroutine on Dispatchers.Default every 500 ms.
-// Download      : Copies the classpath resource to user's home music dir.
-//
-// IMPORTANT — asset path convention
-// ──────────────────────────────────
-// assetKey e.g. "lullaby_lale_lale_kurdan" → classpath resource
-// "/lullaby_lale_lale_kurdan.mp3"
+// DOWNLOAD
+// ────────
+// downloadLullaby() copies the classpath resource to ~/Music/BabyGrowth/.
 // ═══════════════════════════════════════════════════════════════════════════
 
 actual class LullabyPlayer {
@@ -35,162 +34,93 @@ actual class LullabyPlayer {
     private var onCompleted      : (() -> Unit)?    = null
     private var pollingJob       : Job?             = null
     private var currentAssetKey  : String?          = null
-
-    // Coroutine scope tied to the lifetime of this player
-    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private val scope            = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     // ── play ──────────────────────────────────────────────────────────────
-
     actual fun play(assetKey: String) {
         when {
-            // Resume after pause
             assetKey.isBlank() -> {
-                clip?.start()
-                startPolling()
-                return
+                clip?.start(); startPolling()
             }
-
-            // Same track — resume if stopped/paused
             assetKey == currentAssetKey && clip != null -> {
-                if (clip?.isRunning == false) {
-                    clip?.start()
-                    startPolling()
-                }
-                return
+                if (clip?.isRunning == false) { clip?.start(); startPolling() }
             }
-
-            // New track
             else -> {
                 releaseInternal()
                 currentAssetKey = assetKey
-            }
-        }
-
-        val fileName = resolveFileName(assetKey)
-        val stream   = javaClass.getResourceAsStream("/$fileName")
-        if (stream == null) {
-            System.err.println("[LullabyPlayer] Resource not found: /$fileName")
-            return
-        }
-
-        try {
-            val audioInput = AudioSystem.getAudioInputStream(BufferedInputStream(stream))
-            // Some formats (e.g. MP3) need conversion to a PCM format the Clip understands
-            val baseFormat   = audioInput.format
-            val decodedFormat = AudioFormat(
-                AudioFormat.Encoding.PCM_SIGNED,
-                baseFormat.sampleRate,
-                16,
-                baseFormat.channels,
-                baseFormat.channels * 2,
-                baseFormat.sampleRate,
-                false
-            )
-            val decodedStream = AudioSystem.getAudioInputStream(decodedFormat, audioInput)
-
-            clip = AudioSystem.getClip().apply {
-                open(decodedStream)
-                addLineListener { event ->
-                    if (event.type == LineEvent.Type.STOP && microsecondPosition >= microsecondLength - 10_000) {
-                        // Natural completion (not a pause/stop call)
-                        onCompleted?.invoke()
-                        onPositionChanged?.invoke(0)
-                        this@LullabyPlayer.stopPolling()
-                    }
+                val fileName = resolveFileName(assetKey)
+                val stream   = javaClass.getResourceAsStream("/$fileName") ?: run {
+                    System.err.println("[LullabyPlayer/Desktop] Not found: /$fileName"); return
                 }
-                start()
+                try {
+                    val raw = AudioSystem.getAudioInputStream(BufferedInputStream(stream))
+                    // Decode to PCM so the Clip can handle MP3 (requires mp3spi)
+                    val fmt = raw.format
+                    val pcm = AudioFormat(
+                        AudioFormat.Encoding.PCM_SIGNED,
+                        fmt.sampleRate, 16, fmt.channels,
+                        fmt.channels * 2, fmt.sampleRate, false
+                    )
+                    val decoded = AudioSystem.getAudioInputStream(pcm, raw)
+                    clip = AudioSystem.getClip().apply {
+                        open(decoded)
+                        addLineListener { event ->
+                            if (event.type == LineEvent.Type.STOP &&
+                                microsecondPosition >= microsecondLength - 50_000) {
+                                // Natural end (not pause/stop)
+                                this@LullabyPlayer.onCompleted?.invoke()
+                                this@LullabyPlayer.onPositionChanged?.invoke(0)
+                                this@LullabyPlayer.stopPolling()
+                            }
+                        }
+                        start()
+                    }
+                    startPolling()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
-            startPolling()
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
-    // ── pause ─────────────────────────────────────────────────────────────
-
-    actual fun pause() {
-        clip?.stop()   // Clip.stop() = pause (position is preserved)
-        stopPolling()
-    }
-
-    // ── stop ──────────────────────────────────────────────────────────────
+    actual fun pause() { clip?.stop(); stopPolling() }   // Clip.stop() = pause
 
     actual fun stop() {
-        stopPolling()
-        releaseInternal()
-        currentAssetKey = null
-        onPositionChanged?.invoke(0)
+        stopPolling(); releaseInternal()
+        currentAssetKey = null; onPositionChanged?.invoke(0)
     }
-
-    // ── seekTo ────────────────────────────────────────────────────────────
 
     actual fun seekTo(seconds: Int) {
         clip?.let { c ->
-            val micros = (seconds * 1_000_000L).coerceIn(0L, c.microsecondLength)
-            c.microsecondPosition = micros
+            c.microsecondPosition = (seconds * 1_000_000L).coerceIn(0L, c.microsecondLength)
             onPositionChanged?.invoke(seconds)
         }
     }
 
-    // ── callbacks ─────────────────────────────────────────────────────────
+    actual fun setOnPositionChanged(callback: (Int) -> Unit) { onPositionChanged = callback }
+    actual fun setOnCompleted(callback: () -> Unit)          { onCompleted = callback }
 
-    actual fun setOnPositionChanged(callback: (Int) -> Unit) {
-        onPositionChanged = callback
-    }
+    actual fun isPlaying(): Boolean   = clip?.isRunning ?: false
+    actual fun currentPosition(): Int = ((clip?.microsecondPosition ?: 0L) / 1_000_000L).toInt()
+    actual fun duration(): Int        = ((clip?.microsecondLength  ?: 0L) / 1_000_000L).toInt()
 
-    actual fun setOnCompleted(callback: () -> Unit) {
-        onCompleted = callback
-    }
+    actual fun release() { stop(); scope.cancel() }
 
-    // ── state queries ─────────────────────────────────────────────────────
-
-    actual fun isPlaying(): Boolean = clip?.isRunning ?: false
-
-    actual fun currentPosition(): Int =
-        ((clip?.microsecondPosition ?: 0L) / 1_000_000L).toInt()
-
-    actual fun duration(): Int =
-        ((clip?.microsecondLength ?: 0L) / 1_000_000L).toInt()
-
-    // ── release ───────────────────────────────────────────────────────────
-
-    actual fun release() {
-        stop()
-        scope.cancel()
-    }
-
-    // ═══════════════════════════════════════════════════════════════════════
-    // Download helper
-    //
-    // Copies the classpath resource to ~/Music/BabyGrowth/<displayName>.
-    // Call from the Compose screen when DownloadEvent is consumed.
-    // ═══════════════════════════════════════════════════════════════════════
-
+    // ── Download helper ───────────────────────────────────────────────────
     fun downloadLullaby(assetKey: String, displayName: String) {
         val fileName = resolveFileName(assetKey)
-        val stream   = javaClass.getResourceAsStream("/$fileName") ?: run {
-            System.err.println("[LullabyPlayer] Cannot download: /$fileName not found")
-            return
-        }
+        val stream   = javaClass.getResourceAsStream("/$fileName") ?: return
         try {
-            val musicDir = java.io.File(
-                System.getProperty("user.home"),
-                "Music${java.io.File.separator}BabyGrowth"
-            )
-            musicDir.mkdirs()
-            val dest = java.io.File(musicDir, displayName)
-            dest.outputStream().use { out -> stream.copyTo(out) }
+            val dir = java.io.File(System.getProperty("user.home"), "Music/BabyGrowth")
+            dir.mkdirs()
+            java.io.File(dir, displayName).outputStream().use { stream.copyTo(it) }
             stream.close()
-            println("[LullabyPlayer] Downloaded to: ${dest.absolutePath}")
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        } catch (e: Exception) { e.printStackTrace() }
     }
 
-    // ── internal helpers ──────────────────────────────────────────────────
-
-    private fun resolveFileName(assetKey: String): String =
-        if (assetKey.endsWith(".mp3", ignoreCase = true)) assetKey else "$assetKey.mp3"
+    // ── Internal helpers ──────────────────────────────────────────────────
+    private fun resolveFileName(key: String) =
+        if (key.endsWith(".mp3", ignoreCase = true)) key else "$key.mp3"
 
     private fun startPolling() {
         pollingJob?.cancel()
@@ -206,16 +136,12 @@ actual class LullabyPlayer {
         }
     }
 
-    private fun stopPolling() {
-        pollingJob?.cancel()
-        pollingJob = null
-    }
+    private fun stopPolling()  { pollingJob?.cancel(); pollingJob = null }
 
     private fun releaseInternal() {
-        try {
-            clip?.stop()
-            clip?.close()
-        } catch (_: Exception) { }
+        try { clip?.stop(); clip?.close() } catch (_: Exception) {}
         clip = null
     }
 }
+
+actual fun createLullabyPlayer(): LullabyPlayer = LullabyPlayer()

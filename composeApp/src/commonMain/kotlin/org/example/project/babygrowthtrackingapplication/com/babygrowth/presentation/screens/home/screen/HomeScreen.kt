@@ -17,34 +17,34 @@ import org.example.project.babygrowthtrackingapplication.ui.components.rememberU
 
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel,
-    healthRecordViewModel: HealthRecordViewModel,
-    settingsViewModel: SettingsViewModel,
-    familyHistoryViewModel: FamilyHistoryViewModel,
-    childIllnessesViewModel: ChildIllnessesViewModel,
-    guideViewModel: GuideViewModel,
-    currentLanguage: Language = Language.ENGLISH,
-    onLanguageChange: (Language) -> Unit = {},
-    onDarkModeChange: (Boolean) -> Unit = {},
-    onGenderThemeChange: (GenderTheme) -> Unit = {},
-    selectedTab: NavigationTab = NavigationTab.HOME,
-    onTabChange: (NavigationTab) -> Unit = {},
-    onAddBaby: () -> Unit = {},
-    onSeeProfile: (BabyResponse) -> Unit = {},
-    onEditDetails: (BabyResponse) -> Unit = {},
-    onAddMeasurement: (BabyResponse) -> Unit = {},
-    onViewGrowthChart: (BabyResponse) -> Unit = {},
-    onAddMeasurementById: (String) -> Unit = {},
-    onViewAllMeasurementsById: (String) -> Unit = {},
-    onNavigateToWelcome: () -> Unit = {},
-    onNavigateToFamilyHistory: (String, String) -> Unit = { _, _ -> },
-    onNavigateToChildIllnesses: (String, String) -> Unit = { _, _ -> },
-    // ── NEW: Developmental Navigation Callbacks ──────────────────────
-    onNavigateToVisionMotor: (String, String) -> Unit = { _, _ -> },
-    onNavigateToHearingSpeech: (String, String) -> Unit = { _, _ -> },
-    // ─────────────────────────────────────────────────────────────────
-    onNavigateToSleepGuide: () -> Unit = {},
-    onNavigateToFeedingGuide: () -> Unit = {},
+    viewModel                  : HomeViewModel,
+    healthRecordViewModel      : HealthRecordViewModel,
+    settingsViewModel          : SettingsViewModel,
+    familyHistoryViewModel     : FamilyHistoryViewModel,
+    childIllnessesViewModel    : ChildIllnessesViewModel,
+    visionMotorViewModel       : VisionMotorViewModel,
+    hearingSpeechViewModel     : HearingSpeechViewModel,
+    guideViewModel             : GuideViewModel,
+    currentLanguage            : Language = Language.ENGLISH,
+    onLanguageChange           : (Language) -> Unit = {},
+    onDarkModeChange           : (Boolean) -> Unit = {},
+    onGenderThemeChange        : (GenderTheme) -> Unit = {},
+    selectedTab                : NavigationTab = NavigationTab.HOME,
+    onTabChange                : (NavigationTab) -> Unit = {},
+    onAddBaby                  : () -> Unit = {},
+    onSeeProfile               : (BabyResponse) -> Unit = {},
+    onEditDetails              : (BabyResponse) -> Unit = {},
+    onAddMeasurement           : (BabyResponse) -> Unit = {},
+    onViewGrowthChart          : (BabyResponse) -> Unit = {},
+    onAddMeasurementById       : (String) -> Unit = {},
+    onViewAllMeasurementsById  : (String) -> Unit = {},
+    onNavigateToWelcome        : () -> Unit = {},
+    onNavigateToFamilyHistory  : (String, String) -> Unit = { _, _ -> },
+    onNavigateToChildIllnesses : (String, String) -> Unit = { _, _ -> },
+    onNavigateToVisionMotor    : (String, String) -> Unit = { _, _ -> },
+    onNavigateToHearingSpeech  : (String, String) -> Unit = { _, _ -> },
+    onNavigateToSleepGuide     : () -> Unit = {},
+    onNavigateToFeedingGuide   : () -> Unit = {},
 ) {
     val state       = viewModel.uiState
     val useSideRail = rememberUseSideRail()
@@ -57,10 +57,10 @@ fun HomeScreen(
             )
 
             HorizontalDivider(
-                modifier  = Modifier
+                modifier = Modifier
                     .fillMaxHeight()
                     .width(androidx.compose.ui.unit.Dp.Hairline),
-                color     = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+                color    = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
             )
 
             Box(
@@ -75,7 +75,9 @@ fun HomeScreen(
                     healthRecordViewModel      = healthRecordViewModel,
                     settingsViewModel          = settingsViewModel,
                     familyHistoryViewModel     = familyHistoryViewModel,
-                    childIllnessesViewModel    = childIllnessesViewModel,   // ← NEW
+                    childIllnessesViewModel    = childIllnessesViewModel,
+                    visionMotorViewModel       = visionMotorViewModel,
+                    hearingSpeechViewModel     = hearingSpeechViewModel,
                     guideViewModel             = guideViewModel,
                     state                      = state,
                     currentLanguage            = currentLanguage,
@@ -91,7 +93,9 @@ fun HomeScreen(
                     onViewAllMeasurementsById  = onViewAllMeasurementsById,
                     onNavigateToWelcome        = onNavigateToWelcome,
                     onNavigateToFamilyHistory  = onNavigateToFamilyHistory,
-                    onNavigateToChildIllnesses = onNavigateToChildIllnesses,  // ← NEW
+                    onNavigateToChildIllnesses = onNavigateToChildIllnesses,
+                    onNavigateToVisionMotor    = onNavigateToVisionMotor,
+                    onNavigateToHearingSpeech  = onNavigateToHearingSpeech,
                     onNavigateToSleepGuide     = onNavigateToSleepGuide,
                     onNavigateToFeedingGuide   = onNavigateToFeedingGuide,
                     bottomPadding              = androidx.compose.ui.unit.Dp(0f)
@@ -120,7 +124,9 @@ fun HomeScreen(
                     healthRecordViewModel      = healthRecordViewModel,
                     settingsViewModel          = settingsViewModel,
                     familyHistoryViewModel     = familyHistoryViewModel,
-                    childIllnessesViewModel    = childIllnessesViewModel,   // ← NEW
+                    childIllnessesViewModel    = childIllnessesViewModel,
+                    visionMotorViewModel       = visionMotorViewModel,
+                    hearingSpeechViewModel     = hearingSpeechViewModel,
                     guideViewModel             = guideViewModel,
                     state                      = state,
                     currentLanguage            = currentLanguage,
@@ -136,7 +142,9 @@ fun HomeScreen(
                     onViewAllMeasurementsById  = onViewAllMeasurementsById,
                     onNavigateToWelcome        = onNavigateToWelcome,
                     onNavigateToFamilyHistory  = onNavigateToFamilyHistory,
-                    onNavigateToChildIllnesses = onNavigateToChildIllnesses,  // ← NEW
+                    onNavigateToChildIllnesses = onNavigateToChildIllnesses,
+                    onNavigateToVisionMotor    = onNavigateToVisionMotor,
+                    onNavigateToHearingSpeech  = onNavigateToHearingSpeech,
                     onNavigateToSleepGuide     = onNavigateToSleepGuide,
                     onNavigateToFeedingGuide   = onNavigateToFeedingGuide,
                     bottomPadding              = paddingValues.calculateBottomPadding()
@@ -146,6 +154,10 @@ fun HomeScreen(
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// TabContent
+// ─────────────────────────────────────────────────────────────────────────────
+
 @Composable
 private fun TabContent(
     selectedTab                : NavigationTab,
@@ -153,7 +165,9 @@ private fun TabContent(
     healthRecordViewModel      : HealthRecordViewModel,
     settingsViewModel          : SettingsViewModel,
     familyHistoryViewModel     : FamilyHistoryViewModel,
-    childIllnessesViewModel    : ChildIllnessesViewModel,         // ← NEW
+    childIllnessesViewModel    : ChildIllnessesViewModel,
+    visionMotorViewModel       : VisionMotorViewModel,
+    hearingSpeechViewModel     : HearingSpeechViewModel,
     guideViewModel             : GuideViewModel,
     state                      : HomeUiState,
     currentLanguage            : Language,
@@ -169,7 +183,9 @@ private fun TabContent(
     onViewAllMeasurementsById  : (String) -> Unit,
     onNavigateToWelcome        : () -> Unit,
     onNavigateToFamilyHistory  : (String, String) -> Unit,
-    onNavigateToChildIllnesses : (String, String) -> Unit,        // ← NEW
+    onNavigateToChildIllnesses : (String, String) -> Unit,
+    onNavigateToVisionMotor    : (String, String) -> Unit,
+    onNavigateToHearingSpeech  : (String, String) -> Unit,
     onNavigateToSleepGuide     : () -> Unit,
     onNavigateToFeedingGuide   : () -> Unit,
     bottomPadding              : androidx.compose.ui.unit.Dp,
@@ -209,11 +225,14 @@ private fun TabContent(
         NavigationTab.SETTINGS -> {
             val selectedBaby = state.selectedBaby
 
-            // Load data for the selected baby when settings tab is shown
+            // Load all information-section data when the settings tab is shown
+            // and a baby is selected. Key on babyId so it re-runs on baby change.
             LaunchedEffect(selectedBaby?.babyId) {
-                selectedBaby?.let {
-                    familyHistoryViewModel.loadFamilyHistory(it.babyId)
-                    childIllnessesViewModel.loadIllnesses(it.babyId)   // ← NEW
+                selectedBaby?.let { baby ->
+                    familyHistoryViewModel.loadFamilyHistory(baby.babyId)
+                    childIllnessesViewModel.loadIllnesses(baby.babyId)
+                    visionMotorViewModel.load(baby.babyId, baby.ageInMonths)
+                    hearingSpeechViewModel.load(baby.babyId, baby.ageInMonths)
                 }
             }
 
@@ -224,12 +243,16 @@ private fun TabContent(
                 onGenderThemeChange        = onGenderThemeChange,
                 onNavigateToWelcome        = onNavigateToWelcome,
                 onNavigateToFamilyHistory  = onNavigateToFamilyHistory,
-                onNavigateToChildIllnesses = onNavigateToChildIllnesses,         // ← NEW
+                onNavigateToChildIllnesses = onNavigateToChildIllnesses,
+                onNavigateToVisionMotor    = onNavigateToVisionMotor,
+                onNavigateToHearingSpeech  = onNavigateToHearingSpeech,
                 selectedBabyId             = selectedBaby?.babyId,
                 selectedBabyName           = selectedBaby?.fullName ?: "",
                 familyHistoryIsSet         = familyHistoryViewModel.uiState.isSet,
-                childIllnessCount          = childIllnessesViewModel.uiState.illnesses.size,    // ← NEW
-                childIllnessActiveCount    = childIllnessesViewModel.uiState.activeCount        // ← NEW
+                childIllnessCount          = childIllnessesViewModel.uiState.illnesses.size,
+                childIllnessActiveCount    = childIllnessesViewModel.uiState.activeCount,
+                visionMotorCount           = visionMotorViewModel.uiState.savedRecords.size,
+                hearingSpeechCount         = hearingSpeechViewModel.uiState.savedRecords.size,
             )
         }
     }

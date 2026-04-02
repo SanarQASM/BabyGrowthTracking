@@ -15,31 +15,33 @@ import java.io.FileOutputStream
 // ═══════════════════════════════════════════════════════════════════════════
 // LullabyPlayer.android.kt  —  androidMain
 //
-// Audio backend : android.media.MediaPlayer
-// Asset lookup  : Context.assets (files must be in src/androidMain/assets/
-//                 or the shared composeResources assets folder bridged via
-//                 Gradle).
-// Position poll : android.os.Handler @ 500 ms on the main thread.
-// Download      : MediaStore (API 29+) or legacy external storage.
+// AUDIO FILES
+// ───────────
+// Place your MP3s in:  src/androidMain/assets/
+// Name them exactly as the asset_key in the JSON plus ".mp3", e.g.:
+//   src/androidMain/assets/lullaby_lale_lale_kurdan.mp3
+//   src/androidMain/assets/lullaby_dilber_dilber.mp3
+//   src/androidMain/assets/lullaby_ya_mulay.mp3
+//   src/androidMain/assets/lullaby_nami_nami.mp3
+//   src/androidMain/assets/lullaby_twinkle.mp3
+//   src/androidMain/assets/lullaby_hush_little_baby.mp3
 //
-// IMPORTANT — asset path convention
-// ──────────────────────────────────
-// The ViewModel passes the raw asset_key from the JSON, e.g.:
-//   "lullaby_lale_lale_kurdan"
-// The Android implementation appends ".mp3" automatically, so the file
-// in assets/ must be named "lullaby_lale_lale_kurdan.mp3".
+// DOWNLOAD
+// ────────
+// Cast the LullabyPlayer to LullabyPlayer and call downloadLullaby() from
+// the screen when the DownloadEvent is consumed, e.g.:
+//   (viewModel.player as? LullabyPlayer)?.downloadLullaby(assetKey, fileName)
 // ═══════════════════════════════════════════════════════════════════════════
 
 actual class LullabyPlayer(private val context: Context) {
 
-    private var mediaPlayer      : MediaPlayer? = null
+    private var mediaPlayer      : MediaPlayer?     = null
     private var onPositionChanged: ((Int) -> Unit)? = null
     private var onCompleted      : (() -> Unit)?    = null
     private val handler          = Handler(Looper.getMainLooper())
-    private var currentAssetKey  : String? = null
+    private var currentAssetKey  : String?          = null
 
-    // ── Position polling runnable ─────────────────────────────────────────
-
+    // ── Position polling runnable (500 ms) ────────────────────────────────
     private val positionRunnable = object : Runnable {
         override fun run() {
             val mp = mediaPlayer ?: return
@@ -51,61 +53,50 @@ actual class LullabyPlayer(private val context: Context) {
     }
 
     // ── play ──────────────────────────────────────────────────────────────
-
     actual fun play(assetKey: String) {
         when {
-            // Resume after pause (ViewModel passes blank to resume)
+            // Blank = resume after pause
             assetKey.isBlank() -> {
                 mediaPlayer?.start()
                 startPolling()
-                return
             }
-
-            // Same track — resume if paused, do nothing if already playing
+            // Same track already loaded — resume if paused
             assetKey == currentAssetKey && mediaPlayer != null -> {
                 if (mediaPlayer?.isPlaying == false) {
                     mediaPlayer?.start()
                     startPolling()
                 }
-                return
             }
-
-            // New track — release old player first
+            // New track
             else -> {
                 releaseInternal()
                 currentAssetKey = assetKey
-            }
-        }
-
-        val fileName = resolveFileName(assetKey)
-        try {
-            val afd = context.assets.openFd(fileName)
-            mediaPlayer = MediaPlayer().apply {
-                setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
-                afd.close()
-                prepare()   // synchronous; use prepareAsync() for large files
-                setOnCompletionListener {
-                    onCompleted?.invoke()
-                    // reset position display
-                    onPositionChanged?.invoke(0)
-                    this@LullabyPlayer.stopPolling()
+                val fileName = resolveFileName(assetKey)
+                try {
+                    val afd = context.assets.openFd(fileName)
+                    mediaPlayer = MediaPlayer().apply {
+                        setDataSource(afd.fileDescriptor, afd.startOffset, afd.length)
+                        afd.close()
+                        prepare()
+                        setOnCompletionListener {
+                            this@LullabyPlayer.onCompleted?.invoke()
+                            this@LullabyPlayer.onPositionChanged?.invoke(0)
+                            this@LullabyPlayer.stopPolling()
+                        }
+                        start()
+                    }
+                    startPolling()
+                } catch (e: Exception) {
+                    e.printStackTrace()
                 }
-                start()
             }
-            startPolling()
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
-
-    // ── pause ─────────────────────────────────────────────────────────────
 
     actual fun pause() {
         mediaPlayer?.pause()
         stopPolling()
     }
-
-    // ── stop ──────────────────────────────────────────────────────────────
 
     actual fun stop() {
         stopPolling()
@@ -114,17 +105,12 @@ actual class LullabyPlayer(private val context: Context) {
         onPositionChanged?.invoke(0)
     }
 
-    // ── seekTo ────────────────────────────────────────────────────────────
-
     actual fun seekTo(seconds: Int) {
         mediaPlayer?.let { mp ->
-            val ms = (seconds * 1_000).coerceIn(0, mp.duration)
-            mp.seekTo(ms)
+            mp.seekTo((seconds * 1_000).coerceIn(0, mp.duration))
             onPositionChanged?.invoke(seconds)
         }
     }
-
-    // ── callbacks ─────────────────────────────────────────────────────────
 
     actual fun setOnPositionChanged(callback: (Int) -> Unit) {
         onPositionChanged = callback
@@ -134,72 +120,52 @@ actual class LullabyPlayer(private val context: Context) {
         onCompleted = callback
     }
 
-    // ── state queries ─────────────────────────────────────────────────────
-
     actual fun isPlaying(): Boolean = mediaPlayer?.isPlaying ?: false
 
-    actual fun currentPosition(): Int =
-        (mediaPlayer?.currentPosition ?: 0) / 1_000
+    actual fun currentPosition(): Int = (mediaPlayer?.currentPosition ?: 0) / 1_000
 
-    actual fun duration(): Int =
-        (mediaPlayer?.duration ?: 0) / 1_000
-
-    // ── release ───────────────────────────────────────────────────────────
+    actual fun duration(): Int = (mediaPlayer?.duration ?: 0) / 1_000
 
     actual fun release() = stop()
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // Download helper
-    //
-    // Copies the audio asset to the device's Music folder.
-    // Call this from the Compose screen when the DownloadEvent is consumed.
-    //   e.g. (lullabyPlayer as LullabyPlayer).downloadLullaby(assetKey, fileName)
-    // ═══════════════════════════════════════════════════════════════════════
-
+    // ── Download helper ───────────────────────────────────────────────────
     fun downloadLullaby(assetKey: String, displayName: String) {
         val fileName = resolveFileName(assetKey)
         try {
-            val inputStream = context.assets.open(fileName)
+            val input = context.assets.open(fileName)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                // API 29+ — no WRITE_EXTERNAL_STORAGE permission needed
                 val values = ContentValues().apply {
                     put(MediaStore.Audio.Media.DISPLAY_NAME, displayName)
                     put(MediaStore.Audio.Media.MIME_TYPE, "audio/mpeg")
-                    put(
-                        MediaStore.Audio.Media.RELATIVE_PATH,
-                        "${Environment.DIRECTORY_MUSIC}${File.separator}BabyGrowth"
-                    )
+                    put(MediaStore.Audio.Media.RELATIVE_PATH,
+                        "${Environment.DIRECTORY_MUSIC}${File.separator}BabyGrowth")
                     put(MediaStore.Audio.Media.IS_PENDING, 1)
                 }
                 val resolver = context.contentResolver
                 val uri = resolver.insert(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, values)
                 uri?.let {
-                    resolver.openOutputStream(it)?.use { out -> inputStream.copyTo(out) }
+                    resolver.openOutputStream(it)?.use { out -> input.copyTo(out) }
                     values.clear()
                     values.put(MediaStore.Audio.Media.IS_PENDING, 0)
                     resolver.update(it, values, null, null)
                 }
             } else {
-                // Legacy — requires WRITE_EXTERNAL_STORAGE in manifest for API < 29
                 val dir = File(
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC),
                     "BabyGrowth"
                 )
                 dir.mkdirs()
-                val dest = File(dir, displayName)
-                FileOutputStream(dest).use { out -> inputStream.copyTo(out) }
+                FileOutputStream(File(dir, displayName)).use { out -> input.copyTo(out) }
             }
-            inputStream.close()
+            input.close()
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
-    // ── internal helpers ──────────────────────────────────────────────────
-
-    private fun resolveFileName(assetKey: String): String =
-        if (assetKey.endsWith(".mp3", ignoreCase = true)) assetKey
-        else "$assetKey.mp3"
+    // ── Internal helpers ──────────────────────────────────────────────────
+    private fun resolveFileName(key: String) =
+        if (key.endsWith(".mp3", ignoreCase = true)) key else "$key.mp3"
 
     private fun startPolling() {
         handler.removeCallbacks(positionRunnable)
@@ -211,10 +177,11 @@ actual class LullabyPlayer(private val context: Context) {
     }
 
     private fun releaseInternal() {
-        try {
-            mediaPlayer?.stop()
-            mediaPlayer?.release()
-        } catch (_: Exception) { }
+        try { mediaPlayer?.stop(); mediaPlayer?.release() } catch (_: Exception) {}
         mediaPlayer = null
     }
 }
+
+// ── Actual factory ────────────────────────────────────────────────────────
+actual fun createLullabyPlayer(): LullabyPlayer =
+    LullabyPlayer(AppContextHolder.context)

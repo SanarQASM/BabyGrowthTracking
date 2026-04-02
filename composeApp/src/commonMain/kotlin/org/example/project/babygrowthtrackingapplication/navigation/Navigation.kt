@@ -30,14 +30,14 @@ import org.example.project.babygrowthtrackingapplication.com.babygrowth.presenta
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.SettingsViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.FamilyHistoryViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.ChildIllnessesViewModel
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.VisionMotorViewModel // ← ADDED
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HearingSpeechViewModel // ← ADDED
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.VisionMotorViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HearingSpeechViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.GuideViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.AllMeasurementsScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.ChildIllnessesScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.FamilyHistoryScreen
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.VisionMotorScreen // ← ADDED
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.HearingSpeechScreen // ← ADDED
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.VisionMotorScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.HearingSpeechScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.SleepGuideScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.FeedingGuideScreen
 import org.example.project.babygrowthtrackingapplication.data.auth.SocialAuthManager
@@ -70,9 +70,9 @@ enum class Screen {
     AddMeasurement,
     AllMeasurements,
     FamilyHistory,
-    ChildIllnesses,       // ← NEW
-    ChildDevVisionMotor,  // ← ADDED
-    ChildDevHearingSpeech,// ← ADDED
+    ChildIllnesses,
+    ChildDevVisionMotor,
+    ChildDevHearingSpeech,
     SleepGuide,
     FeedingGuide
 }
@@ -95,19 +95,19 @@ fun AppNavigation(
     var resetEmail by remember { mutableStateOf("") }
     var resetCode  by remember { mutableStateOf("") }
 
-    var selectedBaby          by remember { mutableStateOf<BabyResponse?>(null) }
-    var measurementBaby       by remember { mutableStateOf<BabyResponse?>(null) }
-    var allMeasurementsBaby   by remember { mutableStateOf<BabyResponse?>(null) }
-    var familyHistoryBaby     by remember { mutableStateOf<BabyResponse?>(null) }
-    var childIllnessesBaby    by remember { mutableStateOf<BabyResponse?>(null) }  // ← NEW
-
-    // ── NEW: Child Dev State ──────────────────────────────────────────────────
-    var childDevBaby          by remember { mutableStateOf<BabyResponse?>(null) }
-    var childDevScreen        by remember { mutableStateOf(Screen.ChildDevVisionMotor) }
+    // ── Baby-specific navigation state ────────────────────────────────────────
+    var selectedBaby        by remember { mutableStateOf<BabyResponse?>(null) }
+    var measurementBaby     by remember { mutableStateOf<BabyResponse?>(null) }
+    var allMeasurementsBaby by remember { mutableStateOf<BabyResponse?>(null) }
+    var familyHistoryBaby   by remember { mutableStateOf<BabyResponse?>(null) }
+    var childIllnessesBaby  by remember { mutableStateOf<BabyResponse?>(null) }
+    // Shared baby reference for both child-dev screens
+    var childDevBaby        by remember { mutableStateOf<BabyResponse?>(null) }
 
     var selectedTab by remember { mutableStateOf(NavigationTab.HOME) }
     var originTab   by remember { mutableStateOf(NavigationTab.HOME) }
 
+    // ── Services & repositories ───────────────────────────────────────────────
     val apiService = remember {
         ApiService(getToken = { preferencesManager.getAuthToken() })
     }
@@ -116,6 +116,7 @@ fun AppNavigation(
     val socialAuthManager = remember { SocialAuthManager() }
     val socialLoginHelper = remember { SocialLoginHelper(repository) }
 
+    // ── ViewModels ────────────────────────────────────────────────────────────
     val homeViewModel = remember {
         HomeViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
@@ -144,7 +145,6 @@ fun AppNavigation(
         ChildIllnessesViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
 
-    // ── NEW: Child Dev ViewModels ─────────────────────────────────────────────
     val visionMotorViewModel = remember {
         VisionMotorViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
@@ -176,6 +176,7 @@ fun AppNavigation(
         EnterNewPasswordViewModel(authRepository = repository)
     }
 
+    // ── Lifecycle ──────────────────────────────────────────────────────────────
     InitializeSocialAuth(socialAuthManager)
     DisposableEffect(Unit) {
         onDispose {
@@ -185,17 +186,18 @@ fun AppNavigation(
             healthRecordViewModel.onDestroy()
             settingsViewModel.onDestroy()
             familyHistoryViewModel.onDestroy()
-            childIllnessesViewModel.onDestroy()   // ← NEW
-            visionMotorViewModel.onDestroy()      // ← ADDED
-            hearingSpeechViewModel.onDestroy()    // ← ADDED
+            childIllnessesViewModel.onDestroy()
+            visionMotorViewModel.onDestroy()
+            hearingSpeechViewModel.onDestroy()
             guideViewModel.onDestroy()
             cleanupSocialAuth(socialAuthManager)
         }
     }
 
+    // ── Navigation ─────────────────────────────────────────────────────────────
     SharedTransitionLayout {
         AnimatedContent(
-            targetState = currentScreen,
+            targetState  = currentScreen,
             transitionSpec = {
                 when (targetState) {
                     Screen.Login,
@@ -237,9 +239,9 @@ fun AppNavigation(
                     Screen.AddMeasurement,
                     Screen.AllMeasurements,
                     Screen.FamilyHistory,
-                    Screen.ChildIllnesses,        // ← NEW
-                    Screen.ChildDevVisionMotor,   // ← ADDED
-                    Screen.ChildDevHearingSpeech, // ← ADDED
+                    Screen.ChildIllnesses,
+                    Screen.ChildDevVisionMotor,
+                    Screen.ChildDevHearingSpeech,
                     Screen.SleepGuide,
                     Screen.FeedingGuide ->
                         slideInHorizontally(
@@ -407,7 +409,9 @@ fun AppNavigation(
                         healthRecordViewModel      = healthRecordViewModel,
                         settingsViewModel          = settingsViewModel,
                         familyHistoryViewModel     = familyHistoryViewModel,
-                        childIllnessesViewModel    = childIllnessesViewModel,  // ← NEW
+                        childIllnessesViewModel    = childIllnessesViewModel,
+                        visionMotorViewModel       = visionMotorViewModel,
+                        hearingSpeechViewModel     = hearingSpeechViewModel,
                         guideViewModel             = guideViewModel,
                         currentLanguage            = currentLanguage,
                         onLanguageChange           = { newLanguage ->
@@ -442,7 +446,8 @@ fun AppNavigation(
                             selectedTab = NavigationTab.CHARTS
                         },
                         onAddMeasurementById       = { babyId ->
-                            val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
+                            val baby = homeViewModel.uiState.babies
+                                .firstOrNull { it.babyId == babyId }
                             if (baby != null) {
                                 originTab       = selectedTab
                                 measurementBaby = baby
@@ -451,7 +456,8 @@ fun AppNavigation(
                         },
                         onViewAllMeasurementsById  = { babyId ->
                             originTab = selectedTab
-                            val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
+                            val baby = homeViewModel.uiState.babies
+                                .firstOrNull { it.babyId == babyId }
                             if (baby != null) {
                                 allMeasurementsBaby = baby
                                 currentScreen       = Screen.AllMeasurements
@@ -461,36 +467,40 @@ fun AppNavigation(
                             currentScreen = Screen.Welcome
                         },
                         onNavigateToFamilyHistory  = { babyId, babyName ->
-                            val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
+                            val baby = homeViewModel.uiState.babies
+                                .firstOrNull { it.babyId == babyId }
                             if (baby != null) {
                                 familyHistoryBaby = baby
                                 familyHistoryViewModel.loadFamilyHistory(babyId)
                                 currentScreen = Screen.FamilyHistory
                             }
                         },
-                        onNavigateToChildIllnesses = { babyId, babyName ->   // ← NEW
-                            val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
+                        onNavigateToChildIllnesses = { babyId, babyName ->
+                            val baby = homeViewModel.uiState.babies
+                                .firstOrNull { it.babyId == babyId }
                             if (baby != null) {
                                 childIllnessesBaby = baby
                                 childIllnessesViewModel.loadIllnesses(babyId)
                                 currentScreen = Screen.ChildIllnesses
                             }
                         },
-                        // ── NEW: Vision & Motor Nav Callback ──────────────────────
-                        onNavigateToVisionMotor = { babyId, babyName ->
-                            val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
+                        onNavigateToVisionMotor    = { babyId, babyName ->
+                            val baby = homeViewModel.uiState.babies
+                                .firstOrNull { it.babyId == babyId }
                             if (baby != null) {
-                                childDevBaby = baby
-                                childDevScreen = Screen.ChildDevVisionMotor
+                                childDevBaby  = baby
+                                // Pre-load so the screen is ready instantly
+                                visionMotorViewModel.load(baby.babyId, baby.ageInMonths)
                                 currentScreen = Screen.ChildDevVisionMotor
                             }
                         },
-                        // ── NEW: Hearing & Speech Nav Callback ────────────────────
-                        onNavigateToHearingSpeech = { babyId, babyName ->
-                            val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
+                        onNavigateToHearingSpeech  = { babyId, babyName ->
+                            val baby = homeViewModel.uiState.babies
+                                .firstOrNull { it.babyId == babyId }
                             if (baby != null) {
-                                childDevBaby = baby
-                                childDevScreen = Screen.ChildDevHearingSpeech
+                                childDevBaby  = baby
+                                // Pre-load so the screen is ready instantly
+                                hearingSpeechViewModel.load(baby.babyId, baby.ageInMonths)
                                 currentScreen = Screen.ChildDevHearingSpeech
                             }
                         },
@@ -505,7 +515,7 @@ fun AppNavigation(
                     )
                 }
 
-                // ── Add Baby (new) ────────────────────────────────────────────
+                // ── Add Baby ──────────────────────────────────────────────────
                 Screen.AddBaby -> {
                     AddBabyScreen(
                         viewModel = addBabyViewModel,
@@ -521,29 +531,22 @@ fun AppNavigation(
                     )
                 }
 
-                // ── Edit Baby (pre-filled) ────────────────────────────────────
+                // ── Edit Baby ─────────────────────────────────────────────────
                 Screen.EditBaby -> {
                     AddBabyScreen(
                         viewModel = addBabyViewModel,
                         onBack    = {
-                            if (selectedBaby != null) {
-                                currentScreen = Screen.BabyProfile
-                            } else {
-                                selectedTab   = originTab
-                                currentScreen = Screen.Home
-                            }
+                            if (selectedBaby != null) currentScreen = Screen.BabyProfile
+                            else { selectedTab = originTab; currentScreen = Screen.Home }
                         },
                         onSaved   = {
                             homeViewModel.loadHomeData()
                             selectedBaby = homeViewModel.uiState.babies
                                 .find { it.babyId == selectedBaby?.babyId }
                                 ?: selectedBaby
-                            if (selectedBaby != null && originTab == NavigationTab.BABY) {
+                            if (selectedBaby != null && originTab == NavigationTab.BABY)
                                 currentScreen = Screen.BabyProfile
-                            } else {
-                                selectedTab   = originTab
-                                currentScreen = Screen.Home
-                            }
+                            else { selectedTab = originTab; currentScreen = Screen.Home }
                         }
                     )
                 }
@@ -560,16 +563,16 @@ fun AppNavigation(
                                 .upcomingVaccinations[baby.babyId] ?: emptyList(),
                             latestGrowth = homeViewModel.uiState
                                 .latestGrowthRecords[baby.babyId],
-                            onBack = {
+                            onBack           = {
                                 selectedBaby  = null
                                 selectedTab   = originTab
                                 currentScreen = Screen.Home
                             },
-                            onEditDetails = {
+                            onEditDetails    = {
                                 addBabyViewModel.prefillFromBaby(baby)
                                 currentScreen = Screen.EditBaby
                             },
-                            onDeleteBaby = {
+                            onDeleteBaby     = {
                                 homeViewModel.loadHomeData()
                                 selectedBaby  = null
                                 selectedTab   = originTab
@@ -599,24 +602,16 @@ fun AppNavigation(
                             babyName           = baby.fullName,
                             apiService         = apiService,
                             preferencesManager = preferencesManager,
-                            onBack = {
+                            onBack             = {
                                 measurementBaby = null
-                                if (selectedBaby != null) {
-                                    currentScreen = Screen.BabyProfile
-                                } else {
-                                    selectedTab   = originTab
-                                    currentScreen = Screen.Home
-                                }
+                                if (selectedBaby != null) currentScreen = Screen.BabyProfile
+                                else { selectedTab = originTab; currentScreen = Screen.Home }
                             },
-                            onSaved = {
+                            onSaved            = {
                                 homeViewModel.loadHomeData()
                                 measurementBaby = null
-                                if (selectedBaby != null) {
-                                    currentScreen = Screen.BabyProfile
-                                } else {
-                                    selectedTab   = originTab
-                                    currentScreen = Screen.Home
-                                }
+                                if (selectedBaby != null) currentScreen = Screen.BabyProfile
+                                else { selectedTab = originTab; currentScreen = Screen.Home }
                             }
                         )
                     }
@@ -637,12 +632,8 @@ fun AppNavigation(
                             viewModel = homeViewModel,
                             onBack    = {
                                 allMeasurementsBaby = null
-                                if (selectedBaby != null) {
-                                    currentScreen = Screen.BabyProfile
-                                } else {
-                                    selectedTab   = originTab
-                                    currentScreen = Screen.Home
-                                }
+                                if (selectedBaby != null) currentScreen = Screen.BabyProfile
+                                else { selectedTab = originTab; currentScreen = Screen.Home }
                             }
                         )
                     }
@@ -666,7 +657,7 @@ fun AppNavigation(
                     }
                 }
 
-                // ── Child Illnesses ───────────────────────────────────────────  ← NEW
+                // ── Child Illnesses ───────────────────────────────────────────
                 Screen.ChildIllnesses -> {
                     val baby = childIllnessesBaby
                     if (baby == null) {
@@ -684,7 +675,7 @@ fun AppNavigation(
                     }
                 }
 
-                // ── Child Dev: Vision & Motor ─────────────────────────────────  ← ADDED
+                // ── Child Dev: Vision + Motor ─────────────────────────────────
                 Screen.ChildDevVisionMotor -> {
                     val baby = childDevBaby
                     if (baby == null) {
@@ -703,7 +694,7 @@ fun AppNavigation(
                     }
                 }
 
-                // ── Child Dev: Hearing & Speech ───────────────────────────────  ← ADDED
+                // ── Child Dev: Hearing + Speech ───────────────────────────────
                 Screen.ChildDevHearingSpeech -> {
                     val baby = childDevBaby
                     if (baby == null) {
