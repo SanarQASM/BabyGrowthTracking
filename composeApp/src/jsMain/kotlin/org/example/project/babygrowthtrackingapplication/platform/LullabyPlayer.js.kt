@@ -7,20 +7,11 @@ import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLAudioElement
 
 // ═══════════════════════════════════════════════════════════════════════════
-// LullabyPlayer.js.kt  —  jsMain  (Kotlin/JS web target)
+// LullabyPlayer.js.kt  —  jsMain
 //
-// AUDIO FILES
-// ───────────
-// Place MP3s in composeResources/files/ and make sure your Gradle task
-// copies them to the web distribution's assets/ directory, e.g.:
-//   composeResources/files/lullaby_lale_lale_kurdan.mp3
-// They will be served at:
-//   http://localhost:8080/assets/lullaby_lale_lale_kurdan.mp3
-//
-// DOWNLOAD
-// ────────
-// downloadLullaby() uses a hidden <a download> element. Works on
-// same-origin assets; CDN assets need CORS + Content-Disposition headers.
+// FIX: resolveUrl() tries .m4a first, then .mp3.
+//      Place files in composeResources/files/ — they are served at
+//      assets/lullaby_lale_lale_kurdan.m4a etc.
 // ═══════════════════════════════════════════════════════════════════════════
 
 actual class LullabyPlayer {
@@ -31,12 +22,9 @@ actual class LullabyPlayer {
     private var intervalId       : Int               = -1
     private var currentAssetKey  : String?           = null
 
-    // ── play ──────────────────────────────────────────────────────────────
     actual fun play(assetKey: String) {
         when {
-            assetKey.isBlank() -> {
-                audio?.play(); startPolling()
-            }
+            assetKey.isBlank() -> { audio?.play(); startPolling() }
             assetKey == currentAssetKey && audio != null -> {
                 if (audio?.paused == true) { audio?.play(); startPolling() }
             }
@@ -44,7 +32,14 @@ actual class LullabyPlayer {
                 releaseInternal()
                 currentAssetKey = assetKey
                 audio = (document.createElement("audio") as HTMLAudioElement).apply {
-                    src     = resolveUrl(assetKey)
+                    // FIX: try .m4a first via <source> elements so the browser picks
+                    // the format it supports natively
+                    val srcM4a = resolveUrl(assetKey, "m4a")
+                    val srcMp3 = resolveUrl(assetKey, "mp3")
+                    innerHTML = """
+                        <source src="$srcM4a" type="audio/mp4">
+                        <source src="$srcMp3" type="audio/mpeg">
+                    """.trimIndent()
                     preload = "auto"
                     onended = {
                         this@LullabyPlayer.onCompleted?.invoke()
@@ -95,18 +90,20 @@ actual class LullabyPlayer {
     }
     actual fun release() = stop()
 
-    // ── Download ──────────────────────────────────────────────────────────
     fun downloadLullaby(assetKey: String, displayName: String) {
         val link = document.createElement("a") as HTMLAnchorElement
-        link.href = resolveUrl(assetKey); link.download = displayName
+        link.href = resolveUrl(assetKey, "m4a")
+        link.download = displayName
         link.style.display = "none"
         document.body?.appendChild(link); link.click()
         window.setTimeout({ document.body?.removeChild(link) }, 1_000)
     }
 
-    // ── Internal helpers ──────────────────────────────────────────────────
-    private fun resolveUrl(key: String) =
-        "assets/${if (key.endsWith(".mp3", true)) key else "$key.mp3"}"
+    // FIX: explicit extension parameter
+    private fun resolveUrl(key: String, ext: String): String {
+        val base = key.removeSuffix(".mp3").removeSuffix(".m4a")
+        return "assets/$base.$ext"
+    }
 
     private fun startPolling() {
         stopPolling()

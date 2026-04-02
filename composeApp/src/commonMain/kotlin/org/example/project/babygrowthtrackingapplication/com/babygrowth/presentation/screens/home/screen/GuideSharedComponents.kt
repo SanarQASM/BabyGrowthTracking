@@ -25,19 +25,12 @@ import org.jetbrains.compose.resources.stringResource
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 import babygrowthtrackingapplication.composeapp.generated.resources.*
 
-// ═══════════════════════════════════════════════════════════════════════════
-// GuideSharedComponents.kt
-//
-// Reusable composables shared between SleepGuideScreen and FeedingGuideScreen.
-// ═══════════════════════════════════════════════════════════════════════════
-
 // ── Top App Bar ──────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GuideTopBar(title: String, onBack: () -> Unit) {
     val customColors = MaterialTheme.customColors
-    val isRTL        = LocalIsRTL.current
     TopAppBar(
         title = {
             Text(
@@ -62,7 +55,7 @@ fun GuideTopBar(title: String, onBack: () -> Unit) {
     )
 }
 
-// ── Guide subtitle header (Help {name} ...) ──────────────────────────────
+// ── Guide subtitle header ────────────────────────────────────────────────
 
 @Composable
 fun GuideSubtitleHeader(
@@ -97,16 +90,14 @@ fun GuideSubtitleHeader(
 
         if (babies.isNotEmpty()) {
             Spacer(Modifier.height(dimensions.spacingSmall))
-
             Text(
-                text  = stringResource(Res.string.sleep_guide_select_child),
-                style = MaterialTheme.typography.labelSmall,
-                color = customColors.accentGradientStart,
-                fontWeight = FontWeight.SemiBold,
+                text          = stringResource(Res.string.sleep_guide_select_child),
+                style         = MaterialTheme.typography.labelSmall,
+                color         = customColors.accentGradientStart,
+                fontWeight    = FontWeight.SemiBold,
                 letterSpacing = 1.sp
             )
             Spacer(Modifier.height(4.dp))
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -125,10 +116,10 @@ fun GuideSubtitleHeader(
                 ) {
                     Text(if (isFemale) "👧" else "👦", fontSize = 18.sp)
                     Text(
-                        text      = selected?.fullName ?: stringResource(Res.string.home_select_child_hint),
-                        style     = MaterialTheme.typography.bodyMedium,
-                        color     = MaterialTheme.colorScheme.onSurface,
-                        modifier  = Modifier.weight(1f)
+                        text     = selected?.fullName ?: stringResource(Res.string.home_select_child_hint),
+                        style    = MaterialTheme.typography.bodyMedium,
+                        color    = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.weight(1f)
                     )
                     Text("▾", color = customColors.accentGradientStart, fontSize = 14.sp)
                 }
@@ -152,7 +143,7 @@ fun GuideSubtitleHeader(
     }
 }
 
-// ── Category selector (2×2 or 2×3 grid of icon+label tiles) ─────────────
+// ── Category selector ────────────────────────────────────────────────────
 
 data class GuideCategoryItem(
     val id    : String,
@@ -162,26 +153,27 @@ data class GuideCategoryItem(
 
 @Composable
 fun GuideCategorySelector(
-    categories    : List<GuideCategoryItem>,
-    selectedId    : String,
+    categories      : List<GuideCategoryItem>,
+    selectedId      : String,
     onSelectCategory: (String) -> Unit,
-    modifier      : Modifier = Modifier
+    modifier        : Modifier = Modifier
 ) {
     val customColors = MaterialTheme.customColors
     val dimensions   = LocalDimensions.current
 
-    Column(modifier = modifier.fillMaxWidth()
-        .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingSmall)) {
-
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingSmall)
+    ) {
         Text(
-            text  = stringResource(Res.string.sleep_guide_select_category),
-            style = MaterialTheme.typography.labelSmall,
-            color = customColors.accentGradientStart,
-            fontWeight = FontWeight.SemiBold,
+            text          = stringResource(Res.string.sleep_guide_select_category),
+            style         = MaterialTheme.typography.labelSmall,
+            color         = customColors.accentGradientStart,
+            fontWeight    = FontWeight.SemiBold,
             letterSpacing = 1.sp
         )
         Spacer(Modifier.height(dimensions.spacingSmall))
-
         val rows = categories.chunked(2)
         Column(verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
             rows.forEach { row ->
@@ -191,10 +183,10 @@ fun GuideCategorySelector(
                 ) {
                     row.forEach { cat ->
                         GuideCategoryTile(
-                            item       = cat,
-                            selected   = cat.id == selectedId,
-                            onClick    = { onSelectCategory(cat.id) },
-                            modifier   = Modifier.weight(1f)
+                            item     = cat,
+                            selected = cat.id == selectedId,
+                            onClick  = { onSelectCategory(cat.id) },
+                            modifier = Modifier.weight(1f)
                         )
                     }
                     if (row.size == 1) Spacer(Modifier.weight(1f))
@@ -218,7 +210,6 @@ private fun GuideCategoryTile(
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
         label         = "cat_scale"
     )
-
     Column(
         modifier = modifier
             .scale(scale)
@@ -241,9 +232,7 @@ private fun GuideCategoryTile(
                 .size(52.dp)
                 .background(customColors.accentGradientStart.copy(alpha = 0.10f), CircleShape),
             contentAlignment = Alignment.Center
-        ) {
-            Text(item.icon, fontSize = 26.sp)
-        }
+        ) { Text(item.icon, fontSize = 26.sp) }
         Spacer(Modifier.height(6.dp))
         Text(
             text       = item.label,
@@ -258,9 +247,7 @@ private fun GuideCategoryTile(
     }
 }
 
-// ── Horizontal pill tabs ──────────────────────────────────────────────────
-// FIX: deduplicateTabs() ensures the "all" tab from the JSON is not doubled
-//      when callers do buildList { add(GuideTab("all", ...)); addAll(strategy.tabs) }
+// ── Pill tabs ─────────────────────────────────────────────────────────────
 
 fun deduplicateTabs(tabs: List<GuideTab>): List<GuideTab> {
     val seen = mutableSetOf<String>()
@@ -269,15 +256,14 @@ fun deduplicateTabs(tabs: List<GuideTab>): List<GuideTab> {
 
 @Composable
 fun GuidePillTabs(
-    tabs        : List<GuideTab>,
-    selectedId  : String,
-    langCode    : String,
-    onSelectTab : (String) -> Unit,
-    modifier    : Modifier = Modifier
+    tabs       : List<GuideTab>,
+    selectedId : String,
+    langCode   : String,
+    onSelectTab: (String) -> Unit,
+    modifier   : Modifier = Modifier
 ) {
     val customColors = MaterialTheme.customColors
     val dimensions   = LocalDimensions.current
-    // Deduplicate so callers that pre-pend "All" don't duplicate JSON-sourced "all" tab
     val dedupedTabs  = remember(tabs) { deduplicateTabs(tabs) }
 
     Row(
@@ -323,7 +309,6 @@ fun GuidePillTabs(
 }
 
 // ── Guide content card ────────────────────────────────────────────────────
-// FIX: removed border/elevation so cards have no visible border outline
 
 @Composable
 fun GuideContentCard(
@@ -347,9 +332,8 @@ fun GuideContentCard(
             else
                 customColors.accentGradientStart.copy(alpha = 0.06f)
         ),
-        // FIX: elevation = 0 removes the shadow border effect
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border    = null   // explicitly no border
+        border    = null
     ) {
         Column(
             modifier = Modifier
@@ -364,14 +348,12 @@ fun GuideContentCard(
                 textAlign  = readingTextAlign()
             )
             Spacer(Modifier.height(dimensions.spacingSmall))
-
             Text(
                 text      = item.description.get(langCode),
                 style     = MaterialTheme.typography.bodyMedium,
                 color     = MaterialTheme.colorScheme.onSurface,
                 textAlign = readingTextAlign()
             )
-
             item.tip?.get(langCode)?.let { tip ->
                 if (tip.isNotBlank()) {
                     Spacer(Modifier.height(dimensions.spacingSmall))
@@ -394,9 +376,7 @@ fun GuideContentCard(
                     }
                 }
             }
-
             Spacer(Modifier.height(dimensions.spacingMedium))
-
             GuideFeedbackRow(
                 feedbackState = feedbackState,
                 onUseful      = onUseful,
@@ -406,8 +386,7 @@ fun GuideContentCard(
     }
 }
 
-// ── Feedback row ─────────────────────────────────────────────────────────
-// FIX: buttons show animated color when selected, count is always shown
+// ── Feedback row ──────────────────────────────────────────────────────────
 
 @Composable
 fun GuideFeedbackRow(
@@ -424,15 +403,13 @@ fun GuideFeedbackRow(
         verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
     ) {
-        // "Useful for N Users" counter — always visible
+        // FIX: usefulCount is Long — display with toInt() for the string resource
         Text(
-            text      = stringResource(Res.string.sleep_guide_useful_for, feedbackState.usefulCount),
-            style     = MaterialTheme.typography.labelSmall,
-            color     = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-            modifier  = Modifier.weight(1f)
+            text     = stringResource(Res.string.sleep_guide_useful_for, feedbackState.usefulCount.toInt()),
+            style    = MaterialTheme.typography.labelSmall,
+            color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+            modifier = Modifier.weight(1f)
         )
-
-        // Useless button
         FeedbackPill(
             label     = stringResource(Res.string.sleep_guide_useless),
             selected  = feedbackState.userVote == UserVote.USELESS,
@@ -441,8 +418,6 @@ fun GuideFeedbackRow(
             colorText = MaterialTheme.colorScheme.error,
             onClick   = onUseless
         )
-
-        // Useful button
         FeedbackPill(
             label     = stringResource(Res.string.sleep_guide_useful),
             selected  = feedbackState.userVote == UserVote.USEFUL,
@@ -463,7 +438,6 @@ private fun FeedbackPill(
     colorText: Color,
     onClick  : () -> Unit
 ) {
-    // FIX: animate both background fill and text/border when selected
     val bgAlpha by animateFloatAsState(
         targetValue   = if (selected) 1f else 0f,
         animationSpec = tween(durationMillis = 200),
@@ -474,18 +448,15 @@ private fun FeedbackPill(
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
         label         = "pill_scale"
     )
-
-    val containerColor = colorSel.copy(alpha = bgAlpha * 0.18f)
     val currentTextColor by animateColorAsState(
         targetValue = if (selected) colorSel else colorText.copy(alpha = 0.6f),
         label       = "pill_text_color"
     )
-
     Box(
         modifier = Modifier
             .scale(scale)
             .clip(RoundedCornerShape(50))
-            .background(containerColor)
+            .background(colorSel.copy(alpha = bgAlpha * 0.18f))
             .border(
                 width = if (selected) 1.5.dp else 1.dp,
                 color = if (selected) colorSel else colorText.copy(alpha = 0.35f),
@@ -506,18 +477,13 @@ private fun FeedbackPill(
                 verticalAlignment     = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                // Show checkmark icon when selected
                 if (selected) {
-                    Text(
-                        text     = "✓",
-                        style    = MaterialTheme.typography.labelSmall,
-                        color    = currentTextColor,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Text("✓", style = MaterialTheme.typography.labelSmall,
+                        color = currentTextColor, fontWeight = FontWeight.Bold)
                 }
                 Text(
                     text       = label,
-                    style      = MaterialTheme.typography.labelSmall,
+                    style      = MaterialTheme.typography.labelMedium,
                     fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
                     color      = currentTextColor
                 )

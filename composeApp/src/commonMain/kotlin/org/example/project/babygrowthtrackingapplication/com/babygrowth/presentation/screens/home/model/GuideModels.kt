@@ -4,15 +4,7 @@ import kotlinx.serialization.Serializable
 
 // ═══════════════════════════════════════════════════════════════════════════
 // GuideModels.kt
-//
-// Shared data classes that mirror the JSON structure of
-//   sleep_guide_content.json  and  feeding_guide_content.json
-//
-// All fields use multilingual maps keyed by language code:
-//   "en" | "ku_sorani" | "ku_badini" | "ar"
 // ═══════════════════════════════════════════════════════════════════════════
-
-// ── Localised string helper ──────────────────────────────────────────────
 
 @Serializable
 data class LocalizedString(
@@ -21,10 +13,6 @@ data class LocalizedString(
     val ku_badini   : String = "",
     val ar          : String = ""
 ) {
-    /**
-     * Returns the best available string for the given language code.
-     * Falls back to English if the translation is absent.
-     */
     fun get(langCode: String): String = when (langCode) {
         "ku"  -> ku_sorani.ifBlank { en }
         "ckb" -> ku_badini.ifBlank { en }
@@ -33,15 +21,11 @@ data class LocalizedString(
     }
 }
 
-// ── Tab descriptor ───────────────────────────────────────────────────────
-
 @Serializable
 data class GuideTab(
     val id   : String,
     val label: LocalizedString
 )
-
-// ── Media attachment (lullabies) ─────────────────────────────────────────
 
 @Serializable
 data class GuideMedia(
@@ -50,19 +34,15 @@ data class GuideMedia(
     val duration_seconds: Int    = 0
 )
 
-// ── Single guide content item ────────────────────────────────────────────
-
 @Serializable
 data class GuideItem(
     val id         : String,
-    val tab_id     : String?          = null,   // null → belongs to all tabs
+    val tab_id     : String?          = null,
     val title      : LocalizedString,
     val description: LocalizedString,
     val tip        : LocalizedString? = null,
-    val media      : GuideMedia?      = null    // only lullabies have this
+    val media      : GuideMedia?      = null
 )
-
-// ── Age range bucket ─────────────────────────────────────────────────────
 
 @Serializable
 data class GuideAgeRange(
@@ -72,37 +52,25 @@ data class GuideAgeRange(
     val items     : List<GuideItem>
 )
 
-// ── Top-level strategy (one of the 4 Sleep or 5 Feeding categories) ──────
-
 @Serializable
 data class GuideStrategy(
     val id        : String,
     val icon      : String,
     val title     : LocalizedString,
-    val tabs      : List<GuideTab>? = null,     // null → no sub-tabs
+    val tabs      : List<GuideTab>? = null,
     val age_ranges: List<GuideAgeRange>
 ) {
-    /**
-     * Returns all items for [ageInMonths], across all age-range buckets that
-     * contain the given age, merged into a single flat list.
-     */
     fun itemsForAge(ageInMonths: Int): List<GuideItem> =
         age_ranges
             .filter { ageInMonths in it.min_months..it.max_months }
             .flatMap { it.items }
 
-    /**
-     * Returns items filtered both by age AND by tab.
-     * If [tabId] is "all" (or null), all items for the age are returned.
-     */
     fun itemsForAgeAndTab(ageInMonths: Int, tabId: String?): List<GuideItem> {
         val all = itemsForAge(ageInMonths)
         return if (tabId == null || tabId == "all") all
         else all.filter { it.tab_id == tabId || it.tab_id == null }
     }
 }
-
-// ── Root guide document ───────────────────────────────────────────────────
 
 @Serializable
 data class GuideDocument(
@@ -122,14 +90,13 @@ data class GuideDocument(
 enum class UserVote { USEFUL, USELESS, NONE }
 
 /**
- * Per-card feedback state stored in the ViewModel.
- * [usefulCount] comes from the backend.
- * [userVote]    is the vote the current user cast (NONE if not voted yet).
- * [isLoading]   true while an API call is in flight.
+ * FIX: usefulCount changed from Int to Long to match the backend response
+ * type (COUNT(*) returns Long in JPA/Kotlin).  The UI coerces to Int only
+ * when displaying (Long.toInt() is safe for realistic vote counts).
  */
 data class CardFeedbackState(
     val contentId  : String,
-    val usefulCount: Int       = 0,
+    val usefulCount: Long      = 0L,   // FIX: was Int — backend returns Long
     val userVote   : UserVote  = UserVote.NONE,
     val isLoading  : Boolean   = false
 )
@@ -139,10 +106,10 @@ data class CardFeedbackState(
 // ═══════════════════════════════════════════════════════════════════════════
 
 data class LullabyPlayerState(
-    val currentItemId       : String?  = null,
-    val isPlaying           : Boolean  = false,
-    val positionSeconds     : Int      = 0,
-    val durationSeconds     : Int      = 0
+    val currentItemId  : String?  = null,
+    val isPlaying      : Boolean  = false,
+    val positionSeconds: Int      = 0,
+    val durationSeconds: Int      = 0
 ) {
     val progress: Float
         get() = if (durationSeconds > 0) positionSeconds / durationSeconds.toFloat() else 0f
@@ -150,7 +117,8 @@ data class LullabyPlayerState(
     fun formatTime(seconds: Int): String {
         val m = seconds / 60
         val s = seconds % 60
-        return "%d:%02d".format(m, s)
+        val sPadded = if (s < 10) "0$s" else "$s"
+        return "$m:$sPadded"
     }
 
     val positionFormatted: String get() = formatTime(positionSeconds)

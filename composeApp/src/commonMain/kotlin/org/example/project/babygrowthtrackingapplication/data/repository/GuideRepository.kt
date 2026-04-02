@@ -30,16 +30,16 @@ data class GuideFeedbackResponse(
     val contentId   : String,
     val guideType   : String,
     val vote        : String,
-    val usefulCount : Int,
-    val uselessCount: Int,
+    val usefulCount : Long,
+    val uselessCount: Long,
     val votedAt     : String
 )
 
 @Serializable
 data class ContentVoteCount(
     val contentId   : String,
-    val usefulCount : Int,
-    val uselessCount: Int,
+    val usefulCount : Long,
+    val uselessCount: Long,
     val userVote    : String?   // "USEFUL" | "USELESS" | null
 )
 

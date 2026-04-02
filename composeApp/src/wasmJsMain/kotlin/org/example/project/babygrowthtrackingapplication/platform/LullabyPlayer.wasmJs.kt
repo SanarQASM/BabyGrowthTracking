@@ -7,13 +7,10 @@ import org.w3c.dom.HTMLAnchorElement
 import org.w3c.dom.HTMLAudioElement
 
 // ═══════════════════════════════════════════════════════════════════════════
-// LullabyPlayer.wasmJs.kt  —  wasmJsMain  (Kotlin/Wasm → WASM-JS)
+// LullabyPlayer.wasmJs.kt  —  wasmJsMain
 //
-// Identical feature set to jsMain; uses Kotlin/Wasm's DOM bindings.
-// Audio files and download work the same way as jsMain.
-//
-// FIX: In Kotlin/Wasm, event handler lambdas must return JsAny?.
-//      We return 'null' to satisfy this requirement.
+// FIX: same as jsMain — uses <source> elements for .m4a + .mp3 fallback.
+//      Kotlin/Wasm event handlers must return JsAny?.
 // ═══════════════════════════════════════════════════════════════════════════
 
 actual class LullabyPlayer {
@@ -24,26 +21,23 @@ actual class LullabyPlayer {
     private var intervalId       : Int               = -1
     private var currentAssetKey  : String?           = null
 
-    // ── play ──────────────────────────────────────────────────────────────
     actual fun play(assetKey: String) {
         when {
-            assetKey.isBlank() -> {
-                audio?.play()
-                startPolling()
-                return
-            }
+            assetKey.isBlank() -> { audio?.play(); startPolling(); return }
             assetKey == currentAssetKey && audio != null -> {
-                if (audio?.paused == true) {
-                    audio?.play()
-                    startPolling()
-                }
+                if (audio?.paused == true) { audio?.play(); startPolling() }
                 return
             }
             else -> {
                 releaseInternal()
                 currentAssetKey = assetKey
                 audio = (document.createElement("audio") as HTMLAudioElement).apply {
-                    src     = resolveUrl(assetKey)
+                    val srcM4a = resolveUrl(assetKey, "m4a")
+                    val srcMp3 = resolveUrl(assetKey, "mp3")
+                    innerHTML = """
+                        <source src="$srcM4a" type="audio/mp4">
+                        <source src="$srcMp3" type="audio/mpeg">
+                    """.trimIndent()
                     preload = "auto"
                     onended = {
                         this@LullabyPlayer.onCompleted?.invoke()
@@ -62,18 +56,13 @@ actual class LullabyPlayer {
         }
     }
 
-    actual fun pause() {
-        audio?.pause()
-        stopPolling()
-    }
+    actual fun pause() { audio?.pause(); stopPolling() }
 
     actual fun stop() {
         stopPolling()
-        audio?.pause()
-        audio?.let { it.currentTime = 0.0 }
+        audio?.pause(); audio?.let { it.currentTime = 0.0 }
         releaseInternal()
-        currentAssetKey = null
-        onPositionChanged?.invoke(0)
+        currentAssetKey = null; onPositionChanged?.invoke(0)
     }
 
     actual fun seekTo(seconds: Int) {
@@ -86,15 +75,10 @@ actual class LullabyPlayer {
 
     actual fun setOnPositionChanged(callback: (Int) -> Unit) {
         onPositionChanged = callback
-        audio?.ontimeupdate = {
-            callback(audio?.currentTime?.toInt() ?: 0)
-            null
-        }
+        audio?.ontimeupdate = { callback(audio?.currentTime?.toInt() ?: 0); null }
     }
 
-    actual fun setOnCompleted(callback: () -> Unit) {
-        onCompleted = callback
-    }
+    actual fun setOnCompleted(callback: () -> Unit) { onCompleted = callback }
 
     actual fun isPlaying(): Boolean   = audio?.paused == false
     actual fun currentPosition(): Int = audio?.currentTime?.toInt() ?: 0
@@ -104,20 +88,19 @@ actual class LullabyPlayer {
     }
     actual fun release() = stop()
 
-    // ── Download ──────────────────────────────────────────────────────────
     fun downloadLullaby(assetKey: String, displayName: String) {
         val link = document.createElement("a") as HTMLAnchorElement
-        link.href = resolveUrl(assetKey)
+        link.href = resolveUrl(assetKey, "m4a")
         link.download = displayName
         link.style.display = "none"
-        document.body?.appendChild(link)
-        link.click()
+        document.body?.appendChild(link); link.click()
         window.setTimeout({ document.body?.removeChild(link) }, 1_000)
     }
 
-    // ── Internal helpers ──────────────────────────────────────────────────
-    private fun resolveUrl(key: String) =
-        "assets/${if (key.endsWith(".mp3", true)) key else "$key.mp3"}"
+    private fun resolveUrl(key: String, ext: String): String {
+        val base = key.removeSuffix(".mp3").removeSuffix(".m4a")
+        return "assets/$base.$ext"
+    }
 
     private fun startPolling() {
         stopPolling()
@@ -129,17 +112,10 @@ actual class LullabyPlayer {
     }
 
     private fun stopPolling() {
-        if (intervalId >= 0) {
-            window.clearInterval(intervalId)
-            intervalId = -1
-        }
+        if (intervalId >= 0) { window.clearInterval(intervalId); intervalId = -1 }
     }
 
-    private fun releaseInternal() {
-        audio?.pause()
-        audio?.src = ""
-        audio = null
-    }
+    private fun releaseInternal() { audio?.pause(); audio?.src = ""; audio = null }
 }
 
 actual fun createLullabyPlayer(): LullabyPlayer = LullabyPlayer()

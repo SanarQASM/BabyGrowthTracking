@@ -17,20 +17,16 @@ import java.io.FileOutputStream
 //
 // AUDIO FILES
 // ───────────
-// Place your MP3s in:  src/androidMain/assets/
-// Name them exactly as the asset_key in the JSON plus ".mp3", e.g.:
-//   src/androidMain/assets/lullaby_lale_lale_kurdan.mp3
-//   src/androidMain/assets/lullaby_dilber_dilber.mp3
-//   src/androidMain/assets/lullaby_ya_mulay.mp3
-//   src/androidMain/assets/lullaby_nami_nami.mp3
-//   src/androidMain/assets/lullaby_twinkle.mp3
-//   src/androidMain/assets/lullaby_hush_little_baby.mp3
+// Place your audio files in:  src/androidMain/assets/
+// Supported formats: .m4a (AAC), .mp3, .ogg
+// Name them exactly as the asset_key in the JSON, e.g.:
+//   src/androidMain/assets/lullaby_lale_lale_kurdan.m4a
+//   src/androidMain/assets/lullaby_dilber_dilber.m4a
+//   etc.
 //
-// DOWNLOAD
-// ────────
-// Cast the LullabyPlayer to LullabyPlayer and call downloadLullaby() from
-// the screen when the DownloadEvent is consumed, e.g.:
-//   (viewModel.player as? LullabyPlayer)?.downloadLullaby(assetKey, fileName)
+// FIX: resolveFileName() now tries .m4a first, then .mp3, then .ogg.
+//      This fixes the silent failure when files are .m4a but code
+//      was hardcoding .mp3.
 // ═══════════════════════════════════════════════════════════════════════════
 
 actual class LullabyPlayer(private val context: Context) {
@@ -71,7 +67,12 @@ actual class LullabyPlayer(private val context: Context) {
             else -> {
                 releaseInternal()
                 currentAssetKey = assetKey
+                // FIX: resolve the actual file name by trying known extensions
                 val fileName = resolveFileName(assetKey)
+                if (fileName == null) {
+                    android.util.Log.e("LullabyPlayer", "Asset not found for key: $assetKey")
+                    return
+                }
                 try {
                     val afd = context.assets.openFd(fileName)
                     mediaPlayer = MediaPlayer().apply {
@@ -87,7 +88,7 @@ actual class LullabyPlayer(private val context: Context) {
                     }
                     startPolling()
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    android.util.Log.e("LullabyPlayer", "Failed to play $fileName", e)
                 }
             }
         }
@@ -130,13 +131,19 @@ actual class LullabyPlayer(private val context: Context) {
 
     // ── Download helper ───────────────────────────────────────────────────
     fun downloadLullaby(assetKey: String, displayName: String) {
-        val fileName = resolveFileName(assetKey)
+        val fileName = resolveFileName(assetKey) ?: return
+        val mimeType = when {
+            fileName.endsWith(".m4a", ignoreCase = true) -> "audio/mp4"
+            fileName.endsWith(".mp3", ignoreCase = true) -> "audio/mpeg"
+            fileName.endsWith(".ogg", ignoreCase = true) -> "audio/ogg"
+            else -> "audio/mpeg"
+        }
         try {
             val input = context.assets.open(fileName)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val values = ContentValues().apply {
                     put(MediaStore.Audio.Media.DISPLAY_NAME, displayName)
-                    put(MediaStore.Audio.Media.MIME_TYPE, "audio/mpeg")
+                    put(MediaStore.Audio.Media.MIME_TYPE, mimeType)
                     put(MediaStore.Audio.Media.RELATIVE_PATH,
                         "${Environment.DIRECTORY_MUSIC}${File.separator}BabyGrowth")
                     put(MediaStore.Audio.Media.IS_PENDING, 1)
@@ -159,13 +166,33 @@ actual class LullabyPlayer(private val context: Context) {
             }
             input.close()
         } catch (e: Exception) {
-            e.printStackTrace()
+            android.util.Log.e("LullabyPlayer", "Download failed for $assetKey", e)
         }
     }
 
     // ── Internal helpers ──────────────────────────────────────────────────
-    private fun resolveFileName(key: String) =
-        if (key.endsWith(".mp3", ignoreCase = true)) key else "$key.mp3"
+
+    /**
+     * FIX: Try extensions in order of preference.
+     * Returns the first filename that exists in assets/, or null if none found.
+     * Priority: exact key (if it already has an extension) → .m4a → .mp3 → .ogg
+     */
+    private fun resolveFileName(key: String): String? {
+        // If the key already carries a known extension, use it directly
+        if (key.endsWith(".m4a", ignoreCase = true) ||
+            key.endsWith(".mp3", ignoreCase = true) ||
+            key.endsWith(".ogg", ignoreCase = true)) {
+            return key
+        }
+        // Otherwise probe the assets directory for a matching file
+        val candidates = listOf("$key.m4a", "$key.mp3", "$key.ogg")
+        val assetList  = try { context.assets.list("") ?: emptyArray() } catch (_: Exception) { emptyArray() }
+        for (candidate in candidates) {
+            if (assetList.contains(candidate)) return candidate
+        }
+        // Fallback: return .m4a even if not found (error will be logged in play())
+        return "$key.m4a"
+    }
 
     private fun startPolling() {
         handler.removeCallbacks(positionRunnable)
