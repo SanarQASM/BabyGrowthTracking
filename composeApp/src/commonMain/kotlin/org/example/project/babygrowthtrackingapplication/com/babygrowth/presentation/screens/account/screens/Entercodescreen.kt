@@ -1,4 +1,4 @@
-package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account
+package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.screens
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -22,6 +23,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import io.github.alexzhirkevich.compottie.Compottie
 import io.github.alexzhirkevich.compottie.LottieCompositionSpec
@@ -37,8 +39,11 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 import babygrowthtrackingapplication.composeapp.generated.resources.*
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.models.EnterCodeUiState
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.models.EnterCodeViewModel
 import org.example.project.babygrowthtrackingapplication.ui.components.PrimaryButton
 import org.example.project.babygrowthtrackingapplication.ui.components.OtpTextField
+import org.jetbrains.compose.resources.DrawableResource
 
 @Composable
 fun EnterCodeScreen(
@@ -71,7 +76,7 @@ fun EnterCodeScreen(
         ) {
             Row(
                 Modifier.fillMaxWidth()
-                    .widthIn(min = dimensions.maxContentWidth.takeIf { it != androidx.compose.ui.unit.Dp.Unspecified } ?: dimensions.avatarLarge * 5, max = dimensions.maxContentWidth.takeIf { it != androidx.compose.ui.unit.Dp.Unspecified } ?: dimensions.avatarLarge * 6)
+                    .widthIn(min = dimensions.maxContentWidth.takeIf { it != Dp.Unspecified } ?: dimensions.avatarLarge * 5, max = dimensions.maxContentWidth.takeIf { it != Dp.Unspecified } ?: dimensions.avatarLarge * 6)
                     .padding(top = dimensions.spacingMedium)
             ) {
                 IconButton(onClick = onBackClick) {
@@ -153,7 +158,7 @@ private fun AnimatedEnterCodeCard(
     emailOrPhone     : String,
     onCodeChange     : (String) -> Unit,
     onVerifyClick    : () -> Unit,
-    focusManager     : androidx.compose.ui.focus.FocusManager,
+    focusManager     : FocusManager,
     modifier         : Modifier = Modifier
 ) {
     val dimensions   = LocalDimensions.current
@@ -223,10 +228,10 @@ private fun AnimatedEnterCodeCard(
 
 @Composable
 private fun EnterCodeDecorativeCorner(
-    imageRes         : org.jetbrains.compose.resources.DrawableResource,
+    imageRes         : DrawableResource,
     alignment        : Alignment,
     fromX            : Float, fromY: Float,
-    size             : androidx.compose.ui.unit.Dp,
+    size             : Dp,
     animationStarted : Boolean,
     delayMillis      : Int,
     modifier         : Modifier = Modifier

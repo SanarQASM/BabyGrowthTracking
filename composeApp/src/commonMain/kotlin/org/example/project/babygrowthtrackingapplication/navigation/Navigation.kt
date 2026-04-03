@@ -11,19 +11,19 @@ import org.example.project.babygrowthtrackingapplication.com.babygrowth.presenta
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.Language
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.PreferencesManager
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.onBoarding.OnboardingScreen
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.EnterCodeScreen
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.EnterCodeViewModel
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.EnterNewPasswordScreen
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.EnterNewPasswordViewModel
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.ForgotPasswordScreen
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.ForgotPasswordViewModel
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.LoginScreen
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.LoginViewModel
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.SignupScreen
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.SignupViewModel
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.VerifyAccountScreen
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.VerifyAccountViewModel
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.WelcomeScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.screens.EnterCodeScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.models.EnterCodeViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.screens.EnterNewPasswordScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.models.EnterNewPasswordViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.screens.ForgotPasswordScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.models.ForgotPasswordViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.screens.LoginScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.models.LoginViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.screens.SignupScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.models.SignupViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.screens.VerifyAccountScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.models.VerifyAccountViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.screens.WelcomeScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.AddBabyViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HomeViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HealthRecordViewModel
@@ -52,6 +52,8 @@ import org.example.project.babygrowthtrackingapplication.ui.components.Navigatio
 // ─────────────────────────────────────────────────────────────────────────────
 // Screen enum
 // ─────────────────────────────────────────────────────────────────────────────
+//update scroll down in vaccination
+//update growth colors for chartsd
 
 enum class Screen {
     Splash,

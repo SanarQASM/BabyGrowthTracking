@@ -1,4 +1,4 @@
-package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account
+package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.screens
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
@@ -28,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import io.github.alexzhirkevich.compottie.Compottie
@@ -44,8 +46,11 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 import babygrowthtrackingapplication.composeapp.generated.resources.*
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.models.ForgotPasswordUiState
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.models.ForgotPasswordViewModel
 import org.example.project.babygrowthtrackingapplication.ui.components.PrimaryButton
 import org.example.project.babygrowthtrackingapplication.ui.components.GlassmorphicTextField
+import org.jetbrains.compose.resources.DrawableResource
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Auth screens share a large pill-shaped card corner.
@@ -226,7 +231,7 @@ private fun AnimatedForgotPasswordCard(
     uiState         : ForgotPasswordUiState,
     onEmailChange   : (String) -> Unit,
     onSendClick     : () -> Unit,
-    focusManager    : androidx.compose.ui.focus.FocusManager,
+    focusManager    : FocusManager,
     modifier        : Modifier = Modifier
 ) {
     val dimensions       = LocalDimensions.current
@@ -359,11 +364,11 @@ private fun AnimatedForgotPasswordCard(
 
 @Composable
 private fun ForgotPasswordDecorativeCorner(
-    imageRes        : org.jetbrains.compose.resources.DrawableResource,
+    imageRes        : DrawableResource,
     alignment       : Alignment,
     fromX           : Float,
     fromY           : Float,
-    size            : androidx.compose.ui.unit.Dp,
+    size            : Dp,
     animationStarted: Boolean,
     delayMillis     : Int,
     modifier        : Modifier = Modifier

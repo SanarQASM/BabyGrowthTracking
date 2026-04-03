@@ -1,10 +1,11 @@
-package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account
+package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.models
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.example.project.babygrowthtrackingapplication.data.network.ApiResult
 import org.example.project.babygrowthtrackingapplication.data.repository.AccountRepository
@@ -52,7 +53,7 @@ class EnterNewPasswordViewModel(
             )) {
                 is ApiResult.Success -> {
                     uiState = uiState.copy(isLoading = false, isSuccess = true)
-                    kotlinx.coroutines.delay(800)
+                    delay(800)
                     onSuccess()
                 }
                 is ApiResult.Error -> {

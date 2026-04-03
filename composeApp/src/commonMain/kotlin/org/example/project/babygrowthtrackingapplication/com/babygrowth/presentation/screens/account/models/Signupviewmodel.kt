@@ -1,4 +1,4 @@
-package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account
+package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.models
 
 import androidx.compose.runtime.*
 import org.example.project.babygrowthtrackingapplication.data.repository.AccountRepository

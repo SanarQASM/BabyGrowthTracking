@@ -1,4 +1,4 @@
-package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account
+package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.screens
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
@@ -21,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -32,6 +33,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import io.github.alexzhirkevich.compottie.Compottie
 import io.github.alexzhirkevich.compottie.LottieCompositionSpec
@@ -47,8 +49,11 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 import babygrowthtrackingapplication.composeapp.generated.resources.*
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.models.EnterNewPasswordUiState
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.models.EnterNewPasswordViewModel
 import org.example.project.babygrowthtrackingapplication.ui.components.PrimaryButton
 import org.example.project.babygrowthtrackingapplication.ui.components.GlassmorphicTextField
+import org.jetbrains.compose.resources.DrawableResource
 
 @Composable
 fun EnterNewPasswordScreen(
@@ -188,7 +193,7 @@ private fun AnimatedNewPasswordCard(
     onNewPasswordVisibilityToggle     : () -> Unit,
     onConfirmPasswordVisibilityToggle : () -> Unit,
     onResetClick                      : () -> Unit,
-    focusManager                      : androidx.compose.ui.focus.FocusManager,
+    focusManager                      : FocusManager,
     modifier                          : Modifier = Modifier
 ) {
     val dimensions   = LocalDimensions.current
@@ -293,10 +298,10 @@ private fun AnimatedNewPasswordCard(
 
 @Composable
 private fun NewPasswordDecorativeCorner(
-    imageRes         : org.jetbrains.compose.resources.DrawableResource,
+    imageRes         : DrawableResource,
     alignment        : Alignment,
     fromX            : Float, fromY: Float,
-    size             : androidx.compose.ui.unit.Dp,
+    size             : Dp,
     animationStarted : Boolean,
     delayMillis      : Int,
     modifier         : Modifier = Modifier
