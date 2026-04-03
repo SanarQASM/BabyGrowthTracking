@@ -59,9 +59,7 @@ data class Dimensions(
     val maxContentWidth : Dp,
 
     // ── Auth screen constraints ───────────────────────────────────────────────
-    /** Min width for auth cards / logo boxes (replaces hardcoded 320.dp) */
     val authCardMinWidth : Dp,
-    /** Max width for auth cards / logo boxes (replaces hardcoded 420.dp) */
     val authCardMaxWidth : Dp,
 
     // ── Borders ───────────────────────────────────────────────────────────────
@@ -69,25 +67,17 @@ data class Dimensions(
     val borderWidthMedium : Dp,
 
     // ── Text fields ───────────────────────────────────────────────────────────
-    /** Corner radius used inside GlassmorphicTextField / SearchTextField */
     val textFieldCornerRadius       : Dp,
-    /** Corner radius for the Search variant (slightly more pill-like) */
     val searchFieldCornerRadius     : Dp,
-    /** Bottom padding under the label inside GlassmorphicTextField */
     val textFieldLabelBottomPadding : Dp,
 
     // ── Social login / OTP ────────────────────────────────────────────────────
-    /** Social login button circle size (replaces 56.dp) */
     val socialButtonSize     : Dp,
-    /** Icon inside social login button (replaces 24.dp) */
     val socialIconSize       : Dp,
-    /** Horizontal padding around "or" text in divider (replaces 16.dp) */
     val orDividerTextPaddingH: Dp,
-    /** Height of the divider line (replaces 1.dp) */
     val dividerHeight        : Dp,
 
     // ── OTP ───────────────────────────────────────────────────────────────────
-    /** OTP digit border width (replaces 2.dp) */
     val otpBorderWidth : Dp,
 
     // ── Profile ───────────────────────────────────────────────────────────────
@@ -153,18 +143,12 @@ data class Dimensions(
     val railItemSize     : Dp,
     val railIconSize     : Dp,
 
-    // ── Rail item internals (replaces hardcoded values in SideNavigationRail) ─
-    /** Vertical spacing between rail items (replaces 4.dp) */
+    // ── Rail item internals ───────────────────────────────────────────────────
     val railItemSpacing       : Dp,
-    /** Min touch-target height for a rail item (replaces 56.dp) */
     val railItemMinHeight     : Dp,
-    /** Corner radius of the selected rail item background (replaces 12.dp) */
     val railItemCornerRadius  : Dp,
-    /** Vertical padding inside a rail item (replaces 8.dp) */
     val railItemPaddingV      : Dp,
-    /** Horizontal padding inside a rail item (replaces 4.dp) */
     val railItemPaddingH      : Dp,
-    /** Small spacer between icon and label in a rail item (replaces 2.dp) */
     val railIconLabelGap      : Dp,
 
     // ── BenchDetailScreen ─────────────────────────────────────────────────────
@@ -172,6 +156,94 @@ data class Dimensions(
     val detailIconSize        : Dp,
     val detailIconTopPadding  : Dp,
     val benchDistanceIconSize : Dp,
+
+    // ── NEW: Landscape pane widths ────────────────────────────────────────────
+    /** Width of the left sidebar pane in landscape two-pane layouts */
+    val landscapePaneWidth      : Dp,
+    /** Width of the settings/chart/dev landscape left sidebar */
+    val landscapeNarrowPaneWidth: Dp,
+    /** Width of the feeding-guide landscape left pane */
+    val landscapeWidePaneWidth  : Dp,
+
+    // ── NEW: Child dev / milestone screen tokens ──────────────────────────────
+    val devMonthBadgeSize     : Dp,   // month number circle (was 40.dp)
+    val devEditButtonSize     : Dp,   // edit IconButton size (was 36.dp)
+    val devCheckCircleSize    : Dp,   // three-state check circle (was 28.dp)
+    val devIndicatorDotSize   : Dp,   // small preview progress dot (was 8.dp)
+    val devHeaderIconBoxSize  : Dp,   // header icon box (was 52.dp)
+    val devSettingsIconBoxSize: Dp,   // settings row icon box (was 36.dp)
+    val devSettingsChevronSize: Dp,   // chevron icon in settings row (was 18.dp)
+    val devSettingsRowPaddingH: Dp,   // horizontal row padding (was 16.dp)
+    val devSettingsIconCorner : Dp,   // corner radius for icon box (was 8.dp)
+
+    // ── NEW: Vaccination / health screen tokens ───────────────────────────────
+    val vaccinationProgressBarHeight: Dp,   // LinearProgress height (was 8.dp)
+    val vaccinationCardIconSize     : Dp,   // status circle (was 42.dp)
+    val healthCircleSize            : Dp,   // assigned center icon circle (was 40.dp)
+    val healthDropdownItemPaddingV  : Dp,   // dropdown item vertical (was 10.dp)
+    val healthSubTabElevation       : Dp,   // sub-tab surface elevation (was 2.dp)
+
+    // ── NEW: Chart screen tokens ──────────────────────────────────────────────
+    val chartLandscapePaneWidth    : Dp,       // chart left pane in landscape (was 260.dp)
+    val chartLetterSpacing         : TextUnit, // LATEST MEASUREMENT label (was 0.8.sp)
+    val chartDividerThickness      : Dp,       // thin divider in chart card (was 0.5.dp)
+
+    // ── NEW: Settings screen tokens ───────────────────────────────────────────
+    val settingsLandscapeRailWidth  : Dp,   // settings navigation rail width (was 240.dp)
+    val settingsAvatarSize          : Dp,   // profile avatar circle (was 44.dp / 40.dp)
+    val settingsRowIconSize         : Dp,   // icon in ArrowRow / ToggleRow (was 20.dp)
+    val settingsChevronSize         : Dp,   // chevron (was 18.dp)
+    val settingsDividerThickness    : Dp,   // row separator (was 0.5.dp)
+    val settingsRowPaddingH         : Dp,   // horizontal row padding (was 16.dp)
+    val settingsVersionString       : String, // version number (was "1.0.0")
+
+    // ── NEW: Guide / lullaby screen tokens ───────────────────────────────────
+    val guideCategoryIconBoxSize : Dp,      // category tile icon circle (was 52.dp)
+    val guideCategoryIconFontSize: TextUnit,// category emoji size (was 26.sp)
+    val guideTabPillPaddingH     : Dp,      // pill tab horizontal padding (was 14.dp)
+    val guideTabPillPaddingV     : Dp,      // pill tab vertical padding (was 7.dp)
+    val guideFeedbackPillPaddingH: Dp,      // feedback pill horizontal (was 12.dp)
+    val guideFeedbackPillPaddingV: Dp,      // feedback pill vertical (was 5.dp)
+    val lullabyNoteEmojiSize     : TextUnit,// music note emoji (was 20.sp)
+    val lullabySeekBarHeight     : Dp,      // seek bar track height (was 4.dp)
+    val lullabyThumbSize         : Dp,      // draggable thumb circle (was 14.dp)
+    val lullabyPlayCircleSize    : Dp,      // large play/pause button (was 46.dp)
+    val lullabySkipLabelSize     : TextUnit,// ±10s label size (was 11.sp)
+
+    // ── NEW: BenchMapScreen / BenchCard tokens ────────────────────────────────
+    val benchPanelMinHeight : Dp,   // slide-up panel min (was 200.dp)
+    val benchPanelMaxHeight : Dp,   // slide-up panel max (was 300.dp)
+    val benchCardWidth      : Dp,   // individual bench card (was 220.dp)
+    val benchCardFabBottomPad: Dp,  // FAB padding when panel visible (was 260.dp)
+
+    // ── NEW: BabyProfileTabContent bottom padding ─────────────────────────────
+    val babyTabBottomContentPadding: Dp,  // was 100.dp
+
+    // ── NEW: Thin divider / hairline ──────────────────────────────────────────
+    val hairlineDividerThickness: Dp,  // Dp.Hairline equivalent token (was Dp.Hairline)
+
+    // ── NEW: Profile divider thickness ───────────────────────────────────────
+    val profileDividerThickness: Dp,   // was 0.8.dp
+
+    // ── NEW: ChildIllnesses tokens ────────────────────────────────────────────
+    val illnessStatusDotSize     : Dp,   // status dot (was 10.dp)
+    val illnessDividerThickness  : Dp,   // card inner divider (was 0.5.dp)
+    val illnessActionIconSize    : Dp,   // edit/delete icon (was 16.dp)
+    val illnessActionButtonSize  : Dp,   // icon button size (was 32.dp)
+    val illnessSummaryIconSize   : Dp,   // summary card icon (was 42.dp)
+    val illnessLandscapeStatusChipPaddingH: Dp, // chip horizontal padding (was 12.dp)
+    val illnessLandscapeStatusChipPaddingV: Dp, // chip vertical padding (was 6.dp)
+
+    // ── NEW: Home screen banner tokens ────────────────────────────────────────
+    val bannerStarOffset1X : Dp,  // star offset values in BannerStars
+    val bannerStarOffset1Y : Dp,
+    val bannerStarOffset2X : Dp,
+    val bannerStarOffset2Y : Dp,
+    val bannerStarOffset3X : Dp,
+    val bannerStarOffset3Y : Dp,
+    val bannerSmallStar1Size: TextUnit,
+    val bannerSmallStar2Size: TextUnit,
+    val bannerSmallStar3Size: TextUnit,
 ) {
     companion object {
 
@@ -302,6 +374,91 @@ data class Dimensions(
             detailIconSize        = 18.dp,
             detailIconTopPadding  = 2.dp,
             benchDistanceIconSize = 16.dp,
+
+            // Landscape pane widths
+            landscapePaneWidth       = if (landscape) 240.dp else 240.dp,
+            landscapeNarrowPaneWidth = if (landscape) 220.dp else 220.dp,
+            landscapeWidePaneWidth   = if (landscape) 280.dp else 280.dp,
+
+            // Child dev tokens
+            devMonthBadgeSize      = 40.dp,
+            devEditButtonSize      = 36.dp,
+            devCheckCircleSize     = 28.dp,
+            devIndicatorDotSize    = 8.dp,
+            devHeaderIconBoxSize   = 52.dp,
+            devSettingsIconBoxSize = 36.dp,
+            devSettingsChevronSize = 18.dp,
+            devSettingsRowPaddingH = 16.dp,
+            devSettingsIconCorner  = 8.dp,
+
+            // Vaccination / health tokens
+            vaccinationProgressBarHeight = 8.dp,
+            vaccinationCardIconSize      = 42.dp,
+            healthCircleSize             = 40.dp,
+            healthDropdownItemPaddingV   = 10.dp,
+            healthSubTabElevation        = 2.dp,
+
+            // Chart tokens
+            chartLandscapePaneWidth = 260.dp,
+            chartLetterSpacing      = 0.8.sp,
+            chartDividerThickness   = 0.5.dp,
+
+            // Settings tokens
+            settingsLandscapeRailWidth = 240.dp,
+            settingsAvatarSize         = 44.dp,
+            settingsRowIconSize        = 20.dp,
+            settingsChevronSize        = 18.dp,
+            settingsDividerThickness   = 0.5.dp,
+            settingsRowPaddingH        = 16.dp,
+            settingsVersionString      = "1.0.0",
+
+            // Guide / lullaby tokens
+            guideCategoryIconBoxSize  = 52.dp,
+            guideCategoryIconFontSize = 26.sp,
+            guideTabPillPaddingH      = 14.dp,
+            guideTabPillPaddingV      = 7.dp,
+            guideFeedbackPillPaddingH = 12.dp,
+            guideFeedbackPillPaddingV = 5.dp,
+            lullabyNoteEmojiSize      = 20.sp,
+            lullabySeekBarHeight      = 4.dp,
+            lullabyThumbSize          = 14.dp,
+            lullabyPlayCircleSize     = 46.dp,
+            lullabySkipLabelSize      = 11.sp,
+
+            // Bench tokens
+            benchPanelMinHeight  = 200.dp,
+            benchPanelMaxHeight  = 300.dp,
+            benchCardWidth       = 220.dp,
+            benchCardFabBottomPad = 260.dp,
+
+            // Baby tab
+            babyTabBottomContentPadding = 100.dp,
+
+            // Hairline
+            hairlineDividerThickness = 0.5.dp,
+
+            // Profile divider
+            profileDividerThickness = 0.8.dp,
+
+            // ChildIllnesses tokens
+            illnessStatusDotSize               = 10.dp,
+            illnessDividerThickness            = 0.5.dp,
+            illnessActionIconSize              = 16.dp,
+            illnessActionButtonSize            = 32.dp,
+            illnessSummaryIconSize             = 42.dp,
+            illnessLandscapeStatusChipPaddingH = 12.dp,
+            illnessLandscapeStatusChipPaddingV = 6.dp,
+
+            // Banner star offsets
+            bannerStarOffset1X  = 28.dp,
+            bannerStarOffset1Y  = 40.dp,
+            bannerStarOffset2X  = 16.dp,
+            bannerStarOffset2Y  = 56.dp,
+            bannerStarOffset3X  = 48.dp,
+            bannerStarOffset3Y  = 4.dp,
+            bannerSmallStar1Size = 10.sp,
+            bannerSmallStar2Size = 14.sp,
+            bannerSmallStar3Size = 8.sp,
         )
 
         // ─────────────────────────────────────────────────────────────────────
@@ -420,6 +577,79 @@ data class Dimensions(
             detailIconSize        = 20.dp,
             detailIconTopPadding  = 2.dp,
             benchDistanceIconSize = 18.dp,
+
+            landscapePaneWidth       = 260.dp,
+            landscapeNarrowPaneWidth = 240.dp,
+            landscapeWidePaneWidth   = 300.dp,
+
+            devMonthBadgeSize      = 44.dp,
+            devEditButtonSize      = 38.dp,
+            devCheckCircleSize     = 30.dp,
+            devIndicatorDotSize    = 9.dp,
+            devHeaderIconBoxSize   = 56.dp,
+            devSettingsIconBoxSize = 38.dp,
+            devSettingsChevronSize = 20.dp,
+            devSettingsRowPaddingH = 18.dp,
+            devSettingsIconCorner  = 9.dp,
+
+            vaccinationProgressBarHeight = 8.dp,
+            vaccinationCardIconSize      = 44.dp,
+            healthCircleSize             = 42.dp,
+            healthDropdownItemPaddingV   = 11.dp,
+            healthSubTabElevation        = 2.dp,
+
+            chartLandscapePaneWidth = 280.dp,
+            chartLetterSpacing      = 0.8.sp,
+            chartDividerThickness   = 0.5.dp,
+
+            settingsLandscapeRailWidth = 260.dp,
+            settingsAvatarSize         = 46.dp,
+            settingsRowIconSize        = 22.dp,
+            settingsChevronSize        = 20.dp,
+            settingsDividerThickness   = 0.5.dp,
+            settingsRowPaddingH        = 18.dp,
+            settingsVersionString      = "1.0.0",
+
+            guideCategoryIconBoxSize  = 56.dp,
+            guideCategoryIconFontSize = 28.sp,
+            guideTabPillPaddingH      = 16.dp,
+            guideTabPillPaddingV      = 8.dp,
+            guideFeedbackPillPaddingH = 14.dp,
+            guideFeedbackPillPaddingV = 6.dp,
+            lullabyNoteEmojiSize      = 22.sp,
+            lullabySeekBarHeight      = 5.dp,
+            lullabyThumbSize          = 16.dp,
+            lullabyPlayCircleSize     = 50.dp,
+            lullabySkipLabelSize      = 12.sp,
+
+            benchPanelMinHeight   = 210.dp,
+            benchPanelMaxHeight   = 320.dp,
+            benchCardWidth        = 240.dp,
+            benchCardFabBottomPad = 280.dp,
+
+            babyTabBottomContentPadding = 110.dp,
+
+            hairlineDividerThickness = 0.5.dp,
+
+            profileDividerThickness = 0.8.dp,
+
+            illnessStatusDotSize               = 10.dp,
+            illnessDividerThickness            = 0.5.dp,
+            illnessActionIconSize              = 17.dp,
+            illnessActionButtonSize            = 34.dp,
+            illnessSummaryIconSize             = 44.dp,
+            illnessLandscapeStatusChipPaddingH = 13.dp,
+            illnessLandscapeStatusChipPaddingV = 7.dp,
+
+            bannerStarOffset1X  = 32.dp,
+            bannerStarOffset1Y  = 44.dp,
+            bannerStarOffset2X  = 20.dp,
+            bannerStarOffset2Y  = 60.dp,
+            bannerStarOffset3X  = 52.dp,
+            bannerStarOffset3Y  = 6.dp,
+            bannerSmallStar1Size = 11.sp,
+            bannerSmallStar2Size = 15.sp,
+            bannerSmallStar3Size = 9.sp,
         )
 
         // ─────────────────────────────────────────────────────────────────────
@@ -538,6 +768,79 @@ data class Dimensions(
             detailIconSize        = 22.dp,
             detailIconTopPadding  = 3.dp,
             benchDistanceIconSize = 20.dp,
+
+            landscapePaneWidth       = 300.dp,
+            landscapeNarrowPaneWidth = 260.dp,
+            landscapeWidePaneWidth   = 340.dp,
+
+            devMonthBadgeSize      = 48.dp,
+            devEditButtonSize      = 40.dp,
+            devCheckCircleSize     = 32.dp,
+            devIndicatorDotSize    = 10.dp,
+            devHeaderIconBoxSize   = 60.dp,
+            devSettingsIconBoxSize = 40.dp,
+            devSettingsChevronSize = 22.dp,
+            devSettingsRowPaddingH = 20.dp,
+            devSettingsIconCorner  = 10.dp,
+
+            vaccinationProgressBarHeight = 10.dp,
+            vaccinationCardIconSize      = 46.dp,
+            healthCircleSize             = 44.dp,
+            healthDropdownItemPaddingV   = 12.dp,
+            healthSubTabElevation        = 2.dp,
+
+            chartLandscapePaneWidth = 300.dp,
+            chartLetterSpacing      = 0.8.sp,
+            chartDividerThickness   = 0.5.dp,
+
+            settingsLandscapeRailWidth = 280.dp,
+            settingsAvatarSize         = 48.dp,
+            settingsRowIconSize        = 24.dp,
+            settingsChevronSize        = 22.dp,
+            settingsDividerThickness   = 0.5.dp,
+            settingsRowPaddingH        = 20.dp,
+            settingsVersionString      = "1.0.0",
+
+            guideCategoryIconBoxSize  = 60.dp,
+            guideCategoryIconFontSize = 30.sp,
+            guideTabPillPaddingH      = 18.dp,
+            guideTabPillPaddingV      = 9.dp,
+            guideFeedbackPillPaddingH = 16.dp,
+            guideFeedbackPillPaddingV = 7.dp,
+            lullabyNoteEmojiSize      = 24.sp,
+            lullabySeekBarHeight      = 5.dp,
+            lullabyThumbSize          = 16.dp,
+            lullabyPlayCircleSize     = 52.dp,
+            lullabySkipLabelSize      = 13.sp,
+
+            benchPanelMinHeight   = 220.dp,
+            benchPanelMaxHeight   = 340.dp,
+            benchCardWidth        = 260.dp,
+            benchCardFabBottomPad = 300.dp,
+
+            babyTabBottomContentPadding = 120.dp,
+
+            hairlineDividerThickness = 0.5.dp,
+
+            profileDividerThickness = 0.8.dp,
+
+            illnessStatusDotSize               = 11.dp,
+            illnessDividerThickness            = 0.5.dp,
+            illnessActionIconSize              = 18.dp,
+            illnessActionButtonSize            = 36.dp,
+            illnessSummaryIconSize             = 46.dp,
+            illnessLandscapeStatusChipPaddingH = 14.dp,
+            illnessLandscapeStatusChipPaddingV = 8.dp,
+
+            bannerStarOffset1X  = 36.dp,
+            bannerStarOffset1Y  = 48.dp,
+            bannerStarOffset2X  = 24.dp,
+            bannerStarOffset2Y  = 64.dp,
+            bannerStarOffset3X  = 56.dp,
+            bannerStarOffset3Y  = 8.dp,
+            bannerSmallStar1Size = 12.sp,
+            bannerSmallStar2Size = 16.sp,
+            bannerSmallStar3Size = 10.sp,
         )
     }
 }

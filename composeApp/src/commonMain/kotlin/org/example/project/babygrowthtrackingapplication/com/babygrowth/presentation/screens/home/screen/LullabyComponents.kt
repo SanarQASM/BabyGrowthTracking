@@ -24,19 +24,7 @@ import babygrowthtrackingapplication.composeapp.generated.resources.*
 
 // ═══════════════════════════════════════════════════════════════════════════
 // LullabyComponents.kt
-//
-// All lullaby-specific UI: lullaby cards, the now-playing bar, and the
-// mini player controls.
-//
-// HOW AUDIO WORKS:
-//   • GuideViewModel holds a LullabyPlayer (platform expect/actual).
-//   • Calling viewModel.playLullaby(itemId, duration) starts the player.
-//   • The ViewModel emits position updates via updatePosition(seconds).
-//   • The NowPlayingBar reflects playerState (progress, time labels).
-//   • Download triggers the platform download helper.
 // ═══════════════════════════════════════════════════════════════════════════
-
-// ── Lullabies section ─────────────────────────────────────────────────────
 
 @Composable
 fun LullabiesContent(
@@ -92,7 +80,6 @@ fun LullabiesContent(
             }
         }
 
-        // Sticky now-playing bar at bottom of lullabies section
         AnimatedVisibility(
             visible  = playerState.currentItemId != null,
             enter    = slideInVertically(initialOffsetY = { it }) + fadeIn(),
@@ -114,8 +101,6 @@ fun LullabiesContent(
     }
 }
 
-// ── Individual lullaby card ───────────────────────────────────────────────
-
 @Composable
 private fun LullabyCard(
     item         : GuideItem,
@@ -136,7 +121,6 @@ private fun LullabyCard(
     val dimensions   = LocalDimensions.current
     val isDark       = LocalIsDarkTheme.current
 
-    // Gentle pulse animation when playing
     val infiniteTransition = rememberInfiniteTransition(label = "lullaby_pulse")
     val pulseAlpha by infiniteTransition.animateFloat(
         initialValue   = 0.08f,
@@ -148,7 +132,6 @@ private fun LullabyCard(
         label = "pulse"
     )
 
-    // FIX: elevation = 0, border = null — no card border outline
     Card(
         modifier  = Modifier.fillMaxWidth(),
         shape     = RoundedCornerShape(dimensions.cardCornerRadius),
@@ -174,7 +157,6 @@ private fun LullabyCard(
                 verticalAlignment     = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
             ) {
-                // Animated music note
                 val noteScale by infiniteTransition.animateFloat(
                     initialValue   = 1f,
                     targetValue    = if (isPlaying) 1.2f else 1f,
@@ -183,7 +165,7 @@ private fun LullabyCard(
                 )
                 Text(
                     text     = "🎵",
-                    fontSize = 20.sp,
+                    fontSize = dimensions.lullabyNoteEmojiSize,
                     modifier = Modifier.scale(if (isPlaying) noteScale else 1f)
                 )
 
@@ -203,7 +185,6 @@ private fun LullabyCard(
                     )
                 }
 
-                // Duration chip
                 item.media?.let { media ->
                     val dur = playerState.formatTime(media.duration_seconds)
                     Text(
@@ -214,7 +195,6 @@ private fun LullabyCard(
                 }
             }
 
-            // Mini progress bar when this card is current
             if (isCurrentItem && playerState.durationSeconds > 0) {
                 Spacer(Modifier.height(dimensions.spacingSmall))
                 MiniSeekBar(
@@ -240,12 +220,9 @@ private fun LullabyCard(
                 }
             }
 
-            Spacer(Modifier.height(dimensions.spacingSmall + 4.dp))
+            Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
 
-            // Controls row: Play/Pause | Stop | Download
             Row(horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
-
-                // Play / Pause button
                 OutlinedButton(
                     onClick = if (isCurrentItem) onTogglePause else onPlay,
                     shape   = RoundedCornerShape(50),
@@ -255,21 +232,22 @@ private fun LullabyCard(
                         contentColor   = if (isPlaying) MaterialTheme.colorScheme.onPrimary
                         else customColors.accentGradientStart
                     ),
-                    border         = BorderStroke(1.dp, customColors.accentGradientStart),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
+                    border         = BorderStroke(dimensions.borderWidthThin, customColors.accentGradientStart),
+                    contentPadding = PaddingValues(
+                        horizontal = dimensions.spacingMedium,
+                        vertical   = dimensions.spacingXSmall + dimensions.borderWidthThin
+                    )
                 ) {
                     Text(
                         text       = when {
                             isCurrentItem && isPlaying -> stringResource(Res.string.sleep_guide_pause)
-                            isCurrentItem             -> stringResource(Res.string.sleep_guide_play)
-                            else                      -> stringResource(Res.string.sleep_guide_play)
+                            else                       -> stringResource(Res.string.sleep_guide_play)
                         },
                         style      = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Medium
                     )
                 }
 
-                // Stop button (only visible when this card is playing)
                 AnimatedVisibility(visible = isCurrentItem) {
                     OutlinedButton(
                         onClick        = onStop,
@@ -277,22 +255,33 @@ private fun LullabyCard(
                         colors         = ButtonDefaults.outlinedButtonColors(
                             contentColor = MaterialTheme.colorScheme.error
                         ),
-                        border         = BorderStroke(1.dp, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        border         = BorderStroke(
+                            dimensions.borderWidthThin,
+                            MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
+                        ),
+                        contentPadding = PaddingValues(
+                            horizontal = dimensions.spacingSmall + dimensions.spacingXSmall,
+                            vertical   = dimensions.spacingXSmall + dimensions.borderWidthThin
+                        )
                     ) {
-                        Text("⏹", style = MaterialTheme.typography.labelMedium)
+                        Text(stringResource(Res.string.lullaby_stop), style = MaterialTheme.typography.labelMedium)
                     }
                 }
 
-                // Download button
                 OutlinedButton(
                     onClick        = onDownload,
                     shape          = RoundedCornerShape(50),
                     colors         = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     ),
-                    border         = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 6.dp)
+                    border         = BorderStroke(
+                        dimensions.borderWidthThin,
+                        MaterialTheme.colorScheme.outline.copy(alpha = 0.4f)
+                    ),
+                    contentPadding = PaddingValues(
+                        horizontal = dimensions.spacingMedium,
+                        vertical   = dimensions.spacingXSmall + dimensions.borderWidthThin
+                    )
                 ) {
                     Text(
                         text  = stringResource(Res.string.sleep_guide_download),
@@ -301,9 +290,8 @@ private fun LullabyCard(
                 }
             }
 
-            Spacer(Modifier.height(dimensions.spacingSmall + 4.dp))
+            Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
 
-            // Feedback row
             GuideFeedbackRow(
                 feedbackState = feedbackState,
                 onUseful      = onUseful,
@@ -322,6 +310,7 @@ private fun MiniSeekBar(
     onSeek   : (Int) -> Unit,
     color    : Color
 ) {
+    val dimensions   = LocalDimensions.current
     var dragging     by remember { mutableStateOf(false) }
     var dragProgress by remember { mutableFloatStateOf(progress) }
     val displayProg  = if (dragging) dragProgress else progress
@@ -329,11 +318,11 @@ private fun MiniSeekBar(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
-            .height(20.dp)
+            .height(dimensions.iconSmall + dimensions.spacingXSmall)
             .pointerInput(duration) {
                 detectHorizontalDragGestures(
-                    onDragStart = { dragging = true },
-                    onDragEnd   = {
+                    onDragStart  = { dragging = true },
+                    onDragEnd    = {
                         dragging = false
                         onSeek((dragProgress * duration).toInt().coerceIn(0, duration))
                     },
@@ -347,7 +336,7 @@ private fun MiniSeekBar(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(4.dp)
+                .height(dimensions.lullabySeekBarHeight)
                 .align(Alignment.Center)
                 .clip(RoundedCornerShape(50))
                 .background(color.copy(alpha = 0.2f))
@@ -355,7 +344,7 @@ private fun MiniSeekBar(
         Box(
             modifier = Modifier
                 .fillMaxWidth(displayProg.coerceIn(0f, 1f))
-                .height(4.dp)
+                .height(dimensions.lullabySeekBarHeight)
                 .align(Alignment.CenterStart)
                 .clip(RoundedCornerShape(50))
                 .background(color)
@@ -363,9 +352,9 @@ private fun MiniSeekBar(
         // Thumb
         Box(
             modifier = Modifier
-                .size(14.dp)
+                .size(dimensions.lullabyThumbSize)
                 .align(Alignment.CenterStart)
-                .offset(x = (maxWidth * displayProg.coerceIn(0f, 1f)) - 7.dp)
+                .offset(x = (maxWidth * displayProg.coerceIn(0f, 1f)) - (dimensions.lullabyThumbSize / 2))
                 .clip(CircleShape)
                 .background(color)
         )
@@ -387,7 +376,6 @@ fun NowPlayingBar(
     val customColors = MaterialTheme.customColors
     val dimensions   = LocalDimensions.current
 
-    // FIX: elevation = 0 / no border on the now-playing card either
     Card(
         modifier  = modifier
             .fillMaxWidth()
@@ -407,7 +395,7 @@ fun NowPlayingBar(
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
             )
-            Spacer(Modifier.height(2.dp))
+            Spacer(Modifier.height(dimensions.borderWidthMedium))
 
             Text(
                 text       = item.title.get(langCode),
@@ -420,7 +408,6 @@ fun NowPlayingBar(
 
             Spacer(Modifier.height(dimensions.spacingSmall))
 
-            // Draggable seek bar in now-playing bar
             MiniSeekBar(
                 progress = playerState.progress,
                 duration = playerState.durationSeconds,
@@ -428,7 +415,7 @@ fun NowPlayingBar(
                 color    = MaterialTheme.colorScheme.onPrimary
             )
 
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(dimensions.spacingXSmall))
 
             Row(
                 modifier              = Modifier.fillMaxWidth(),
@@ -448,57 +435,67 @@ fun NowPlayingBar(
 
             Spacer(Modifier.height(dimensions.spacingSmall))
 
-            // Controls row
             Row(
                 modifier              = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment     = Alignment.CenterVertically
             ) {
-                // Restart / rewind to 0
+                // Restart
                 IconButton(onClick = { onSeek(0) }) {
-                    Text("⏮", fontSize = 20.sp)
+                    Text(stringResource(Res.string.lullaby_seek_restart), fontSize = dimensions.lullabyNoteEmojiSize)
                 }
 
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(dimensions.spacingSmall))
 
                 // Rewind 10 s
                 IconButton(onClick = {
                     onSeek((playerState.positionSeconds - 10).coerceAtLeast(0))
                 }) {
-                    Text("−10s", fontSize = 11.sp, color = MaterialTheme.colorScheme.onPrimary)
+                    Text(
+                        stringResource(Res.string.lullaby_seek_back_10),
+                        fontSize = dimensions.lullabySkipLabelSize,
+                        color    = MaterialTheme.colorScheme.onPrimary
+                    )
                 }
 
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(dimensions.spacingSmall))
 
                 // Play / Pause
                 Box(
                     modifier = Modifier
-                        .size(46.dp)
+                        .size(dimensions.lullabyPlayCircleSize)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.25f))
                         .clickable(onClick = onTogglePause),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text     = if (playerState.isPlaying) "⏸" else "▶",
-                        fontSize = 22.sp
+                        text     = if (playerState.isPlaying)
+                            stringResource(Res.string.lullaby_pause_symbol)
+                        else
+                            stringResource(Res.string.lullaby_play_symbol),
+                        fontSize = (dimensions.lullabyNoteEmojiSize.value + 2).sp
                     )
                 }
 
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(dimensions.spacingSmall))
 
                 // Fast-forward 10 s
                 IconButton(onClick = {
                     onSeek((playerState.positionSeconds + 10).coerceAtMost(playerState.durationSeconds))
                 }) {
-                    Text("+10s", fontSize = 11.sp, color = MaterialTheme.colorScheme.onPrimary)
+                    Text(
+                        stringResource(Res.string.lullaby_seek_forward_10),
+                        fontSize = dimensions.lullabySkipLabelSize,
+                        color    = MaterialTheme.colorScheme.onPrimary
+                    )
                 }
 
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(dimensions.spacingSmall))
 
                 // Stop
                 IconButton(onClick = onStop) {
-                    Text("⏹", fontSize = 20.sp)
+                    Text(stringResource(Res.string.lullaby_stop), fontSize = dimensions.lullabyNoteEmojiSize)
                 }
             }
         }

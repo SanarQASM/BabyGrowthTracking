@@ -1,3 +1,5 @@
+// ── FamilyHistorySettingsRow.kt ──────────────────────────────────────────────
+
 package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen
 
 import androidx.compose.foundation.background
@@ -13,16 +15,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 import babygrowthtrackingapplication.composeapp.generated.resources.*
 import org.example.project.babygrowthtrackingapplication.theme.LocalDimensions
 import org.jetbrains.compose.resources.stringResource
 
-/**
- * Row shown in Settings > Information section for Family History.
- * Shows "Information set" chip if data exists, or "Not set" warning.
- */
 @Composable
 fun FamilyHistorySettingsRow(
     isSet    : Boolean,
@@ -35,15 +32,17 @@ fun FamilyHistorySettingsRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = dimensions.spacingMedium),
+            .padding(
+                horizontal = dimensions.devSettingsRowPaddingH,
+                vertical   = dimensions.spacingMedium
+            ),
         verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
     ) {
-        // Icon box
         Box(
             modifier         = Modifier
-                .size(36.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .size(dimensions.devSettingsIconBoxSize)
+                .clip(RoundedCornerShape(dimensions.devSettingsIconCorner))
                 .background(
                     if (isSet) Color(0xFF22C55E).copy(alpha = 0.12f)
                     else MaterialTheme.colorScheme.error.copy(alpha = 0.12f)
@@ -56,7 +55,6 @@ fun FamilyHistorySettingsRow(
             )
         }
 
-        // Labels
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text       = stringResource(Res.string.settings_family_history),
@@ -70,19 +68,15 @@ fun FamilyHistorySettingsRow(
                 else
                     stringResource(Res.string.settings_family_history_not_set),
                 style = MaterialTheme.typography.bodySmall,
-                color = if (isSet)
-                    Color(0xFF22C55E)
-                else
-                    MaterialTheme.colorScheme.error
+                color = if (isSet) Color(0xFF22C55E) else MaterialTheme.colorScheme.error
             )
         }
 
-        // Chevron
         Icon(
             Icons.Default.ChevronRight,
             null,
             tint     = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-            modifier = Modifier.size(18.dp)
+            modifier = Modifier.size(dimensions.devSettingsChevronSize)
         )
     }
 }

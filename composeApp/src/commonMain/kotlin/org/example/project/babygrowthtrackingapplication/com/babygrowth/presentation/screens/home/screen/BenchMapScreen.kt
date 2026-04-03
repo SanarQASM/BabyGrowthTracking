@@ -101,10 +101,10 @@ fun BenchMapScreen(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(top = dimensions.spacingMedium)
-                    .shadow(4.dp, RoundedCornerShape(50))
+                    .shadow(dimensions.cardElevation, RoundedCornerShape(50))
                     .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(50))
-                    .padding(horizontal = 4.dp, vertical = 4.dp),
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    .padding(horizontal = dimensions.spacingXSmall, vertical = dimensions.spacingXSmall),
+                horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
             ) {
                 BenchMapFilter.entries.forEach { filter ->
                     FilterChip(
@@ -128,13 +128,13 @@ fun BenchMapScreen(
                 }
             }
 
-            // ── Panel toggle button ───────────────────────────────────────────
+            // ── Panel toggle FAB ─────────────────────────────────────────────
             FloatingActionButton(
                 onClick = { panelVisible = !panelVisible },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(dimensions.spacingMedium)
-                    .padding(bottom = if (panelVisible) 260.dp else 0.dp),
+                    .padding(bottom = if (panelVisible) dimensions.benchCardFabBottomPad else 0.dp),
                 containerColor = customColors.accentGradientStart,
                 contentColor = Color.White,
                 shape = CircleShape
@@ -190,17 +190,20 @@ private fun BenchListPanel(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(min = 200.dp, max = 300.dp),
-        shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-        tonalElevation = 8.dp,
-        shadowElevation = 8.dp
+            .heightIn(
+                min = dimensions.benchPanelMinHeight,
+                max = dimensions.benchPanelMaxHeight
+            ),
+        shape = RoundedCornerShape(topStart = dimensions.cardCornerRadius + dimensions.spacingSmall, topEnd = dimensions.cardCornerRadius + dimensions.spacingSmall),
+        tonalElevation = dimensions.cardElevation * 2f,
+        shadowElevation = dimensions.cardElevation * 2f
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             // Drag handle
             Box(
                 modifier = Modifier
-                    .padding(vertical = 8.dp)
-                    .size(40.dp, 4.dp)
+                    .padding(vertical = dimensions.spacingSmall)
+                    .size(dimensions.iconLarge + dimensions.spacingSmall, dimensions.spacingXSmall)
                     .align(Alignment.CenterHorizontally)
                     .background(
                         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.2f),
@@ -228,14 +231,14 @@ private fun BenchListPanel(
                 )
             }
 
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(dimensions.spacingXSmall))
 
             if (loading) {
-                Box(Modifier.fillMaxWidth().height(80.dp), Alignment.Center) {
+                Box(Modifier.fillMaxWidth().height(dimensions.iconXLarge + dimensions.spacingMedium), Alignment.Center) {
                     CircularProgressIndicator(color = customColors.accentGradientStart)
                 }
             } else if (benches.isEmpty()) {
-                Box(Modifier.fillMaxWidth().height(80.dp), Alignment.Center) {
+                Box(Modifier.fillMaxWidth().height(dimensions.iconXLarge + dimensions.spacingMedium), Alignment.Center) {
                     Text(
                         text = stringResource(Res.string.bench_no_centers),
                         style = MaterialTheme.typography.bodyMedium,
@@ -274,7 +277,7 @@ private fun BenchCard(
 
     Card(
         modifier = Modifier
-            .width(220.dp)
+            .width(dimensions.benchCardWidth)
             .fillMaxHeight()
             .padding(bottom = dimensions.spacingMedium)
             .clickable { onClick() },
@@ -284,14 +287,14 @@ private fun BenchCard(
                 customColors.accentGradientStart.copy(alpha = 0.12f)
             else MaterialTheme.colorScheme.surfaceVariant
         ),
-        border = if (isSelected) BorderStroke(2.dp, customColors.accentGradientStart) else null,
-        elevation = CardDefaults.cardElevation(if (isSelected) 4.dp else 1.dp)
+        border = if (isSelected) BorderStroke(dimensions.borderWidthMedium, customColors.accentGradientStart) else null,
+        elevation = CardDefaults.cardElevation(if (isSelected) dimensions.cardElevation else dimensions.borderWidthThin)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(dimensions.spacingMedium),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
         ) {
             Text(
                 text = "🏥 ${bench.type}",
@@ -312,9 +315,9 @@ private fun BenchCard(
                 color = MaterialTheme.colorScheme.onSurface.copy(0.6f),
                 maxLines = 1
             )
-            bench.distanceKm?.let {
+            bench.distanceKm?.let { km ->
                 Text(
-                    text = "📍 %.1f km away".toInt().toString(),
+                    text = stringResource(Res.string.bench_distance_km, km),
                     style = MaterialTheme.typography.labelSmall,
                     color = customColors.accentGradientEnd
                 )

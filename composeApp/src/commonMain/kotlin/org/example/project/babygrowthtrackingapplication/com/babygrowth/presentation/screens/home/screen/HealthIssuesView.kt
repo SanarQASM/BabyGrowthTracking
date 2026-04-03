@@ -18,6 +18,9 @@ import androidx.compose.ui.unit.dp
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.*
 import org.example.project.babygrowthtrackingapplication.theme.LocalDimensions
 import org.example.project.babygrowthtrackingapplication.theme.customColors
+import org.jetbrains.compose.resources.stringResource
+import babygrowthtrackingapplication.composeapp.generated.resources.Res
+import babygrowthtrackingapplication.composeapp.generated.resources.*
 
 // ═════════════════════════════════════════════════════════════════════════════
 // HEALTH ISSUES VIEW
@@ -62,9 +65,9 @@ fun HealthIssuesView(
                     label = {
                         Text(
                             text = when (f) {
-                                HealthIssueFilter.ALL      -> "All"
-                                HealthIssueFilter.ONGOING  -> "Ongoing"
-                                HealthIssueFilter.RESOLVED -> "Resolved"
+                                HealthIssueFilter.ALL      -> stringResource(Res.string.health_issue_filter_all_label)
+                                HealthIssueFilter.ONGOING  -> stringResource(Res.string.health_issue_filter_ongoing_label)
+                                HealthIssueFilter.RESOLVED -> stringResource(Res.string.health_issue_filter_resolved_label)
                             },
                             style = MaterialTheme.typography.labelMedium
                         )
@@ -79,7 +82,12 @@ fun HealthIssuesView(
         }
 
         if (loading) {
-            Box(Modifier.fillMaxWidth().height(120.dp), Alignment.Center) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(dimensions.iconXLarge + dimensions.spacingXLarge),
+                Alignment.Center
+            ) {
                 CircularProgressIndicator(color = customColors.accentGradientStart)
             }
         } else {
@@ -99,13 +107,12 @@ fun HealthIssuesView(
                 }
 
                 item {
-                    // Add New Issue button
                     OutlinedCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { onAddIssue() },
                         shape = RoundedCornerShape(dimensions.cardCornerRadius),
-                        border = BorderStroke(1.dp, customColors.accentGradientStart.copy(0.4f))
+                        border = BorderStroke(dimensions.borderWidthThin, customColors.accentGradientStart.copy(0.4f))
                     ) {
                         Row(
                             modifier = Modifier
@@ -117,11 +124,11 @@ fun HealthIssuesView(
                             Icon(
                                 Icons.Default.Add, null,
                                 tint = customColors.accentGradientStart,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(dimensions.iconMedium)
                             )
-                            Spacer(Modifier.width(8.dp))
+                            Spacer(Modifier.width(dimensions.spacingSmall))
                             Text(
-                                "Add New Health Issue",
+                                stringResource(Res.string.add_health_issue_button),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = customColors.accentGradientStart,
                                 fontWeight = FontWeight.SemiBold
@@ -154,7 +161,7 @@ private fun HealthIssueCard(
         modifier = Modifier.fillMaxWidth().clickable { onClick() },
         shape = RoundedCornerShape(dimensions.cardCornerRadius),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(2.dp)
+        elevation = CardDefaults.cardElevation(dimensions.healthSubTabElevation)
     ) {
         Column(modifier = Modifier.padding(dimensions.spacingMedium)) {
             Row(
@@ -163,7 +170,7 @@ private fun HealthIssueCard(
                 verticalAlignment = Alignment.Top
             ) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall),
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.weight(1f)
                 ) {
@@ -184,15 +191,14 @@ private fun HealthIssueCard(
                         )
                     }
                 }
-                // View all icon
                 Icon(
                     Icons.Default.Edit, null,
                     tint = customColors.accentGradientStart.copy(0.5f),
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(dimensions.iconSmall + dimensions.borderWidthMedium)
                 )
             }
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(dimensions.spacingSmall))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -205,8 +211,11 @@ private fun HealthIssueCard(
                         color = severityColor.copy(0.12f)
                     ) {
                         Text(
-                            text = "Severity: ${it.lowercase().replaceFirstChar { c -> c.uppercase() }}",
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                            text = stringResource(
+                                Res.string.health_issue_severity_label,
+                                it.lowercase().replaceFirstChar { c -> c.uppercase() }
+                            ),
+                            modifier = Modifier.padding(horizontal = dimensions.spacingSmall, vertical = 3.dp),
                             style = MaterialTheme.typography.labelSmall,
                             color = severityColor,
                             fontWeight = FontWeight.SemiBold
@@ -221,8 +230,11 @@ private fun HealthIssueCard(
                             contentColor = Color(0xFF22C55E)
                         )
                     ) {
-                        Text("Resolved", fontWeight = FontWeight.SemiBold,
-                            style = MaterialTheme.typography.labelMedium)
+                        Text(
+                            stringResource(Res.string.health_issue_resolved_button),
+                            fontWeight = FontWeight.SemiBold,
+                            style = MaterialTheme.typography.labelMedium
+                        )
                     }
                 } else {
                     Surface(
@@ -230,8 +242,8 @@ private fun HealthIssueCard(
                         color = Color(0xFF22C55E).copy(0.12f)
                     ) {
                         Text(
-                            "Resolved",
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                            stringResource(Res.string.health_issue_resolved_button),
+                            modifier = Modifier.padding(horizontal = dimensions.spacingSmall, vertical = 3.dp),
                             style = MaterialTheme.typography.labelSmall,
                             color = Color(0xFF22C55E),
                             fontWeight = FontWeight.SemiBold
@@ -261,13 +273,13 @@ fun AddHealthIssueDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add Health Issue", fontWeight = FontWeight.Bold) },
+        title = { Text(stringResource(Res.string.add_issue_title), fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
                 OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
-                    label = { Text("Title *") },
+                    label = { Text(stringResource(Res.string.add_issue_section_title_label)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     shape = RoundedCornerShape(dimensions.cardCornerRadius)
@@ -275,7 +287,7 @@ fun AddHealthIssueDialog(
                 OutlinedTextField(
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("Description") },
+                    label = { Text(stringResource(Res.string.add_issue_section_description)) },
                     modifier = Modifier.fillMaxWidth(),
                     minLines = 2,
                     maxLines = 4,
@@ -284,19 +296,26 @@ fun AddHealthIssueDialog(
                 OutlinedTextField(
                     value = issueDate,
                     onValueChange = { issueDate = it },
-                    label = { Text("Issue Date (YYYY-MM-DD) *") },
+                    label = { Text(stringResource(Res.string.add_issue_section_date)) },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     shape = RoundedCornerShape(dimensions.cardCornerRadius)
                 )
-                Text("Severity", style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold)
+                Text(
+                    stringResource(Res.string.add_issue_section_severity),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
                 Row(horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
-                    listOf("MILD", "MODERATE", "SEVERE").forEach { s ->
+                    listOf(
+                        "MILD"     to stringResource(Res.string.add_issue_severity_mild),
+                        "MODERATE" to stringResource(Res.string.add_issue_severity_moderate),
+                        "SEVERE"   to stringResource(Res.string.add_issue_severity_severe)
+                    ).forEach { (value, label) ->
                         FilterChip(
-                            selected = severity == s,
-                            onClick = { severity = s },
-                            label = { Text(s.lowercase().replaceFirstChar { it.uppercase() }) },
+                            selected = severity == value,
+                            onClick = { severity = value },
+                            label = { Text(label) },
                             shape = RoundedCornerShape(50)
                         )
                     }
@@ -311,10 +330,10 @@ fun AddHealthIssueDialog(
                     }
                 },
                 enabled = title.isNotBlank() && issueDate.isNotBlank()
-            ) { Text("Add") }
+            ) { Text(stringResource(Res.string.add_issue_save_button)) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(stringResource(Res.string.btn_cancel)) }
         }
     )
 }
@@ -356,7 +375,6 @@ fun AppointmentsView(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
     ) {
-        // Filter tabs
         ScrollableTabRow(
             selectedTabIndex = filter.ordinal,
             edgePadding = dimensions.screenPadding,
@@ -371,10 +389,10 @@ fun AppointmentsView(
                     text = {
                         Text(
                             text = when (f) {
-                                AppointmentFilter.ALL       -> "All"
-                                AppointmentFilter.UPCOMING  -> "Upcoming"
-                                AppointmentFilter.PAST      -> "Past"
-                                AppointmentFilter.CANCELLED -> "Cancelled"
+                                AppointmentFilter.ALL       -> stringResource(Res.string.appointment_filter_all_label)
+                                AppointmentFilter.UPCOMING  -> stringResource(Res.string.appointment_filter_upcoming_label)
+                                AppointmentFilter.PAST      -> stringResource(Res.string.appointment_filter_past_label)
+                                AppointmentFilter.CANCELLED -> stringResource(Res.string.appointment_filter_cancelled_label)
                             },
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = if (filter == f) FontWeight.Bold else FontWeight.Normal
@@ -385,7 +403,12 @@ fun AppointmentsView(
         }
 
         if (loading) {
-            Box(Modifier.fillMaxWidth().height(120.dp), Alignment.Center) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(dimensions.iconXLarge + dimensions.spacingXLarge),
+                Alignment.Center
+            ) {
                 CircularProgressIndicator(color = customColors.accentGradientStart)
             }
         } else {
@@ -410,7 +433,7 @@ fun AppointmentsView(
                             .fillMaxWidth()
                             .clickable { onAddAppointment() },
                         shape = RoundedCornerShape(dimensions.cardCornerRadius),
-                        border = BorderStroke(1.dp, customColors.accentGradientStart.copy(0.4f))
+                        border = BorderStroke(dimensions.borderWidthThin, customColors.accentGradientStart.copy(0.4f))
                     ) {
                         Row(
                             modifier = Modifier
@@ -422,11 +445,11 @@ fun AppointmentsView(
                             Icon(
                                 Icons.Default.Add, null,
                                 tint = customColors.accentGradientStart,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(dimensions.iconMedium)
                             )
-                            Spacer(Modifier.width(8.dp))
+                            Spacer(Modifier.width(dimensions.spacingSmall))
                             Text(
-                                "Add New Appointments",
+                                stringResource(Res.string.add_appointment_button),
                                 style = MaterialTheme.typography.labelLarge,
                                 color = customColors.accentGradientStart,
                                 fontWeight = FontWeight.SemiBold
@@ -449,17 +472,17 @@ private fun AppointmentCard(
     val customColors = MaterialTheme.customColors
 
     val (statusColor, statusLabel) = when (appointment.statusUi) {
-        AppointmentStatusUi.COMPLETED  -> Pair(Color(0xFF22C55E), "Completed")
-        AppointmentStatusUi.CANCELLED  -> Pair(MaterialTheme.colorScheme.error, "Cancelled")
-        AppointmentStatusUi.MISSED     -> Pair(Color(0xFFF59E0B), "Missed")
-        AppointmentStatusUi.SCHEDULED  -> Pair(customColors.accentGradientStart, "Upcoming")
+        AppointmentStatusUi.COMPLETED  -> Pair(Color(0xFF22C55E), stringResource(Res.string.appointment_status_completed_label))
+        AppointmentStatusUi.CANCELLED  -> Pair(MaterialTheme.colorScheme.error, stringResource(Res.string.appointment_status_cancelled_label))
+        AppointmentStatusUi.MISSED     -> Pair(Color(0xFFF59E0B), stringResource(Res.string.appointment_status_missed_label))
+        AppointmentStatusUi.SCHEDULED  -> Pair(customColors.accentGradientStart, stringResource(Res.string.appointment_status_upcoming_label))
     }
 
     Card(
         modifier = Modifier.fillMaxWidth().clickable { onClick() },
         shape = RoundedCornerShape(dimensions.cardCornerRadius),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(2.dp)
+        elevation = CardDefaults.cardElevation(dimensions.healthSubTabElevation)
     ) {
         Column(modifier = Modifier.padding(dimensions.spacingMedium)) {
             Row(
@@ -468,13 +491,13 @@ private fun AppointmentCard(
                 verticalAlignment = Alignment.Top
             ) {
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall),
                     modifier = Modifier.weight(1f)
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(36.dp)
-                            .clip(RoundedCornerShape(8.dp))
+                            .size(dimensions.iconLarge + dimensions.spacingXSmall)
+                            .clip(RoundedCornerShape(dimensions.spacingSmall))
                             .background(statusColor.copy(0.12f)),
                         contentAlignment = Alignment.Center
                     ) {
@@ -505,11 +528,11 @@ private fun AppointmentCard(
                 Icon(
                     Icons.Default.Edit, null,
                     tint = customColors.accentGradientStart.copy(0.5f),
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(dimensions.iconSmall + dimensions.borderWidthMedium)
                 )
             }
 
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(dimensions.spacingSmall))
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -517,7 +540,7 @@ private fun AppointmentCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Status: $statusLabel",
+                    text = stringResource(Res.string.appointment_status_prefix, statusLabel),
                     style = MaterialTheme.typography.labelSmall,
                     color = statusColor,
                     fontWeight = FontWeight.SemiBold
@@ -529,8 +552,11 @@ private fun AppointmentCard(
                             contentColor = MaterialTheme.colorScheme.error
                         )
                     ) {
-                        Text("Canceled", style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold)
+                        Text(
+                            stringResource(Res.string.appointment_cancel_button),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     }
                 }
             }
@@ -555,31 +581,37 @@ fun AddAppointmentDialog(
     var location by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
 
-    val appointmentTypes = listOf(
-        "REGULAR_CHECKUP", "VACCINATION", "SPECIALIST", "EMERGENCY", "FOLLOW_UP"
+    val appointmentTypeLabels = mapOf(
+        "REGULAR_CHECKUP" to stringResource(Res.string.add_appointment_type_checkup),
+        "VACCINATION"     to stringResource(Res.string.add_appointment_type_vaccination),
+        "SPECIALIST"      to stringResource(Res.string.add_appointment_type_consultation),
+        "EMERGENCY"       to stringResource(Res.string.add_appointment_type_emergency),
+        "FOLLOW_UP"       to stringResource(Res.string.add_appointment_type_followup)
     )
+    val appointmentTypes = appointmentTypeLabels.keys.toList()
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Add Appointment", fontWeight = FontWeight.Bold) },
+        title = { Text(stringResource(Res.string.add_appointment_title), fontWeight = FontWeight.Bold) },
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
             ) {
-                // Type selection
-                Text("Type", style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold)
+                Text(
+                    stringResource(Res.string.add_appointment_section_type),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
                 appointmentTypes.chunked(2).forEach { row ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)) {
                         row.forEach { t ->
                             FilterChip(
                                 selected = type == t,
                                 onClick = { type = t },
                                 label = {
                                     Text(
-                                        t.replace("_", " ").lowercase()
-                                            .replaceFirstChar { it.uppercase() },
+                                        appointmentTypeLabels[t] ?: t,
                                         style = MaterialTheme.typography.labelSmall
                                     )
                                 },
@@ -591,31 +623,35 @@ fun AddAppointmentDialog(
                 }
                 OutlinedTextField(
                     value = date, onValueChange = { date = it },
-                    label = { Text("Date (YYYY-MM-DD) *") },
+                    label = { Text(stringResource(Res.string.add_appointment_section_date)) },
                     modifier = Modifier.fillMaxWidth(), singleLine = true,
                     shape = RoundedCornerShape(dimensions.cardCornerRadius)
                 )
                 OutlinedTextField(
                     value = time, onValueChange = { time = it },
-                    label = { Text("Time (HH:MM)") },
+                    label = { Text(stringResource(Res.string.add_appointment_section_time)) },
+                    placeholder = { Text(stringResource(Res.string.add_appointment_time_placeholder)) },
                     modifier = Modifier.fillMaxWidth(), singleLine = true,
                     shape = RoundedCornerShape(dimensions.cardCornerRadius)
                 )
                 OutlinedTextField(
                     value = doctorName, onValueChange = { doctorName = it },
-                    label = { Text("Doctor Name") },
+                    label = { Text(stringResource(Res.string.add_appointment_section_doctor)) },
+                    placeholder = { Text(stringResource(Res.string.add_appointment_doctor_placeholder)) },
                     modifier = Modifier.fillMaxWidth(), singleLine = true,
                     shape = RoundedCornerShape(dimensions.cardCornerRadius)
                 )
                 OutlinedTextField(
                     value = location, onValueChange = { location = it },
-                    label = { Text("Location") },
+                    label = { Text(stringResource(Res.string.add_appointment_section_location)) },
+                    placeholder = { Text(stringResource(Res.string.add_appointment_location_placeholder)) },
                     modifier = Modifier.fillMaxWidth(), singleLine = true,
                     shape = RoundedCornerShape(dimensions.cardCornerRadius)
                 )
                 OutlinedTextField(
                     value = notes, onValueChange = { notes = it },
-                    label = { Text("Notes") },
+                    label = { Text(stringResource(Res.string.add_appointment_section_notes)) },
+                    placeholder = { Text(stringResource(Res.string.add_appointment_notes_placeholder)) },
                     modifier = Modifier.fillMaxWidth(), minLines = 2, maxLines = 3,
                     shape = RoundedCornerShape(dimensions.cardCornerRadius)
                 )
@@ -635,8 +671,10 @@ fun AddAppointmentDialog(
                     }
                 },
                 enabled = date.isNotBlank()
-            ) { Text("Add") }
+            ) { Text(stringResource(Res.string.add_appointment_save_button)) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(Res.string.btn_cancel)) }
+        }
     )
 }

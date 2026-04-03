@@ -26,7 +26,7 @@ import org.example.project.babygrowthtrackingapplication.theme.*
 import org.jetbrains.compose.resources.stringResource
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ChildDevTopBar — shared top app bar for both dev screens
+// ChildDevTopBar
 // ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -79,7 +79,7 @@ fun ChildDevTopBar(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ChildDevHeaderCard — informational header at the top of each screen
+// ChildDevHeaderCard
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -114,7 +114,7 @@ fun ChildDevHeaderCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(52.dp)
+                    .size(dimensions.devHeaderIconBoxSize)
                     .clip(RoundedCornerShape(dimensions.spacingMedium))
                     .background(customColors.accentGradientStart.copy(0.2f)),
                 contentAlignment = Alignment.Center
@@ -139,9 +139,8 @@ fun ChildDevHeaderCard(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DevCheckItem — single milestone checkbox row
-// Three-state: null (not assessed), true (achieved), false (not achieved)
-// Tapping cycles: null → true → false → null
+// DevCheckItem — three-state milestone checkbox row
+// null = not assessed, true = achieved, false = not achieved
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -178,16 +177,15 @@ fun DevCheckItem(
             .fillMaxWidth()
             .clip(RoundedCornerShape(d.buttonCornerRadius - 4.dp))
             .background(bgColor)
-            .border(1.dp, borderColor, RoundedCornerShape(d.buttonCornerRadius - 4.dp))
+            .border(d.borderWidthThin, borderColor, RoundedCornerShape(d.buttonCornerRadius - 4.dp))
             .clickable { onToggle() }
-            .padding(horizontal = d.spacingMedium, vertical = d.spacingSmall + 2.dp),
+            .padding(horizontal = d.spacingMedium, vertical = d.spacingSmall + d.borderWidthMedium),
         verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(d.spacingMedium)
     ) {
-        // State indicator circle
         Box(
             modifier = Modifier
-                .size(28.dp)
+                .size(d.devCheckCircleSize)
                 .clip(CircleShape)
                 .background(
                     when (checked) {
@@ -199,18 +197,25 @@ fun DevCheckItem(
             contentAlignment = Alignment.Center
         ) {
             when (checked) {
-                true  -> Icon(Icons.Default.Check, null,
-                    tint = Color.White, modifier = Modifier.size(16.dp))
-                false -> Icon(Icons.Default.Close, null,
-                    tint = Color.White, modifier = Modifier.size(16.dp))
+                true  -> Icon(
+                    Icons.Default.Check, null,
+                    tint = Color.White,
+                    modifier = Modifier.size(d.iconSmall)
+                )
+                false -> Icon(
+                    Icons.Default.Close, null,
+                    tint = Color.White,
+                    modifier = Modifier.size(d.iconSmall)
+                )
                 null  -> Box(
-                    modifier = Modifier.size(8.dp).clip(CircleShape)
+                    modifier = Modifier
+                        .size(d.devIndicatorDotSize)
+                        .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.onSurface.copy(0.4f))
                 )
             }
         }
 
-        // Label
         Text(
             text     = label,
             style    = MaterialTheme.typography.bodySmall,
@@ -223,7 +228,7 @@ fun DevCheckItem(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ChildDevSaveButton — shared Save + Cancel buttons
+// ChildDevSaveButton
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -260,8 +265,7 @@ fun ChildDevSaveButton(
             ) {
                 Box(
                     modifier = Modifier.fillMaxSize()
-                        .background(customColors.glassOverlay,
-                            RoundedCornerShape(dimensions.buttonCornerRadius))
+                        .background(customColors.glassOverlay, RoundedCornerShape(dimensions.buttonCornerRadius))
                 )
                 if (isSaving) {
                     CircularProgressIndicator(
@@ -296,15 +300,14 @@ fun ChildDevSaveButton(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ChildDevSettingsRow — entry point from settings tab
-// Shows progress as "N/5 months assessed" or "Not started"
+// ChildDevSettingsRow (legacy version kept for API compat)
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 fun ChildDevSettingsRow(
-    titleRes     : Int,       // string resource id
-    emojiRes     : Int,       // string resource id
-    assessedCount: Int,       // how many milestone months have data
+    titleRes     : Int,
+    emojiRes     : Int,
+    assessedCount: Int,
     totalMonths  : Int = 5,
     babyName     : String,
     onClick      : () -> Unit
@@ -317,14 +320,17 @@ fun ChildDevSettingsRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = dimensions.spacingMedium),
+            .padding(
+                horizontal = dimensions.devSettingsRowPaddingH,
+                vertical   = dimensions.spacingMedium
+            ),
         verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
     ) {
         Box(
             modifier = Modifier
-                .size(36.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .size(dimensions.devSettingsIconBoxSize)
+                .clip(RoundedCornerShape(dimensions.devSettingsIconCorner))
                 .background(
                     when {
                         complete -> Color(0xFF22C55E).copy(0.12f)
@@ -335,7 +341,7 @@ fun ChildDevSettingsRow(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text  = stringResource(Res.string.child_dev_vision_emoji), // reuse for now
+                text  = stringResource(Res.string.child_dev_vision_emoji),
                 style = MaterialTheme.typography.bodyMedium
             )
         }
@@ -365,7 +371,7 @@ fun ChildDevSettingsRow(
         Icon(
             Icons.Default.ChevronRight, null,
             tint     = MaterialTheme.colorScheme.onSurface.copy(0.3f),
-            modifier = Modifier.size(18.dp)
+            modifier = Modifier.size(dimensions.devSettingsChevronSize)
         )
     }
 }

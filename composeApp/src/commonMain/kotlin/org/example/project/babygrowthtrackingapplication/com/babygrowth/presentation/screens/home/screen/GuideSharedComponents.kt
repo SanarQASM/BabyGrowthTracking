@@ -97,14 +97,14 @@ fun GuideSubtitleHeader(
                 fontWeight    = FontWeight.SemiBold,
                 letterSpacing = 1.sp
             )
-            Spacer(Modifier.height(4.dp))
+            Spacer(Modifier.height(dimensions.spacingXSmall))
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(dimensions.buttonCornerRadius / 2))
                     .background(customColors.accentGradientStart.copy(alpha = 0.12f))
                     .clickable { expanded = !expanded }
-                    .padding(horizontal = dimensions.spacingMedium, vertical = 10.dp)
+                    .padding(horizontal = dimensions.spacingMedium, vertical = dimensions.spacingSmall + dimensions.borderWidthMedium)
             ) {
                 val selected = babies.getOrNull(selectedIndex)
                 val isFemale = selected?.gender?.lowercase()?.let {
@@ -114,22 +114,27 @@ fun GuideSubtitleHeader(
                     verticalAlignment     = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
                 ) {
-                    Text(if (isFemale) "👧" else "👦", fontSize = 18.sp)
+                    Text(
+                        if (isFemale) "👧" else "👦",
+                        fontSize = dimensions.iconMedium.value.sp
+                    )
                     Text(
                         text     = selected?.fullName ?: stringResource(Res.string.home_select_child_hint),
                         style    = MaterialTheme.typography.bodyMedium,
                         color    = MaterialTheme.colorScheme.onSurface,
                         modifier = Modifier.weight(1f)
                     )
-                    Text("▾", color = customColors.accentGradientStart, fontSize = 14.sp)
+                    Text("▾", color = customColors.accentGradientStart, fontSize = dimensions.iconSmall.value.sp)
                 }
                 DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                     babies.forEachIndexed { i, baby ->
                         val fem = baby.gender.lowercase().let { it == "female" || it == "girl" }
                         DropdownMenuItem(
                             text = {
-                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
                                     Text(if (fem) "👧" else "👦")
                                     Text(baby.fullName)
                                 }
@@ -219,21 +224,26 @@ private fun GuideCategoryTile(
                 else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
             )
             .border(
-                width = if (selected) 2.dp else 0.dp,
+                width = if (selected) dimensions.borderWidthMedium else 0.dp,
                 color = if (selected) customColors.accentGradientStart else Color.Transparent,
                 shape = RoundedCornerShape(dimensions.cardCornerRadius)
             )
             .clickable(onClick = onClick)
-            .padding(vertical = dimensions.spacingSmall + 4.dp, horizontal = dimensions.spacingSmall),
+            .padding(
+                vertical   = dimensions.spacingSmall + dimensions.borderWidthMedium,
+                horizontal = dimensions.spacingSmall
+            ),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Box(
             modifier = Modifier
-                .size(52.dp)
+                .size(dimensions.guideCategoryIconBoxSize)
                 .background(customColors.accentGradientStart.copy(alpha = 0.10f), CircleShape),
             contentAlignment = Alignment.Center
-        ) { Text(item.icon, fontSize = 26.sp) }
-        Spacer(Modifier.height(6.dp))
+        ) {
+            Text(item.icon, fontSize = dimensions.guideCategoryIconFontSize)
+        }
+        Spacer(Modifier.height(dimensions.spacingXSmall + dimensions.borderWidthThin))
         Text(
             text       = item.label,
             style      = MaterialTheme.typography.labelMedium,
@@ -289,12 +299,15 @@ fun GuidePillTabs(
                     .clip(RoundedCornerShape(50))
                     .background(bg)
                     .border(
-                        1.dp,
+                        dimensions.borderWidthThin,
                         customColors.accentGradientStart.copy(alpha = if (selected) 0f else 0.3f),
                         RoundedCornerShape(50)
                     )
                     .clickable { onSelectTab(tab.id) }
-                    .padding(horizontal = 14.dp, vertical = 7.dp),
+                    .padding(
+                        horizontal = dimensions.guideTabPillPaddingH,
+                        vertical   = dimensions.guideTabPillPaddingV
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -360,13 +373,16 @@ fun GuideContentCard(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clip(RoundedCornerShape(8.dp))
+                            .clip(RoundedCornerShape(dimensions.spacingSmall))
                             .background(customColors.accentGradientStart.copy(alpha = 0.10f))
-                            .padding(horizontal = 12.dp, vertical = 8.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            .padding(
+                                horizontal = dimensions.spacingSmall + dimensions.spacingXSmall,
+                                vertical   = dimensions.spacingSmall
+                            ),
+                        horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall),
                         verticalAlignment     = Alignment.Top
                     ) {
-                        Text("💡", fontSize = 14.sp)
+                        Text("💡", fontSize = dimensions.iconSmall.value.sp)
                         Text(
                             text      = tip,
                             style     = MaterialTheme.typography.bodySmall,
@@ -403,7 +419,6 @@ fun GuideFeedbackRow(
         verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
     ) {
-        // FIX: usefulCount is Long — display with toInt() for the string resource
         Text(
             text     = stringResource(Res.string.sleep_guide_useful_for, feedbackState.usefulCount.toInt()),
             style    = MaterialTheme.typography.labelSmall,
@@ -438,6 +453,7 @@ private fun FeedbackPill(
     colorText: Color,
     onClick  : () -> Unit
 ) {
+    val dimensions = LocalDimensions.current
     val bgAlpha by animateFloatAsState(
         targetValue   = if (selected) 1f else 0f,
         animationSpec = tween(durationMillis = 200),
@@ -458,28 +474,35 @@ private fun FeedbackPill(
             .clip(RoundedCornerShape(50))
             .background(colorSel.copy(alpha = bgAlpha * 0.18f))
             .border(
-                width = if (selected) 1.5.dp else 1.dp,
+                width = if (selected) dimensions.borderWidthThin + 0.5.dp else dimensions.borderWidthThin,
                 color = if (selected) colorSel else colorText.copy(alpha = 0.35f),
                 shape = RoundedCornerShape(50)
             )
             .clickable(enabled = !isLoading, onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 5.dp),
+            .padding(
+                horizontal = dimensions.guideFeedbackPillPaddingH,
+                vertical   = dimensions.guideFeedbackPillPaddingV
+            ),
         contentAlignment = Alignment.Center
     ) {
         if (isLoading) {
             CircularProgressIndicator(
-                modifier    = Modifier.size(12.dp),
-                strokeWidth = 1.5.dp,
+                modifier    = Modifier.size(dimensions.iconSmall),
+                strokeWidth = dimensions.borderWidthThin + 0.5.dp,
                 color       = colorText
             )
         } else {
             Row(
                 verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
             ) {
                 if (selected) {
-                    Text("✓", style = MaterialTheme.typography.labelSmall,
-                        color = currentTextColor, fontWeight = FontWeight.Bold)
+                    Text(
+                        "✓",
+                        style      = MaterialTheme.typography.labelSmall,
+                        color      = currentTextColor,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
                 Text(
                     text       = label,

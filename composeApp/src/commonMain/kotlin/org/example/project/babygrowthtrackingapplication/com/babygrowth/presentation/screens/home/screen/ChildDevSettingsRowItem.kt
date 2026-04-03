@@ -1,7 +1,4 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// ADD this composable to ChildDevSharedComponents.kt
-// (or inline it into SettingsTabContent.kt as a private composable)
-// ─────────────────────────────────────────────────────────────────────────────
+// ── ChildDevSettingsRowItem.kt ───────────────────────────────────────────────
 
 package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen
 
@@ -18,16 +15,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 import babygrowthtrackingapplication.composeapp.generated.resources.*
 import org.example.project.babygrowthtrackingapplication.theme.LocalDimensions
 import org.jetbrains.compose.resources.stringResource
 
-/**
- * Row shown in Settings > Information section for child development screens.
- * Displays progress: how many milestone months have been assessed.
- */
 @Composable
 fun ChildDevSettingsRowItem(
     emoji        : String,
@@ -44,15 +36,17 @@ fun ChildDevSettingsRowItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(horizontal = 16.dp, vertical = dimensions.spacingMedium),
+            .padding(
+                horizontal = dimensions.devSettingsRowPaddingH,
+                vertical   = dimensions.spacingMedium
+            ),
         verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
     ) {
-        // Icon box
         Box(
             modifier = Modifier
-                .size(36.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .size(dimensions.devSettingsIconBoxSize)
+                .clip(RoundedCornerShape(dimensions.devSettingsIconCorner))
                 .background(
                     when {
                         complete -> Color(0xFF22C55E).copy(alpha = 0.12f)
@@ -91,7 +85,7 @@ fun ChildDevSettingsRowItem(
             Icons.Default.ChevronRight,
             contentDescription = null,
             tint     = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-            modifier = Modifier.size(18.dp)
+            modifier = Modifier.size(dimensions.devSettingsChevronSize)
         )
     }
 }

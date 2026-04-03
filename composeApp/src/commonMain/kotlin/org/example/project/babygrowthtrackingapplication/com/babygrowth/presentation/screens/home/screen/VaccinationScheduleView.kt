@@ -62,7 +62,6 @@ fun VaccinationScheduleView(
         modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
     ) {
-        // Progress bar
         if (totalCount > 0) {
             VaccinationProgressBar(
                 completed = completedCount,
@@ -71,19 +70,17 @@ fun VaccinationScheduleView(
             )
         }
 
-        // Reschedule banner — visible whenever there are overdue OR upcoming vaccinations
         val reschedulableCount = schedules.count {
             it.statusUi != ScheduleStatusUi.COMPLETED && it.statusUi != ScheduleStatusUi.MISSED
         }
         if (reschedulableCount > 0) {
             RescheduleBanner(
-                overdueCount      = overdueCount,
+                overdueCount       = overdueCount,
                 reschedulableCount = reschedulableCount,
-                onReschedule      = onReschedule
+                onReschedule       = onReschedule
             )
         }
 
-        // Filter tabs
         ScrollableTabRow(
             selectedTabIndex = filter.ordinal,
             edgePadding      = dimensions.screenPadding,
@@ -101,7 +98,7 @@ fun VaccinationScheduleView(
                                 VaccinationFilter.ALL       -> stringResource(Res.string.bench_filter_all)
                                 VaccinationFilter.UPCOMING  -> stringResource(Res.string.schedule_section_upcoming)
                                 VaccinationFilter.COMPLETED -> stringResource(Res.string.schedule_section_completed)
-                                VaccinationFilter.OVERDUE   -> stringResource(Res.string.schedule_section_overdue)
+                                VaccinationFilter.OVERDUE   -> stringResource(Res.string.schedule_status_overdue)
                             },
                             style      = MaterialTheme.typography.labelMedium,
                             fontWeight = if (filter == f) FontWeight.Bold else FontWeight.Normal
@@ -112,13 +109,23 @@ fun VaccinationScheduleView(
         }
 
         if (loading) {
-            Box(Modifier.fillMaxWidth().height(120.dp), Alignment.Center) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(dimensions.iconXLarge + dimensions.spacingXLarge),
+                Alignment.Center
+            ) {
                 CircularProgressIndicator(color = customColors.accentGradientStart)
             }
         } else if (filtered.isEmpty()) {
-            Box(Modifier.fillMaxWidth().height(120.dp), Alignment.Center) {
+            Box(
+                Modifier
+                    .fillMaxWidth()
+                    .height(dimensions.iconXLarge + dimensions.spacingXLarge),
+                Alignment.Center
+            ) {
                 Text(
-                    text  = "No vaccinations found",
+                    text  = stringResource(Res.string.schedule_no_vaccinations_found),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(0.4f)
                 )
@@ -158,7 +165,7 @@ private fun VaccinationProgressBar(completed: Int, total: Int, overdue: Int) {
     ) {
         Column(
             modifier            = Modifier.padding(dimensions.spacingMedium),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
         ) {
             Row(
                 modifier              = Modifier.fillMaxWidth(),
@@ -181,13 +188,13 @@ private fun VaccinationProgressBar(completed: Int, total: Int, overdue: Int) {
                 modifier   = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(50))
-                    .height(8.dp),
+                    .height(dimensions.vaccinationProgressBarHeight),
                 color      = customColors.accentGradientStart,
                 trackColor = customColors.accentGradientStart.copy(0.15f)
             )
             if (overdue > 0) {
                 Text(
-                    text  = "⚠️ $overdue overdue",
+                    text  = stringResource(Res.string.schedule_overdue_count, overdue),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.error
                 )
@@ -197,7 +204,7 @@ private fun VaccinationProgressBar(completed: Int, total: Int, overdue: Int) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Reschedule banner  (shows for both overdue AND upcoming reschedulable items)
+// Reschedule banner
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -231,9 +238,9 @@ private fun RescheduleBanner(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = if (isOverdue)
-                        "⚠️ $overdueCount vaccination${if (overdueCount > 1) "s" else ""} overdue"
+                        stringResource(Res.string.schedule_overdue_count, overdueCount)
                     else
-                        "💉 $reschedulableCount vaccination${if (reschedulableCount > 1) "s" else ""} to reschedule",
+                        stringResource(Res.string.schedule_reschedulable_count, reschedulableCount),
                     style      = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color      = if (isOverdue)
@@ -242,7 +249,7 @@ private fun RescheduleBanner(
                         MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Text(
-                    text  = "Tap to reschedule all pending vaccinations",
+                    text  = stringResource(Res.string.schedule_reschedule_tap_hint),
                     style = MaterialTheme.typography.bodySmall,
                     color = if (isOverdue)
                         MaterialTheme.colorScheme.onErrorContainer.copy(0.7f)
@@ -259,14 +266,17 @@ private fun RescheduleBanner(
                         MaterialTheme.colorScheme.primary
                 )
             ) {
-                Text("Reschedule", fontWeight = FontWeight.Bold)
+                Text(
+                    stringResource(Res.string.schedule_reschedule_action),
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Individual vaccination card  (unchanged logic, same look)
+// Individual vaccination card
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -275,19 +285,19 @@ fun VaccinationScheduleCard(item: VaccinationScheduleUi, onClick: () -> Unit) {
     val customColors = MaterialTheme.customColors
 
     val (statusColor, statusIcon, statusLabel) = when (item.statusUi) {
-        ScheduleStatusUi.COMPLETED   -> Triple(Color(0xFF22C55E), "✅", "Completed")
-        ScheduleStatusUi.OVERDUE     -> Triple(MaterialTheme.colorScheme.error, "⚠️", "Overdue")
-        ScheduleStatusUi.MISSED      -> Triple(Color(0xFFEF4444), "❌", "Missed")
-        ScheduleStatusUi.DUE_SOON    -> Triple(Color(0xFFF59E0B), "⏰", "Due Soon")
-        ScheduleStatusUi.RESCHEDULED -> Triple(Color(0xFF8B5CF6), "🔄", "Rescheduled")
-        ScheduleStatusUi.UPCOMING    -> Triple(customColors.accentGradientStart, "💉", "Upcoming")
+        ScheduleStatusUi.COMPLETED   -> Triple(Color(0xFF22C55E), "✅", stringResource(Res.string.schedule_status_completed_label))
+        ScheduleStatusUi.OVERDUE     -> Triple(MaterialTheme.colorScheme.error, "⚠️", stringResource(Res.string.schedule_status_overdue_label))
+        ScheduleStatusUi.MISSED      -> Triple(Color(0xFFEF4444), "❌", stringResource(Res.string.schedule_status_missed_label))
+        ScheduleStatusUi.DUE_SOON    -> Triple(Color(0xFFF59E0B), "⏰", stringResource(Res.string.schedule_status_due_soon_label))
+        ScheduleStatusUi.RESCHEDULED -> Triple(Color(0xFF8B5CF6), "🔄", stringResource(Res.string.schedule_status_rescheduled_label))
+        ScheduleStatusUi.UPCOMING    -> Triple(customColors.accentGradientStart, "💉", stringResource(Res.string.schedule_status_upcoming_label))
     }
 
     Card(
         modifier  = Modifier.fillMaxWidth().clickable { onClick() },
         shape     = RoundedCornerShape(dimensions.cardCornerRadius),
         colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(2.dp)
+        elevation = CardDefaults.cardElevation(dimensions.healthSubTabElevation)
     ) {
         Row(
             modifier              = Modifier.padding(dimensions.spacingMedium),
@@ -296,7 +306,7 @@ fun VaccinationScheduleCard(item: VaccinationScheduleUi, onClick: () -> Unit) {
         ) {
             Box(
                 modifier         = Modifier
-                    .size(42.dp)
+                    .size(dimensions.vaccinationCardIconSize)
                     .clip(CircleShape)
                     .background(statusColor.copy(0.12f)),
                 contentAlignment = Alignment.Center
@@ -319,8 +329,9 @@ fun VaccinationScheduleCard(item: VaccinationScheduleUi, onClick: () -> Unit) {
                 Text(
                     text = when {
                         item.statusUi == ScheduleStatusUi.COMPLETED ->
-                            "Completed: ${item.completedDate ?: item.scheduledDate}"
-                        else -> "Scheduled: ${item.scheduledDate}"
+                            stringResource(Res.string.schedule_completed_prefix, item.completedDate ?: item.scheduledDate)
+                        else ->
+                            stringResource(Res.string.schedule_scheduled_prefix, item.scheduledDate)
                     },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
@@ -337,7 +348,7 @@ fun VaccinationScheduleCard(item: VaccinationScheduleUi, onClick: () -> Unit) {
             Surface(shape = RoundedCornerShape(50), color = statusColor.copy(0.12f)) {
                 Text(
                     text      = statusLabel,
-                    modifier  = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    modifier  = Modifier.padding(horizontal = dimensions.spacingSmall, vertical = dimensions.spacingXSmall),
                     style     = MaterialTheme.typography.labelSmall,
                     color     = statusColor,
                     fontWeight = FontWeight.SemiBold
@@ -349,7 +360,6 @@ fun VaccinationScheduleCard(item: VaccinationScheduleUi, onClick: () -> Unit) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // RESCHEDULE REASON PICKER DIALOG
-// Step 1 of 2 — user selects a reason for rescheduling
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -370,21 +380,23 @@ fun RescheduleReasonPickerDialog(
         title = {
             Column {
                 Text(
-                    "Reschedule Vaccinations",
+                    stringResource(Res.string.reschedule_title),
                     style      = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(Modifier.height(4.dp))
-                // Summary chips
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Spacer(Modifier.height(dimensions.spacingXSmall))
+                Row(horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
                     if (overdueCount > 0) {
                         Surface(
                             shape = RoundedCornerShape(50),
                             color = MaterialTheme.colorScheme.errorContainer
                         ) {
                             Text(
-                                "⚠️ $overdueCount overdue",
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
+                                stringResource(Res.string.schedule_overdue_count, overdueCount),
+                                modifier = Modifier.padding(
+                                    horizontal = dimensions.spacingSmall + dimensions.borderWidthMedium,
+                                    vertical   = 3.dp
+                                ),
                                 style    = MaterialTheme.typography.labelSmall,
                                 color    = MaterialTheme.colorScheme.error,
                                 fontWeight = FontWeight.SemiBold
@@ -396,8 +408,11 @@ fun RescheduleReasonPickerDialog(
                         color = customColors.accentGradientStart.copy(0.12f)
                     ) {
                         Text(
-                            "💉 $reschedulableCount to reschedule",
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
+                            stringResource(Res.string.schedule_reschedulable_count, reschedulableCount),
+                            modifier = Modifier.padding(
+                                horizontal = dimensions.spacingSmall + dimensions.borderWidthMedium,
+                                vertical   = 3.dp
+                            ),
                             style    = MaterialTheme.typography.labelSmall,
                             color    = customColors.accentGradientStart,
                             fontWeight = FontWeight.SemiBold
@@ -412,20 +427,19 @@ fun RescheduleReasonPickerDialog(
                 verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
             ) {
                 Text(
-                    text  = "Why are you rescheduling?",
+                    text  = stringResource(Res.string.schedule_reschedule_reason_why),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
-                // Reason options
                 RescheduleReason.entries.forEach { reason ->
                     val isSelected = selectedReason == reason
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { selectedReason = reason },
-                        shape  = RoundedCornerShape(12.dp),
+                        shape  = RoundedCornerShape(dimensions.cardCornerRadius - dimensions.spacingXSmall),
                         colors = CardDefaults.cardColors(
                             containerColor = if (isSelected)
                                 customColors.accentGradientStart.copy(0.12f)
@@ -433,15 +447,15 @@ fun RescheduleReasonPickerDialog(
                                 MaterialTheme.colorScheme.surfaceVariant
                         ),
                         border = if (isSelected)
-                            BorderStroke(1.5.dp, customColors.accentGradientStart)
+                            BorderStroke(dimensions.borderWidthThin + 0.5.dp, customColors.accentGradientStart)
                         else null
                     ) {
                         Row(
                             modifier          = Modifier
                                 .fillMaxWidth()
-                                .padding(horizontal = 14.dp, vertical = 12.dp),
+                                .padding(horizontal = dimensions.spacingMedium - 2.dp, vertical = dimensions.spacingSmall + dimensions.spacingXSmall),
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                            horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall + dimensions.borderWidthMedium)
                         ) {
                             Text(reason.emoji, style = MaterialTheme.typography.titleMedium)
                             Text(
@@ -459,39 +473,36 @@ fun RescheduleReasonPickerDialog(
                                     Icons.Default.Check,
                                     contentDescription = null,
                                     tint     = customColors.accentGradientStart,
-                                    modifier = Modifier.size(18.dp)
+                                    modifier = Modifier.size(dimensions.iconSmall + dimensions.borderWidthMedium)
                                 )
                             }
                         }
                     }
                 }
 
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(dimensions.spacingXSmall))
 
-                // Optional notes
                 OutlinedTextField(
                     value         = notes,
                     onValueChange = { notes = it },
-                    label         = { Text("Notes (optional)") },
-                    placeholder   = { Text("e.g. baby was sick...") },
+                    label         = { Text(stringResource(Res.string.schedule_reschedule_notes_label)) },
+                    placeholder   = { Text(stringResource(Res.string.schedule_reschedule_notes_placeholder)) },
                     modifier      = Modifier.fillMaxWidth(),
                     maxLines      = 3,
-                    shape         = RoundedCornerShape(12.dp)
+                    shape         = RoundedCornerShape(dimensions.cardCornerRadius - dimensions.spacingXSmall)
                 )
 
-                // Info box
                 Surface(
-                    shape = RoundedCornerShape(10.dp),
+                    shape = RoundedCornerShape(dimensions.cardCornerRadius - dimensions.spacingXSmall - 2.dp),
                     color = MaterialTheme.colorScheme.surfaceVariant
                 ) {
                     Row(
-                        modifier = Modifier.padding(12.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        modifier = Modifier.padding(dimensions.spacingSmall + dimensions.spacingXSmall),
+                        horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
                     ) {
                         Text("ℹ️", style = MaterialTheme.typography.bodySmall)
                         Text(
-                            text  = "Overdue vaccinations that are still within the safe window " +
-                                    "will be rescheduled. Those that are too late will be marked as Missed.",
+                            text  = stringResource(Res.string.schedule_reschedule_info),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(0.6f)
                         )
@@ -512,22 +523,22 @@ fun RescheduleReasonPickerDialog(
             ) {
                 if (isLoading) {
                     CircularProgressIndicator(
-                        modifier    = Modifier.size(16.dp),
-                        strokeWidth = 2.dp,
+                        modifier    = Modifier.size(dimensions.iconSmall),
+                        strokeWidth = dimensions.borderWidthMedium,
                         color       = MaterialTheme.colorScheme.onPrimary
                     )
-                    Spacer(Modifier.width(8.dp))
-                    Text("Rescheduling...")
+                    Spacer(Modifier.width(dimensions.spacingSmall))
+                    Text(stringResource(Res.string.schedule_rescheduling_in_progress))
                 } else {
-                    Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(Modifier.width(6.dp))
-                    Text("Reschedule All", fontWeight = FontWeight.Bold)
+                    Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(dimensions.iconSmall + dimensions.borderWidthMedium))
+                    Spacer(Modifier.width(dimensions.spacingXSmall + dimensions.borderWidthThin))
+                    Text(stringResource(Res.string.schedule_reschedule_all), fontWeight = FontWeight.Bold)
                 }
             }
         },
         dismissButton = {
             TextButton(onClick = { if (!isLoading) onDismiss() }) {
-                Text("Cancel")
+                Text(stringResource(Res.string.btn_cancel))
             }
         }
     )
@@ -535,7 +546,6 @@ fun RescheduleReasonPickerDialog(
 
 // ─────────────────────────────────────────────────────────────────────────────
 // RESCHEDULE RESULT SUMMARY DIALOG
-// Step 2 of 2 — show per-vaccine outcome after the API responds
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -551,28 +561,27 @@ fun RescheduleResultDialog(
         title = {
             Column {
                 Text(
-                    "Reschedule Complete",
+                    stringResource(Res.string.schedule_reschedule_complete_title),
                     style      = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(Modifier.height(8.dp))
-                // Summary row
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Spacer(Modifier.height(dimensions.spacingSmall))
+                Row(horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
                     SummaryChip(
-                        label = "${result.rescheduledCount} rescheduled",
+                        label = stringResource(Res.string.schedule_reschedule_status_rescheduled, result.rescheduledCount),
                         color = Color(0xFF22C55E),
                         emoji = "✅"
                     )
                     if (result.tooLateCount > 0) {
                         SummaryChip(
-                            label = "${result.tooLateCount} too late",
+                            label = stringResource(Res.string.schedule_reschedule_status_too_late, result.tooLateCount),
                             color = MaterialTheme.colorScheme.error,
                             emoji = "❌"
                         )
                     }
                     if (result.skippedCount > 0) {
                         SummaryChip(
-                            label = "${result.skippedCount} skipped",
+                            label = stringResource(Res.string.schedule_reschedule_status_skipped, result.skippedCount),
                             color = MaterialTheme.colorScheme.onSurface.copy(0.5f),
                             emoji = "⏭️"
                         )
@@ -583,16 +592,18 @@ fun RescheduleResultDialog(
         text = {
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall),
-                modifier            = Modifier.heightIn(max = 380.dp)
+                modifier            = Modifier.heightIn(max = dimensions.avatarLarge * 4 + dimensions.spacingXLarge)
             ) {
-                // Rescheduled items first
                 val rescheduled = result.items.filter { it.rescheduled }
                 val tooLate     = result.items.filter { it.tooLate }
                 val skipped     = result.items.filter { !it.rescheduled && !it.tooLate }
 
                 if (rescheduled.isNotEmpty()) {
                     item {
-                        ResultSectionHeader("✅ Rescheduled (${rescheduled.size})", Color(0xFF22C55E))
+                        ResultSectionHeader(
+                            stringResource(Res.string.schedule_reschedule_status_rescheduled, rescheduled.size),
+                            Color(0xFF22C55E)
+                        )
                     }
                     items(rescheduled) { item ->
                         RescheduleResultItemRow(item, customColors.accentGradientStart)
@@ -601,9 +612,9 @@ fun RescheduleResultDialog(
 
                 if (tooLate.isNotEmpty()) {
                     item {
-                        Spacer(Modifier.height(4.dp))
+                        Spacer(Modifier.height(dimensions.spacingXSmall))
                         ResultSectionHeader(
-                            "❌ Too Late — Marked as Missed (${tooLate.size})",
+                            stringResource(Res.string.schedule_reschedule_status_too_late, tooLate.size),
                             MaterialTheme.colorScheme.error
                         )
                     }
@@ -612,13 +623,12 @@ fun RescheduleResultDialog(
                     }
                     item {
                         Surface(
-                            shape = RoundedCornerShape(8.dp),
+                            shape = RoundedCornerShape(dimensions.spacingSmall),
                             color = MaterialTheme.colorScheme.errorContainer.copy(0.5f)
                         ) {
                             Text(
-                                text    = "These vaccinations are more than 2 months overdue. " +
-                                        "Please consult a doctor about whether they can still be given.",
-                                modifier = Modifier.padding(10.dp),
+                                text    = stringResource(Res.string.schedule_too_late_medical_advice),
+                                modifier = Modifier.padding(dimensions.spacingSmall + dimensions.borderWidthMedium),
                                 style   = MaterialTheme.typography.bodySmall,
                                 color   = MaterialTheme.colorScheme.onErrorContainer
                             )
@@ -628,9 +638,9 @@ fun RescheduleResultDialog(
 
                 if (skipped.isNotEmpty()) {
                     item {
-                        Spacer(Modifier.height(4.dp))
+                        Spacer(Modifier.height(dimensions.spacingXSmall))
                         ResultSectionHeader(
-                            "⏭️ Skipped (${skipped.size})",
+                            stringResource(Res.string.schedule_reschedule_status_skipped, skipped.size),
                             MaterialTheme.colorScheme.onSurface.copy(0.5f)
                         )
                     }
@@ -651,7 +661,7 @@ fun RescheduleResultDialog(
                 ),
                 shape = RoundedCornerShape(dimensions.buttonCornerRadius)
             ) {
-                Text("Done", fontWeight = FontWeight.Bold)
+                Text(stringResource(Res.string.schedule_reschedule_done), fontWeight = FontWeight.Bold)
             }
         }
     )
@@ -659,10 +669,11 @@ fun RescheduleResultDialog(
 
 @Composable
 private fun SummaryChip(label: String, color: Color, emoji: String) {
+    val dimensions = LocalDimensions.current
     Surface(shape = RoundedCornerShape(50), color = color.copy(0.12f)) {
         Row(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            modifier = Modifier.padding(horizontal = dimensions.spacingSmall, vertical = 3.dp),
+            horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall),
             verticalAlignment     = Alignment.CenterVertically
         ) {
             Text(emoji, style = MaterialTheme.typography.labelSmall)
@@ -678,12 +689,13 @@ private fun SummaryChip(label: String, color: Color, emoji: String) {
 
 @Composable
 private fun ResultSectionHeader(title: String, color: Color) {
+    val dimensions = LocalDimensions.current
     Text(
         text       = title,
         style      = MaterialTheme.typography.labelMedium,
         fontWeight = FontWeight.Bold,
         color      = color,
-        modifier   = Modifier.padding(vertical = 2.dp)
+        modifier   = Modifier.padding(vertical = dimensions.borderWidthMedium)
     )
 }
 
@@ -692,7 +704,7 @@ private fun RescheduleResultItemRow(item: RescheduleItemUi, color: Color) {
     val dimensions = LocalDimensions.current
     Card(
         modifier  = Modifier.fillMaxWidth(),
-        shape     = RoundedCornerShape(10.dp),
+        shape     = RoundedCornerShape(dimensions.cardCornerRadius - dimensions.spacingXSmall - 2.dp),
         colors    = CardDefaults.cardColors(
             containerColor = color.copy(0.07f)
         )
@@ -700,7 +712,7 @@ private fun RescheduleResultItemRow(item: RescheduleItemUi, color: Color) {
         Column(
             modifier            = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+                .padding(horizontal = dimensions.spacingSmall + dimensions.spacingXSmall, vertical = dimensions.spacingSmall + dimensions.borderWidthMedium),
             verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
             Row(
@@ -716,23 +728,19 @@ private fun RescheduleResultItemRow(item: RescheduleItemUi, color: Color) {
                     modifier   = Modifier.weight(1f)
                 )
                 Text(
-                    text  = "Dose ${item.doseNumber} · ${item.recommendedAgeMonths}mo",
+                    text  = stringResource(Res.string.schedule_dose, item.doseNumber) + " · ${item.recommendedAgeMonths}mo",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
                 )
             }
             if (item.rescheduled && item.newDate != null) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)) {
                     Text(
                         "📅 ${item.oldDate}",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(0.4f)
                     )
-                    Text(
-                        "→",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = color
-                    )
+                    Text("→", style = MaterialTheme.typography.labelSmall, color = color)
                     Text(
                         item.newDate,
                         style      = MaterialTheme.typography.labelSmall,
@@ -752,7 +760,7 @@ private fun RescheduleResultItemRow(item: RescheduleItemUi, color: Color) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Vaccination Detail Screen (View All) — unchanged
+// Vaccination Detail Screen
 // ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -837,15 +845,20 @@ fun VaccinationDetailScreen(
                 verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
             ) {
                 DetailInfoCard {
-                    InfoRow("Age recommended", "${item.recommendedAgeMonths} months")
-                    InfoRow("Ideal date",      item.idealDate)
-                    InfoRow("Scheduled date",  item.scheduledDate)
+                    InfoRow(stringResource(Res.string.vax_detail_age_recommended), "${item.recommendedAgeMonths} months")
+                    InfoRow(stringResource(Res.string.vax_detail_ideal_date),      item.idealDate)
+                    InfoRow(stringResource(Res.string.vax_detail_scheduled_date),  item.scheduledDate)
                     if (item.shiftDays > 0) {
-                        InfoRow("Adjustment", "+${item.shiftDays} days (${item.shiftReason.lowercase()})")
+                        InfoRow(
+                            stringResource(Res.string.vax_detail_adjustment),
+                            stringResource(Res.string.vax_detail_adjustment_value, item.shiftDays, item.shiftReason.lowercase())
+                        )
                     }
-                    item.completedDate?.let { InfoRow("Completed on", it) }
-                    InfoRow("Health Center", item.benchNameEn)
-                    InfoRow("Status", item.status.replace("_", " "))
+                    item.completedDate?.let {
+                        InfoRow(stringResource(Res.string.vax_detail_completed_on), it)
+                    }
+                    InfoRow(stringResource(Res.string.vax_detail_health_center), item.benchNameEn)
+                    InfoRow(stringResource(Res.string.vax_detail_status), item.status.replace("_", " "))
                 }
 
                 if (item.statusUi == ScheduleStatusUi.OVERDUE ||
@@ -861,9 +874,9 @@ fun VaccinationDetailScreen(
                             containerColor = MaterialTheme.colorScheme.error
                         )
                     ) {
-                        Icon(Icons.Default.Refresh, null, modifier = Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text("Reschedule All", fontWeight = FontWeight.Bold)
+                        Icon(Icons.Default.Refresh, null, modifier = Modifier.size(dimensions.iconSmall + dimensions.borderWidthMedium))
+                        Spacer(Modifier.width(dimensions.spacingSmall))
+                        Text(stringResource(Res.string.schedule_reschedule_all), fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -885,13 +898,14 @@ private fun DetailInfoCard(content: @Composable ColumnScope.() -> Unit) {
     ) {
         Column(
             modifier            = Modifier.padding(dimensions.spacingMedium),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
         ) { content() }
     }
 }
 
 @Composable
 private fun InfoRow(label: String, value: String) {
+    val dimensions = LocalDimensions.current
     Row(
         modifier              = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween

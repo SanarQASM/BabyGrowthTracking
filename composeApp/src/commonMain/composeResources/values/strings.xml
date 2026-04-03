@@ -743,4 +743,145 @@ Last updated: 2025.</string>
     <string name="settings_child_dev_vision_motor">Seeing + Moving</string>
     <string name="settings_child_dev_hearing_speech">Hearing + Talking</string>
     <string name="settings_child_dev_section">Child Development</string>
+
+    <!-- update from here to below-->
+    <!-- ── BabyProfileTabContent ─────────────────────────────────────────── -->
+    <string name="baby_archive_dialog_title">Archive %1$s?</string>
+    <string name="baby_archive_dialog_message">This child will be moved to the archived list. You can restore them at any time using the Archived filter.</string>
+    <string name="baby_archive_dialog_confirm">📦  Archive</string>
+    <string name="baby_restore_dialog_title">Restore %1$s?</string>
+    <string name="baby_restore_dialog_message">This child will be moved back to the active list.</string>
+    <string name="baby_restore_dialog_confirm">♻️  Restore</string>
+    <string name="baby_status_auto_archived">6+ yrs</string>
+
+    <!-- ── VaccinationScheduleView ───────────────────────────────────────── -->
+    <string name="schedule_no_vaccinations_found">No vaccinations found</string>
+    <string name="schedule_reschedule_tap_hint">Tap to reschedule all pending vaccinations</string>
+    <string name="schedule_reschedule_action">Reschedule</string>
+    <string name="schedule_overdue_count">⚠️ %1$d overdue</string>
+    <string name="schedule_reschedulable_count">💉 %1$d to reschedule</string>
+    <string name="schedule_rescheduling_in_progress">Rescheduling…</string>
+    <string name="schedule_reschedule_all">Reschedule All</string>
+    <string name="schedule_reschedule_done">Done</string>
+    <string name="schedule_reschedule_complete_title">Reschedule Complete</string>
+    <string name="schedule_reschedule_status_rescheduled">✅ Rescheduled (%1$d)</string>
+    <string name="schedule_reschedule_status_too_late">❌ Too Late — Marked as Missed (%1$d)</string>
+    <string name="schedule_reschedule_status_skipped">⏭️ Skipped (%1$d)</string>
+    <string name="schedule_too_late_medical_advice">These vaccinations are more than 2 months overdue. Please consult a doctor about whether they can still be given.</string>
+    <string name="schedule_reschedule_checking">Checking vaccination windows and finding next valid dates…</string>
+    <string name="schedule_reschedule_in_progress_title">Rescheduling…</string>
+    <string name="schedule_status_completed_label">Completed</string>
+    <string name="schedule_status_overdue_label">Overdue</string>
+    <string name="schedule_status_missed_label">Missed</string>
+    <string name="schedule_status_due_soon_label">Due Soon</string>
+    <string name="schedule_status_rescheduled_label">Rescheduled</string>
+    <string name="schedule_status_upcoming_label">Upcoming</string>
+    <string name="schedule_completed_prefix">Completed: %1$s</string>
+    <string name="schedule_scheduled_prefix">Scheduled: %1$s</string>
+    <string name="schedule_reschedule_reason_why">Why are you rescheduling?</string>
+    <string name="schedule_reschedule_notes_label">Notes (optional)</string>
+    <string name="schedule_reschedule_notes_placeholder">e.g. baby was sick…</string>
+    <string name="schedule_reschedule_info">Overdue vaccinations that are still within the safe window will be rescheduled. Those that are too late will be marked as Missed.</string>
+
+    <!-- ── VaccinationDetailScreen ───────────────────────────────────────── -->
+    <string name="vax_detail_age_recommended">Age recommended</string>
+    <string name="vax_detail_ideal_date">Ideal date</string>
+    <string name="vax_detail_scheduled_date">Scheduled date</string>
+    <string name="vax_detail_adjustment">Adjustment</string>
+    <string name="vax_detail_adjustment_value">+%1$d days (%2$s)</string>
+    <string name="vax_detail_completed_on">Completed on</string>
+    <string name="vax_detail_health_center">Health Center</string>
+    <string name="vax_detail_status">Status</string>
+
+    <!-- ── AddHealthIssueScreen ──────────────────────────────────────────── -->
+    <string name="add_issue_title">Log Health Issue</string>
+    <string name="add_issue_section_date">ISSUE DATE</string>
+    <string name="add_issue_section_title_label">TITLE</string>
+    <string name="add_issue_section_description">DESCRIPTION (OPTIONAL)</string>
+    <string name="add_issue_section_severity">SEVERITY</string>
+    <string name="add_issue_section_status">STATUS</string>
+    <string name="add_issue_title_placeholder">e.g. Fever, Rash, Cough…</string>
+    <string name="add_issue_title_error">Title is required</string>
+    <string name="add_issue_description_placeholder">Describe symptoms, observations…</string>
+    <string name="add_issue_status_resolved">Resolved</string>
+    <string name="add_issue_status_ongoing">Ongoing</string>
+    <string name="add_issue_status_toggle_hint">Tap to toggle</string>
+    <string name="add_issue_save_button">Save Health Issue</string>
+    <string name="add_issue_saving">Saving…</string>
+    <string name="add_issue_severity_mild">Mild</string>
+    <string name="add_issue_severity_moderate">Moderate</string>
+    <string name="add_issue_severity_severe">Severe</string>
+
+    <!-- ── AddAppointmentScreen ──────────────────────────────────────────── -->
+    <string name="add_appointment_title">Log Appointment</string>
+    <string name="add_appointment_section_type">APPOINTMENT TYPE</string>
+    <string name="add_appointment_section_date">DATE</string>
+    <string name="add_appointment_section_time">TIME (OPTIONAL)</string>
+    <string name="add_appointment_section_doctor">DOCTOR NAME (OPTIONAL)</string>
+    <string name="add_appointment_section_location">LOCATION (OPTIONAL)</string>
+    <string name="add_appointment_section_notes">NOTES (OPTIONAL)</string>
+    <string name="add_appointment_date_error">Date is required</string>
+    <string name="add_appointment_time_placeholder">HH:MM  (e.g. 10:30)</string>
+    <string name="add_appointment_doctor_placeholder">Dr. …</string>
+    <string name="add_appointment_location_placeholder">Hospital / Clinic name</string>
+    <string name="add_appointment_notes_placeholder">Any additional notes…</string>
+    <string name="add_appointment_save_button">Save Appointment</string>
+    <string name="add_appointment_saving">Saving…</string>
+    <string name="add_appointment_type_checkup">Checkup</string>
+    <string name="add_appointment_type_vaccination">Vaccination</string>
+    <string name="add_appointment_type_consultation">Consultation</string>
+    <string name="add_appointment_type_followup">Follow-up</string>
+    <string name="add_appointment_type_emergency">Emergency</string>
+
+    <!-- ── HealthIssuesView / AppointmentsView ───────────────────────────── -->
+    <string name="health_issue_filter_all_label">All</string>
+    <string name="health_issue_filter_ongoing_label">Ongoing</string>
+    <string name="health_issue_filter_resolved_label">Resolved</string>
+    <string name="appointment_filter_all_label">All</string>
+    <string name="appointment_filter_upcoming_label">Upcoming</string>
+    <string name="appointment_filter_past_label">Past</string>
+    <string name="appointment_filter_cancelled_label">Cancelled</string>
+    <string name="appointment_status_completed_label">Completed</string>
+    <string name="appointment_status_cancelled_label">Cancelled</string>
+    <string name="appointment_status_missed_label">Missed</string>
+    <string name="appointment_status_upcoming_label">Upcoming</string>
+    <string name="appointment_cancel_button">Canceled</string>
+    <string name="health_issue_severity_label">Severity: %1$s</string>
+    <string name="health_issue_resolved_button">Resolved</string>
+    <string name="add_health_issue_button">Add New Health Issue</string>
+    <string name="add_appointment_button">Add New Appointments</string>
+    <string name="appointment_status_prefix">Status: %1$s</string>
+
+    <!-- ── HealthRecordMain ─────────────────────────────────────────────── -->
+    <string name="health_select_child_hint">Select child</string>
+    <string name="health_sub_tab_vaccinations">Vaccinations</string>
+    <string name="health_sub_tab_health_issues">Health Issues</string>
+    <string name="health_sub_tab_appointments">Appointments</string>
+
+    <!-- ── BenchMapScreen ────────────────────────────────────────────────── -->
+    <string name="bench_distance_display">📍 %.1f km away</string>
+    <string name="bench_loading_indicator">Loading…</string>
+
+    <!-- ── SettingsTabContent ────────────────────────────────────────────── -->
+    <string name="settings_version_display">Version %1$s</string>
+
+    <!-- ── PlaceholderTabContent ─────────────────────────────────────────── -->
+    <string name="language_option_selected_checkmark">✓</string>
+
+    <!-- ── HomeTabContent / BannerStars ──────────────────────────────────── -->
+    <string name="banner_star_symbol_small">✦</string>
+    <string name="banner_star_symbol_large">★</string>
+
+    <!-- ── LullabyComponents ─────────────────────────────────────────────── -->
+    <string name="lullaby_seek_restart">⏮</string>
+    <string name="lullaby_seek_back_10">−10s</string>
+    <string name="lullaby_seek_forward_10">+10s</string>
+    <string name="lullaby_stop">⏹</string>
+    <string name="lullaby_pause_symbol">⏸</string>
+    <string name="lullaby_play_symbol">▶</string>
+
+    <!-- ── ChartsTabContent ──────────────────────────────────────────────── -->
+    <string name="chart_filter_label">Filter</string>
+    <string name="chart_legend_parent_label">👪  Parent Added</string>
+    <string name="chart_legend_team_label">🏥  Team Added</string>
 </resources>
