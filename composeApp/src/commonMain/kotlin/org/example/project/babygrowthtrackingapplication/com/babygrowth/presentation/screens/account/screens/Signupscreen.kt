@@ -45,6 +45,11 @@ import org.example.project.babygrowthtrackingapplication.ui.components.PrimaryBu
 import org.example.project.babygrowthtrackingapplication.ui.components.GlassmorphicTextField
 import org.example.project.babygrowthtrackingapplication.ui.components.SocialLoginSection
 
+/**
+ * REFACTORED:
+ *  - avatarLarge * 5 min widthIn  →  dimensions.authCardMinWidth
+ *  - avatarLarge * 6 max widthIn  →  dimensions.authCardMaxWidth
+ */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun SignupScreen(
@@ -80,7 +85,6 @@ fun SignupScreen(
         if (isLandscape) {
             // ── LANDSCAPE: Logo left, scrollable form right ───────────────────
             Row(modifier = Modifier.fillMaxSize()) {
-                // Left: Logo + app name
                 Column(
                     modifier = Modifier
                         .weight(0.35f)
@@ -112,7 +116,6 @@ fun SignupScreen(
                     )
                 }
 
-                // Right: Scrollable form in two-column grid layout
                 Column(
                     modifier = Modifier
                         .weight(0.65f)
@@ -159,7 +162,11 @@ fun SignupScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
+                        // WAS: .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
+                        .widthIn(
+                            min = dimensions.authCardMinWidth,
+                            max = dimensions.authCardMaxWidth
+                        )
                         .padding(top = dimensions.spacingMedium),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -177,7 +184,11 @@ fun SignupScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6),
+                        // WAS: .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
+                        .widthIn(
+                            min = dimensions.authCardMinWidth,
+                            max = dimensions.authCardMaxWidth
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     AnimatedSignupLogoSection(
@@ -210,7 +221,11 @@ fun SignupScreen(
                     sharedTransitionScope         = sharedTransitionScope,
                     animatedContentScope          = animatedContentScope,
                     modifier                      = Modifier
-                        .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
+                        // WAS: .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
+                        .widthIn(
+                            min = dimensions.authCardMinWidth,
+                            max = dimensions.authCardMaxWidth
+                        )
                         .fillMaxWidth()
                         .padding(bottom = dimensions.spacingXXLarge * 2)
                 )
@@ -398,37 +413,30 @@ private fun AnimatedSignupCard(
                             verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
                         ) {
                             GlassmorphicTextField(
-                                value           = uiState.fullName,
-                                onValueChange   = onFullNameChange,
-                                placeholder     = stringResource(Res.string.signup_full_name_placeholder),
-                                leadingIcon     = { Icon(Icons.Default.Person, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
+                                value = uiState.fullName, onValueChange = onFullNameChange,
+                                placeholder = stringResource(Res.string.signup_full_name_placeholder),
+                                leadingIcon = { Icon(Icons.Default.Person, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
                                 keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                                modifier        = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth()
                             )
                             GlassmorphicTextField(
-                                value           = uiState.email,
-                                onValueChange   = onEmailChange,
-                                placeholder     = stringResource(Res.string.signup_email_placeholder),
-                                leadingIcon     = { Icon(Icons.Default.Email, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
+                                value = uiState.email, onValueChange = onEmailChange,
+                                placeholder = stringResource(Res.string.signup_email_placeholder),
+                                leadingIcon = { Icon(Icons.Default.Email, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
                                 keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                                modifier        = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth()
                             )
                             GlassmorphicTextField(
-                                value                = uiState.password,
-                                onValueChange        = onPasswordChange,
-                                placeholder          = stringResource(Res.string.signup_password_placeholder),
-                                leadingIcon          = { Icon(Icons.Default.Lock, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
-                                trailingIcon         = {
-                                    IconButton(onClick = onPasswordVisibilityToggle) {
-                                        Icon(if (uiState.passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f))
-                                    }
-                                },
+                                value = uiState.password, onValueChange = onPasswordChange,
+                                placeholder = stringResource(Res.string.signup_password_placeholder),
+                                leadingIcon = { Icon(Icons.Default.Lock, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
+                                trailingIcon = { IconButton(onClick = onPasswordVisibilityToggle) { Icon(if (uiState.passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) } },
                                 visualTransformation = if (uiState.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                                keyboardOptions      = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
-                                keyboardActions      = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                                modifier             = Modifier.fillMaxWidth()
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+                                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
                         Column(
@@ -436,37 +444,30 @@ private fun AnimatedSignupCard(
                             verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
                         ) {
                             GlassmorphicTextField(
-                                value                = uiState.confirmPassword,
-                                onValueChange        = onConfirmPasswordChange,
-                                placeholder          = stringResource(Res.string.signup_confirm_password_placeholder),
-                                leadingIcon          = { Icon(Icons.Default.Lock, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
-                                trailingIcon         = {
-                                    IconButton(onClick = onConfirmPasswordVisibilityToggle) {
-                                        Icon(if (uiState.confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f))
-                                    }
-                                },
+                                value = uiState.confirmPassword, onValueChange = onConfirmPasswordChange,
+                                placeholder = stringResource(Res.string.signup_confirm_password_placeholder),
+                                leadingIcon = { Icon(Icons.Default.Lock, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
+                                trailingIcon = { IconButton(onClick = onConfirmPasswordVisibilityToggle) { Icon(if (uiState.confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) } },
                                 visualTransformation = if (uiState.confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                                keyboardOptions      = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
-                                keyboardActions      = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                                modifier             = Modifier.fillMaxWidth()
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+                                keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                                modifier = Modifier.fillMaxWidth()
                             )
                             GlassmorphicTextField(
-                                value           = uiState.phone,
-                                onValueChange   = onPhoneChange,
-                                placeholder     = stringResource(Res.string.signup_phone_placeholder),
-                                leadingIcon     = { Icon(Icons.Default.Phone, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
+                                value = uiState.phone, onValueChange = onPhoneChange,
+                                placeholder = stringResource(Res.string.signup_phone_placeholder),
+                                leadingIcon = { Icon(Icons.Default.Phone, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Next),
                                 keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                                modifier        = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth()
                             )
                             GlassmorphicTextField(
-                                value           = uiState.city,
-                                onValueChange   = onCityChange,
-                                placeholder     = stringResource(Res.string.signup_city_placeholder),
-                                leadingIcon     = { Icon(Icons.Default.LocationCity, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
+                                value = uiState.city, onValueChange = onCityChange,
+                                placeholder = stringResource(Res.string.signup_city_placeholder),
+                                leadingIcon = { Icon(Icons.Default.LocationCity, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
                                 keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
-                                modifier        = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
                     }
@@ -474,13 +475,12 @@ private fun AnimatedSignupCard(
                     Spacer(Modifier.height(dimensions.spacingMedium))
 
                     GlassmorphicTextField(
-                        value           = uiState.address,
-                        onValueChange   = onAddressChange,
-                        placeholder     = stringResource(Res.string.signup_address_placeholder),
-                        leadingIcon     = { Icon(Icons.Default.Home, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
+                        value = uiState.address, onValueChange = onAddressChange,
+                        placeholder = stringResource(Res.string.signup_address_placeholder),
+                        leadingIcon = { Icon(Icons.Default.Home, null, tint = MaterialTheme.colorScheme.onSurface.copy(0.6f)) },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus(); onSignupClick() }),
-                        modifier        = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth()
                     )
                 } else {
                     // ── Single column for portrait ────────────────────────────

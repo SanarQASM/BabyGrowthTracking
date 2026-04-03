@@ -46,6 +46,11 @@ import org.example.project.babygrowthtrackingapplication.ui.components.PrimaryBu
 import org.example.project.babygrowthtrackingapplication.ui.components.GlassmorphicTextField
 import org.example.project.babygrowthtrackingapplication.ui.components.SocialLoginSection
 
+/**
+ * REFACTORED:
+ *  - avatarLarge * 5 min widthIn  →  dimensions.authCardMinWidth
+ *  - avatarLarge * 6 max widthIn  →  dimensions.authCardMaxWidth
+ */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun LoginScreen(
@@ -84,7 +89,6 @@ fun LoginScreen(
         if (isLandscape) {
             // ── LANDSCAPE: Two-column layout ──────────────────────────────────
             Row(modifier = Modifier.fillMaxSize()) {
-                // Left column: Back button + Logo animation
                 Column(
                     modifier = Modifier
                         .weight(0.4f)
@@ -93,7 +97,6 @@ fun LoginScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
-                    // Back button at top-left
                     Box(
                         modifier = Modifier.fillMaxWidth(),
                         contentAlignment = Alignment.TopStart
@@ -118,7 +121,6 @@ fun LoginScreen(
                     )
                 }
 
-                // Right column: Scrollable form
                 Column(
                     modifier = Modifier
                         .weight(0.6f)
@@ -161,7 +163,11 @@ fun LoginScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
+                        // WAS: .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
+                        .widthIn(
+                            min = dimensions.authCardMinWidth,
+                            max = dimensions.authCardMaxWidth
+                        )
                         .padding(top = dimensions.spacingMedium),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -179,7 +185,11 @@ fun LoginScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6),
+                        // WAS: .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
+                        .widthIn(
+                            min = dimensions.authCardMinWidth,
+                            max = dimensions.authCardMaxWidth
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
                     AnimatedLogoSection(
@@ -207,13 +217,16 @@ fun LoginScreen(
                     sharedTransitionScope      = sharedTransitionScope,
                     animatedContentScope       = animatedContentScope,
                     modifier                   = Modifier
-                        .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
+                        // WAS: .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
+                        .widthIn(
+                            min = dimensions.authCardMinWidth,
+                            max = dimensions.authCardMaxWidth
+                        )
                         .fillMaxWidth()
                         .padding(bottom = dimensions.spacingXXLarge * 2)
                 )
             }
 
-            // Decorative corners (portrait only)
             LoginDecorativeCorner(
                 imageRes         = Res.drawable.bottom_left_background,
                 alignment        = Alignment.BottomStart,
@@ -297,7 +310,6 @@ private fun AnimatedLogoSection(
         label         = "logoAlpha"
     )
 
-    // Smaller logo in landscape to leave room for the form
     val logoSize = if (isLandscape) dimensions.logoSize * 0.55f else dimensions.logoSize
 
     with(sharedTransitionScope) {

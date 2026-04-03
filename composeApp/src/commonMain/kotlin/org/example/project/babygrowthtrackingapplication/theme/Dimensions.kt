@@ -58,9 +58,37 @@ data class Dimensions(
     // ── Layout ────────────────────────────────────────────────────────────────
     val maxContentWidth : Dp,
 
+    // ── Auth screen constraints ───────────────────────────────────────────────
+    /** Min width for auth cards / logo boxes (replaces hardcoded 320.dp) */
+    val authCardMinWidth : Dp,
+    /** Max width for auth cards / logo boxes (replaces hardcoded 420.dp) */
+    val authCardMaxWidth : Dp,
+
     // ── Borders ───────────────────────────────────────────────────────────────
     val borderWidthThin   : Dp,
     val borderWidthMedium : Dp,
+
+    // ── Text fields ───────────────────────────────────────────────────────────
+    /** Corner radius used inside GlassmorphicTextField / SearchTextField */
+    val textFieldCornerRadius       : Dp,
+    /** Corner radius for the Search variant (slightly more pill-like) */
+    val searchFieldCornerRadius     : Dp,
+    /** Bottom padding under the label inside GlassmorphicTextField */
+    val textFieldLabelBottomPadding : Dp,
+
+    // ── Social login / OTP ────────────────────────────────────────────────────
+    /** Social login button circle size (replaces 56.dp) */
+    val socialButtonSize     : Dp,
+    /** Icon inside social login button (replaces 24.dp) */
+    val socialIconSize       : Dp,
+    /** Horizontal padding around "or" text in divider (replaces 16.dp) */
+    val orDividerTextPaddingH: Dp,
+    /** Height of the divider line (replaces 1.dp) */
+    val dividerHeight        : Dp,
+
+    // ── OTP ───────────────────────────────────────────────────────────────────
+    /** OTP digit border width (replaces 2.dp) */
+    val otpBorderWidth : Dp,
 
     // ── Profile ───────────────────────────────────────────────────────────────
     val profileInfoRowVerticalPadding  : Dp,
@@ -111,7 +139,6 @@ data class Dimensions(
     val bannerLabelLetterSpacing: TextUnit,
 
     // ── Bottom navigation bar ─────────────────────────────────────────────────
-    // navBarHeight = 0.dp when in landscape (bar is hidden; rail is used).
     val navBarHeight     : Dp,
     val navBarPillSize   : Dp,
     val navBarPillCorner : Dp,
@@ -122,9 +149,23 @@ data class Dimensions(
     val navIconLabelGap  : Dp,
 
     // ── Side navigation rail (landscape) ─────────────────────────────────────
-    val railWidth        : Dp,   // width of the NavigationRail in landscape
-    val railItemSize     : Dp,   // clickable item height in the rail
-    val railIconSize     : Dp,   // icon size inside the rail item
+    val railWidth        : Dp,
+    val railItemSize     : Dp,
+    val railIconSize     : Dp,
+
+    // ── Rail item internals (replaces hardcoded values in SideNavigationRail) ─
+    /** Vertical spacing between rail items (replaces 4.dp) */
+    val railItemSpacing       : Dp,
+    /** Min touch-target height for a rail item (replaces 56.dp) */
+    val railItemMinHeight     : Dp,
+    /** Corner radius of the selected rail item background (replaces 12.dp) */
+    val railItemCornerRadius  : Dp,
+    /** Vertical padding inside a rail item (replaces 8.dp) */
+    val railItemPaddingV      : Dp,
+    /** Horizontal padding inside a rail item (replaces 4.dp) */
+    val railItemPaddingH      : Dp,
+    /** Small spacer between icon and label in a rail item (replaces 2.dp) */
+    val railIconLabelGap      : Dp,
 
     // ── BenchDetailScreen ─────────────────────────────────────────────────────
     val detailRowVertPadding  : Dp,
@@ -147,8 +188,6 @@ data class Dimensions(
 
         // ─────────────────────────────────────────────────────────────────────
         // COMPACT — phone portrait (< 600dp)
-        // In landscape the same compact base is used but several height-bound
-        // tokens are reduced and the bottom nav height is zeroed out.
         // ─────────────────────────────────────────────────────────────────────
         private fun compactDimensions(landscape: Boolean) = Dimensions(
             cornerImageSize = 120.dp,
@@ -180,8 +219,22 @@ data class Dimensions(
 
             maxContentWidth = Dp.Unspecified,
 
+            authCardMinWidth = 320.dp,
+            authCardMaxWidth = 420.dp,
+
             borderWidthThin   = 1.dp,
             borderWidthMedium = 2.dp,
+
+            textFieldCornerRadius       = 16.dp,
+            searchFieldCornerRadius     = 20.dp,
+            textFieldLabelBottomPadding = 6.dp,
+
+            socialButtonSize      = 56.dp,
+            socialIconSize        = 24.dp,
+            orDividerTextPaddingH = 16.dp,
+            dividerHeight         = 1.dp,
+
+            otpBorderWidth = 2.dp,
 
             profileInfoRowVerticalPadding   = 5.dp,
             profileSectionLabelStartPadding = 4.dp,
@@ -225,7 +278,6 @@ data class Dimensions(
             bannerMoonEmojiSize      = 42.sp,
             bannerLabelLetterSpacing = 1.5.sp,
 
-            // Bottom nav: 0.dp in landscape — bar is hidden, rail takes over
             navBarHeight     = if (landscape) 0.dp else 64.dp,
             navBarPillSize   = 40.dp,
             navBarPillCorner = 20.dp,
@@ -235,10 +287,16 @@ data class Dimensions(
             navButtonPadding = 8.dp,
             navIconLabelGap  = 2.dp,
 
-            // Rail dimensions (only relevant in landscape)
             railWidth    = 72.dp,
             railItemSize = 56.dp,
             railIconSize = 24.dp,
+
+            railItemSpacing      = 4.dp,
+            railItemMinHeight    = 56.dp,
+            railItemCornerRadius = 12.dp,
+            railItemPaddingV     = 8.dp,
+            railItemPaddingH     = 4.dp,
+            railIconLabelGap     = 2.dp,
 
             detailRowVertPadding  = 4.dp,
             detailIconSize        = 18.dp,
@@ -279,8 +337,22 @@ data class Dimensions(
 
             maxContentWidth = Dp.Unspecified,
 
+            authCardMinWidth = 360.dp,
+            authCardMaxWidth = 520.dp,
+
             borderWidthThin   = 1.dp,
             borderWidthMedium = 2.dp,
+
+            textFieldCornerRadius       = 18.dp,
+            searchFieldCornerRadius     = 22.dp,
+            textFieldLabelBottomPadding = 7.dp,
+
+            socialButtonSize      = 60.dp,
+            socialIconSize        = 26.dp,
+            orDividerTextPaddingH = 18.dp,
+            dividerHeight         = 1.dp,
+
+            otpBorderWidth = 2.dp,
 
             profileInfoRowVerticalPadding   = 6.dp,
             profileSectionLabelStartPadding = 5.dp,
@@ -337,6 +409,13 @@ data class Dimensions(
             railItemSize = 60.dp,
             railIconSize = 28.dp,
 
+            railItemSpacing      = 4.dp,
+            railItemMinHeight    = 60.dp,
+            railItemCornerRadius = 14.dp,
+            railItemPaddingV     = 10.dp,
+            railItemPaddingH     = 4.dp,
+            railIconLabelGap     = 2.dp,
+
             detailRowVertPadding  = 5.dp,
             detailIconSize        = 20.dp,
             detailIconTopPadding  = 2.dp,
@@ -345,7 +424,6 @@ data class Dimensions(
 
         // ─────────────────────────────────────────────────────────────────────
         // EXPANDED — tablet landscape / desktop (> 840dp)
-        // Always has the rail; landscape flag only affects a few tokens.
         // ─────────────────────────────────────────────────────────────────────
         private fun expandedDimensions(landscape: Boolean) = Dimensions(
             cornerImageSize = 200.dp,
@@ -377,8 +455,22 @@ data class Dimensions(
 
             maxContentWidth = 600.dp,
 
+            authCardMinWidth = 400.dp,
+            authCardMaxWidth = 600.dp,
+
             borderWidthThin   = 1.dp,
             borderWidthMedium = 2.dp,
+
+            textFieldCornerRadius       = 20.dp,
+            searchFieldCornerRadius     = 24.dp,
+            textFieldLabelBottomPadding = 8.dp,
+
+            socialButtonSize      = 64.dp,
+            socialIconSize        = 28.dp,
+            orDividerTextPaddingH = 20.dp,
+            dividerHeight         = 1.dp,
+
+            otpBorderWidth = 2.dp,
 
             profileInfoRowVerticalPadding   = 8.dp,
             profileSectionLabelStartPadding = 6.dp,
@@ -422,7 +514,6 @@ data class Dimensions(
             bannerMoonEmojiSize      = 58.sp,
             bannerLabelLetterSpacing = 1.5.sp,
 
-            // Expanded is always "landscape enough" to use the rail.
             navBarHeight     = 0.dp,
             navBarPillSize   = 56.dp,
             navBarPillCorner = 28.dp,
@@ -435,6 +526,13 @@ data class Dimensions(
             railWidth    = 88.dp,
             railItemSize = 64.dp,
             railIconSize = 28.dp,
+
+            railItemSpacing      = 6.dp,
+            railItemMinHeight    = 64.dp,
+            railItemCornerRadius = 16.dp,
+            railItemPaddingV     = 12.dp,
+            railItemPaddingH     = 6.dp,
+            railIconLabelGap     = 4.dp,
 
             detailRowVertPadding  = 6.dp,
             detailIconSize        = 22.dp,

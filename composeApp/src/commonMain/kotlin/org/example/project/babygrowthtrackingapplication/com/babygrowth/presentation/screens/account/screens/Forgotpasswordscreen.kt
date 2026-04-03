@@ -31,7 +31,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.dp
 import io.github.alexzhirkevich.compottie.Compottie
 import io.github.alexzhirkevich.compottie.LottieCompositionSpec
 import io.github.alexzhirkevich.compottie.animateLottieCompositionAsState
@@ -58,6 +57,11 @@ import org.jetbrains.compose.resources.DrawableResource
 // ─────────────────────────────────────────────────────────────────────────────
 private val AuthCardCornerRadius @Composable get() = LocalDimensions.current.spacingXXLarge
 
+/**
+ * REFACTORED:
+ *  - 320.dp min-width  →  dimensions.authCardMinWidth
+ *  - 420.dp max-width  →  dimensions.authCardMaxWidth
+ */
 @Composable
 fun ForgotPasswordScreen(
     viewModel     : ForgotPasswordViewModel,
@@ -94,14 +98,17 @@ fun ForgotPasswordScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .widthIn(min = 320.dp, max = 420.dp)
+                    // WAS: .widthIn(min = 320.dp, max = 420.dp)
+                    .widthIn(
+                        min = dimensions.authCardMinWidth,
+                        max = dimensions.authCardMaxWidth
+                    )
                     .padding(top = dimensions.spacingMedium),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBackClick) {
                     Icon(
                         imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
-                        // was: "Back"
                         contentDescription = stringResource(Res.string.common_back),
                         tint               = customColors.accentGradientStart
                     )
@@ -112,9 +119,13 @@ fun ForgotPasswordScreen(
 
             // ── Logo ─────────────────────────────────────────────────────────
             Box(
-                modifier         = Modifier
+                modifier = Modifier
                     .fillMaxWidth()
-                    .widthIn(min = 320.dp, max = 420.dp),
+                    // WAS: .widthIn(min = 320.dp, max = 420.dp)
+                    .widthIn(
+                        min = dimensions.authCardMinWidth,
+                        max = dimensions.authCardMaxWidth
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 AnimatedForgotPasswordLogoSection(
@@ -133,9 +144,12 @@ fun ForgotPasswordScreen(
                 onSendClick      = { viewModel.sendResetCode(onResetSuccess) },
                 focusManager     = focusManager,
                 modifier         = Modifier
-                    .widthIn(min = 320.dp, max = 420.dp)
+                    // WAS: .widthIn(min = 320.dp, max = 420.dp)
+                    .widthIn(
+                        min = dimensions.authCardMinWidth,
+                        max = dimensions.authCardMaxWidth
+                    )
                     .fillMaxWidth()
-                    // was: padding(bottom = 80.dp)
                     .padding(bottom = dimensions.spacingXXLarge + dimensions.spacingLarge)
             )
         }
@@ -204,7 +218,6 @@ private fun AnimatedForgotPasswordLogoSection(
             )
             Image(
                 painter            = rememberLottiePainter(composition, { progress }),
-                // was: "Logo"
                 contentDescription = stringResource(Res.string.app_logo_description),
                 modifier           = Modifier.size(dimensions.logoSize * 0.8f),
                 contentScale       = ContentScale.Fit
@@ -236,7 +249,6 @@ private fun AnimatedForgotPasswordCard(
 ) {
     val dimensions       = LocalDimensions.current
     val cardCornerRadius = AuthCardCornerRadius
-    // was: RoundedCornerShape(45.dp)
     val cardShape        = RoundedCornerShape(cardCornerRadius)
 
     val offsetY by animateFloatAsState(
@@ -256,14 +268,12 @@ private fun AnimatedForgotPasswordCard(
             .alpha(alpha)
             .wrapContentHeight()
     ) {
-        // Background decorative image
         Image(
             painter            = painterResource(Res.drawable.baby_background),
             contentDescription = null,
             modifier           = Modifier
                 .fillMaxWidth()
                 .matchParentSize()
-                // was: RoundedCornerShape(45.dp)
                 .clip(cardShape)
                 .alpha(0.3f),
             contentScale = ContentScale.Crop
@@ -273,13 +283,11 @@ private fun AnimatedForgotPasswordCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .wrapContentHeight()
-                // was: RoundedCornerShape(45.dp)
                 .clip(cardShape)
                 .background(Color.White.copy(alpha = 0.05f))
                 .padding(dimensions.spacingLarge),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Title
             Text(
                 text     = stringResource(Res.string.forgot_password_title),
                 style    = MaterialTheme.typography.titleLarge,
@@ -287,8 +295,6 @@ private fun AnimatedForgotPasswordCard(
                 modifier = Modifier.padding(bottom = dimensions.spacingSmall)
             )
 
-            // Description
-            // was: hardcoded "Enter your email address and we'll send you a 6-digit code..."
             Text(
                 text      = stringResource(Res.string.forgot_password_description),
                 style     = MaterialTheme.typography.bodySmall,
@@ -297,16 +303,13 @@ private fun AnimatedForgotPasswordCard(
                 modifier  = Modifier.padding(bottom = dimensions.spacingLarge)
             )
 
-            // Email field
             GlassmorphicTextField(
                 value         = uiState.email,
                 onValueChange = onEmailChange,
-                // was: "Email address"
                 placeholder   = stringResource(Res.string.forgot_password_email_placeholder),
                 leadingIcon   = {
                     Icon(
                         imageVector        = Icons.Default.Email,
-                        // was: "Email"
                         contentDescription = stringResource(Res.string.forgot_password_email_icon_description),
                         tint               = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
@@ -321,7 +324,6 @@ private fun AnimatedForgotPasswordCard(
                 modifier = Modifier.fillMaxWidth()
             )
 
-            // Success message
             if (uiState.successMessage != null) {
                 Spacer(Modifier.height(dimensions.spacingSmall))
                 Text(
@@ -332,7 +334,6 @@ private fun AnimatedForgotPasswordCard(
                 )
             }
 
-            // Error message
             if (uiState.errorMessage != null) {
                 Spacer(Modifier.height(dimensions.spacingSmall))
                 Text(
@@ -386,7 +387,6 @@ private fun ForgotPasswordDecorativeCorner(
         Box(modifier.fillMaxSize(), contentAlignment = alignment) {
             Image(
                 painter            = painterResource(imageRes),
-                // was: "Decorative corner"
                 contentDescription = stringResource(Res.string.decorative_corner_description),
                 modifier           = Modifier
                     .size(size)

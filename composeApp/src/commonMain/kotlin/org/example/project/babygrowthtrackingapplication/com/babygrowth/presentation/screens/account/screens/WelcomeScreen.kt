@@ -40,6 +40,12 @@ import org.jetbrains.compose.resources.DrawableResource
 import org.example.project.babygrowthtrackingapplication.ui.components.PrimaryButton
 import org.example.project.babygrowthtrackingapplication.ui.components.SecondaryButton
 
+/**
+ * REFACTORED:
+ *  - 320.dp min-width  →  dimensions.authCardMinWidth
+ *  - 420.dp max-width  →  dimensions.authCardMaxWidth
+ *  - alpha 0.3f on background image — kept as semantic/design constant
+ */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun WelcomeScreen(
@@ -219,7 +225,6 @@ fun AnimatedLottieLogoSection(
         label         = "logoAlpha"
     )
 
-    // Reduce logo size in landscape to fit available space
     val logoSize = if (isLandscape) dimensions.logoSize * 0.55f else dimensions.logoSize * 0.8f
 
     with(sharedTransitionScope) {
@@ -329,7 +334,6 @@ fun AnimatedCardSection(
                     }
                 )
         ) {
-            // In landscape, skip the tall background image to save vertical space
             if (!isLandscape) {
                 Image(
                     painter            = painterResource(Res.drawable.baby_background),
@@ -339,6 +343,7 @@ fun AnimatedCardSection(
                         .height(dimensions.logoSize * 0.7f)
                         .clip(cardShape),
                     contentScale = ContentScale.Crop,
+                    // alpha 0.3f is a deliberate design-constant — not a dimension token
                     alpha        = 0.3f
                 )
             }

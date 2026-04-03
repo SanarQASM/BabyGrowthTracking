@@ -45,6 +45,12 @@ import org.example.project.babygrowthtrackingapplication.ui.components.PrimaryBu
 import org.example.project.babygrowthtrackingapplication.ui.components.OtpTextField
 import org.jetbrains.compose.resources.DrawableResource
 
+/**
+ * REFACTORED:
+ *  - Mixed Dp.Unspecified/avatarLarge widthIn  →  dimensions.authCardMinWidth / authCardMaxWidth
+ *  - Hardcoded "Back" / "Logo" / "Decorative corner" strings already use string resources
+ *    (no change needed — they were already migrated)
+ */
 @Composable
 fun EnterCodeScreen(
     viewModel      : EnterCodeViewModel,
@@ -75,13 +81,21 @@ fun EnterCodeScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(
+                // WAS: mixed Dp.Unspecified check + avatarLarge * 5/6
+                //    →  authCardMinWidth / authCardMaxWidth
                 Modifier.fillMaxWidth()
-                    .widthIn(min = dimensions.maxContentWidth.takeIf { it != Dp.Unspecified } ?: dimensions.avatarLarge * 5, max = dimensions.maxContentWidth.takeIf { it != Dp.Unspecified } ?: dimensions.avatarLarge * 6)
+                    .widthIn(
+                        min = dimensions.authCardMinWidth,
+                        max = dimensions.authCardMaxWidth
+                    )
                     .padding(top = dimensions.spacingMedium)
             ) {
                 IconButton(onClick = onBackClick) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back",
-                        tint = customColors.accentGradientStart)
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        stringResource(Res.string.common_back),
+                        tint = customColors.accentGradientStart
+                    )
                 }
             }
 
@@ -89,7 +103,10 @@ fun EnterCodeScreen(
 
             Box(
                 Modifier.fillMaxWidth()
-                    .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6),
+                    .widthIn(
+                        min = dimensions.authCardMinWidth,
+                        max = dimensions.authCardMaxWidth
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 AnimatedEnterCodeLogoSection(animationStarted, Modifier.wrapContentHeight())
@@ -105,7 +122,10 @@ fun EnterCodeScreen(
                 onVerifyClick    = { viewModel.verifyCode(onCodeVerified) },
                 focusManager     = focusManager,
                 modifier         = Modifier
-                    .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
+                    .widthIn(
+                        min = dimensions.authCardMinWidth,
+                        max = dimensions.authCardMaxWidth
+                    )
                     .fillMaxWidth()
                     .padding(bottom = dimensions.spacingXXLarge * 2)
             )
@@ -139,15 +159,21 @@ private fun AnimatedEnterCodeLogoSection(animationStarted: Boolean, modifier: Mo
             val composition by rememberLottieComposition { LottieCompositionSpec.JsonString(json) }
             val progress by animateLottieCompositionAsState(composition,
                 iterations = Compottie.IterateForever)
-            Image(rememberLottiePainter(composition, { progress }), "Logo",
-                Modifier.size(dimensions.logoSize * 0.8f), contentScale = ContentScale.Fit)
+            Image(
+                rememberLottiePainter(composition, { progress }),
+                contentDescription = stringResource(Res.string.app_logo_description),
+                modifier           = Modifier.size(dimensions.logoSize * 0.8f),
+                contentScale       = ContentScale.Fit
+            )
         }
         Spacer(Modifier.height(dimensions.spacingSmall))
-        Text(stringResource(Res.string.app_name),
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.primary,
+        Text(
+            stringResource(Res.string.app_name),
+            style      = MaterialTheme.typography.headlineSmall,
+            color      = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center)
+            textAlign  = TextAlign.Center
+        )
     }
 }
 
@@ -170,11 +196,13 @@ private fun AnimatedEnterCodeCard(
         tween(800, 400, FastOutSlowInEasing), label = "cardAlpha")
 
     Box(modifier.graphicsLayer { translationY = offsetY }.alpha(alpha).wrapContentHeight()) {
-        Image(painterResource(Res.drawable.baby_background), null,
-            modifier = Modifier.fillMaxWidth().matchParentSize()
+        Image(
+            painterResource(Res.drawable.baby_background), null,
+            modifier     = Modifier.fillMaxWidth().matchParentSize()
                 .clip(RoundedCornerShape(dimensions.cardCornerRadius * 2))
                 .alpha(0.3f),
-            contentScale = ContentScale.Crop)
+            contentScale = ContentScale.Crop
+        )
 
         Column(
             Modifier.fillMaxWidth().wrapContentHeight()
@@ -183,16 +211,20 @@ private fun AnimatedEnterCodeCard(
                 .padding(dimensions.spacingLarge),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(stringResource(Res.string.enter_code_title),
+            Text(
+                stringResource(Res.string.enter_code_title),
                 style    = MaterialTheme.typography.titleLarge,
                 color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
-                modifier = Modifier.padding(bottom = dimensions.spacingSmall))
+                modifier = Modifier.padding(bottom = dimensions.spacingSmall)
+            )
 
-            Text(stringResource(Res.string.enter_code_sent_to, emailOrPhone),
+            Text(
+                stringResource(Res.string.enter_code_sent_to, emailOrPhone),
                 style     = MaterialTheme.typography.bodySmall,
                 color     = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center,
-                modifier  = Modifier.padding(bottom = dimensions.spacingLarge))
+                modifier  = Modifier.padding(bottom = dimensions.spacingLarge)
+            )
 
             OtpTextField(
                 value         = uiState.code,
@@ -204,11 +236,13 @@ private fun AnimatedEnterCodeCard(
 
             if (uiState.errorMessage != null) {
                 Spacer(Modifier.height(dimensions.spacingMedium))
-                Text(uiState.errorMessage,
+                Text(
+                    uiState.errorMessage,
                     style     = MaterialTheme.typography.bodySmall,
                     color     = MaterialTheme.colorScheme.error,
                     textAlign = TextAlign.Center,
-                    modifier  = Modifier.fillMaxWidth())
+                    modifier  = Modifier.fillMaxWidth()
+                )
             }
 
             Spacer(Modifier.height(dimensions.spacingLarge))
@@ -244,11 +278,14 @@ private fun EnterCodeDecorativeCorner(
         tween(800, delayMillis, FastOutSlowInEasing), label = "alpha")
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         Box(modifier.fillMaxSize(), contentAlignment = alignment) {
-            Image(painterResource(imageRes), "Decorative corner",
-                modifier = Modifier.size(size)
+            Image(
+                painterResource(imageRes),
+                contentDescription = stringResource(Res.string.decorative_corner_description),
+                modifier           = Modifier.size(size)
                     .graphicsLayer { translationX = offsetX; translationY = offsetY; scaleX = scale; scaleY = scale }
                     .alpha(alpha),
-                contentScale = ContentScale.Crop)
+                contentScale = ContentScale.Crop
+            )
         }
     }
 }

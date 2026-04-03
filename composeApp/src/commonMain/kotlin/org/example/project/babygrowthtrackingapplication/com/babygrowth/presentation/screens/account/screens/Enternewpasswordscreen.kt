@@ -55,6 +55,12 @@ import org.example.project.babygrowthtrackingapplication.ui.components.PrimaryBu
 import org.example.project.babygrowthtrackingapplication.ui.components.GlassmorphicTextField
 import org.jetbrains.compose.resources.DrawableResource
 
+/**
+ * REFACTORED:
+ *  - avatarLarge * 5 min widthIn  →  dimensions.authCardMinWidth
+ *  - avatarLarge * 6 max widthIn  →  dimensions.authCardMaxWidth
+ *  - cardCornerRadius * 2 kept as-is (intentional double for auth pill shape)
+ */
 @Composable
 fun EnterNewPasswordScreen(
     viewModel              : EnterNewPasswordViewModel,
@@ -87,13 +93,19 @@ fun EnterNewPasswordScreen(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth()
-                    .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
+                    // WAS: .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
+                    .widthIn(
+                        min = dimensions.authCardMinWidth,
+                        max = dimensions.authCardMaxWidth
+                    )
                     .padding(top = dimensions.spacingMedium),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBackClick) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back",
-                        tint = customColors.accentGradientStart)
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack, "Back",
+                        tint = customColors.accentGradientStart
+                    )
                 }
             }
 
@@ -101,7 +113,11 @@ fun EnterNewPasswordScreen(
 
             Box(
                 modifier = Modifier.fillMaxWidth()
-                    .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6),
+                    // WAS: .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
+                    .widthIn(
+                        min = dimensions.authCardMinWidth,
+                        max = dimensions.authCardMaxWidth
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 AnimatedNewPasswordLogoSection(animationStarted, Modifier.wrapContentHeight())
@@ -125,7 +141,11 @@ fun EnterNewPasswordScreen(
                 },
                 focusManager = focusManager,
                 modifier     = Modifier
-                    .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
+                    // WAS: .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
+                    .widthIn(
+                        min = dimensions.authCardMinWidth,
+                        max = dimensions.authCardMaxWidth
+                    )
                     .fillMaxWidth()
                     .padding(bottom = dimensions.spacingXXLarge * 2)
             )
@@ -174,13 +194,21 @@ private fun AnimatedNewPasswordLogoSection(
             val composition by rememberLottieComposition { LottieCompositionSpec.JsonString(json) }
             val progress by animateLottieCompositionAsState(composition,
                 iterations = Compottie.IterateForever)
-            Image(rememberLottiePainter(composition, { progress }), "App Logo",
-                modifier = Modifier.size(dimensions.logoSize * 0.8f), contentScale = ContentScale.Fit)
+            Image(
+                rememberLottiePainter(composition, { progress }),
+                contentDescription = stringResource(Res.string.app_logo_description),
+                modifier           = Modifier.size(dimensions.logoSize * 0.8f),
+                contentScale       = ContentScale.Fit
+            )
         }
         Spacer(modifier = Modifier.height(dimensions.spacingSmall))
-        Text(stringResource(Res.string.app_name),
-            style = MaterialTheme.typography.headlineSmall, color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+        Text(
+            stringResource(Res.string.app_name),
+            style      = MaterialTheme.typography.headlineSmall,
+            color      = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+            textAlign  = TextAlign.Center
+        )
     }
 }
 
@@ -209,10 +237,12 @@ private fun AnimatedNewPasswordCard(
         label         = "cardAlpha")
 
     Box(modifier.graphicsLayer { translationY = offsetY }.alpha(alpha).wrapContentHeight()) {
-        Image(painterResource(Res.drawable.baby_background), null,
-            modifier = Modifier.fillMaxWidth().matchParentSize()
+        Image(
+            painterResource(Res.drawable.baby_background), null,
+            modifier     = Modifier.fillMaxWidth().matchParentSize()
                 .clip(RoundedCornerShape(dimensions.cardCornerRadius * 2)).alpha(0.3f),
-            contentScale = ContentScale.Crop)
+            contentScale = ContentScale.Crop
+        )
 
         Column(
             modifier = Modifier.fillMaxWidth().wrapContentHeight()
@@ -221,10 +251,12 @@ private fun AnimatedNewPasswordCard(
                 .padding(dimensions.spacingLarge),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(stringResource(Res.string.new_password_title),
+            Text(
+                stringResource(Res.string.new_password_title),
                 style    = MaterialTheme.typography.titleLarge,
                 color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
-                modifier = Modifier.padding(bottom = dimensions.spacingLarge))
+                modifier = Modifier.padding(bottom = dimensions.spacingLarge)
+            )
 
             GlassmorphicTextField(
                 value                = uiState.newPassword,
@@ -274,11 +306,13 @@ private fun AnimatedNewPasswordCard(
 
             if (uiState.errorMessage != null) {
                 Spacer(modifier = Modifier.height(dimensions.spacingMedium))
-                Text(uiState.errorMessage,
+                Text(
+                    uiState.errorMessage,
                     style     = MaterialTheme.typography.bodySmall,
                     color     = MaterialTheme.colorScheme.error,
                     textAlign = TextAlign.Center,
-                    modifier  = Modifier.fillMaxWidth())
+                    modifier  = Modifier.fillMaxWidth()
+                )
             }
 
             Spacer(modifier = Modifier.height(dimensions.spacingLarge))
@@ -314,11 +348,14 @@ private fun NewPasswordDecorativeCorner(
         tween(800, delayMillis, FastOutSlowInEasing), label = "alpha")
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         Box(modifier.fillMaxSize(), contentAlignment = alignment) {
-            Image(painterResource(imageRes), "Decorative corner",
-                modifier = Modifier.size(size)
+            Image(
+                painterResource(imageRes),
+                contentDescription = stringResource(Res.string.decorative_corner_description),
+                modifier           = Modifier.size(size)
                     .graphicsLayer { translationX = offsetX; translationY = offsetY; scaleX = scale; scaleY = scale }
                     .alpha(alpha),
-                contentScale = ContentScale.Crop)
+                contentScale = ContentScale.Crop
+            )
         }
     }
 }

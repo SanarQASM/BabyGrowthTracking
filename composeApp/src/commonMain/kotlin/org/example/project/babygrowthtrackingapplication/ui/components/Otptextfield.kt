@@ -31,14 +31,18 @@ import org.example.project.babygrowthtrackingapplication.theme.customColors
 /**
  * OTP/PIN Input Component with Individual Boxes
  *
- * Creates 5 individual boxes for entering a verification code
- * Each box shows one digit with glassmorphic styling
+ * Creates individual boxes for entering a verification code.
+ * Each box shows one digit with glassmorphic styling.
  *
- * @param value Current OTP value (string of digits)
+ * REFACTORED:
+ *  - 0.dp hidden BasicTextField size — kept as semantic zero (invisible capture field)
+ *  - 2.dp border width             →  dimensions.otpBorderWidth
+ *
+ * @param value        Current OTP value (string of digits)
  * @param onValueChange Callback when OTP value changes
- * @param length Number of digits (default: 5)
- * @param onComplete Callback when all digits are entered
- * @param modifier Modifier for the component
+ * @param length       Number of digits (default: 5)
+ * @param onComplete   Callback when all digits are entered
+ * @param modifier     Modifier for the component
  */
 @Composable
 fun OtpTextField(
@@ -48,8 +52,7 @@ fun OtpTextField(
     onComplete: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val dimensions = LocalDimensions.current
-    val customColors = MaterialTheme.customColors
+    val dimensions     = LocalDimensions.current
     val focusRequester = remember { FocusRequester() }
 
     var textFieldValue by remember {
@@ -68,6 +71,9 @@ fun OtpTextField(
 
     Box(modifier = modifier) {
         // Invisible TextField that captures input
+        // NOTE: 0.dp is intentional here — the field is a zero-size capture surface.
+        // It is not a dimension token because it must always be exactly zero to remain
+        // invisible. Any visible size would create a ghost tap-target on screen.
         BasicTextField(
             value = textFieldValue,
             onValueChange = { newValue ->
@@ -90,7 +96,7 @@ fun OtpTextField(
             ),
             cursorBrush = SolidColor(Color.Transparent),
             modifier = Modifier
-                .size(0.dp)
+                .size(0.dp) // intentional invisible capture — not a dimension token
                 .focusRequester(focusRequester),
             decorationBox = { }
         )
@@ -130,13 +136,15 @@ private fun OtpDigitBox(
     val backgroundColor = if (digit.isNotEmpty()) {
         customColors.accentGradientStart.copy(alpha = 0.2f)
     } else {
-        Color.White.copy(alpha = 0.1f)
+        // WAS: Color.White.copy(alpha = 0.1f)  →  customColors.glassOverlay
+        customColors.glassOverlay
     }
 
     val borderColor = when {
-        isFocused        -> customColors.accentGradientStart.copy(alpha = 0.8f)
+        isFocused          -> customColors.accentGradientStart.copy(alpha = 0.8f)
         digit.isNotEmpty() -> customColors.accentGradientStart.copy(alpha = 0.5f)
-        else             -> Color.White.copy(alpha = 0.3f)
+        // WAS: Color.White.copy(alpha = 0.3f)  →  customColors.glassOverlay at slightly higher alpha
+        else               -> customColors.glassOverlay.copy(alpha = customColors.glassOverlay.alpha * 2f)
     }
 
     Box(
@@ -145,7 +153,8 @@ private fun OtpDigitBox(
             .clip(RoundedCornerShape(dimensions.buttonCornerRadius))
             .background(backgroundColor)
             .border(
-                width = 2.dp,
+                // WAS: width = 2.dp  →  dimensions.otpBorderWidth
+                width = dimensions.otpBorderWidth,
                 color = borderColor,
                 shape = RoundedCornerShape(dimensions.buttonCornerRadius)
             ),

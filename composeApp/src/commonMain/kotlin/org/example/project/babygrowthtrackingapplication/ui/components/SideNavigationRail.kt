@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import org.example.project.babygrowthtrackingapplication.theme.LocalDimensions
 import org.example.project.babygrowthtrackingapplication.theme.customColors
 import org.jetbrains.compose.resources.stringResource
@@ -26,10 +25,18 @@ import babygrowthtrackingapplication.composeapp.generated.resources.*
 
 /**
  * Side Navigation Rail used in landscape mode and on EXPANDED (desktop/tablet)
- * layouts.  It mirrors the tab structure of [BottomNavigationBar] but renders
+ * layouts. It mirrors the tab structure of [BottomNavigationBar] but renders
  * vertically on the left edge of the screen.
  *
  * Touch targets are all ≥ 48dp to satisfy the quality checklist.
+ *
+ * REFACTORED:
+ *  - 4.dp vertical item spacing  →  dimensions.railItemSpacing
+ *  - 56.dp min touch target      →  dimensions.railItemMinHeight
+ *  - 12.dp item corner radius    →  dimensions.railItemCornerRadius
+ *  - 8.dp vertical item padding  →  dimensions.railItemPaddingV
+ *  - 4.dp horizontal item padding →  dimensions.railItemPaddingH
+ *  - 2.dp icon-label gap         →  dimensions.railIconLabelGap
  */
 @Composable
 fun SideNavigationRail(
@@ -57,7 +64,8 @@ fun SideNavigationRail(
             )
             .padding(vertical = dimensions.spacingSmall),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
+        // WAS: Arrangement.spacedBy(4.dp, ...)  →  dimensions.railItemSpacing
+        verticalArrangement = Arrangement.spacedBy(dimensions.railItemSpacing, Alignment.CenterVertically),
     ) {
         // Small app-brand dot at the top of the rail
         Box(
@@ -77,11 +85,11 @@ fun SideNavigationRail(
 
         items.forEach { item ->
             RailItem(
-                item         = item,
-                selected     = item.tab == selectedTab,
+                item          = item,
+                selected      = item.tab == selectedTab,
                 onTabSelected = onTabSelected,
-                dimensions   = dimensions,
-                customColors = customColors,
+                dimensions    = dimensions,
+                customColors  = customColors,
             )
         }
     }
@@ -97,13 +105,13 @@ private fun RailItem(
 ) {
     val bgColor by animateColorAsState(
         targetValue = if (selected) customColors.accentGradientStart.copy(alpha = 0.15f)
-        else         Color.Transparent,
+        else Color.Transparent,
         animationSpec = tween(200),
         label = "rail_item_bg",
     )
     val contentColor by animateColorAsState(
         targetValue = if (selected) customColors.accentGradientStart
-        else         MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
         animationSpec = tween(200),
         label = "rail_item_fg",
     )
@@ -111,16 +119,22 @@ private fun RailItem(
     Column(
         modifier = Modifier
             .width(dimensions.railWidth)
-            // Minimum 48dp touch target (quality checklist ✓)
-            .heightIn(min = 56.dp)
-            .clip(RoundedCornerShape(12.dp))
+            // WAS: .heightIn(min = 56.dp)  →  dimensions.railItemMinHeight
+            .heightIn(min = dimensions.railItemMinHeight)
+            // WAS: RoundedCornerShape(12.dp)  →  dimensions.railItemCornerRadius
+            .clip(RoundedCornerShape(dimensions.railItemCornerRadius))
             .background(bgColor)
             .clickable(
-                indication           = null,
-                interactionSource    = remember { MutableInteractionSource() },
-                onClick              = { onTabSelected(item.tab) },
+                indication        = null,
+                interactionSource = remember { MutableInteractionSource() },
+                onClick           = { onTabSelected(item.tab) },
             )
-            .padding(vertical = 8.dp, horizontal = 4.dp),
+            // WAS: .padding(vertical = 8.dp, horizontal = 4.dp)
+            //    →  dimensions.railItemPaddingV / dimensions.railItemPaddingH
+            .padding(
+                vertical   = dimensions.railItemPaddingV,
+                horizontal = dimensions.railItemPaddingH
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
@@ -129,7 +143,8 @@ private fun RailItem(
             style = MaterialTheme.typography.titleMedium,
             color = contentColor,
         )
-        Spacer(Modifier.height(2.dp))
+        // WAS: Spacer(Modifier.height(2.dp))  →  dimensions.railIconLabelGap
+        Spacer(Modifier.height(dimensions.railIconLabelGap))
         Text(
             text       = item.label,
             style      = MaterialTheme.typography.labelSmall,

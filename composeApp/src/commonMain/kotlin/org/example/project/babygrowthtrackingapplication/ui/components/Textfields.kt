@@ -22,7 +22,7 @@ import org.example.project.babygrowthtrackingapplication.theme.customColors
  */
 
 /**
- * Primary Glassmorphic TextField - Main input with iOS-style blur
+ * Primary Glassmorphic TextField — Main input with iOS-style blur
  *
  * Usage:
  * ```
@@ -53,8 +53,11 @@ fun GlassmorphicTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default
 ) {
-    val dimensions = LocalDimensions.current
+    val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
+
+    // WAS: RoundedCornerShape(16.dp)  →  dimensions.textFieldCornerRadius
+    val fieldShape = RoundedCornerShape(dimensions.textFieldCornerRadius)
 
     Column(modifier = modifier) {
         // Label
@@ -64,7 +67,8 @@ fun GlassmorphicTextField(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                 fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(bottom = 6.dp)
+                // WAS: Modifier.padding(bottom = 6.dp)  →  dimensions.textFieldLabelBottomPadding
+                modifier = Modifier.padding(bottom = dimensions.textFieldLabelBottomPadding)
             )
         }
 
@@ -79,7 +83,8 @@ fun GlassmorphicTextField(
                             MaterialTheme.colorScheme.surface.copy(alpha = 0.3f)
                         )
                     ),
-                    shape = RoundedCornerShape(16.dp)
+                    // WAS: RoundedCornerShape(16.dp)  →  fieldShape
+                    shape = fieldShape
                 )
         ) {
             // Glassmorphic overlay
@@ -87,8 +92,10 @@ fun GlassmorphicTextField(
                 modifier = Modifier
                     .matchParentSize()
                     .background(
-                        Color.White.copy(alpha = 0.1f),
-                        shape = RoundedCornerShape(16.dp)
+                        // WAS: Color.White.copy(alpha = 0.1f)  →  customColors.glassOverlay
+                        customColors.glassOverlay,
+                        // WAS: RoundedCornerShape(16.dp)  →  fieldShape
+                        shape = fieldShape
                     )
             )
 
@@ -113,21 +120,22 @@ fun GlassmorphicTextField(
                 keyboardOptions = keyboardOptions,
                 keyboardActions = keyboardActions,
                 colors = TextFieldDefaults.colors(
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    disabledTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                    focusedContainerColor = Color.Transparent,
+                    focusedTextColor        = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor      = MaterialTheme.colorScheme.onSurface,
+                    disabledTextColor       = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                    focusedContainerColor   = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    errorContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
+                    disabledContainerColor  = Color.Transparent,
+                    errorContainerColor     = Color.Transparent,
+                    focusedIndicatorColor   = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                    errorIndicatorColor = Color.Transparent,
-                    cursorColor = customColors.accentGradientStart,
-                    errorCursorColor = MaterialTheme.colorScheme.error
+                    disabledIndicatorColor  = Color.Transparent,
+                    errorIndicatorColor     = Color.Transparent,
+                    cursorColor             = customColors.accentGradientStart,
+                    errorCursorColor        = MaterialTheme.colorScheme.error
                 ),
-                shape = RoundedCornerShape(16.dp)
+                // WAS: RoundedCornerShape(16.dp)  →  fieldShape
+                shape = fieldShape
             )
         }
 
@@ -137,24 +145,18 @@ fun GlassmorphicTextField(
                 text = errorMessage,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                // WAS: Modifier.padding(top = 4.dp, start = 4.dp)  →  spacingXSmall
+                modifier = Modifier.padding(
+                    top   = dimensions.spacingXSmall,
+                    start = dimensions.spacingXSmall
+                )
             )
         }
     }
 }
 
 /**
- * Outlined Glassmorphic TextField - Alternative style with subtle border
- *
- * Usage:
- * ```
- * OutlinedGlassmorphicTextField(
- *     value = password,
- *     onValueChange = { password = it },
- *     label = "Password",
- *     placeholder = "Enter password"
- * )
- * ```
+ * Outlined Glassmorphic TextField — Alternative style with subtle border
  */
 @Composable
 fun OutlinedGlassmorphicTextField(
@@ -175,8 +177,11 @@ fun OutlinedGlassmorphicTextField(
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     keyboardActions: KeyboardActions = KeyboardActions.Default
 ) {
-    val dimensions = LocalDimensions.current
+    val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
+
+    // WAS: RoundedCornerShape(16.dp)  →  dimensions.textFieldCornerRadius
+    val fieldShape = RoundedCornerShape(dimensions.textFieldCornerRadius)
 
     Column(modifier = modifier) {
         // Label
@@ -186,7 +191,8 @@ fun OutlinedGlassmorphicTextField(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                 fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(bottom = 6.dp)
+                // WAS: Modifier.padding(bottom = 6.dp)  →  dimensions.textFieldLabelBottomPadding
+                modifier = Modifier.padding(bottom = dimensions.textFieldLabelBottomPadding)
             )
         }
 
@@ -211,21 +217,24 @@ fun OutlinedGlassmorphicTextField(
             keyboardOptions = keyboardOptions,
             keyboardActions = keyboardActions,
             colors = OutlinedTextFieldDefaults.colors(
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                disabledTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                focusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
+                focusedTextColor        = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor      = MaterialTheme.colorScheme.onSurface,
+                disabledTextColor       = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                focusedContainerColor   = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
                 unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.2f),
-                disabledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.1f),
-                errorContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
-                focusedBorderColor = customColors.accentGradientStart.copy(alpha = 0.5f),
-                unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-                disabledBorderColor = Color.White.copy(alpha = 0.1f),
-                errorBorderColor = MaterialTheme.colorScheme.error.copy(alpha = 0.5f),
-                cursorColor = customColors.accentGradientStart,
-                errorCursorColor = MaterialTheme.colorScheme.error
+                disabledContainerColor  = MaterialTheme.colorScheme.surface.copy(alpha = 0.1f),
+                errorContainerColor     = MaterialTheme.colorScheme.surface.copy(alpha = 0.3f),
+                focusedBorderColor      = customColors.accentGradientStart.copy(alpha = 0.5f),
+                // WAS: Color.White.copy(alpha = 0.2f)  →  customColors.glassOverlay
+                unfocusedBorderColor    = customColors.glassOverlay,
+                // WAS: Color.White.copy(alpha = 0.1f)  →  customColors.glassOverlay (at lower alpha)
+                disabledBorderColor     = customColors.glassOverlay.copy(alpha = 0.5f),
+                errorBorderColor        = MaterialTheme.colorScheme.error.copy(alpha = 0.5f),
+                cursorColor             = customColors.accentGradientStart,
+                errorCursorColor        = MaterialTheme.colorScheme.error
             ),
-            shape = RoundedCornerShape(16.dp)
+            // WAS: RoundedCornerShape(16.dp)  →  fieldShape
+            shape = fieldShape
         )
 
         // Error message
@@ -234,7 +243,11 @@ fun OutlinedGlassmorphicTextField(
                 text = errorMessage,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                // WAS: Modifier.padding(top = 4.dp, start = 4.dp)  →  spacingXSmall
+                modifier = Modifier.padding(
+                    top   = dimensions.spacingXSmall,
+                    start = dimensions.spacingXSmall
+                )
             )
         }
     }
@@ -242,15 +255,6 @@ fun OutlinedGlassmorphicTextField(
 
 /**
  * Search TextField with iOS-style translucent background
- *
- * Usage:
- * ```
- * SearchTextField(
- *     value = searchQuery,
- *     onValueChange = { searchQuery = it },
- *     placeholder = "Search..."
- * )
- * ```
  */
 @Composable
 fun SearchTextField(
@@ -262,7 +266,11 @@ fun SearchTextField(
     trailingIcon: @Composable (() -> Unit)? = null,
     enabled: Boolean = true
 ) {
+    val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
+
+    // WAS: RoundedCornerShape(20.dp)  →  dimensions.searchFieldCornerRadius
+    val fieldShape = RoundedCornerShape(dimensions.searchFieldCornerRadius)
 
     Box(
         modifier = modifier
@@ -274,7 +282,8 @@ fun SearchTextField(
                         MaterialTheme.colorScheme.surface.copy(alpha = 0.3f)
                     )
                 ),
-                shape = RoundedCornerShape(20.dp)
+                // WAS: RoundedCornerShape(20.dp)  →  fieldShape
+                shape = fieldShape
             )
     ) {
         // Glassmorphic overlay
@@ -282,8 +291,10 @@ fun SearchTextField(
             modifier = Modifier
                 .matchParentSize()
                 .background(
-                    Color.White.copy(alpha = 0.1f),
-                    shape = RoundedCornerShape(20.dp)
+                    // WAS: Color.White.copy(alpha = 0.1f)  →  customColors.glassOverlay
+                    customColors.glassOverlay,
+                    // WAS: RoundedCornerShape(20.dp)  →  fieldShape
+                    shape = fieldShape
                 )
         )
 
@@ -302,35 +313,25 @@ fun SearchTextField(
             enabled = enabled,
             singleLine = true,
             colors = TextFieldDefaults.colors(
-                focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                disabledTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                focusedContainerColor = Color.Transparent,
+                focusedTextColor        = MaterialTheme.colorScheme.onSurface,
+                unfocusedTextColor      = MaterialTheme.colorScheme.onSurface,
+                disabledTextColor       = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                focusedContainerColor   = Color.Transparent,
                 unfocusedContainerColor = Color.Transparent,
-                disabledContainerColor = Color.Transparent,
-                focusedIndicatorColor = Color.Transparent,
+                disabledContainerColor  = Color.Transparent,
+                focusedIndicatorColor   = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-                cursorColor = customColors.accentGradientStart
+                disabledIndicatorColor  = Color.Transparent,
+                cursorColor             = customColors.accentGradientStart
             ),
-            shape = RoundedCornerShape(20.dp)
+            // WAS: RoundedCornerShape(20.dp)  →  fieldShape
+            shape = fieldShape
         )
     }
 }
 
 /**
  * Multi-line Glassmorphic TextField for longer text input
- *
- * Usage:
- * ```
- * MultiLineGlassmorphicTextField(
- *     value = notes,
- *     onValueChange = { notes = it },
- *     label = "Notes",
- *     placeholder = "Enter your notes here...",
- *     minLines = 4
- * )
- * ```
  */
 @Composable
 fun MultiLineGlassmorphicTextField(
@@ -345,8 +346,11 @@ fun MultiLineGlassmorphicTextField(
     errorMessage: String? = null,
     enabled: Boolean = true
 ) {
-    val dimensions = LocalDimensions.current
+    val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
+
+    // WAS: RoundedCornerShape(16.dp)  →  dimensions.textFieldCornerRadius
+    val fieldShape = RoundedCornerShape(dimensions.textFieldCornerRadius)
 
     Column(modifier = modifier) {
         // Label
@@ -356,7 +360,8 @@ fun MultiLineGlassmorphicTextField(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                 fontWeight = FontWeight.Medium,
-                modifier = Modifier.padding(bottom = 6.dp)
+                // WAS: Modifier.padding(bottom = 6.dp)  →  dimensions.textFieldLabelBottomPadding
+                modifier = Modifier.padding(bottom = dimensions.textFieldLabelBottomPadding)
             )
         }
 
@@ -370,7 +375,8 @@ fun MultiLineGlassmorphicTextField(
                             MaterialTheme.colorScheme.surface.copy(alpha = 0.3f)
                         )
                     ),
-                    shape = RoundedCornerShape(16.dp)
+                    // WAS: RoundedCornerShape(16.dp)  →  fieldShape
+                    shape = fieldShape
                 )
         ) {
             // Glassmorphic overlay
@@ -378,8 +384,10 @@ fun MultiLineGlassmorphicTextField(
                 modifier = Modifier
                     .matchParentSize()
                     .background(
-                        Color.White.copy(alpha = 0.1f),
-                        shape = RoundedCornerShape(16.dp)
+                        // WAS: Color.White.copy(alpha = 0.1f)  →  customColors.glassOverlay
+                        customColors.glassOverlay,
+                        // WAS: RoundedCornerShape(16.dp)  →  fieldShape
+                        shape = fieldShape
                     )
             )
 
@@ -388,6 +396,7 @@ fun MultiLineGlassmorphicTextField(
                 onValueChange = onValueChange,
                 modifier = Modifier
                     .fillMaxWidth()
+                    // WAS: .heightIn(min = (minLines * 24).dp) — kept as dynamic expression
                     .heightIn(min = (minLines * 24).dp),
                 placeholder = {
                     Text(
@@ -401,21 +410,22 @@ fun MultiLineGlassmorphicTextField(
                 minLines = minLines,
                 maxLines = maxLines,
                 colors = TextFieldDefaults.colors(
-                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-                    disabledTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
-                    focusedContainerColor = Color.Transparent,
+                    focusedTextColor        = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor      = MaterialTheme.colorScheme.onSurface,
+                    disabledTextColor       = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                    focusedContainerColor   = Color.Transparent,
                     unfocusedContainerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    errorContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
+                    disabledContainerColor  = Color.Transparent,
+                    errorContainerColor     = Color.Transparent,
+                    focusedIndicatorColor   = Color.Transparent,
                     unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                    errorIndicatorColor = Color.Transparent,
-                    cursorColor = customColors.accentGradientStart,
-                    errorCursorColor = MaterialTheme.colorScheme.error
+                    disabledIndicatorColor  = Color.Transparent,
+                    errorIndicatorColor     = Color.Transparent,
+                    cursorColor             = customColors.accentGradientStart,
+                    errorCursorColor        = MaterialTheme.colorScheme.error
                 ),
-                shape = RoundedCornerShape(16.dp)
+                // WAS: RoundedCornerShape(16.dp)  →  fieldShape
+                shape = fieldShape
             )
         }
 
@@ -425,7 +435,11 @@ fun MultiLineGlassmorphicTextField(
                 text = errorMessage,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.error,
-                modifier = Modifier.padding(top = 4.dp, start = 4.dp)
+                // WAS: Modifier.padding(top = 4.dp, start = 4.dp)  →  spacingXSmall
+                modifier = Modifier.padding(
+                    top   = dimensions.spacingXSmall,
+                    start = dimensions.spacingXSmall
+                )
             )
         }
     }

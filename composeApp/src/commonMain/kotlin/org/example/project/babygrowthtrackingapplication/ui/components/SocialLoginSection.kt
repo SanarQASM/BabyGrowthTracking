@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.painterResource
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 import babygrowthtrackingapplication.composeapp.generated.resources.*
@@ -21,7 +20,13 @@ import org.example.project.babygrowthtrackingapplication.theme.LocalDimensions
 
 /**
  * Social Login Section with Divider and Social Buttons
- * Shows "-----or-----" divider followed by Google, Facebook, Apple buttons
+ * Shows "-----or-----" divider followed by Google button
+ *
+ * REFACTORED:
+ *  - 56.dp button size            →  dimensions.socialButtonSize
+ *  - 24.dp icon size              →  dimensions.socialIconSize
+ *  - 16.dp horizontal "or" padding →  dimensions.orDividerTextPaddingH
+ *  - 1.dp divider line height     →  dimensions.dividerHeight
  */
 @Composable
 fun SocialLoginSection(
@@ -47,34 +52,35 @@ fun SocialLoginSection(
         ) {
             // Google button
             SocialLoginButton(
-                icon = Res.drawable.ic_google,
+                icon               = Res.drawable.ic_google,
                 contentDescription = "Sign in with Google",
-                backgroundColor = Color.White,
-                onClick = onGoogleClick
+                backgroundColor    = Color.White,
+                onClick            = onGoogleClick
             )
-
         }
     }
 }
 
 /**
- * Divider with "or" text in the middle
- * Shows like: -----or-----
+ * Divider with "or" text in the middle — shows like: -----or-----
  */
 @Composable
 private fun OrDivider(
     modifier: Modifier = Modifier
 ) {
+    val dimensions = LocalDimensions.current
+
     Row(
         modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment   = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
         // Left line
+        // WAS: Modifier.height(1.dp)  →  dimensions.dividerHeight
         Box(
             modifier = Modifier
                 .weight(1f)
-                .height(1.dp)
+                .height(dimensions.dividerHeight)
                 .background(
                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                 )
@@ -86,14 +92,16 @@ private fun OrDivider(
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
             fontWeight = FontWeight.Medium,
-            modifier = Modifier.padding(horizontal = 16.dp)
+            // WAS: Modifier.padding(horizontal = 16.dp)  →  dimensions.orDividerTextPaddingH
+            modifier = Modifier.padding(horizontal = dimensions.orDividerTextPaddingH)
         )
 
         // Right line
+        // WAS: Modifier.height(1.dp)  →  dimensions.dividerHeight
         Box(
             modifier = Modifier
                 .weight(1f)
-                .height(1.dp)
+                .height(dimensions.dividerHeight)
                 .background(
                     MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
                 )
@@ -112,9 +120,12 @@ private fun SocialLoginButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val dimensions = LocalDimensions.current
+
     Box(
         modifier = modifier
-            .size(56.dp)
+            // WAS: Modifier.size(56.dp)  →  dimensions.socialButtonSize
+            .size(dimensions.socialButtonSize)
             .clip(CircleShape)
             .background(backgroundColor)
             .clickable { onClick() },
@@ -123,7 +134,8 @@ private fun SocialLoginButton(
         Icon(
             painter = painterResource(icon),
             contentDescription = contentDescription,
-            modifier = Modifier.size(24.dp),
+            // WAS: Modifier.size(24.dp)  →  dimensions.socialIconSize
+            modifier = Modifier.size(dimensions.socialIconSize),
             tint = if (backgroundColor == Color.White) Color.Unspecified else Color.White
         )
     }

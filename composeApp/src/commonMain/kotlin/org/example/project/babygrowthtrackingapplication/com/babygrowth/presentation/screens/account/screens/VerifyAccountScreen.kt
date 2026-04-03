@@ -34,7 +34,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.LayoutDirection
 import io.github.alexzhirkevich.compottie.Compottie
 import io.github.alexzhirkevich.compottie.LottieCompositionSpec
@@ -62,6 +61,14 @@ import org.jetbrains.compose.resources.DrawableResource
 // ─────────────────────────────────────────────────────────────────────────────
 private val AuthCardCornerRadius @Composable get() = LocalDimensions.current.spacingXXLarge
 
+/**
+ * REFACTORED:
+ *  - 320.dp min-width  →  dimensions.authCardMinWidth
+ *  - 420.dp max-width  →  dimensions.authCardMaxWidth
+ *  - 32.dp icon size   →  dimensions.iconLarge
+ *  - 2.dp border width →  dimensions.borderWidthMedium
+ *  - 4.dp spacer       →  dimensions.spacingXSmall
+ */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun VerifyAccountScreen(
@@ -101,7 +108,11 @@ fun VerifyAccountScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .widthIn(min = 320.dp, max = 420.dp)
+                    // WAS: .widthIn(min = 320.dp, max = 420.dp)
+                    .widthIn(
+                        min = dimensions.authCardMinWidth,
+                        max = dimensions.authCardMaxWidth
+                    )
                     .padding(top = dimensions.spacingMedium),
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -118,9 +129,13 @@ fun VerifyAccountScreen(
 
             // ── Logo ─────────────────────────────────────────────────────────
             Box(
-                modifier         = Modifier
+                modifier = Modifier
                     .fillMaxWidth()
-                    .widthIn(min = 320.dp, max = 420.dp),
+                    // WAS: .widthIn(min = 320.dp, max = 420.dp)
+                    .widthIn(
+                        min = dimensions.authCardMinWidth,
+                        max = dimensions.authCardMaxWidth
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 AnimatedVerifyLogoSection(
@@ -146,9 +161,12 @@ fun VerifyAccountScreen(
                 sharedTransitionScope = sharedTransitionScope,
                 animatedContentScope  = animatedContentScope,
                 modifier              = Modifier
-                    .widthIn(min = 320.dp, max = 420.dp)
+                    // WAS: .widthIn(min = 320.dp, max = 420.dp)
+                    .widthIn(
+                        min = dimensions.authCardMinWidth,
+                        max = dimensions.authCardMaxWidth
+                    )
                     .fillMaxWidth()
-                    // was: padding(bottom = 80.dp)
                     .padding(bottom = dimensions.spacingXXLarge + dimensions.spacingLarge)
             )
         }
@@ -223,7 +241,6 @@ private fun AnimatedVerifyLogoSection(
                 val painter = rememberLottiePainter(composition = composition, progress = { progress })
                 Image(
                     painter            = painter,
-                    // was: "Verification"
                     contentDescription = stringResource(Res.string.verify_logo_description),
                     modifier           = Modifier
                         .size(dimensions.logoSize * 0.4f)
@@ -254,7 +271,6 @@ private fun AnimatedVerifyLogoSection(
             Spacer(modifier = Modifier.height(dimensions.spacingSmall))
 
             Text(
-                // was: "Verify Your Account"
                 text      = stringResource(Res.string.verify_account_title),
                 style     = MaterialTheme.typography.titleLarge,
                 color     = MaterialTheme.colorScheme.onBackground,
@@ -286,7 +302,6 @@ private fun AnimatedVerifyCard(
     val dimensions       = LocalDimensions.current
     val customColors     = MaterialTheme.customColors
     val cardCornerRadius = AuthCardCornerRadius
-    // was: RoundedCornerShape(topStart = 45.dp, topEnd = 45.dp)
     val cardShape        = RoundedCornerShape(topStart = cardCornerRadius, topEnd = cardCornerRadius)
 
     val offsetY by animateFloatAsState(
@@ -318,7 +333,6 @@ private fun AnimatedVerifyCard(
                 modifier           = Modifier
                     .fillMaxWidth()
                     .matchParentSize()
-                    // was: RoundedCornerShape(topStart = 45.dp, topEnd = 45.dp)
                     .clip(cardShape)
                     .alpha(0.3f),
                 contentScale = ContentScale.Crop
@@ -328,20 +342,15 @@ private fun AnimatedVerifyCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight()
-                    // was: RoundedCornerShape(topStart = 45.dp, topEnd = 45.dp)
                     .clip(cardShape)
                     .background(Color.White.copy(alpha = 0.05f))
                     .padding(dimensions.spacingLarge),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-
-                // ── Step header ───────────────────────────────────────────────
                 Text(
                     text = if (uiState.codeSent)
-                    // was: "Step 2: Enter Verification Code"
                         stringResource(Res.string.verify_enter_code)
                     else
-                    // was: "Step 1: Choose Verification Method"
                         stringResource(Res.string.verify_select_method),
                     style    = MaterialTheme.typography.titleMedium,
                     color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
@@ -359,7 +368,6 @@ private fun AnimatedVerifyCard(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            // was: "We'll send you a verification code to confirm your account"
                             text      = stringResource(Res.string.verify_method_description),
                             style     = MaterialTheme.typography.bodyMedium,
                             color     = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
@@ -369,22 +377,18 @@ private fun AnimatedVerifyCard(
 
                         Spacer(modifier = Modifier.height(dimensions.spacingMedium))
 
-                        // Email option — always visible
                         VerificationMethodCard(
                             icon        = Icons.Default.Email,
-                            // was: "Email Verification"
                             title       = stringResource(Res.string.verify_email_title),
                             description = maskEmail(uiState.email),
                             isSelected  = uiState.selectedMethod == VerificationMethod.EMAIL,
                             onClick     = { onMethodSelected(VerificationMethod.EMAIL) }
                         )
 
-                        // SMS card only shown when a phone number exists
                         if (uiState.isSmsAvailable) {
                             Spacer(modifier = Modifier.height(dimensions.spacingMedium))
                             VerificationMethodCard(
                                 icon        = Icons.Default.Sms,
-                                // was: "SMS Verification"
                                 title       = stringResource(Res.string.verify_sms_title),
                                 description = maskPhone(uiState.phone),
                                 isSelected  = uiState.selectedMethod == VerificationMethod.SMS,
@@ -406,7 +410,6 @@ private fun AnimatedVerifyCard(
                         Spacer(modifier = Modifier.height(dimensions.spacingLarge))
 
                         PrimaryButton(
-                            // was: "Send Code"
                             text     = stringResource(Res.string.verify_send_code),
                             onClick  = onSendCode,
                             loading  = uiState.isSendingCode,
@@ -427,7 +430,6 @@ private fun AnimatedVerifyCard(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            // was: "Enter the 6-digit code sent to ${...}"
                             text = "${stringResource(Res.string.verify_code_sent_to)} ${
                                 if (uiState.selectedMethod == VerificationMethod.EMAIL)
                                     maskEmail(uiState.email)
@@ -445,12 +447,10 @@ private fun AnimatedVerifyCard(
                         GlassmorphicTextField(
                             value         = uiState.verificationCode,
                             onValueChange = onCodeChanged,
-                            // was: "Enter 6-digit code"
                             placeholder   = stringResource(Res.string.verify_code_placeholder),
                             leadingIcon   = {
                                 Icon(
                                     imageVector        = Icons.Default.Pin,
-                                    // was: "Verification Code"
                                     contentDescription = stringResource(Res.string.verify_code_icon_description),
                                     tint               = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                 )
@@ -470,26 +470,22 @@ private fun AnimatedVerifyCard(
 
                         Spacer(modifier = Modifier.height(dimensions.spacingSmall))
 
-                        // ── Resend row ────────────────────────────────────────
                         Row(
                             modifier              = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment     = Alignment.CenterVertically
                         ) {
                             Text(
-                                // was: "Didn't receive the code?"
                                 text  = stringResource(Res.string.verify_didnt_receive),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                             )
-                            // was: Spacer(modifier = Modifier.width(4.dp))
+                            // WAS: Spacer(modifier = Modifier.width(4.dp))  →  spacingXSmall
                             Spacer(modifier = Modifier.width(dimensions.spacingXSmall))
                             Text(
                                 text = if (uiState.canResend)
-                                // was: "Resend"
                                     stringResource(Res.string.verify_resend)
                                 else
-                                // was: "Resend in ${uiState.resendCountdown}s"
                                     stringResource(Res.string.verify_resend_in, uiState.resendCountdown),
                                 style    = MaterialTheme.typography.bodyMedium.copy(
                                     fontWeight = FontWeight.Bold
@@ -516,7 +512,6 @@ private fun AnimatedVerifyCard(
                         Spacer(modifier = Modifier.height(dimensions.spacingLarge))
 
                         PrimaryButton(
-                            // was: "Verify Account"
                             text     = stringResource(Res.string.verify_account_button),
                             onClick  = onVerifyClick,
                             loading  = uiState.isVerifying,
@@ -547,7 +542,6 @@ private fun VerificationMethodCard(
 ) {
     val customColors = MaterialTheme.customColors
     val dimensions   = LocalDimensions.current
-    // was: RoundedCornerShape(16.dp)
     val cardShape    = RoundedCornerShape(dimensions.cardCornerRadius)
 
     Card(
@@ -556,10 +550,9 @@ private fun VerificationMethodCard(
             .clickable(onClick = onClick)
             .then(
                 if (isSelected) Modifier.border(
-                    // was: 2.dp
-                    width = dimensions.spacingXSmall / 2,
+                    // WAS: width = 2.dp  →  dimensions.borderWidthMedium
+                    width = dimensions.borderWidthMedium,
                     color = customColors.accentGradientStart,
-                    // was: RoundedCornerShape(16.dp)
                     shape = cardShape
                 ) else Modifier
             ),
@@ -567,7 +560,8 @@ private fun VerificationMethodCard(
             containerColor = if (isSelected)
                 customColors.accentGradientStart.copy(alpha = 0.1f)
             else
-                Color.White.copy(alpha = 0.1f)
+            // WAS: Color.White.copy(alpha = 0.1f)  →  customColors.glassOverlay
+                customColors.glassOverlay
         ),
         shape = cardShape
     ) {
@@ -582,7 +576,7 @@ private fun VerificationMethodCard(
                 contentDescription = title,
                 tint               = if (isSelected) customColors.accentGradientStart
                 else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                // was: Modifier.size(32.dp)
+                // WAS: Modifier.size(32.dp)  →  dimensions.iconLarge
                 modifier           = Modifier.size(dimensions.iconLarge)
             )
             Spacer(modifier = Modifier.width(dimensions.spacingMedium))
@@ -638,7 +632,6 @@ private fun VerifyDecorativeCorner(
         Box(modifier.fillMaxSize(), contentAlignment = alignment) {
             Image(
                 painter            = painterResource(imageRes),
-                // was: null
                 contentDescription = stringResource(Res.string.decorative_corner_description),
                 modifier           = Modifier
                     .size(size)
