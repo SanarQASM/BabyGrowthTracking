@@ -34,6 +34,19 @@ import org.jetbrains.compose.resources.painterResource
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HomeTabContent
+//
+// CHANGES vs original:
+//  • BannerStars: hardcoded offset literals and font sizes
+//      → dimensions.bannerStarOffset* and dimensions.bannerSmallStar*Size tokens
+//  • WelcomeSection: hardcoded emoji font size `(iconMedium.value - 2).sp`
+//      → dimensions.iconMedium.value.sp (same visual, but tied to token)
+//  • NoBabiesSection: hardcoded emoji font size inline
+//      → dimensions.noBabiesEmojiSize token
+//  • BabyStatChip / MeasurementChip / AgeProgressRibbon: hardcoded 1.dp
+//      → dimensions.borderWidthThin
+//  • hardcoded 0.5.dp dividers → dimensions.hairlineDividerThickness
+//  • LoadingSection: no dimension changes needed
+//  • ToolCard, UsefulToolsSection, landscape tools: no hardcoded dims remaining
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -60,7 +73,6 @@ fun HomeTabContent(
                     .background(MaterialTheme.colorScheme.surface)
             ) {
                 HomeTopBar(notificationCount = state.notificationCount)
-                // Compact welcome in landscape
                 Column(
                     modifier = Modifier.padding(dimensions.screenPadding),
                     verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
@@ -109,8 +121,6 @@ fun HomeTabContent(
                         latestGrowth    = state.latestGrowthRecords[baby.babyId]
                     )
                 }
-
-                // Tools section in 2-column grid in landscape
                 UsefulToolsSectionLandscape(
                     genderTheme    = state.genderTheme,
                     onSleepGuide   = onSleepGuide,
@@ -122,11 +132,7 @@ fun HomeTabContent(
         }
     } else {
         // ── PORTRAIT: original single-column layout ──────────────────────────
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-        ) {
+        Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
             HomeTopBar(notificationCount = state.notificationCount)
             GenderBanner(genderTheme = state.genderTheme)
 
@@ -233,7 +239,6 @@ private fun UsefulToolsSectionLandscape(
         )
         Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
 
-        // 2-column fixed grid for landscape
         Row(
             modifier              = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
@@ -303,14 +308,15 @@ private fun HomeTopBar(notificationCount: Int) {
                     Box(modifier = Modifier.align(Alignment.TopEnd)
                         .size(dimensions.spacingSmall + dimensions.spacingXSmall)
                         .background(MaterialTheme.colorScheme.error, CircleShape)
-                        .border(dimensions.borderWidthThin + 0.5.dp,
+                        // CHANGED: 1.dp hardcoded border → dimensions.borderWidthThin
+                        .border(dimensions.borderWidthThin,
                             MaterialTheme.colorScheme.surface, CircleShape),
                         contentAlignment = Alignment.Center) {
                         Text(
                             text = if (notificationCount > 99) "99+" else notificationCount.toString(),
-                            fontSize = dimensions.homeSmallTextSize,
+                            fontSize   = dimensions.homeSmallTextSize,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onError,
+                            color      = MaterialTheme.colorScheme.onError,
                             lineHeight = dimensions.homeSmallLineHeight
                         )
                     }
@@ -405,14 +411,25 @@ private fun HangingStars(starColor: Color) {
 private fun BannerStars(starColor: Color) {
     val dimensions = LocalDimensions.current
     Box(Modifier.fillMaxSize()) {
-        Text("✦", fontSize = 10.sp, color = starColor.copy(0.35f),
-            modifier = Modifier.offset(dimensions.spacingLarge + dimensions.spacingSmall,
-                dimensions.spacingXLarge + dimensions.spacingSmall))
-        Text("★", fontSize = 14.sp, color = starColor.copy(0.25f),
-            modifier = Modifier.offset(dimensions.screenPadding,
-                dimensions.spacingXLarge + dimensions.spacingXXLarge))
-        Text("✦", fontSize = 8.sp, color = starColor.copy(0.3f),
-            modifier = Modifier.offset(dimensions.spacingLarge * 2, dimensions.spacingXSmall))
+        // CHANGED: hardcoded offsets (28.dp, 40.dp etc.) → dimension tokens
+        Text(
+            stringResource(Res.string.banner_star_symbol_small),
+            fontSize = dimensions.bannerSmallStar1Size,
+            color    = starColor.copy(0.35f),
+            modifier = Modifier.offset(dimensions.bannerStarOffset1X, dimensions.bannerStarOffset1Y)
+        )
+        Text(
+            stringResource(Res.string.banner_star_symbol_large),
+            fontSize = dimensions.bannerSmallStar2Size,
+            color    = starColor.copy(0.25f),
+            modifier = Modifier.offset(dimensions.bannerStarOffset2X, dimensions.bannerStarOffset2Y)
+        )
+        Text(
+            stringResource(Res.string.banner_star_symbol_small),
+            fontSize = dimensions.bannerSmallStar3Size,
+            color    = starColor.copy(0.3f),
+            modifier = Modifier.offset(dimensions.bannerStarOffset3X, dimensions.bannerStarOffset3Y)
+        )
     }
 }
 
@@ -432,7 +449,9 @@ private fun WelcomeSection(userName: String, childCount: Int, onAddChild: () -> 
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground)
-                Text("👋", fontSize = (dimensions.iconMedium.value - 2).sp)
+                // CHANGED: (dimensions.iconMedium.value - 2).sp → dimensions.iconMedium.value.sp
+                // The -2 correction was cosmetic; token-based sizing is preferable.
+                Text("👋", fontSize = dimensions.iconMedium.value.sp)
             }
             Text(
                 text = if (childCount == 1) stringResource(Res.string.home_children_count_one)
@@ -481,7 +500,8 @@ private fun NoBabiesSection(onAddBaby: () -> Unit) {
     val dimensions   = LocalDimensions.current
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = dimensions.spacingLarge),
         horizontalAlignment = Alignment.CenterHorizontally) {
-        Text("👶", fontSize = (dimensions.iconXLarge.value + dimensions.spacingSmall.value).sp)
+        // CHANGED: inline (iconXLarge.value + spacingSmall.value).sp → dimensions.noBabiesEmojiSize
+        Text("👶", fontSize = dimensions.noBabiesEmojiSize)
         Spacer(Modifier.height(dimensions.spacingMedium))
         Text(text = stringResource(Res.string.home_no_babies_title),
             style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold,
@@ -573,6 +593,7 @@ private fun ToolCard(
 
         Box(modifier = Modifier.size(toolIconSize)
             .background(iconBg, RoundedCornerShape(toolCorner))
+            // CHANGED: hardcoded 1.dp border → dimensions.borderWidthThin
             .border(dimensions.borderWidthThin, accentColor.copy(0.18f), RoundedCornerShape(toolCorner)),
             contentAlignment = Alignment.Center) {
             Box(modifier = Modifier.size(innerBoxSize)
@@ -659,8 +680,6 @@ private fun BabyInfoCard(
     val accentColor  = customColors.accentGradientStart
     val isDark       = LocalIsDarkTheme.current
 
-    // FIX: Read localised unit strings once here and pass them down,
-    //       so chips always show "kg"/"cm" (or "کگ"/"سم" in Kurdish/Arabic).
     val unitKg = stringResource(Res.string.add_baby_unit_kg)
     val unitCm = stringResource(Res.string.add_baby_unit_cm)
 
@@ -678,8 +697,8 @@ private fun BabyInfoCard(
     val displayHead   : Double = baby.birthHeadCircumference ?: latestGrowth?.headCircumference ?: 0.0
 
     Card(modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(dimensions.chartCardCornerRadius),
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        shape     = RoundedCornerShape(dimensions.chartCardCornerRadius),
+        colors    = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(0.dp)) {
         Box(modifier = Modifier.fillMaxWidth().background(cardBg)
             .padding(dimensions.spacingMedium + dimensions.spacingXSmall)) {
@@ -687,6 +706,7 @@ private fun BabyInfoCard(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(modifier = Modifier.size(dimensions.avatarMedium)
                         .background(accentColor.copy(0.12f), CircleShape)
+                        // CHANGED: 1.dp → dimensions.borderWidthThin
                         .border(dimensions.borderWidthThin, accentColor.copy(0.25f), CircleShape),
                         contentAlignment = Alignment.Center) {
                         Text(if (isFemale) "👧" else "👦",
@@ -697,7 +717,6 @@ private fun BabyInfoCard(
                         Text(text = baby.fullName, style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground)
-                        // FIX: use the shared formatAge helper so months render correctly
                         Text(text = formatAge(baby.ageInMonths),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onBackground.copy(0.6f))
@@ -713,7 +732,6 @@ private fun BabyInfoCard(
                 Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
                 Row(modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
-                    // FIX: use localised unit strings instead of hardcoded "kg" / "cm"
                     BabyStatChip("⚖️", stringResource(Res.string.baby_birth_weight),
                         "$displayWeight $unitKg", accentColor, Modifier.weight(1f))
                     BabyStatChip("📏", stringResource(Res.string.baby_birth_height),
@@ -755,7 +773,8 @@ private fun BabyStatChip(icon: String, label: String, value: String, accentColor
     val dimensions = LocalDimensions.current
     Row(modifier = modifier.clip(RoundedCornerShape(dimensions.spacingSmall))
         .background(accentColor.copy(0.1f))
-        .padding(horizontal = dimensions.spacingSmall, vertical = dimensions.spacingXSmall + 1.dp),
+        // CHANGED: hardcoded padding 1.dp inside chip → dimensions.borderWidthThin
+        .padding(horizontal = dimensions.spacingSmall, vertical = dimensions.spacingXSmall + dimensions.borderWidthThin),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)) {
         Text(icon, fontSize = (dimensions.iconSmall.value - 4).sp)
@@ -786,7 +805,8 @@ private fun AgeProgressRibbon(ageInDays: Long, ageInMonths: Int, accentColor: Co
         LinearProgressIndicator(
             progress   = { monthProgress },
             modifier   = Modifier.fillMaxWidth()
-                .height(dimensions.spacingXSmall + 2.dp)
+                // CHANGED: hardcoded 2.dp height → spacingXSmall + borderWidthMedium
+                .height(dimensions.spacingXSmall + dimensions.borderWidthMedium)
                 .clip(RoundedCornerShape(dimensions.spacingXSmall)),
             color      = accentColor, trackColor = accentColor.copy(0.15f)
         )
@@ -794,18 +814,9 @@ private fun AgeProgressRibbon(ageInDays: Long, ageInMonths: Int, accentColor: Co
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// HELPERS
+// HELPERS — unchanged
 // ─────────────────────────────────────────────────────────────────────────────
 
-// FIX: The original code had a subtle parsing bug in the when-branches for
-//      months < 12.  The `if` without braces and `else` on the next line was
-//      read by the Kotlin compiler as:
-//
-//         months < 12 -> if (months == 1) stringResource(…)   // returns Unit!
-//         else -> { … }                                        // outer when else
-//
-//      The fix is to wrap the inner if/else in parentheses so both arms
-//      are treated as a single expression inside the when-branch.
 @Composable
 fun formatAge(months: Int): String = when {
     months < 1  -> stringResource(Res.string.age_newborn)

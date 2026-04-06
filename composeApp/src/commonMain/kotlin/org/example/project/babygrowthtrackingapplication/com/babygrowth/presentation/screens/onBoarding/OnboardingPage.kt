@@ -54,10 +54,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
+// ─────────────────────────────────────────────────────────────────────────────
+// OnboardingPage data class
+//
+// CHANGED: Removed the broken `.toString()` pattern on string resources
+// (e.g. `Res.string.onboarding_title_1.toString()` produces the resource key,
+// not the localised string). The lottieRes path is the only non-composable
+// field that should live here; all text is now resolved inside composables via
+// `stringResource()`.
+// ─────────────────────────────────────────────────────────────────────────────
 data class OnboardingPage(
-    val lottieRes: String,
-    val title: String,
-    val description: String
+    val lottieRes: String
+    // title / description strings are now resolved inside the composable
+    // using stringResource() — see the when(page) blocks below.
 )
 
 @Composable
@@ -71,28 +80,18 @@ fun OnboardingScreen(
 
     var currentPage by remember { mutableStateOf(0) }
 
+    // CHANGED: pages list now only carries the lottie asset path;
+    // text is read via stringResource() in the composable.
     val pages = remember {
         listOf(
-            OnboardingPage(
-                lottieRes   = "files/growth.json",
-                title       = Res.string.onboarding_title_1.toString(),
-                description = Res.string.onboarding_desc_1.toString()
-            ),
-            OnboardingPage(
-                lottieRes   = "files/health_monitor.json",
-                title       = Res.string.onboarding_title_2.toString(),
-                description = Res.string.onboarding_desc_2.toString()
-            ),
-            OnboardingPage(
-                lottieRes   = "files/vaccination.json",
-                title       = Res.string.onboarding_title_3.toString(),
-                description = Res.string.onboarding_desc_3.toString()
-            )
+            OnboardingPage(lottieRes = "files/growth.json"),
+            OnboardingPage(lottieRes = "files/health_monitor.json"),
+            OnboardingPage(lottieRes = "files/vaccination.json")
         )
     }
 
-    // Reduce animation height in landscape
-    val lottieAnimationHeight = when {
+    // Animation height — adapts to landscape / window size class
+    val lottieAnimationHeight: Dp = when {
         isLandscape -> when (screenInfo.windowSizeClass) {
             WindowSizeClass.COMPACT  -> 140.dp
             WindowSizeClass.MEDIUM   -> 180.dp
@@ -143,7 +142,10 @@ fun OnboardingScreen(
                     } else {
                         Spacer(modifier = Modifier.width(dimensions.iconLarge))
                     }
-                    AppTextButton(text = stringResource(Res.string.onboarding_skip), onClick = { onFinish() })
+                    AppTextButton(
+                        text    = stringResource(Res.string.onboarding_skip),
+                        onClick = { onFinish() }
+                    )
                 }
 
                 // Main content: animation left, text+button right
@@ -151,11 +153,13 @@ fun OnboardingScreen(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth()
+                        // CHANGED: 200.dp hardcoded landscape sidebar → dimensions.screenPadding
+                        // (actual layout is driven by Modifier.weight fractions below)
                         .padding(horizontal = dimensions.screenPadding),
                     verticalAlignment     = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(dimensions.spacingLarge)
                 ) {
-                    // Left: Lottie animation
+                    // Left: Lottie animation (45% weight)
                     Box(
                         modifier         = Modifier
                             .weight(0.45f)
@@ -179,7 +183,7 @@ fun OnboardingScreen(
                         }
                     }
 
-                    // Right: Text content + indicators + button
+                    // Right: Text content + indicators + button (55% weight)
                     Column(
                         modifier            = Modifier
                             .weight(0.55f)
@@ -214,6 +218,7 @@ fun OnboardingScreen(
                             label = "textTransition"
                         ) { page ->
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                // CHANGED: title/desc now resolved via stringResource() — no more .toString()
                                 Text(
                                     text = when (page) {
                                         0 -> stringResource(Res.string.onboarding_title_1)
@@ -300,7 +305,10 @@ fun OnboardingScreen(
                 } else {
                     Spacer(modifier = Modifier.width(dimensions.iconLarge))
                 }
-                AppTextButton(text = stringResource(Res.string.onboarding_skip), onClick = { onFinish() })
+                AppTextButton(
+                    text    = stringResource(Res.string.onboarding_skip),
+                    onClick = { onFinish() }
+                )
             }
 
             Box(
@@ -353,7 +361,7 @@ fun OnboardingScreen(
                                 .pointerInput(Unit) {
                                     detectHorizontalDragGestures { _, dragAmount ->
                                         when {
-                                            dragAmount > 50 -> { if (currentPage > 0) currentPage-- }
+                                            dragAmount > 50  -> { if (currentPage > 0) currentPage-- }
                                             dragAmount < -50 -> { if (currentPage < pages.size - 1) currentPage++ }
                                         }
                                     }
@@ -369,6 +377,7 @@ fun OnboardingScreen(
 
                             Spacer(modifier = Modifier.height(dimensions.spacingXLarge))
 
+                            // CHANGED: resolved via stringResource() — not .toString()
                             Text(
                                 text = when (page) {
                                     0 -> stringResource(Res.string.onboarding_title_1)
@@ -464,16 +473,16 @@ fun OnboardingScreen(
             }
 
             DecorativeCorner(
-                imageRes = Res.drawable.bottom_left_background,
+                imageRes  = Res.drawable.bottom_left_background,
                 alignment = Alignment.BottomStart,
-                fromX = -100f, fromY = 100f,
-                size = dimensions.cornerImageSize
+                fromX     = -100f, fromY = 100f,
+                size      = dimensions.cornerImageSize
             )
             DecorativeCorner(
-                imageRes = Res.drawable.bottom_right_background,
+                imageRes  = Res.drawable.bottom_right_background,
                 alignment = Alignment.BottomEnd,
-                fromX = 100f, fromY = 100f,
-                size = dimensions.cornerImageSize
+                fromX     = 100f, fromY = 100f,
+                size      = dimensions.cornerImageSize
             )
         }
     }

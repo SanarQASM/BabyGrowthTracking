@@ -6,10 +6,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.Language
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.*
 import org.example.project.babygrowthtrackingapplication.data.network.BabyResponse
 import org.example.project.babygrowthtrackingapplication.theme.GenderTheme
+import org.example.project.babygrowthtrackingapplication.theme.LocalDimensions
 import org.example.project.babygrowthtrackingapplication.ui.components.BottomNavigationBar
 import org.example.project.babygrowthtrackingapplication.ui.components.NavigationTab
 import org.example.project.babygrowthtrackingapplication.ui.components.SideNavigationRail
@@ -48,6 +50,8 @@ fun HomeScreen(
 ) {
     val state       = viewModel.uiState
     val useSideRail = rememberUseSideRail()
+    // ADDED: pull dimensions so we can use the hairline token instead of Dp.Hairline
+    val dimensions  = LocalDimensions.current
 
     if (useSideRail) {
         Row(modifier = Modifier.fillMaxSize()) {
@@ -56,10 +60,11 @@ fun HomeScreen(
                 onTabSelected = onTabChange
             )
 
+            // CHANGED: Dp.Hairline (hardcoded) → dimensions.hairlineDividerThickness (token)
             HorizontalDivider(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .width(androidx.compose.ui.unit.Dp.Hairline),
+                    .width(dimensions.hairlineDividerThickness),
                 color    = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
             )
 
@@ -98,7 +103,9 @@ fun HomeScreen(
                     onNavigateToHearingSpeech  = onNavigateToHearingSpeech,
                     onNavigateToSleepGuide     = onNavigateToSleepGuide,
                     onNavigateToFeedingGuide   = onNavigateToFeedingGuide,
-                    bottomPadding              = androidx.compose.ui.unit.Dp(0f)
+                    // CHANGED: Dp(0f) hardcoded → 0.dp (idiomatic) for the side-rail layout
+                    // where there is no bottom navigation bar consuming space.
+                    bottomPadding              = 0.dp
                 )
             }
         }
@@ -155,7 +162,7 @@ fun HomeScreen(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TabContent
+// TabContent — unchanged logic, included for completeness
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -225,8 +232,6 @@ private fun TabContent(
         NavigationTab.SETTINGS -> {
             val selectedBaby = state.selectedBaby
 
-            // Load all information-section data when the settings tab is shown
-            // and a baby is selected. Key on babyId so it re-runs on baby change.
             LaunchedEffect(selectedBaby?.babyId) {
                 selectedBaby?.let { baby ->
                     familyHistoryViewModel.loadFamilyHistory(baby.babyId)

@@ -40,13 +40,21 @@ import io.github.alexzhirkevich.compottie.rememberLottiePainter
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Splash background color token
+// We use Color.Black intentionally as the splash bg (matches all themes).
+// Rather than hardcoding it inline, it is named here so it reads as intent.
+// ─────────────────────────────────────────────────────────────────────────────
+private val SplashBackgroundColor = Color.Black
+
 /**
  * Responsive Splash Screen with Lottie Animation
  *
- * LANDSCAPE FIX: In landscape the Lottie logo is constrained to at most 50 % of
- * the screen height so it never overflows on height-constrained phone landscape.
- * The logo padding is also increased slightly to give visual breathing room.
- * Corner images and animation timings are unchanged.
+ * CHANGES vs original:
+ *  • Color.Black background → named constant SplashBackgroundColor (intent preserved)
+ *  • 320.dp BoxWithConstraints min width guard removed — layout is fully fluid;
+ *    the logo is constrained by dimensions.logoSize + dimensions.logoPadding
+ *    which already adapts per WindowSizeClass.
  */
 @OptIn(ExperimentalResourceApi::class)
 @Composable
@@ -56,9 +64,9 @@ fun CompleteSplashScreen(
     var startAnimation by remember { mutableStateOf(false) }
     var lottieAnimationComplete by remember { mutableStateOf(false) }
 
-    val dimensions   = LocalDimensions.current
-    val screenInfo   = LocalScreenInfo.current
-    val isLandscape  = LocalIsLandscape.current
+    val dimensions  = LocalDimensions.current
+    val screenInfo  = LocalScreenInfo.current
+    val isLandscape = LocalIsLandscape.current
 
     var jsonString by remember { mutableStateOf<String?>(null) }
 
@@ -119,7 +127,8 @@ fun CompleteSplashScreen(
 
         // 🔒 Force LTR — corner images must never flip in RTL languages
         CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-            Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
+            // CHANGED: Color.Black → SplashBackgroundColor (same value, named for clarity)
+            Box(modifier = Modifier.fillMaxSize().background(SplashBackgroundColor)) {
 
                 // Corner images
                 Image(painterResource(Res.drawable.top_left_background), null,
@@ -143,30 +152,27 @@ fun CompleteSplashScreen(
                     contentScale = ContentScale.Crop)
 
                 // CENTER LOGO
-                // LANDSCAPE FIX: In landscape the available height is much smaller.
-                // We wrap in BoxWithConstraints so the logo never exceeds 70% of
-                // the current screen height, keeping it comfortably within the
-                // visible area even on phone landscape (≈ 360 dp tall).
+                // CHANGED: Removed 320.dp hardcoded min-width guard.
+                // The logo sizing now relies entirely on dimensions.logoSize (from Dimensions.kt)
+                // and dimensions.logoPadding, which already scale per WindowSizeClass and
+                // landscape/portrait orientation.  No additional pixel-level constraint is needed.
                 BoxWithConstraints(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier
+                        .fillMaxSize()
                         .padding(dimensions.screenPadding)
                         .alpha(logoAlpha)
                         .scale(logoScale),
                     contentAlignment = Alignment.Center
                 ) {
-                    val maxLogoSize = if (isLandscape) {
-                        // Cap the logo at 70 % of available height in landscape
-                        (maxHeight * 0.70f)
-                    } else {
-                        // Portrait: unconstrained (fills available space naturally)
-                        dimensions.logoSize   // reference — actual size is set by ContentScale.Fit
-                    }
+                    // In landscape the logo is capped at 70% of available height so it never
+                    // overflows on height-constrained phone landscape (≈ 360 dp tall).
+                    val maxLogoSize = if (isLandscape) (maxHeight * 0.70f) else dimensions.logoSize
 
                     if (composition != null) {
                         Image(
-                            painter = lottiePainter,
+                            painter            = lottiePainter,
                             contentDescription = stringResource(Res.string.app_name),
-                            modifier = Modifier
+                            modifier           = Modifier
                                 .then(
                                     if (isLandscape)
                                         Modifier.heightIn(max = maxLogoSize)

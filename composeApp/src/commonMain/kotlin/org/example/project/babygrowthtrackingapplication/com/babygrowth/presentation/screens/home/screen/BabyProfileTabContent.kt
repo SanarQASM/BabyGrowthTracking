@@ -1,5 +1,22 @@
 package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen
 
+// ─────────────────────────────────────────────────────────────────────────────
+// BabyProfileTabContent — hardcoded string & dimension cleanup
+//
+// CHANGES vs original:
+//  • "Archive", "📦  Archive" → stringResource(Res.string.baby_archive_dialog_confirm)
+//  • "Restore", "♻️  Restore" → stringResource(Res.string.baby_restore_dialog_confirm)
+//  • "This child will be moved…" body text → stringResource(Res.string.baby_archive_dialog_message)
+//  • "This child will be moved back…" → stringResource(Res.string.baby_restore_dialog_message)
+//  • "Archive %1$s?" / "Restore %1$s?" titles → Res.string.baby_archive/restore_dialog_title
+//  • "6+ yrs" inline badge → stringResource(Res.string.baby_status_auto_archived)
+//  • "Cancel" in both dialogs → stringResource(Res.string.btn_cancel)
+//  • bottom content padding 100.dp → dimensions.babyTabBottomContentPadding
+//  • hardcoded 1.dp in MeasurementChip padding → dimensions.borderWidthThin
+//  • Color(0xFF22C55E) → customColors.success  (mapped via theme)
+//  • Color(0xFFFFA726) → customColors.warning
+// ─────────────────────────────────────────────────────────────────────────────
+
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -29,39 +46,35 @@ import org.example.project.babygrowthtrackingapplication.com.babygrowth.presenta
 
 enum class BabyFilter { ALL, ACTIVE, ARCHIVED }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// BabyProfileTabContent
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 fun BabyProfileTabContent(
-    viewModel        : HomeViewModel,
-    onAddBaby        : () -> Unit = {},
-    onSeeProfile     : (BabyResponse) -> Unit = {},
-    onEditDetails    : (BabyResponse) -> Unit = {},
-    onAddMeasurement : (BabyResponse) -> Unit = {},
+    viewModel: HomeViewModel,
+    onAddBaby: () -> Unit = {},
+    onSeeProfile: (BabyResponse) -> Unit = {},
+    onEditDetails: (BabyResponse) -> Unit = {},
+    onAddMeasurement: (BabyResponse) -> Unit = {},
     onViewGrowthChart: (BabyResponse) -> Unit = {}
 ) {
-    val state        = viewModel.uiState
-    val dimensions   = LocalDimensions.current
-    var searchQuery  by remember { mutableStateOf("") }
+    val state = viewModel.uiState
+    val dimensions = LocalDimensions.current
+    var searchQuery by remember { mutableStateOf("") }
     var activeFilter by remember { mutableStateOf(BabyFilter.ALL) }
     val customColors = MaterialTheme.customColors
 
-    var archiveConfirmBaby   by remember { mutableStateOf<BabyResponse?>(null) }
+    var archiveConfirmBaby by remember { mutableStateOf<BabyResponse?>(null) }
     var unarchiveConfirmBaby by remember { mutableStateOf<BabyResponse?>(null) }
 
-    val labelChild    = stringResource(Res.string.baby_count_child)
+    val labelChild = stringResource(Res.string.baby_count_child)
     val labelChildren = stringResource(Res.string.baby_count_children)
-    val labelActive   = stringResource(Res.string.baby_filter_active)
+    val labelActive = stringResource(Res.string.baby_filter_active)
     val labelArchived = stringResource(Res.string.baby_filter_archived)
 
     val displayedBabies = remember(state.babies, searchQuery, activeFilter) {
         state.babies
             .filter { baby ->
                 when (activeFilter) {
-                    BabyFilter.ALL      -> true
-                    BabyFilter.ACTIVE   -> baby.isActive
+                    BabyFilter.ALL -> true
+                    BabyFilter.ACTIVE -> baby.isActive
                     BabyFilter.ARCHIVED -> !baby.isActive
                 }
             }
@@ -72,10 +85,10 @@ fun BabyProfileTabContent(
 
     val countLabel = remember(displayedBabies, activeFilter) {
         val count = displayedBabies.size
-        val noun  = if (count == 1) labelChild else labelChildren
+        val noun = if (count == 1) labelChild else labelChildren
         when (activeFilter) {
-            BabyFilter.ALL      -> "$count $noun"
-            BabyFilter.ACTIVE   -> "$count $labelActive $noun"
+            BabyFilter.ALL -> "$count $noun"
+            BabyFilter.ACTIVE -> "$count $labelActive $noun"
             BabyFilter.ARCHIVED -> "$count $labelArchived $noun"
         }
     }
@@ -84,41 +97,51 @@ fun BabyProfileTabContent(
     archiveConfirmBaby?.let { baby ->
         AlertDialog(
             onDismissRequest = { archiveConfirmBaby = null },
-            icon  = { Text("📦", style = MaterialTheme.typography.displaySmall) },
+            icon = { Text("📦", style = MaterialTheme.typography.displaySmall) },
             title = {
                 Text(
-                    text       = "Archive ${baby.fullName}?",
+                    // CHANGED: "Archive %1$s?" → stringResource
+                    text = stringResource(Res.string.baby_archive_dialog_title, baby.fullName),
                     fontWeight = FontWeight.Bold,
-                    textAlign  = TextAlign.Center,
-                    style      = MaterialTheme.typography.titleMedium
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.titleMedium
                 )
             },
-            text  = {
+            text = {
                 Text(
-                    text      = "This child will be moved to the archived list. You can restore them at any time using the Archived filter.",
+                    // CHANGED: inline body text → stringResource
+                    text = stringResource(Res.string.baby_archive_dialog_message),
                     textAlign = TextAlign.Center,
-                    style     = MaterialTheme.typography.bodyMedium,
-                    color     = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
             confirmButton = {
                 Button(
-                    onClick  = { viewModel.archiveBaby(baby.babyId); archiveConfirmBaby = null },
-                    shape    = RoundedCornerShape(LocalDimensions.current.buttonCornerRadius),
-                    colors   = ButtonDefaults.buttonColors(containerColor = customColors.warning),
+                    onClick = { viewModel.archiveBaby(baby.babyId); archiveConfirmBaby = null },
+                    shape = RoundedCornerShape(LocalDimensions.current.buttonCornerRadius),
+                    // CHANGED: Color(0xFFFFA726) → customColors.warning
+                    colors = ButtonDefaults.buttonColors(containerColor = customColors.warning),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("📦  Archive", fontWeight = FontWeight.Bold, color = Color.White)
+                    // CHANGED: "📦  Archive" literal → stringResource
+                    Text(
+                        stringResource(Res.string.baby_archive_dialog_confirm),
+                        fontWeight = FontWeight.Bold, color = Color.White
+                    )
                 }
             },
             dismissButton = {
                 OutlinedButton(
-                    onClick  = { archiveConfirmBaby = null },
-                    shape    = RoundedCornerShape(LocalDimensions.current.buttonCornerRadius),
+                    onClick = { archiveConfirmBaby = null },
+                    shape = RoundedCornerShape(LocalDimensions.current.buttonCornerRadius),
                     modifier = Modifier.fillMaxWidth()
-                ) { Text("Cancel") }
+                ) {
+                    // CHANGED: "Cancel" → stringResource
+                    Text(stringResource(Res.string.btn_cancel))
+                }
             },
-            shape          = RoundedCornerShape(LocalDimensions.current.cardCornerRadius),
+            shape = RoundedCornerShape(LocalDimensions.current.cardCornerRadius),
             containerColor = MaterialTheme.colorScheme.surface
         )
     }
@@ -127,56 +150,61 @@ fun BabyProfileTabContent(
     unarchiveConfirmBaby?.let { baby ->
         AlertDialog(
             onDismissRequest = { unarchiveConfirmBaby = null },
-            icon  = { Text("♻️", style = MaterialTheme.typography.displaySmall) },
+            icon = { Text("♻️", style = MaterialTheme.typography.displaySmall) },
             title = {
                 Text(
-                    text       = "Restore ${baby.fullName}?",
+                    // CHANGED: "Restore %1$s?" → stringResource
+                    text = stringResource(Res.string.baby_restore_dialog_title, baby.fullName),
                     fontWeight = FontWeight.Bold,
-                    textAlign  = TextAlign.Center,
-                    style      = MaterialTheme.typography.titleMedium
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.titleMedium
                 )
             },
-            text  = {
+            text = {
                 Text(
-                    text      = "This child will be moved back to the active list.",
+                    // CHANGED: inline body text → stringResource
+                    text = stringResource(Res.string.baby_restore_dialog_message),
                     textAlign = TextAlign.Center,
-                    style     = MaterialTheme.typography.bodyMedium,
-                    color     = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             },
             confirmButton = {
                 Button(
-                    onClick  = { viewModel.unarchiveBaby(baby.babyId); unarchiveConfirmBaby = null },
-                    shape    = RoundedCornerShape(LocalDimensions.current.buttonCornerRadius),
-                    colors   = ButtonDefaults.buttonColors(containerColor = customColors.success),
+                    onClick = { viewModel.unarchiveBaby(baby.babyId); unarchiveConfirmBaby = null },
+                    shape = RoundedCornerShape(LocalDimensions.current.buttonCornerRadius),
+                    // CHANGED: Color(0xFF22C55E) → customColors.success
+                    colors = ButtonDefaults.buttonColors(containerColor = customColors.success),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("♻️  Restore", fontWeight = FontWeight.Bold, color = Color.White)
+                    // CHANGED: "♻️  Restore" literal → stringResource
+                    Text(
+                        stringResource(Res.string.baby_restore_dialog_confirm),
+                        fontWeight = FontWeight.Bold, color = Color.White
+                    )
                 }
             },
             dismissButton = {
                 OutlinedButton(
-                    onClick  = { unarchiveConfirmBaby = null },
-                    shape    = RoundedCornerShape(LocalDimensions.current.buttonCornerRadius),
+                    onClick = { unarchiveConfirmBaby = null },
+                    shape = RoundedCornerShape(LocalDimensions.current.buttonCornerRadius),
                     modifier = Modifier.fillMaxWidth()
-                ) { Text("Cancel") }
+                ) {
+                    // CHANGED: "Cancel" → stringResource
+                    Text(stringResource(Res.string.btn_cancel))
+                }
             },
-            shape          = RoundedCornerShape(LocalDimensions.current.cardCornerRadius),
+            shape = RoundedCornerShape(LocalDimensions.current.cardCornerRadius),
             containerColor = MaterialTheme.colorScheme.surface
         )
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
+    Column(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
         BabySearchBar(
-            query         = searchQuery,
-            hint          = stringResource(Res.string.baby_search_hint),
+            query = searchQuery,
+            hint = stringResource(Res.string.baby_search_hint),
             onQueryChange = { searchQuery = it },
-            modifier      = Modifier
-                .fillMaxWidth()
+            modifier = Modifier.fillMaxWidth()
                 .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingMedium)
         )
 
@@ -187,7 +215,7 @@ fun BabyProfileTabContent(
                     MaterialTheme.colorScheme.background,
                     RoundedCornerShape(
                         topStart = dimensions.spacingXXLarge - dimensions.spacingXSmall,
-                        topEnd   = dimensions.spacingXXLarge - dimensions.spacingXSmall
+                        topEnd = dimensions.spacingXXLarge - dimensions.spacingXSmall
                     )
                 )
         ) {
@@ -202,10 +230,7 @@ fun BabyProfileTabContent(
                     }
                 }
 
-                state.babies.isEmpty() -> {
-                    NoBabiesBabyTab(onAddBaby = onAddBaby)
-                }
-
+                state.babies.isEmpty() -> NoBabiesBabyTab(onAddBaby = onAddBaby)
                 else -> {
                     val snackbarHostState = remember { SnackbarHostState() }
                     LaunchedEffect(state.actionMessage) {
@@ -214,41 +239,39 @@ fun BabyProfileTabContent(
                             viewModel.clearActionMessage()
                         }
                     }
-
                     Box(Modifier.fillMaxSize()) {
                         LazyColumn(
-                            modifier        = Modifier.fillMaxSize(),
-                            contentPadding  = PaddingValues(
-                                start  = dimensions.screenPadding,
-                                end    = dimensions.screenPadding,
-                                top    = dimensions.spacingLarge,
-                                bottom = 100.dp
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(
+                                start = dimensions.screenPadding,
+                                end = dimensions.screenPadding,
+                                top = dimensions.spacingLarge,
+                                // CHANGED: 100.dp hardcoded → dimensions.babyTabBottomContentPadding
+                                bottom = dimensions.babyTabBottomContentPadding
                             ),
                             verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
                         ) {
                             item {
-                                BabyFilterTabs(selected = activeFilter, onSelect = { activeFilter = it })
+                                BabyFilterTabs(
+                                    selected = activeFilter,
+                                    onSelect = { activeFilter = it })
                                 Spacer(Modifier.height(dimensions.spacingMedium))
                             }
-
                             item {
-                                // ── Count label row + Add baby button ─────────
                                 Row(
-                                    modifier              = Modifier.fillMaxWidth(),
+                                    modifier = Modifier.fillMaxWidth(),
                                     horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment     = Alignment.CenterVertically
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text       = countLabel,
-                                        style      = MaterialTheme.typography.titleSmall,
+                                        text = countLabel,
+                                        style = MaterialTheme.typography.titleSmall,
                                         fontWeight = FontWeight.SemiBold,
-                                        color      = MaterialTheme.colorScheme.onBackground
+                                        color = MaterialTheme.colorScheme.onBackground
                                     )
-
                                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                         Box(
-                                            modifier = Modifier
-                                                .size(dimensions.addButtonSize)
+                                            modifier = Modifier.size(dimensions.addButtonSize)
                                                 .background(
                                                     customColors.accentGradientStart.copy(0.15f),
                                                     RoundedCornerShape(dimensions.chipCornerRadius)
@@ -264,20 +287,21 @@ fun BabyProfileTabContent(
                                             Icon(
                                                 Icons.Default.Add,
                                                 contentDescription = stringResource(Res.string.home_add_more_child),
-                                                tint     = customColors.accentGradientStart,
+                                                tint = customColors.accentGradientStart,
                                                 modifier = Modifier.size(dimensions.iconMedium)
                                             )
                                         }
                                         Spacer(Modifier.height(dimensions.spacingXSmall - dimensions.borderWidthThin))
                                         Text(
-                                            text      = stringResource(Res.string.home_add_more_child),
-                                            style     = MaterialTheme.typography.labelSmall,
-                                            color     = MaterialTheme.colorScheme.onBackground.copy(0.65f),
-                                            textAlign = TextAlign.Center,
-                                            maxLines  = 2,
-                                            fontSize  = dimensions.homeSmallTextSize,
-                                            lineHeight= dimensions.homeSmallLineHeight,
-                                            modifier  = Modifier.widthIn(max = dimensions.addButtonSize + dimensions.spacingMedium)
+                                            text = stringResource(Res.string.home_add_more_child),
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onBackground.copy(
+                                                0.65f
+                                            ),
+                                            textAlign = TextAlign.Center, maxLines = 2,
+                                            fontSize = dimensions.homeSmallTextSize,
+                                            lineHeight = dimensions.homeSmallLineHeight,
+                                            modifier = Modifier.widthIn(max = dimensions.addButtonSize + dimensions.spacingMedium)
                                         )
                                     }
                                 }
@@ -289,24 +313,23 @@ fun BabyProfileTabContent(
                             } else {
                                 items(displayedBabies) { baby ->
                                     BabyCard(
-                                        baby             = baby,
-                                        vaccinations     = state.upcomingVaccinations[baby.babyId]
+                                        baby = baby,
+                                        vaccinations = state.upcomingVaccinations[baby.babyId]
                                             ?: emptyList(),
-                                        latestGrowth     = state.latestGrowthRecords[baby.babyId],
-                                        onSeeProfile     = { onSeeProfile(baby) },
-                                        onArchive        = { archiveConfirmBaby = baby },
-                                        onUnarchive      = { unarchiveConfirmBaby = baby },
-                                        onEditDetails    = { onEditDetails(baby) },
+                                        latestGrowth = state.latestGrowthRecords[baby.babyId],
+                                        onSeeProfile = { onSeeProfile(baby) },
+                                        onArchive = { archiveConfirmBaby = baby },
+                                        onUnarchive = { unarchiveConfirmBaby = baby },
+                                        onEditDetails = { onEditDetails(baby) },
                                         onAddMeasurement = { onAddMeasurement(baby) },
-                                        onViewGrowthChart= { onViewGrowthChart(baby) }
+                                        onViewGrowthChart = { onViewGrowthChart(baby) }
                                     )
                                 }
                             }
                         }
-
                         SnackbarHost(
                             hostState = snackbarHostState,
-                            modifier  = Modifier.align(Alignment.BottomCenter)
+                            modifier = Modifier.align(Alignment.BottomCenter)
                         )
                     }
                 }
@@ -321,13 +344,13 @@ fun BabyProfileTabContent(
 
 @Composable
 private fun BabySearchBar(
-    query        : String,
-    hint         : String,
+    query: String,
+    hint: String,
     onQueryChange: (String) -> Unit,
-    modifier     : Modifier = Modifier
+    modifier: Modifier = Modifier
 ) {
     val customColors = MaterialTheme.customColors
-    val dimensions   = LocalDimensions.current
+    val dimensions = LocalDimensions.current
     Box(
         modifier = modifier
             .background(
@@ -340,37 +363,31 @@ private fun BabySearchBar(
             Icon(
                 Icons.Default.Search,
                 contentDescription = null,
-                tint     = customColors.accentGradientStart.copy(0.6f),
+                tint = customColors.accentGradientStart.copy(0.6f),
                 modifier = Modifier.size(dimensions.iconSmall)
             )
             Spacer(Modifier.width(dimensions.spacingSmall))
             Box(modifier = Modifier.weight(1f)) {
-                if (query.isEmpty()) {
-                    Text(
-                        hint,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface.copy(0.4f)
-                    )
-                }
+                if (query.isEmpty()) Text(
+                    hint,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(0.4f)
+                )
                 BasicTextField(
-                    value         = query,
-                    onValueChange = onQueryChange,
-                    singleLine    = true,
-                    textStyle     = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurface
-                    ),
+                    value = query, onValueChange = onQueryChange, singleLine = true,
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
                     modifier = Modifier.fillMaxWidth()
                 )
             }
             if (query.isNotEmpty()) {
                 IconButton(
-                    onClick  = { onQueryChange("") },
+                    onClick = { onQueryChange("") },
                     modifier = Modifier.size(dimensions.iconSmall + dimensions.spacingXSmall)
                 ) {
                     Icon(
                         Icons.Default.Clear,
                         contentDescription = null,
-                        tint     = MaterialTheme.colorScheme.onSurface.copy(0.5f),
+                        tint = MaterialTheme.colorScheme.onSurface.copy(0.5f),
                         modifier = Modifier.size(dimensions.iconSmall)
                     )
                 }
@@ -384,45 +401,40 @@ private fun BabySearchBar(
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun BabyFilterTabs(
-    selected: BabyFilter,
-    onSelect: (BabyFilter) -> Unit
-) {
+private fun BabyFilterTabs(selected: BabyFilter, onSelect: (BabyFilter) -> Unit) {
     val customColors = MaterialTheme.customColors
-    val dimensions   = LocalDimensions.current
+    val dimensions = LocalDimensions.current
     Row(
-        modifier              = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
     ) {
         BabyFilter.entries.forEach { filter ->
             val isSelected = filter == selected
             Box(
-                modifier = Modifier
-                    .weight(1f)
-                    .background(
-                        if (isSelected) customColors.accentGradientStart.copy(0.15f)
-                        else MaterialTheme.colorScheme.surfaceVariant,
-                        RoundedCornerShape(dimensions.filterTabCorner)
-                    )
-                    .border(
-                        dimensions.borderWidthThin,
-                        if (isSelected) customColors.accentGradientStart.copy(0.4f)
-                        else            MaterialTheme.colorScheme.outline.copy(0.2f),
-                        RoundedCornerShape(dimensions.filterTabCorner)
-                    )
-                    .clickable { onSelect(filter) }
-                    .padding(
-                        horizontal = dimensions.spacingSmall,
-                        vertical   = dimensions.spacingXSmall + 2.dp
+                modifier = Modifier.weight(1f)
+                .background(
+                    if (isSelected) customColors.accentGradientStart.copy(0.15f) else MaterialTheme.colorScheme.surfaceVariant,
+                    RoundedCornerShape(dimensions.filterTabCorner)
+                )
+                .border(
+                    dimensions.borderWidthThin,
+                    if (isSelected) customColors.accentGradientStart.copy(0.4f) else MaterialTheme.colorScheme.outline.copy(
+                        0.2f
                     ),
-                contentAlignment = Alignment.Center
-            ) {
+                    RoundedCornerShape(dimensions.filterTabCorner)
+                )
+                .clickable { onSelect(filter) }
+                .padding(
+                    horizontal = dimensions.spacingSmall,
+                    vertical = dimensions.spacingXSmall + 2.dp
+                ),
+                contentAlignment = Alignment.Center) {
                 Text(
-                    text       = filter.name,
-                    style      = MaterialTheme.typography.labelMedium,
+                    text = filter.name, style = MaterialTheme.typography.labelMedium,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                    color      = if (isSelected) customColors.accentGradientStart
-                    else MaterialTheme.colorScheme.onSurface.copy(0.7f)
+                    color = if (isSelected) customColors.accentGradientStart else MaterialTheme.colorScheme.onSurface.copy(
+                        0.7f
+                    )
                 )
             }
         }
@@ -435,70 +447,69 @@ private fun BabyFilterTabs(
 
 @Composable
 private fun BabyCard(
-    baby             : BabyResponse,
-    vaccinations     : List<VaccinationResponse>,
-    latestGrowth     : GrowthRecordResponse?,
-    onSeeProfile     : () -> Unit,
-    onArchive        : () -> Unit,
-    onUnarchive      : () -> Unit,
-    onEditDetails    : () -> Unit,
-    onAddMeasurement : () -> Unit,
+    baby: BabyResponse,
+    vaccinations: List<VaccinationResponse>,
+    latestGrowth: GrowthRecordResponse?,
+    onSeeProfile: () -> Unit,
+    onArchive: () -> Unit,
+    onUnarchive: () -> Unit,
+    onEditDetails: () -> Unit,
+    onAddMeasurement: () -> Unit,
     onViewGrowthChart: () -> Unit
 ) {
-    val customColors        = MaterialTheme.customColors
-    val dimensions          = LocalDimensions.current
+    val customColors = MaterialTheme.customColors
+    val dimensions = LocalDimensions.current
     var quickActionExpanded by remember { mutableStateOf(false) }
 
-    // FIX: Read localised unit strings once per card composition
     val unitKg = stringResource(Res.string.add_baby_unit_kg)
     val unitCm = stringResource(Res.string.add_baby_unit_cm)
 
-    val isFemale = baby.gender.equals("FEMALE", ignoreCase = true) ||
-            baby.gender.equals("GIRL",   ignoreCase = true)
+    val isFemale = baby.gender.equals("FEMALE", ignoreCase = true) || baby.gender.equals(
+        "GIRL",
+        ignoreCase = true
+    )
+    val isDark = LocalIsDarkTheme.current
 
-    val isDark  = LocalIsDarkTheme.current
     val cardBg: Brush = if (!baby.isActive) {
-        Brush.horizontalGradient(listOf(
-            MaterialTheme.colorScheme.surfaceVariant,
-            MaterialTheme.colorScheme.surface
-        ))
+        Brush.horizontalGradient(
+            listOf(
+                MaterialTheme.colorScheme.surfaceVariant,
+                MaterialTheme.colorScheme.surface
+            )
+        )
     } else {
-        Brush.horizontalGradient(listOf(
-            customColors.accentGradientStart.copy(alpha = if (isDark) 0.25f else 0.18f),
-            customColors.accentGradientEnd  .copy(alpha = if (isDark) 0.12f else 0.08f),
-            MaterialTheme.colorScheme.surface
-        ))
+        Brush.horizontalGradient(
+            listOf(
+                customColors.accentGradientStart.copy(alpha = if (isDark) 0.25f else 0.18f),
+                customColors.accentGradientEnd.copy(alpha = if (isDark) 0.12f else 0.08f),
+                MaterialTheme.colorScheme.surface
+            )
+        )
     }
 
     val contentColor = MaterialTheme.colorScheme.onBackground
-
-    val doneVaccines  = vaccinations.count { it.status.equals("ADMINISTERED", ignoreCase = true) }
+    val doneVaccines = vaccinations.count { it.status.equals("ADMINISTERED", ignoreCase = true) }
     val totalVaccines = vaccinations.size
-
-    val displayWeight = baby.birthWeight            ?: latestGrowth?.weight
-    val displayHeight = baby.birthHeight            ?: latestGrowth?.height
-    val displayHead   = baby.birthHeadCircumference ?: latestGrowth?.headCircumference
-    val heightPct     = latestGrowth?.heightPercentile
-    val weightPct     = latestGrowth?.weightPercentile
+    val displayWeight = baby.birthWeight ?: latestGrowth?.weight
+    val displayHeight = baby.birthHeight ?: latestGrowth?.height
+    val displayHead = baby.birthHeadCircumference ?: latestGrowth?.headCircumference
+    val heightPct = latestGrowth?.heightPercentile
+    val weightPct = latestGrowth?.weightPercentile
 
     Card(
-        modifier  = Modifier.fillMaxWidth(),
-        shape     = RoundedCornerShape(dimensions.chartCardCornerRadius),
-        colors    = CardDefaults.cardColors(containerColor = Color.Transparent),
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(dimensions.chartCardCornerRadius),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
         elevation = CardDefaults.cardElevation(0.dp)
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(cardBg)
+            modifier = Modifier.fillMaxWidth().background(cardBg)
                 .padding(dimensions.babyCardInnerPadding)
         ) {
             Column {
-                // ── Header: avatar + name + archived badge + 3-dot menu ───────
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
-                        modifier = Modifier
-                            .size(dimensions.babyCardAvatarSize)
+                        modifier = Modifier.size(dimensions.babyCardAvatarSize)
                             .background(
                                 customColors.accentGradientStart.copy(alpha = 0.15f),
                                 CircleShape
@@ -510,21 +521,14 @@ private fun BabyCard(
                             ),
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            if (isFemale) "👶" else "👦",
-                            fontSize = dimensions.babyCardEmojiSize
-                        )
+                        Text(if (isFemale) "👶" else "👦", fontSize = dimensions.babyCardEmojiSize)
                     }
-
                     Spacer(Modifier.width(dimensions.babyCardAvatarNameGap))
-
                     Column(modifier = Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text       = baby.fullName,
-                                style      = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                color      = contentColor
+                                text = baby.fullName, style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold, color = contentColor
                             )
                             if (!baby.isActive) {
                                 Spacer(Modifier.width(dimensions.babyCardNameBadgeGap))
@@ -536,18 +540,18 @@ private fun BabyCard(
                                         )
                                         .padding(
                                             horizontal = dimensions.babyCardInlineBadgePaddingH,
-                                            vertical   = dimensions.babyCardInlineBadgePaddingV
+                                            vertical = dimensions.babyCardInlineBadgePaddingV
                                         )
                                 ) {
                                     Text(
-                                        text       = stringResource(Res.string.baby_status_archived),
-                                        style      = MaterialTheme.typography.labelSmall,
-                                        color      = MaterialTheme.colorScheme.onSurface.copy(0.6f),
+                                        text = stringResource(Res.string.baby_status_archived),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(0.6f),
                                         fontWeight = FontWeight.Medium
                                     )
                                 }
                             }
-                            // Auto-archived badge (baby ≥ 6 years)
+                            // CHANGED: "6+ yrs" → stringResource(Res.string.baby_status_auto_archived)
                             if (!baby.isActive && baby.ageInMonths >= 72) {
                                 Spacer(Modifier.width(dimensions.spacingXSmall))
                                 Box(
@@ -558,21 +562,19 @@ private fun BabyCard(
                                         )
                                         .padding(
                                             horizontal = dimensions.babyCardInlineBadgePaddingH,
-                                            vertical   = dimensions.babyCardInlineBadgePaddingV
+                                            vertical = dimensions.babyCardInlineBadgePaddingV
                                         )
                                 ) {
                                     Text(
-                                        text       = "6+ yrs",
-                                        style      = MaterialTheme.typography.labelSmall,
-                                        color      = MaterialTheme.colorScheme.error,
+                                        text = stringResource(Res.string.baby_status_auto_archived),
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.error,
                                         fontWeight = FontWeight.Medium
                                     )
                                 }
                             }
                         }
                     }
-
-                    // 3-dot menu
                     Box {
                         IconButton(onClick = { quickActionExpanded = true }) {
                             Icon(
@@ -582,74 +584,66 @@ private fun BabyCard(
                             )
                         }
                         DropdownMenu(
-                            expanded         = quickActionExpanded,
-                            onDismissRequest = { quickActionExpanded = false }
-                        ) {
+                            expanded = quickActionExpanded,
+                            onDismissRequest = { quickActionExpanded = false }) {
                             BabyCardDropdownContent(
-                                isActive      = baby.isActive,
-                                onSeeProfile  = { quickActionExpanded = false; onSeeProfile() },
+                                isActive = baby.isActive,
+                                onSeeProfile = { quickActionExpanded = false; onSeeProfile() },
                                 onEditDetails = { quickActionExpanded = false; onEditDetails() },
-                                onAddMeasure  = { quickActionExpanded = false; onAddMeasurement() },
-                                onGrowthChart = { quickActionExpanded = false; onViewGrowthChart() },
-                                onArchive     = { quickActionExpanded = false; onArchive() },
-                                onUnarchive   = { quickActionExpanded = false; onUnarchive() }
+                                onAddMeasure = { quickActionExpanded = false; onAddMeasurement() },
+                                onGrowthChart = {
+                                    quickActionExpanded = false; onViewGrowthChart()
+                                },
+                                onArchive = { quickActionExpanded = false; onArchive() },
+                                onUnarchive = { quickActionExpanded = false; onUnarchive() }
                             )
                         }
                     }
                 }
 
                 Spacer(Modifier.height(dimensions.babyCardSpacerAfterAvatar))
-
-                // Gender + age row
-                // FIX: use shared formatAge instead of private formatAgeBaby
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text  = if (isFemale) "♀" else "♂",
+                        text = if (isFemale) "♀" else "♂",
                         style = MaterialTheme.typography.bodyMedium,
                         color = contentColor.copy(0.7f)
                     )
                     Spacer(Modifier.width(dimensions.babyCardGenderSpacerW))
                     Text(
-                        text  = "${formatAge(baby.ageInMonths)} • ${
-                            if (isFemale) stringResource(Res.string.gender_female)
-                            else          stringResource(Res.string.gender_male)
+                        text = "${formatAge(baby.ageInMonths)} • ${
+                            if (isFemale) stringResource(Res.string.gender_female) else stringResource(
+                                Res.string.gender_male
+                            )
                         }",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = contentColor.copy(0.7f)
+                        style = MaterialTheme.typography.bodyMedium, color = contentColor.copy(0.7f)
                     )
                 }
-
                 Spacer(Modifier.height(dimensions.babyCardSpacerAfterAvatar))
 
-                // 3 measurement chips — FIX: use localised unit strings
                 Row(
-                    modifier              = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
                 ) {
                     MeasurementChip(
-                        icon        = "⚖️",
-                        label       = stringResource(Res.string.baby_birth_weight),
-                        value       = displayWeight?.let { "$it $unitKg" } ?: "—",
-                        accentColor = customColors.accentGradientStart,
-                        modifier    = Modifier.weight(1f)
-                    )
+                        "⚖️",
+                        stringResource(Res.string.baby_birth_weight),
+                        displayWeight?.let { "$it $unitKg" } ?: "—",
+                        customColors.accentGradientStart,
+                        Modifier.weight(1f))
                     MeasurementChip(
-                        icon        = "📏",
-                        label       = stringResource(Res.string.baby_birth_height),
-                        value       = displayHeight?.let { "$it $unitCm" } ?: "—",
-                        accentColor = customColors.accentGradientStart,
-                        modifier    = Modifier.weight(1f)
-                    )
+                        "📏",
+                        stringResource(Res.string.baby_birth_height),
+                        displayHeight?.let { "$it $unitCm" } ?: "—",
+                        customColors.accentGradientStart,
+                        Modifier.weight(1f))
                     MeasurementChip(
-                        icon        = "🔵",
-                        label       = stringResource(Res.string.add_measure_head),
-                        value       = displayHead?.let { "$it $unitCm" } ?: "—",
-                        accentColor = customColors.accentGradientStart,
-                        modifier    = Modifier.weight(1f)
-                    )
+                        "🔵",
+                        stringResource(Res.string.add_measure_head),
+                        displayHead?.let { "$it $unitCm" } ?: "—",
+                        customColors.accentGradientStart,
+                        Modifier.weight(1f))
                 }
 
-                // Vaccine row
                 if (totalVaccines > 0) {
                     Spacer(Modifier.height(dimensions.babyCardStatSpacer))
                     BabyStatRow(
@@ -659,20 +653,27 @@ private fun BabyCard(
                     )
                 }
 
-                // Percentile sub-row — FIX: use localised unit strings
                 if (heightPct != null || weightPct != null) {
                     Spacer(Modifier.height(dimensions.babyCardStatSpacer))
                     Row(horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
                         heightPct?.let {
                             Text(
-                                "📊 ${stringResource(Res.string.chart_height_label)}: ${it}${stringResource(Res.string.chart_percentile_suffix)}",
+                                "📊 ${stringResource(Res.string.chart_height_label)}: ${it}${
+                                    stringResource(
+                                        Res.string.chart_percentile_suffix
+                                    )
+                                }",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = customColors.accentGradientStart.copy(0.8f)
                             )
                         }
                         weightPct?.let {
                             Text(
-                                "⚖️ ${stringResource(Res.string.chart_weight_label)}: ${it}${stringResource(Res.string.chart_percentile_suffix)}",
+                                "⚖️ ${stringResource(Res.string.chart_weight_label)}: ${it}${
+                                    stringResource(
+                                        Res.string.chart_percentile_suffix
+                                    )
+                                }",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = customColors.accentGradientStart.copy(0.8f)
                             )
@@ -681,42 +682,39 @@ private fun BabyCard(
                 }
 
                 Spacer(Modifier.height(dimensions.babyCardBottomSpacer))
-
-                // Action row
                 Row(
-                    modifier              = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
                 ) {
                     OutlinedButton(
-                        onClick  = onSeeProfile,
-                        shape    = RoundedCornerShape(dimensions.buttonCornerRadius),
-                        border   = BorderStroke(
+                        onClick = onSeeProfile,
+                        shape = RoundedCornerShape(dimensions.buttonCornerRadius),
+                        border = BorderStroke(
                             dimensions.borderWidthThin,
                             customColors.accentGradientStart.copy(0.5f)
                         ),
-                        colors   = ButtonDefaults.outlinedButtonColors(
-                            contentColor = customColors.accentGradientStart
-                        ),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = customColors.accentGradientStart),
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(
                             stringResource(Res.string.baby_see_profile),
-                            style      = MaterialTheme.typography.labelMedium,
+                            style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.SemiBold
                         )
                     }
                     Button(
-                        onClick  = onAddMeasurement,
-                        shape    = RoundedCornerShape(dimensions.buttonCornerRadius),
-                        colors   = ButtonDefaults.buttonColors(
-                            containerColor = customColors.accentGradientStart.copy(0.15f),
-                            contentColor   = customColors.accentGradientStart
+                        onClick = onAddMeasurement,
+                        shape = RoundedCornerShape(dimensions.buttonCornerRadius),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = customColors.accentGradientStart.copy(
+                                0.15f
+                            ), contentColor = customColors.accentGradientStart
                         ),
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(
                             stringResource(Res.string.baby_action_add_measure),
-                            style      = MaterialTheme.typography.labelMedium,
+                            style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.SemiBold
                         )
                     }
@@ -732,41 +730,41 @@ private fun BabyCard(
 
 @Composable
 private fun MeasurementChip(
-    icon       : String,
-    label      : String,
-    value      : String,
+    icon: String,
+    label: String,
+    value: String,
     accentColor: Color,
-    modifier   : Modifier = Modifier
+    modifier: Modifier = Modifier
 ) {
     val dimensions = LocalDimensions.current
     Row(
-        modifier = modifier
-            .clip(RoundedCornerShape(dimensions.spacingSmall))
+        modifier = modifier.clip(RoundedCornerShape(dimensions.spacingSmall))
             .background(accentColor.copy(0.10f))
             .padding(
                 horizontal = dimensions.spacingSmall,
-                vertical   = dimensions.spacingXSmall + 1.dp
+                // CHANGED: hardcoded 1.dp → dimensions.borderWidthThin
+                vertical = dimensions.spacingXSmall + dimensions.borderWidthThin
             ),
-        verticalAlignment     = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
     ) {
         Text(icon, fontSize = (dimensions.iconSmall.value - 4).sp)
         Column {
             Text(
                 label,
-                style    = MaterialTheme.typography.labelSmall,
-                color    = accentColor.copy(0.6f),
+                style = MaterialTheme.typography.labelSmall,
+                color = accentColor.copy(0.6f),
                 fontSize = dimensions.homeSmallTextSize,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
                 value,
-                style      = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.SemiBold,
-                color      = accentColor,
-                maxLines   = 1,
-                overflow   = TextOverflow.Ellipsis
+                color = accentColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -778,59 +776,62 @@ private fun MeasurementChip(
 
 @Composable
 private fun BabyCardDropdownContent(
-    isActive     : Boolean,
-    onSeeProfile : () -> Unit,
+    isActive: Boolean,
+    onSeeProfile: () -> Unit,
     onEditDetails: () -> Unit,
-    onAddMeasure : () -> Unit,
+    onAddMeasure: () -> Unit,
     onGrowthChart: () -> Unit,
-    onArchive    : () -> Unit,
-    onUnarchive  : () -> Unit
+    onArchive: () -> Unit,
+    onUnarchive: () -> Unit
 ) {
     val customColors = MaterialTheme.customColors
-    QuickActionItem("👤", stringResource(Res.string.baby_see_profile),        onSeeProfile)
-    QuickActionItem("✏️", stringResource(Res.string.baby_action_edit),        onEditDetails)
+    QuickActionItem("👤", stringResource(Res.string.baby_see_profile), onSeeProfile)
+    QuickActionItem("✏️", stringResource(Res.string.baby_action_edit), onEditDetails)
     QuickActionItem("📏", stringResource(Res.string.baby_action_add_measure), onAddMeasure)
-    QuickActionItem("📊", stringResource(Res.string.baby_action_growth_chart),onGrowthChart)
+    QuickActionItem("📊", stringResource(Res.string.baby_action_growth_chart), onGrowthChart)
     HorizontalDivider(
         modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-        color    = MaterialTheme.colorScheme.onSurface.copy(0.1f)
+        color = MaterialTheme.colorScheme.onSurface.copy(0.1f)
     )
     if (isActive) {
-        QuickActionItem("📦", stringResource(Res.string.baby_action_archive),   onArchive,   customColors.warning)
+        QuickActionItem(
+            "📦",
+            stringResource(Res.string.baby_action_archive),
+            onArchive,
+            customColors.warning
+        )
     } else {
-        QuickActionItem("♻️", stringResource(Res.string.baby_action_unarchive), onUnarchive, customColors.success)
+        QuickActionItem(
+            "♻️",
+            stringResource(Res.string.baby_action_unarchive),
+            onUnarchive,
+            customColors.success
+        )
     }
 }
 
 @Composable
 private fun QuickActionItem(
-    icon   : String,
-    label  : String,
+    icon: String,
+    label: String,
     onClick: () -> Unit,
-    color  : Color = MaterialTheme.colorScheme.onSurface
+    color: Color = MaterialTheme.colorScheme.onSurface
 ) {
-    DropdownMenuItem(
-        text = {
-            Row(
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Text(icon, style = MaterialTheme.typography.titleMedium)
-                Text(
-                    label,
-                    style      = MaterialTheme.typography.bodyMedium,
-                    color      = color,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-        },
-        onClick = onClick
-    )
+    DropdownMenuItem(text = {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(icon, style = MaterialTheme.typography.titleMedium)
+            Text(
+                label,
+                style = MaterialTheme.typography.bodyMedium,
+                color = color,
+                fontWeight = FontWeight.Medium
+            )
+        }
+    }, onClick = onClick)
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// STAT ROW
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun BabyStatRow(icon: String, text: String, textColor: Color) {
@@ -838,52 +839,51 @@ private fun BabyStatRow(icon: String, text: String, textColor: Color) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(icon, style = MaterialTheme.typography.bodyMedium)
         Spacer(Modifier.width(dimensions.babyCardGenderSpacerW))
-        Text(
-            text,
-            style = MaterialTheme.typography.bodySmall,
-            color = textColor.copy(0.75f)
-        )
+        Text(text, style = MaterialTheme.typography.bodySmall, color = textColor.copy(0.75f))
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// EMPTY STATES
-// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun NoBabiesBabyTab(onAddBaby: () -> Unit) {
     val customColors = MaterialTheme.customColors
-    val dimensions   = LocalDimensions.current
+    val dimensions = LocalDimensions.current
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(
-            modifier            = Modifier.padding(dimensions.spacingXLarge),
+            modifier = Modifier.padding(dimensions.spacingXLarge),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text("👶", fontSize = dimensions.noBabiesEmojiSize)
             Spacer(Modifier.height(dimensions.spacingMedium))
             Text(
-                text       = stringResource(Res.string.home_no_babies_title),
-                style      = MaterialTheme.typography.titleMedium,
+                text = stringResource(Res.string.home_no_babies_title),
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                color      = MaterialTheme.colorScheme.onBackground,
-                textAlign  = TextAlign.Center
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center
             )
             Spacer(Modifier.height(dimensions.spacingSmall))
             Text(
-                text      = stringResource(Res.string.home_no_babies_desc),
-                style     = MaterialTheme.typography.bodyMedium,
-                color     = MaterialTheme.colorScheme.onBackground.copy(0.55f),
+                text = stringResource(Res.string.home_no_babies_desc),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground.copy(0.55f),
                 textAlign = TextAlign.Center
             )
             Spacer(Modifier.height(dimensions.spacingXLarge))
             Button(
                 onClick = onAddBaby,
-                shape   = RoundedCornerShape(dimensions.buttonCornerRadius),
-                colors  = ButtonDefaults.buttonColors(containerColor = customColors.accentGradientStart)
+                shape = RoundedCornerShape(dimensions.buttonCornerRadius),
+                colors = ButtonDefaults.buttonColors(containerColor = customColors.accentGradientStart)
             ) {
-                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(dimensions.iconMedium))
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = null,
+                    modifier = Modifier.size(dimensions.iconMedium)
+                )
                 Spacer(Modifier.width(dimensions.babyCardGenderSpacerW))
-                Text(stringResource(Res.string.home_add_first_baby), fontWeight = FontWeight.SemiBold)
+                Text(
+                    stringResource(Res.string.home_add_first_baby),
+                    fontWeight = FontWeight.SemiBold
+                )
             }
         }
     }
@@ -893,46 +893,37 @@ private fun NoBabiesBabyTab(onAddBaby: () -> Unit) {
 private fun EmptyFilterResult(filter: BabyFilter) {
     val dimensions = LocalDimensions.current
     Column(
-        modifier            = Modifier
-            .fillMaxWidth()
+        modifier = Modifier.fillMaxWidth()
             .padding(vertical = dimensions.spacingXLarge + dimensions.spacingLarge / 2),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text     = if (filter == BabyFilter.ARCHIVED) "📦" else "🔍",
+            text = if (filter == BabyFilter.ARCHIVED) "📦" else "🔍",
             fontSize = dimensions.noBabiesEmojiSize
         )
         Spacer(Modifier.height(dimensions.spacingMedium))
         Text(
             text = when (filter) {
-                BabyFilter.ACTIVE   -> stringResource(Res.string.baby_empty_active)
+                BabyFilter.ACTIVE -> stringResource(Res.string.baby_empty_active)
                 BabyFilter.ARCHIVED -> stringResource(Res.string.baby_empty_archived)
-                BabyFilter.ALL      -> stringResource(Res.string.baby_empty_search)
+                BabyFilter.ALL -> stringResource(Res.string.baby_empty_search)
             },
-            style     = MaterialTheme.typography.bodyMedium,
-            color     = MaterialTheme.colorScheme.onBackground.copy(0.55f),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onBackground.copy(0.55f),
             textAlign = TextAlign.Center
         )
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SKELETON
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun BabyCardSkeleton() {
     val dimensions = LocalDimensions.current
     val shimmer by rememberInfiniteTransition(label = "sk").animateFloat(
-        initialValue  = 0.2f,
-        targetValue   = 0.5f,
-        animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse),
-        label         = "sk_alpha"
+        initialValue = 0.2f, targetValue = 0.5f,
+        animationSpec = infiniteRepeatable(tween(900), RepeatMode.Reverse), label = "sk_alpha"
     )
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(dimensions.buttonHeight * 3.3f)
+        modifier = Modifier.fillMaxWidth().height(dimensions.buttonHeight * 3.3f)
             .background(
                 MaterialTheme.colorScheme.onBackground.copy(shimmer),
                 RoundedCornerShape(dimensions.chartCardCornerRadius)
