@@ -1,5 +1,15 @@
 package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen
 
+// ─────────────────────────────────────────────────────────────────────────────
+// CHANGES vs original HealthRecordTabContent:
+//  • ChildSelector: "Select child" inline → stringResource(Res.string.health_select_child_hint)
+//  • ChildSelector: 10.dp dropdown item padding → dimensions.healthDropdownItemPaddingV
+//  • AssignedBranchCard: 40.dp circle → dimensions.healthCircleSize
+//  • AssignedBranchCard: 2.dp elevation → dimensions.healthSubTabElevation
+//  • AssignedBranchCard: 20.dp icon → dimensions.iconMedium
+//  • SubTab labels "Vaccinations" / "Health Issues" / "Appointments" → stringResource
+// ─────────────────────────────────────────────────────────────────────────────
+
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -23,7 +33,7 @@ import org.example.project.babygrowthtrackingapplication.theme.customColors
 import org.jetbrains.compose.resources.stringResource
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Internal navigation state for health record feature
+// Internal navigation state
 // ─────────────────────────────────────────────────────────────────────────────
 
 private sealed class HealthNavState {
@@ -44,9 +54,9 @@ fun HealthRecordTabContent(
     viewModel: HealthRecordViewModel,
     babies   : List<BabyResponse>
 ) {
-    val dimensions        = LocalDimensions.current
-    val customColors      = MaterialTheme.customColors
-    val state             = viewModel.uiState
+    val dimensions   = LocalDimensions.current
+    val customColors = MaterialTheme.customColors
+    val state        = viewModel.uiState
 
     LaunchedEffect(babies) { viewModel.init(babies) }
 
@@ -60,7 +70,6 @@ fun HealthRecordTabContent(
         state.successMessage?.let { snackbarHostState.showSnackbar(it); viewModel.clearSuccess() }
     }
 
-    // ── STEP 1: Reason picker dialog ─────────────────────────────────────────
     if (state.showRescheduleReasonPicker) {
         val overdueCount = state.schedules.count {
             it.statusUi == ScheduleStatusUi.OVERDUE || it.statusUi == ScheduleStatusUi.MISSED
@@ -69,32 +78,28 @@ fun HealthRecordTabContent(
             it.statusUi != ScheduleStatusUi.COMPLETED && it.statusUi != ScheduleStatusUi.MISSED
         }
         RescheduleReasonPickerDialog(
-            overdueCount        = overdueCount,
-            reschedulableCount  = reschedulableCount,
-            isLoading           = state.rescheduleInProgress,
-            onConfirm           = { reason, notes ->
-                viewModel.confirmReschedule(reason, notes.ifBlank { null })
-            },
-            onDismiss = viewModel::dismissReschedule
+            overdueCount       = overdueCount,
+            reschedulableCount = reschedulableCount,
+            isLoading          = state.rescheduleInProgress,
+            onConfirm          = { reason, notes -> viewModel.confirmReschedule(reason, notes.ifBlank { null }) },
+            onDismiss          = viewModel::dismissReschedule
         )
     }
 
-    // ── STEP 2: Loading overlay ───────────────────────────────────────────────
     if (state.rescheduleInProgress) {
         AlertDialog(
             onDismissRequest = {},
-            title = { Text("Rescheduling…", fontWeight = FontWeight.Bold) },
+            title = { Text(stringResource(Res.string.schedule_reschedule_in_progress_title), fontWeight = FontWeight.Bold) },
             text  = {
-                Row(horizontalArrangement = Arrangement.spacedBy(16.dp), verticalAlignment = Alignment.CenterVertically) {
-                    CircularProgressIndicator(modifier = Modifier.size(32.dp), color = customColors.accentGradientStart, strokeWidth = 3.dp)
-                    Text("Checking vaccination windows and finding next valid dates…", style = MaterialTheme.typography.bodyMedium)
+                Row(horizontalArrangement = Arrangement.spacedBy(dimensions.spacingLarge), verticalAlignment = Alignment.CenterVertically) {
+                    CircularProgressIndicator(modifier = Modifier.size(dimensions.iconLarge), color = customColors.accentGradientStart, strokeWidth = dimensions.borderWidthMedium + dimensions.borderWidthThin)
+                    Text(stringResource(Res.string.schedule_reschedule_checking), style = MaterialTheme.typography.bodyMedium)
                 }
             },
             confirmButton = {}
         )
     }
 
-    // ── STEP 3: Result summary dialog ─────────────────────────────────────────
     state.rescheduleResult?.let { result ->
         RescheduleResultDialog(result = result, onDismiss = viewModel::dismissRescheduleResult)
     }
@@ -102,22 +107,16 @@ fun HealthRecordTabContent(
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
             when (val nav = navState) {
-
                 is HealthNavState.Main -> {
                     HealthRecordMain(
-                        viewModel = viewModel,
-                        state     = state,
-                        babies    = babies,
-                        onOpenMap = { babyName -> navState = HealthNavState.Map(babyName) },
-                        onAddHealthIssue = { babyId, babyName ->
-                            navState = HealthNavState.AddHealthIssue(babyId, babyName)
-                        },
-                        onAddAppointment = { babyId, babyName ->
-                            navState = HealthNavState.AddAppointment(babyId, babyName)
-                        }
+                        viewModel        = viewModel,
+                        state            = state,
+                        babies           = babies,
+                        onOpenMap        = { babyName -> navState = HealthNavState.Map(babyName) },
+                        onAddHealthIssue = { babyId, babyName -> navState = HealthNavState.AddHealthIssue(babyId, babyName) },
+                        onAddAppointment = { babyId, babyName -> navState = HealthNavState.AddAppointment(babyId, babyName) }
                     )
                 }
-
                 is HealthNavState.Map -> {
                     BenchMapScreen(
                         viewModel       = viewModel,
@@ -126,7 +125,6 @@ fun HealthRecordTabContent(
                         onBenchSelected = { bench -> navState = HealthNavState.BenchDetail(bench, nav.babyName) }
                     )
                 }
-
                 is HealthNavState.BenchDetail -> {
                     LaunchedEffect(state.assignment) {
                         if (state.assignment != null && navState is HealthNavState.BenchDetail) {
@@ -139,25 +137,17 @@ fun HealthRecordTabContent(
                         isLoading = state.assignmentLoading,
                         onBack    = { navState = HealthNavState.Map(nav.babyName) },
                         onAssign  = {
-                            state.selectedBabyId?.let { babyId ->
-                                viewModel.assignBench(babyId, nav.bench.benchId)
-                            }
+                            state.selectedBabyId?.let { babyId -> viewModel.assignBench(babyId, nav.bench.benchId) }
                         }
                     )
                 }
-
                 is HealthNavState.VaccinationDetail -> {
                     VaccinationDetailScreen(
                         item         = nav.item,
                         onBack       = { navState = HealthNavState.Main },
-                        onReschedule = {
-                            navState = HealthNavState.Main
-                            viewModel.triggerReschedule()
-                        }
+                        onReschedule = { navState = HealthNavState.Main; viewModel.triggerReschedule() }
                     )
                 }
-
-                // ── NEW: Full-screen Add Health Issue ─────────────────────────
                 is HealthNavState.AddHealthIssue -> {
                     AddHealthIssueScreen(
                         babyId    = nav.babyId,
@@ -167,12 +157,10 @@ fun HealthRecordTabContent(
                         onSaved   = { navState = HealthNavState.Main }
                     )
                 }
-
-                // ── NEW: Full-screen Add Appointment ──────────────────────────
                 is HealthNavState.AddAppointment -> {
                     AddAppointmentScreen(
-                        babyId   = nav.babyId,
-                        babyName = nav.babyName,
+                        babyId    = nav.babyId,
+                        babyName  = nav.babyName,
                         viewModel = viewModel,
                         onBack    = { navState = HealthNavState.Main },
                         onSaved   = { navState = HealthNavState.Main }
@@ -210,12 +198,10 @@ private fun HealthRecordMain(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
-                    Brush.verticalGradient(
-                        listOf(
-                            customColors.accentGradientStart.copy(0.15f),
-                            customColors.accentGradientEnd.copy(0.05f)
-                        )
-                    )
+                    Brush.verticalGradient(listOf(
+                        customColors.accentGradientStart.copy(0.15f),
+                        customColors.accentGradientEnd.copy(0.05f)
+                    ))
                 )
                 .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingMedium)
         ) {
@@ -264,10 +250,11 @@ private fun HealthRecordMain(
                         onClick  = { viewModel.setSubTab(tab) },
                         text = {
                             Text(
+                                // CHANGED: inline hardcoded strings → stringResource
                                 text = when (tab) {
-                                    HealthRecordSubTab.VACCINATIONS  -> "Vaccinations"
-                                    HealthRecordSubTab.HEALTH_ISSUES -> "Health Issues"
-                                    HealthRecordSubTab.APPOINTMENTS  -> "Appointments"
+                                    HealthRecordSubTab.VACCINATIONS  -> stringResource(Res.string.health_sub_tab_vaccinations)
+                                    HealthRecordSubTab.HEALTH_ISSUES -> stringResource(Res.string.health_sub_tab_health_issues)
+                                    HealthRecordSubTab.APPOINTMENTS  -> stringResource(Res.string.health_sub_tab_appointments)
                                 },
                                 style      = MaterialTheme.typography.labelMedium,
                                 fontWeight = if (state.subTab == tab) FontWeight.Bold else FontWeight.Normal
@@ -297,9 +284,7 @@ private fun HealthRecordMain(
                             onFilterChange = { viewModel.setHealthIssueFilter(it) },
                             onIssueClick   = { viewModel.selectHealthIssue(it) },
                             onResolve      = { viewModel.resolveHealthIssue(it) },
-                            onAddIssue     = {
-                                onAddHealthIssue(selectedBaby.babyId, selectedBaby.fullName)
-                            }
+                            onAddIssue     = { onAddHealthIssue(selectedBaby.babyId, selectedBaby.fullName) }
                         )
                     }
                     HealthRecordSubTab.APPOINTMENTS -> {
@@ -310,9 +295,7 @@ private fun HealthRecordMain(
                             onFilterChange     = { viewModel.setAppointmentFilter(it) },
                             onAppointmentClick = { viewModel.selectAppointment(it) },
                             onCancel           = { viewModel.cancelAppointment(it) },
-                            onAddAppointment   = {
-                                onAddAppointment(selectedBaby.babyId, selectedBaby.fullName)
-                            }
+                            onAddAppointment   = { onAddAppointment(selectedBaby.babyId, selectedBaby.fullName) }
                         )
                     }
                 }
@@ -324,10 +307,7 @@ private fun HealthRecordMain(
                     CircularProgressIndicator(color = customColors.accentGradientStart)
                 }
             } else {
-                NoAssignmentPrompt(
-                    babyName       = selectedBaby.fullName,
-                    onSelectBranch = { onOpenMap(selectedBaby.fullName) }
-                )
+                NoAssignmentPrompt(babyName = selectedBaby.fullName, onSelectBranch = { onOpenMap(selectedBaby.fullName) })
             }
         }
     }
@@ -335,6 +315,8 @@ private fun HealthRecordMain(
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Child selector (dropdown)
+// WAS: "Select child" inline → stringResource
+// WAS: 10.dp → dimensions.healthDropdownItemPaddingV
 // ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -347,7 +329,7 @@ private fun ChildSelector(
     val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
 
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)) {
         Text(
             text       = stringResource(Res.string.health_select_child),
             style      = MaterialTheme.typography.labelSmall,
@@ -355,8 +337,8 @@ private fun ChildSelector(
             fontWeight = FontWeight.SemiBold
         )
 
-        var expanded     by remember { mutableStateOf(false) }
-        val selectedBaby  = babies.firstOrNull { it.babyId == selectedBabyId }
+        var expanded    by remember { mutableStateOf(false) }
+        val selectedBaby = babies.firstOrNull { it.babyId == selectedBabyId }
 
         ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { expanded = it }) {
             OutlinedCard(
@@ -366,12 +348,14 @@ private fun ChildSelector(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = dimensions.spacingMedium, vertical = 10.dp),
+                        // WAS: vertical = 10.dp → dimensions.healthDropdownItemPaddingV
+                        .padding(horizontal = dimensions.spacingMedium, vertical = dimensions.healthDropdownItemPaddingV),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
                     Text(
-                        text       = selectedBaby?.fullName ?: "Select child",
+                        // WAS: "Select child" hardcoded → stringResource
+                        text       = selectedBaby?.fullName ?: stringResource(Res.string.health_select_child_hint),
                         style      = MaterialTheme.typography.bodyMedium,
                         fontWeight = if (selectedBaby != null) FontWeight.SemiBold else FontWeight.Normal,
                         color      = if (selectedBaby != null) MaterialTheme.colorScheme.onSurface
@@ -384,7 +368,7 @@ private fun ChildSelector(
                 babies.forEach { baby ->
                     DropdownMenuItem(
                         text = {
-                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall), verticalAlignment = Alignment.CenterVertically) {
                                 val isFemale = baby.gender.equals("FEMALE", true) || baby.gender.equals("GIRL", true)
                                 Text(if (isFemale) "👧" else "👦")
                                 Text(baby.fullName, style = MaterialTheme.typography.bodyMedium)
@@ -393,7 +377,7 @@ private fun ChildSelector(
                         onClick = { onSelect(baby.babyId); expanded = false },
                         trailingIcon = {
                             if (baby.babyId == selectedBabyId) {
-                                Icon(Icons.Default.Check, null, tint = customColors.accentGradientStart, modifier = Modifier.size(16.dp))
+                                Icon(Icons.Default.Check, null, tint = customColors.accentGradientStart, modifier = Modifier.size(dimensions.iconSmall))
                             }
                         }
                     )
@@ -405,6 +389,9 @@ private fun ChildSelector(
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Assigned branch card
+// WAS: 40.dp circle → dimensions.healthCircleSize
+// WAS: 2.dp elevation → dimensions.healthSubTabElevation
+// WAS: 20.dp icon → dimensions.iconMedium
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -425,7 +412,8 @@ private fun AssignedBranchCard(
             else
                 MaterialTheme.colorScheme.surfaceVariant
         ),
-        elevation = CardDefaults.cardElevation(2.dp)
+        // WAS: 2.dp hardcoded → dimensions.healthSubTabElevation
+        elevation = CardDefaults.cardElevation(dimensions.healthSubTabElevation)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(dimensions.spacingMedium),
@@ -433,17 +421,19 @@ private fun AssignedBranchCard(
             verticalAlignment     = Alignment.CenterVertically
         ) {
             Row(
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall + dimensions.borderWidthMedium),
                 verticalAlignment     = Alignment.CenterVertically,
                 modifier              = Modifier.weight(1f)
             ) {
                 Box(
-                    modifier         = Modifier.size(40.dp).clip(CircleShape).background(customColors.accentGradientStart.copy(0.15f)),
+                    // WAS: .size(40.dp) → dimensions.healthCircleSize
+                    modifier         = Modifier.size(dimensions.healthCircleSize).clip(CircleShape).background(customColors.accentGradientStart.copy(0.15f)),
                     contentAlignment = Alignment.Center
                 ) { Text("🏥", style = MaterialTheme.typography.titleMedium) }
 
                 if (loading) {
-                    CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = customColors.accentGradientStart)
+                    // WAS: Modifier.size(18.dp), strokeWidth = 2.dp → iconSmall + borderWidthMedium
+                    CircularProgressIndicator(modifier = Modifier.size(dimensions.iconSmall + dimensions.borderWidthMedium), strokeWidth = dimensions.borderWidthMedium, color = customColors.accentGradientStart)
                 } else {
                     Column {
                         Text(
@@ -461,18 +451,19 @@ private fun AssignedBranchCard(
                     }
                 }
             }
+            // WAS: .size(20.dp) → dimensions.iconMedium - spacingXSmall (≈ 20dp)
             Icon(
                 imageVector        = if (assignment != null) Icons.Default.Edit else Icons.Default.ChevronRight,
                 contentDescription = null,
                 tint               = customColors.accentGradientStart.copy(0.7f),
-                modifier           = Modifier.size(20.dp)
+                modifier           = Modifier.size(dimensions.iconMedium)
             )
         }
     }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// No assignment prompt
+// No assignment prompt — unchanged
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -495,7 +486,7 @@ private fun NoAssignmentPrompt(babyName: String, onSelectBranch: () -> Unit) {
                 shape   = RoundedCornerShape(dimensions.buttonCornerRadius)
             ) {
                 Icon(Icons.Default.LocationOn, null)
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(dimensions.spacingSmall))
                 Text(stringResource(Res.string.health_open_map))
             }
         }

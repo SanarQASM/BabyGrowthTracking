@@ -467,7 +467,7 @@ private fun CancelButton(onClick: () -> Unit) {
             .border(1.dp, MaterialTheme.colorScheme.onSurface.copy(alpha = 0.18f),
                 RoundedCornerShape(dimensions.buttonCornerRadius)),
             contentAlignment = Alignment.Center) {
-            Text("Cancel", color = MaterialTheme.colorScheme.onSurface,
+            Text("Cancel    ", color = MaterialTheme.colorScheme.onSurface,
                 fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.labelLarge)
         }
     }

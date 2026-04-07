@@ -29,7 +29,7 @@ import kotlin.time.Instant
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Add Health Issue Screen
-// A full-screen form consistent with AddMeasurementScreen / AddBabyScreen.
+// All hardcoded strings → stringResource, all hardcoded dims → dimension tokens
 // ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class)
@@ -63,7 +63,6 @@ fun AddHealthIssueScreen(
 
     val state = viewModel.uiState
 
-    // Navigate back on success
     LaunchedEffect(state.successMessage) {
         if (state.successMessage?.contains("added") == true) {
             isLoading = false
@@ -74,7 +73,30 @@ fun AddHealthIssueScreen(
         if (isLoading && state.error != null) isLoading = false
     }
 
-    // Date picker
+    // ── Localised strings ─────────────────────────────────────────────────────
+    val strAddTitle        = stringResource(Res.string.add_issue_title)
+    val strDateSection     = stringResource(Res.string.add_issue_section_date)
+    val strTitleSection    = stringResource(Res.string.add_issue_section_title_label)
+    val strDescSection     = stringResource(Res.string.add_issue_section_description)
+    val strSeveritySection = stringResource(Res.string.add_issue_section_severity)
+    val strStatusSection   = stringResource(Res.string.add_issue_section_status)
+    val strTitlePlaceholder = stringResource(Res.string.add_issue_title_placeholder)
+    val strTitleError      = stringResource(Res.string.add_issue_title_error)
+    val strDescPlaceholder = stringResource(Res.string.add_issue_description_placeholder)
+    val strResolved        = stringResource(Res.string.add_issue_status_resolved)
+    val strOngoing         = stringResource(Res.string.add_issue_status_ongoing)
+    val strTapToggle       = stringResource(Res.string.add_issue_status_toggle_hint)
+    val strSaveButton      = stringResource(Res.string.add_issue_save_button)
+    val strSaving          = stringResource(Res.string.add_issue_saving)
+    val strMild            = stringResource(Res.string.add_issue_severity_mild)
+    val strModerate        = stringResource(Res.string.add_issue_severity_moderate)
+    val strSevere          = stringResource(Res.string.add_issue_severity_severe)
+    val strPickDate        = stringResource(Res.string.add_baby_field_dob_pick)
+    val strDateOk          = stringResource(Res.string.add_baby_date_ok)
+    val strDateCancel      = stringResource(Res.string.add_baby_date_cancel)
+    val strBack            = stringResource(Res.string.common_back)
+    val strCancel          = stringResource(Res.string.btn_cancel)
+
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = Clock.System.now().toEpochMilliseconds()
     )
@@ -93,11 +115,11 @@ fun AddHealthIssueScreen(
                     },
                     shape = RoundedCornerShape(dimensions.buttonCornerRadius),
                     colors = ButtonDefaults.buttonColors(containerColor = customColors.accentGradientStart)
-                ) { Text(stringResource(Res.string.add_baby_date_ok), fontWeight = FontWeight.SemiBold) }
+                ) { Text(strDateOk, fontWeight = FontWeight.SemiBold) }
             },
             dismissButton = {
                 OutlinedButton(onClick = { showDatePicker = false }, shape = RoundedCornerShape(dimensions.buttonCornerRadius)) {
-                    Text(stringResource(Res.string.add_baby_date_cancel))
+                    Text(strDateCancel)
                 }
             }
         ) { DatePicker(state = datePickerState) }
@@ -109,7 +131,7 @@ fun AddHealthIssueScreen(
                 title = {
                     Column {
                         Text(
-                            text = "Log Health Issue",
+                            text = strAddTitle,
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleMedium,
                             color = customColors.accentGradientStart
@@ -125,7 +147,7 @@ fun AddHealthIssueScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(Res.string.common_back),
+                            contentDescription = strBack,
                             tint = customColors.accentGradientStart
                         )
                     }
@@ -185,17 +207,17 @@ fun AddHealthIssueScreen(
                     ) {
 
                         // ── Issue Date ────────────────────────────────────────
-                        HISectionCard(title = "ISSUE DATE") {
+                        HISectionCard(title = strDateSection) {
                             HITextField(
                                 value = issueDate,
                                 onValueChange = {},
-                                placeholder = "YYYY-MM-DD",
+                                placeholder = stringResource(Res.string.add_measure_date_placeholder),
                                 readOnly = true,
                                 trailingIcon = {
                                     IconButton(onClick = { showDatePicker = true }) {
                                         Icon(
                                             Icons.Default.DateRange,
-                                            contentDescription = "Pick date",
+                                            contentDescription = strPickDate,
                                             tint = customColors.accentGradientEnd,
                                             modifier = Modifier.size(dimensions.iconMedium)
                                         )
@@ -205,30 +227,30 @@ fun AddHealthIssueScreen(
                         }
 
                         // ── Title ──────────────────────────────────────────────
-                        HISectionCard(title = "TITLE") {
+                        HISectionCard(title = strTitleSection) {
                             HITextField(
                                 value = title,
                                 onValueChange = { title = it; titleError = false },
-                                placeholder = "e.g. Fever, Rash, Cough…",
+                                placeholder = strTitlePlaceholder,
                                 isError = titleError,
                                 leadingEmoji = "📋"
                             )
                             AnimatedVisibility(visible = titleError) {
                                 Text(
-                                    "Title is required",
+                                    strTitleError,
                                     color = MaterialTheme.colorScheme.error,
                                     style = MaterialTheme.typography.labelSmall,
-                                    modifier = Modifier.padding(start = dimensions.spacingXSmall, top = 2.dp)
+                                    modifier = Modifier.padding(start = dimensions.spacingXSmall, top = dimensions.borderWidthMedium)
                                 )
                             }
                         }
 
                         // ── Description ────────────────────────────────────────
-                        HISectionCard(title = "DESCRIPTION (OPTIONAL)") {
+                        HISectionCard(title = strDescSection) {
                             HITextField(
                                 value = description,
                                 onValueChange = { description = it },
-                                placeholder = "Describe symptoms, observations…",
+                                placeholder = strDescPlaceholder,
                                 minLines = 3,
                                 maxLines = 5,
                                 leadingEmoji = "📝"
@@ -236,37 +258,42 @@ fun AddHealthIssueScreen(
                         }
 
                         // ── Severity ───────────────────────────────────────────
-                        HISectionCard(title = "SEVERITY") {
+                        HISectionCard(title = strSeveritySection) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
                             ) {
                                 listOf(
-                                    Triple("MILD", "🟢", Color(0xFF22C55E)),
+                                    Triple("MILD",     "🟢", Color(0xFF22C55E)),
                                     Triple("MODERATE", "🟡", Color(0xFFF59E0B)),
-                                    Triple("SEVERE", "🔴", MaterialTheme.colorScheme.error)
-                                ).forEach { (value, emoji, color) ->
+                                    Triple("SEVERE",   "🔴", MaterialTheme.colorScheme.error)
+                                ).forEachIndexed { idx, (value, emoji, color) ->
+                                    val label = when (idx) {
+                                        0 -> strMild
+                                        1 -> strModerate
+                                        else -> strSevere
+                                    }
                                     val selected = severity == value
                                     Box(
                                         modifier = Modifier
                                             .weight(1f)
                                             .background(
                                                 if (selected) color.copy(0.18f) else MaterialTheme.colorScheme.surface.copy(0.15f),
-                                                RoundedCornerShape(dimensions.buttonCornerRadius - 4.dp)
+                                                RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
                                             )
                                             .border(
                                                 if (selected) dimensions.borderWidthMedium else dimensions.borderWidthThin,
                                                 if (selected) color.copy(0.7f) else MaterialTheme.colorScheme.onPrimary.copy(0.2f),
-                                                RoundedCornerShape(dimensions.buttonCornerRadius - 4.dp)
+                                                RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
                                             )
                                             .clickable { severity = value }
-                                            .padding(vertical = dimensions.spacingSmall + 2.dp),
+                                            .padding(vertical = dimensions.spacingSmall + dimensions.borderWidthMedium),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(dimensions.borderWidthMedium)) {
                                             Text(emoji, style = MaterialTheme.typography.titleSmall)
                                             Text(
-                                                value.lowercase().replaceFirstChar { it.uppercase() },
+                                                label,
                                                 style = MaterialTheme.typography.labelSmall,
                                                 fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
                                                 color = if (selected) color else MaterialTheme.colorScheme.onPrimary.copy(0.75f)
@@ -278,7 +305,7 @@ fun AddHealthIssueScreen(
                         }
 
                         // ── Is Resolved ────────────────────────────────────────
-                        HISectionCard(title = "STATUS") {
+                        HISectionCard(title = strStatusSection) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -294,13 +321,13 @@ fun AddHealthIssueScreen(
                                     Text(if (isResolved) "😊" else "🤒", style = MaterialTheme.typography.titleMedium)
                                     Column {
                                         Text(
-                                            if (isResolved) "Resolved" else "Ongoing",
+                                            if (isResolved) strResolved else strOngoing,
                                             style = MaterialTheme.typography.bodyMedium,
                                             fontWeight = FontWeight.SemiBold,
                                             color = MaterialTheme.colorScheme.onPrimary
                                         )
                                         Text(
-                                            "Tap to toggle",
+                                            strTapToggle,
                                             style = MaterialTheme.typography.labelSmall,
                                             color = MaterialTheme.colorScheme.onPrimary.copy(0.55f)
                                         )
@@ -324,12 +351,12 @@ fun AddHealthIssueScreen(
                                     .fillMaxWidth()
                                     .background(
                                         MaterialTheme.colorScheme.error.copy(0.15f),
-                                        RoundedCornerShape(dimensions.buttonCornerRadius - 4.dp)
+                                        RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
                                     )
                                     .border(
-                                        1.dp,
+                                        dimensions.borderWidthThin,
                                         MaterialTheme.colorScheme.error.copy(0.4f),
-                                        RoundedCornerShape(dimensions.buttonCornerRadius - 4.dp)
+                                        RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
                                     )
                                     .padding(dimensions.spacingMedium)
                             ) {
@@ -341,7 +368,7 @@ fun AddHealthIssueScreen(
 
                         // ── Save button ───────────────────────────────────────
                         HIActionButton(
-                            label = if (isLoading) "Saving…" else "Save Health Issue",
+                            label = if (isLoading) strSaving else strSaveButton,
                             isLoading = isLoading,
                             enabled = !isLoading,
                             containerColor = customColors.accentGradientStart,
@@ -362,7 +389,7 @@ fun AddHealthIssueScreen(
 
                         // ── Cancel ────────────────────────────────────────────
                         HIActionButton(
-                            label = "Cancel",
+                            label = strCancel,
                             isLoading = false,
                             enabled = !isLoading,
                             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(0.65f),
@@ -379,6 +406,7 @@ fun AddHealthIssueScreen(
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Add Appointment Screen
+// All hardcoded strings → stringResource, all hardcoded dims → dimension tokens
 // ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class)
@@ -416,6 +444,40 @@ fun AddAppointmentScreen(
         if (isLoading && state.error != null) isLoading = false
     }
 
+    // ── Localised strings ─────────────────────────────────────────────────────
+    val strAddTitle      = stringResource(Res.string.add_appointment_title)
+    val strTypeSection   = stringResource(Res.string.add_appointment_section_type)
+    val strDateSection   = stringResource(Res.string.add_appointment_section_date)
+    val strTimeSection   = stringResource(Res.string.add_appointment_section_time)
+    val strDoctorSection = stringResource(Res.string.add_appointment_section_doctor)
+    val strLocSection    = stringResource(Res.string.add_appointment_section_location)
+    val strNotesSection  = stringResource(Res.string.add_appointment_section_notes)
+    val strDateError     = stringResource(Res.string.add_appointment_date_error)
+    val strTimePh        = stringResource(Res.string.add_appointment_time_placeholder)
+    val strDoctorPh      = stringResource(Res.string.add_appointment_doctor_placeholder)
+    val strLocPh         = stringResource(Res.string.add_appointment_location_placeholder)
+    val strNotesPh       = stringResource(Res.string.add_appointment_notes_placeholder)
+    val strSaveButton    = stringResource(Res.string.add_appointment_save_button)
+    val strSaving        = stringResource(Res.string.add_appointment_saving)
+    val strCheckup       = stringResource(Res.string.add_appointment_type_checkup)
+    val strVaccination   = stringResource(Res.string.add_appointment_type_vaccination)
+    val strConsultation  = stringResource(Res.string.add_appointment_type_consultation)
+    val strFollowUp      = stringResource(Res.string.add_appointment_type_followup)
+    val strEmergency     = stringResource(Res.string.add_appointment_type_emergency)
+    val strDateOk        = stringResource(Res.string.add_baby_date_ok)
+    val strDateCancel    = stringResource(Res.string.add_baby_date_cancel)
+    val strPickDate      = stringResource(Res.string.add_baby_field_dob_pick)
+    val strBack          = stringResource(Res.string.common_back)
+    val strCancel        = stringResource(Res.string.btn_cancel)
+
+    val appointmentTypes = listOf(
+        Triple("REGULAR_CHECKUP", "🩺", strCheckup),
+        Triple("VACCINATION",     "💉", strVaccination),
+        Triple("CONSULTATION",    "👨‍⚕️", strConsultation),
+        Triple("FOLLOW_UP",       "🔁", strFollowUp),
+        Triple("EMERGENCY",       "🚨", strEmergency)
+    )
+
     val datePickerState = rememberDatePickerState(
         initialSelectedDateMillis = Clock.System.now().toEpochMilliseconds()
     )
@@ -435,23 +497,15 @@ fun AddAppointmentScreen(
                     },
                     shape = RoundedCornerShape(dimensions.buttonCornerRadius),
                     colors = ButtonDefaults.buttonColors(containerColor = customColors.accentGradientStart)
-                ) { Text(stringResource(Res.string.add_baby_date_ok), fontWeight = FontWeight.SemiBold) }
+                ) { Text(strDateOk, fontWeight = FontWeight.SemiBold) }
             },
             dismissButton = {
                 OutlinedButton(onClick = { showDatePicker = false }, shape = RoundedCornerShape(dimensions.buttonCornerRadius)) {
-                    Text(stringResource(Res.string.add_baby_date_cancel))
+                    Text(strDateCancel)
                 }
             }
         ) { DatePicker(state = datePickerState) }
     }
-
-    val appointmentTypes = listOf(
-        Triple("REGULAR_CHECKUP", "🩺", "Checkup"),
-        Triple("VACCINATION", "💉", "Vaccination"),
-        Triple("CONSULTATION", "👨‍⚕️", "Consultation"),
-        Triple("FOLLOW_UP", "🔁", "Follow-up"),
-        Triple("EMERGENCY", "🚨", "Emergency")
-    )
 
     Scaffold(
         topBar = {
@@ -459,7 +513,7 @@ fun AddAppointmentScreen(
                 title = {
                     Column {
                         Text(
-                            "Log Appointment",
+                            strAddTitle,
                             fontWeight = FontWeight.Bold,
                             style = MaterialTheme.typography.titleMedium,
                             color = customColors.accentGradientStart
@@ -475,7 +529,7 @@ fun AddAppointmentScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(Res.string.common_back),
+                            contentDescription = strBack,
                             tint = customColors.accentGradientStart
                         )
                     }
@@ -532,7 +586,7 @@ fun AddAppointmentScreen(
                     ) {
 
                         // ── Appointment Type ──────────────────────────────────
-                        HISectionCard(title = "APPOINTMENT TYPE") {
+                        HISectionCard(title = strTypeSection) {
                             Column(verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
                                 appointmentTypes.chunked(3).forEach { row ->
                                     Row(horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
@@ -544,19 +598,19 @@ fun AddAppointmentScreen(
                                                     .background(
                                                         if (selected) customColors.accentGradientStart.copy(0.2f)
                                                         else MaterialTheme.colorScheme.surface.copy(0.15f),
-                                                        RoundedCornerShape(dimensions.buttonCornerRadius - 4.dp)
+                                                        RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
                                                     )
                                                     .border(
                                                         if (selected) dimensions.borderWidthMedium else dimensions.borderWidthThin,
                                                         if (selected) customColors.accentGradientStart.copy(0.7f)
                                                         else MaterialTheme.colorScheme.onPrimary.copy(0.2f),
-                                                        RoundedCornerShape(dimensions.buttonCornerRadius - 4.dp)
+                                                        RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
                                                     )
                                                     .clickable { appointmentType = value }
-                                                    .padding(vertical = dimensions.spacingSmall + 2.dp),
+                                                    .padding(vertical = dimensions.spacingSmall + dimensions.borderWidthMedium),
                                                 contentAlignment = Alignment.Center
                                             ) {
-                                                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                                Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(dimensions.borderWidthMedium)) {
                                                     Text(emoji, style = MaterialTheme.typography.titleSmall)
                                                     Text(
                                                         label,
@@ -574,18 +628,18 @@ fun AddAppointmentScreen(
                         }
 
                         // ── Date ──────────────────────────────────────────────
-                        HISectionCard(title = "DATE") {
+                        HISectionCard(title = strDateSection) {
                             HITextField(
                                 value = scheduledDate,
                                 onValueChange = {},
-                                placeholder = "YYYY-MM-DD",
+                                placeholder = stringResource(Res.string.add_measure_date_placeholder),
                                 readOnly = true,
                                 isError = dateError,
                                 trailingIcon = {
                                     IconButton(onClick = { showDatePicker = true }) {
                                         Icon(
                                             Icons.Default.DateRange,
-                                            contentDescription = "Pick date",
+                                            contentDescription = strPickDate,
                                             tint = customColors.accentGradientEnd,
                                             modifier = Modifier.size(dimensions.iconMedium)
                                         )
@@ -593,47 +647,47 @@ fun AddAppointmentScreen(
                                 }
                             )
                             AnimatedVisibility(visible = dateError) {
-                                Text("Date is required", color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(start = dimensions.spacingXSmall, top = 2.dp))
+                                Text(strDateError, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.labelSmall, modifier = Modifier.padding(start = dimensions.spacingXSmall, top = dimensions.borderWidthMedium))
                             }
                         }
 
                         // ── Time ──────────────────────────────────────────────
-                        HISectionCard(title = "TIME (OPTIONAL)") {
+                        HISectionCard(title = strTimeSection) {
                             HITextField(
                                 value = scheduledTime,
                                 onValueChange = { scheduledTime = it },
-                                placeholder = "HH:MM  (e.g. 10:30)",
+                                placeholder = strTimePh,
                                 keyboardType = KeyboardType.Number,
                                 leadingEmoji = "🕐"
                             )
                         }
 
                         // ── Doctor Name ───────────────────────────────────────
-                        HISectionCard(title = "DOCTOR NAME (OPTIONAL)") {
+                        HISectionCard(title = strDoctorSection) {
                             HITextField(
                                 value = doctorName,
                                 onValueChange = { doctorName = it },
-                                placeholder = "Dr. …",
+                                placeholder = strDoctorPh,
                                 leadingEmoji = "👨‍⚕️"
                             )
                         }
 
                         // ── Location ──────────────────────────────────────────
-                        HISectionCard(title = "LOCATION (OPTIONAL)") {
+                        HISectionCard(title = strLocSection) {
                             HITextField(
                                 value = location,
                                 onValueChange = { location = it },
-                                placeholder = "Hospital / Clinic name",
+                                placeholder = strLocPh,
                                 leadingEmoji = "🏥"
                             )
                         }
 
                         // ── Notes ─────────────────────────────────────────────
-                        HISectionCard(title = "NOTES (OPTIONAL)") {
+                        HISectionCard(title = strNotesSection) {
                             HITextField(
                                 value = notes,
                                 onValueChange = { notes = it },
-                                placeholder = "Any additional notes…",
+                                placeholder = strNotesPh,
                                 minLines = 2,
                                 maxLines = 4,
                                 leadingEmoji = "📝"
@@ -645,8 +699,8 @@ fun AddAppointmentScreen(
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(MaterialTheme.colorScheme.error.copy(0.15f), RoundedCornerShape(dimensions.buttonCornerRadius - 4.dp))
-                                    .border(1.dp, MaterialTheme.colorScheme.error.copy(0.4f), RoundedCornerShape(dimensions.buttonCornerRadius - 4.dp))
+                                    .background(MaterialTheme.colorScheme.error.copy(0.15f), RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall))
+                                    .border(dimensions.borderWidthThin, MaterialTheme.colorScheme.error.copy(0.4f), RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall))
                                     .padding(dimensions.spacingMedium)
                             ) {
                                 Text(msg, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Medium)
@@ -656,7 +710,7 @@ fun AddAppointmentScreen(
                         Spacer(Modifier.height(dimensions.spacingSmall))
 
                         HIActionButton(
-                            label = if (isLoading) "Saving…" else "Save Appointment",
+                            label = if (isLoading) strSaving else strSaveButton,
                             isLoading = isLoading,
                             enabled = !isLoading,
                             containerColor = customColors.accentGradientStart,
@@ -678,7 +732,7 @@ fun AddAppointmentScreen(
                         Spacer(Modifier.height(dimensions.spacingXSmall))
 
                         HIActionButton(
-                            label = "Cancel",
+                            label = strCancel,
                             isLoading = false,
                             enabled = !isLoading,
                             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(0.65f),
@@ -694,10 +748,10 @@ fun AddAppointmentScreen(
 }
 
 // =============================================================================
-// Shared internal composables (used by both screens)
+// Shared internal composables (used by both screens) — unchanged structure,
+// all hardcoded dims now use dimension tokens
 // =============================================================================
 
-/** Section header + glass-card wrapper — same as MeasureSectionCard */
 @Composable
 private fun HISectionCard(title: String, content: @Composable ColumnScope.() -> Unit) {
     val customColors = MaterialTheme.customColors
@@ -730,7 +784,6 @@ private fun HISectionCard(title: String, content: @Composable ColumnScope.() -> 
     }
 }
 
-/** Glass-style text field — same aesthetic as MeasureTextField */
 @Composable
 private fun HITextField(
     value        : String,
@@ -753,13 +806,13 @@ private fun HITextField(
             .fillMaxWidth()
             .background(
                 MaterialTheme.colorScheme.surface.copy(alpha = 0.13f),
-                RoundedCornerShape(dimensions.buttonCornerRadius - 4.dp)
+                RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
             )
             .border(
                 if (isError) dimensions.borderWidthMedium / 2 else dimensions.spacingXSmall / 4,
                 if (isError) MaterialTheme.colorScheme.error.copy(0.6f)
                 else customColors.accentGradientStart.copy(alpha = 0.35f),
-                RoundedCornerShape(dimensions.buttonCornerRadius - 4.dp)
+                RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
             )
     ) {
         TextField(
@@ -795,7 +848,6 @@ private fun HITextField(
     }
 }
 
-/** Primary/secondary action button — same as buttons in AddMeasurementScreen */
 @Composable
 private fun HIActionButton(
     label          : String,
@@ -827,7 +879,7 @@ private fun HIActionButton(
                 )
                 .then(
                     if (borderColor != Color.Transparent)
-                        Modifier.border(1.dp, borderColor, RoundedCornerShape(dimensions.buttonCornerRadius))
+                        Modifier.border(dimensions.borderWidthThin, borderColor, RoundedCornerShape(dimensions.buttonCornerRadius))
                     else Modifier
                 ),
             contentAlignment = Alignment.Center
