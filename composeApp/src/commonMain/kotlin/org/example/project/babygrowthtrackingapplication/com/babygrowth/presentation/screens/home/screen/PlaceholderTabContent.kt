@@ -1,3 +1,41 @@
+// ═══════════════════════════════════════════════════════════════════════════
+// REFACTORED SCREENS — Summary of changes per file
+// ═══════════════════════════════════════════════════════════════════════════
+//
+// PlaceholderTabContent.kt
+//   • "✓" inline → stringResource(Res.string.language_option_selected_checkmark)
+//
+// FeedingGuideScreen.kt
+//   • 300.dp landscape left pane → dimensions.landscapeWidePaneWidth
+//
+// SleepGuideScreen.kt
+//   • 280.dp landscape left pane → dimensions.landscapeWidePaneWidth
+//
+// VisionMotorScreen.kt
+//   • 220.dp landscape left pane → dimensions.landscapeNarrowPaneWidth
+//   • 40.dp month badge circle   → dimensions.devMonthBadgeSize
+//   • 36.dp edit button          → dimensions.devEditButtonSize
+//   • 48.dp left pane header icon → devHeaderIconBoxSize already used; 48.dp inside pane text emoji box → dimensions.spacingXLarge
+//
+// HearingSpeechScreen.kt
+//   • 220.dp landscape left pane → dimensions.landscapeNarrowPaneWidth
+//   • 36.dp edit button          → dimensions.devEditButtonSize
+//
+// VaccinationDetailScreen
+//   (in VaccinationScheduleView.kt — the inline screen at the bottom)
+//   • 18.dp icon → dimensions.iconSmall + dimensions.borderWidthMedium
+//   • 2.dp stroke → dimensions.borderWidthMedium
+//   • Strings: "Age recommended", "Ideal date", "Scheduled date",
+//     "Adjustment", "Completed on", "Health Center", "Status",
+//     "+%1$d days (%2$s)", "Reschedule All" → already in stringResource via
+//     vax_detail_* and schedule_reschedule_all keys — confirmed correct
+//
+// ═══════════════════════════════════════════════════════════════════════════
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FILE: PlaceholderTabContent.kt  (complete refactored version)
+// ─────────────────────────────────────────────────────────────────────────────
+
 package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen
 
 import androidx.compose.foundation.layout.*
@@ -14,16 +52,9 @@ import org.example.project.babygrowthtrackingapplication.theme.LocalDimensions
 
 /**
  * Reusable "Coming Soon" placeholder — used by tabs not yet implemented.
- * Internal to the home package so each tab file can call it directly.
- *
- * REFACTORED:
- *  - Replaced `fontSize = 64.sp` → MaterialTheme.typography.displayMedium
- *  - Replaced `Spacer height = 16.dp` → dimensions.spacingMedium
- *  - Replaced `Spacer height = 8.dp` → dimensions.spacingSmall
  */
 @Composable
 internal fun PlaceholderTabContent(emoji: String, title: String) {
-    // ADDED: pull responsive dimensions from the composition local
     val dimensions = LocalDimensions.current
 
     Box(
@@ -34,23 +65,16 @@ internal fun PlaceholderTabContent(emoji: String, title: String) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // WAS: fontSize = 64.sp  →  Now uses typography scale (displayMedium = 45sp)
             Text(text = emoji, style = MaterialTheme.typography.displayMedium)
-
-            // WAS: Modifier.height(16.dp)  →  dimensions.spacingMedium (16dp compact, 20dp medium, 24dp expanded)
             Spacer(modifier = Modifier.height(dimensions.spacingMedium))
-
             Text(
                 text = title,
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
             )
-
-            // WAS: Modifier.height(8.dp)  →  dimensions.spacingSmall (8dp compact, 12dp medium, 16dp expanded)
             Spacer(modifier = Modifier.height(dimensions.spacingSmall))
-
             Text(
-                text  = stringResource(Res.string.coming_soon),
+                text = stringResource(Res.string.coming_soon),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
@@ -59,11 +83,7 @@ internal fun PlaceholderTabContent(emoji: String, title: String) {
 }
 
 /**
- * Language picker dialog — kept here so HomeScreen.kt stays clean.
- *
- * REFACTORED:
- *  - Replaced `padding(vertical = 4.dp)` → dimensions.spacingXSmall
- *  - Replaced `padding(16.dp)` → dimensions.spacingMedium
+ * Language picker dialog.
  */
 @Composable
 internal fun LanguageSelectionDialog(
@@ -83,9 +103,9 @@ internal fun LanguageSelectionDialog(
             Column(modifier = Modifier.fillMaxWidth()) {
                 Language.entries.forEach { language ->
                     LanguageOptionRow(
-                        language   = language,
+                        language = language,
                         isSelected = language == currentLanguage,
-                        onClick    = { onLanguageSelected(language) }
+                        onClick = { onLanguageSelected(language) }
                     )
                 }
             }
@@ -104,13 +124,11 @@ private fun LanguageOptionRow(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    // ADDED: pull responsive dimensions
     val dimensions = LocalDimensions.current
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            // WAS: padding(vertical = 4.dp)  →  dimensions.spacingXSmall
             .padding(vertical = dimensions.spacingXSmall),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected)
@@ -123,13 +141,12 @@ private fun LanguageOptionRow(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                // WAS: padding(16.dp)  →  dimensions.spacingMedium
                 .padding(dimensions.spacingMedium),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text  = language.displayName,
+                text = language.displayName,
                 style = MaterialTheme.typography.bodyLarge,
                 color = if (isSelected)
                     MaterialTheme.colorScheme.onPrimaryContainer
@@ -137,8 +154,9 @@ private fun LanguageOptionRow(
                     MaterialTheme.colorScheme.onSurface
             )
             if (isSelected) {
+                // CHANGED: "✓" hardcoded → stringResource
                 Text(
-                    text  = "✓",
+                    text = stringResource(Res.string.language_option_selected_checkmark),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.primary
                 )

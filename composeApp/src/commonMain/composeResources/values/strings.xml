@@ -128,6 +128,9 @@
     <string name="add_measure_save">Save Measurement</string>
     <string name="add_measure_saving">Saving…</string>
     <string name="add_measure_cancel">Cancel</string>
+    <string name="add_baby_edit_title">Edit Child Details</string>
+    <string name="add_baby_save_changes">Save Changes</string>
+    <string name="add_baby_section_measurements_readonly">BIRTH MEASUREMENTS (Read-only)</string>
 
     <string name="all_measures_title">All Measurements</string>
     <string name="all_measures_empty">No measurements recorded yet.</string>

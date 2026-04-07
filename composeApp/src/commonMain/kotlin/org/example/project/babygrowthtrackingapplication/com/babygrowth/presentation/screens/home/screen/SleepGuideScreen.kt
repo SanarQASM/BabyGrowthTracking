@@ -21,259 +21,261 @@ import babygrowthtrackingapplication.composeapp.generated.resources.*
 
 // ═══════════════════════════════════════════════════════════════════════════
 // SleepGuideScreen.kt
+//
+// REFACTORED:
+//  • 280.dp landscape left pane width → dimensions.landscapeWidePaneWidth
 // ═══════════════════════════════════════════════════════════════════════════
 
-private const val CAT_STRATEGIES  = "sleep_strategies"
-private const val CAT_NEEDS       = "sleep_needs"
+private const val CAT_STRATEGIES = "sleep_strategies"
+private const val CAT_NEEDS = "sleep_needs"
 private const val CAT_ENVIRONMENT = "environment"
-private const val CAT_LULLABIES   = "lullabies"
+private const val CAT_LULLABIES = "lullabies"
 
 @Composable
 fun SleepGuideScreen(
-    babies   : List<BabyResponse>,
+    babies: List<BabyResponse>,
     viewModel: GuideViewModel,
-    language : String,
-    onBack   : () -> Unit
+    language: String,
+    onBack: () -> Unit
 ) {
     val state = viewModel.uiState
 
     LaunchedEffect(Unit) { viewModel.loadSleepGuide() }
 
-    var selectedCategory  by remember { mutableStateOf(CAT_STRATEGIES) }
-    var selectedTabId     by remember { mutableStateOf("all") }
+    var selectedCategory by remember { mutableStateOf(CAT_STRATEGIES) }
+    var selectedTabId by remember { mutableStateOf("all") }
     var selectedBabyIndex by remember { mutableStateOf(0) }
 
-    val selectedBaby    = babies.getOrNull(selectedBabyIndex)
-    val ageInMonths     = selectedBaby?.ageInMonths ?: 8
+    val selectedBaby = babies.getOrNull(selectedBabyIndex)
+    val ageInMonths = selectedBaby?.ageInMonths ?: 8
 
-    val guide           = state.sleepGuide
+    val guide = state.sleepGuide
     val currentStrategy = guide?.strategyById(selectedCategory)
 
-    // FIX: The key now includes `currentStrategy` (not just selectedCategory +
-    // selectedBabyIndex). This means the effect re-fires when the guide
-    // finishes loading (currentStrategy goes null → non-null), which is the
-    // scenario where the old code silently dropped the feedback fetch.
-    // We load ALL items in the strategy (all age-ranges) so every card that
-    // could ever be rendered has counts pre-fetched.
     LaunchedEffect(currentStrategy, selectedBabyIndex) {
         val strategy = currentStrategy ?: return@LaunchedEffect
         viewModel.loadFeedbackForStrategy(strategy, "SLEEP")
     }
 
     val childName = selectedBaby?.fullName ?: ""
-    val subtitle  = if (childName.isNotBlank())
+    val subtitle = if (childName.isNotBlank())
         guide?.subtitle?.get(language)?.replace("{childName}", childName)
             ?: stringResource(Res.string.sleep_guide_title)
     else
         guide?.title?.get(language) ?: stringResource(Res.string.sleep_guide_title)
 
     val categories = listOf(
-        GuideCategoryItem(CAT_STRATEGIES,  "🛏️", stringResource(Res.string.sleep_guide_cat_strategies)),
-        GuideCategoryItem(CAT_NEEDS,       "😴", stringResource(Res.string.sleep_guide_cat_needs)),
-        GuideCategoryItem(CAT_ENVIRONMENT, "🌙", stringResource(Res.string.sleep_guide_cat_environment)),
-        GuideCategoryItem(CAT_LULLABIES,   "🎵", stringResource(Res.string.sleep_guide_cat_lullabies))
+        GuideCategoryItem(
+            CAT_STRATEGIES,
+            "🛏️",
+            stringResource(Res.string.sleep_guide_cat_strategies)
+        ),
+        GuideCategoryItem(CAT_NEEDS, "😴", stringResource(Res.string.sleep_guide_cat_needs)),
+        GuideCategoryItem(
+            CAT_ENVIRONMENT,
+            "🌙",
+            stringResource(Res.string.sleep_guide_cat_environment)
+        ),
+        GuideCategoryItem(CAT_LULLABIES, "🎵", stringResource(Res.string.sleep_guide_cat_lullabies))
     )
 
     Scaffold(
-        topBar         = {
+        topBar = {
             GuideTopBar(
-                title  = guide?.title?.get(language) ?: stringResource(Res.string.sleep_guide_title),
+                title = guide?.title?.get(language) ?: stringResource(Res.string.sleep_guide_title),
                 onBack = onBack
             )
         },
         containerColor = Color.Transparent
     ) { paddingValues ->
         AdaptiveLayout(
-            modifier  = Modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.background),
-            portrait  = {
+            portrait = {
                 SleepGuidePortrait(
-                    babies            = babies,
+                    babies = babies,
                     selectedBabyIndex = selectedBabyIndex,
-                    onSelectBaby      = { selectedBabyIndex = it; selectedTabId = "all" },
-                    subtitle          = subtitle,
-                    categories        = categories,
-                    selectedCategory  = selectedCategory,
-                    onSelectCategory  = { selectedCategory = it; selectedTabId = "all" },
-                    selectedTabId     = selectedTabId,
-                    onSelectTab       = { selectedTabId = it },
-                    currentStrategy   = currentStrategy,
-                    ageInMonths       = ageInMonths,
-                    language          = language,
-                    isLoading         = state.isLoadingSleep,
-                    feedbackMap       = state.feedbackMap,
-                    playerState       = state.playerState,
-                    onUseful          = { id -> viewModel.castVote(id, "SLEEP", UserVote.USEFUL) },
-                    onUseless         = { id -> viewModel.castVote(id, "SLEEP", UserVote.USELESS) },
-                    onPlay            = { item -> viewModel.playLullaby(item) },
-                    onTogglePause     = { viewModel.togglePlayPause() },
-                    onStop            = { viewModel.stopLullaby() },
-                    onSeek            = { seconds -> viewModel.seekTo(seconds) },
-                    onDownload        = { item -> viewModel.requestDownload(item) }
+                    onSelectBaby = { selectedBabyIndex = it; selectedTabId = "all" },
+                    subtitle = subtitle,
+                    categories = categories,
+                    selectedCategory = selectedCategory,
+                    onSelectCategory = { selectedCategory = it; selectedTabId = "all" },
+                    selectedTabId = selectedTabId,
+                    onSelectTab = { selectedTabId = it },
+                    currentStrategy = currentStrategy,
+                    ageInMonths = ageInMonths,
+                    language = language,
+                    isLoading = state.isLoadingSleep,
+                    feedbackMap = state.feedbackMap,
+                    playerState = state.playerState,
+                    onUseful = { id -> viewModel.castVote(id, "SLEEP", UserVote.USEFUL) },
+                    onUseless = { id -> viewModel.castVote(id, "SLEEP", UserVote.USELESS) },
+                    onPlay = { item -> viewModel.playLullaby(item) },
+                    onTogglePause = { viewModel.togglePlayPause() },
+                    onStop = { viewModel.stopLullaby() },
+                    onSeek = { seconds -> viewModel.seekTo(seconds) },
+                    onDownload = { item -> viewModel.requestDownload(item) }
                 )
             },
             landscape = {
                 SleepGuideLandscape(
-                    babies            = babies,
+                    babies = babies,
                     selectedBabyIndex = selectedBabyIndex,
-                    onSelectBaby      = { selectedBabyIndex = it; selectedTabId = "all" },
-                    subtitle          = subtitle,
-                    categories        = categories,
-                    selectedCategory  = selectedCategory,
-                    onSelectCategory  = { selectedCategory = it; selectedTabId = "all" },
-                    selectedTabId     = selectedTabId,
-                    onSelectTab       = { selectedTabId = it },
-                    currentStrategy   = currentStrategy,
-                    ageInMonths       = ageInMonths,
-                    language          = language,
-                    isLoading         = state.isLoadingSleep,
-                    feedbackMap       = state.feedbackMap,
-                    playerState       = state.playerState,
-                    onUseful          = { id -> viewModel.castVote(id, "SLEEP", UserVote.USEFUL) },
-                    onUseless         = { id -> viewModel.castVote(id, "SLEEP", UserVote.USELESS) },
-                    onPlay            = { item -> viewModel.playLullaby(item) },
-                    onTogglePause     = { viewModel.togglePlayPause() },
-                    onStop            = { viewModel.stopLullaby() },
-                    onSeek            = { seconds -> viewModel.seekTo(seconds) },
-                    onDownload        = { item -> viewModel.requestDownload(item) }
+                    onSelectBaby = { selectedBabyIndex = it; selectedTabId = "all" },
+                    subtitle = subtitle,
+                    categories = categories,
+                    selectedCategory = selectedCategory,
+                    onSelectCategory = { selectedCategory = it; selectedTabId = "all" },
+                    selectedTabId = selectedTabId,
+                    onSelectTab = { selectedTabId = it },
+                    currentStrategy = currentStrategy,
+                    ageInMonths = ageInMonths,
+                    language = language,
+                    isLoading = state.isLoadingSleep,
+                    feedbackMap = state.feedbackMap,
+                    playerState = state.playerState,
+                    onUseful = { id -> viewModel.castVote(id, "SLEEP", UserVote.USEFUL) },
+                    onUseless = { id -> viewModel.castVote(id, "SLEEP", UserVote.USELESS) },
+                    onPlay = { item -> viewModel.playLullaby(item) },
+                    onTogglePause = { viewModel.togglePlayPause() },
+                    onStop = { viewModel.stopLullaby() },
+                    onSeek = { seconds -> viewModel.seekTo(seconds) },
+                    onDownload = { item -> viewModel.requestDownload(item) }
                 )
             }
         )
     }
 }
 
-// ── Portrait layout ───────────────────────────────────────────────────────
-
 @Composable
 private fun SleepGuidePortrait(
-    babies           : List<BabyResponse>,
+    babies: List<BabyResponse>,
     selectedBabyIndex: Int,
-    onSelectBaby     : (Int) -> Unit,
-    subtitle         : String,
-    categories       : List<GuideCategoryItem>,
-    selectedCategory : String,
-    onSelectCategory : (String) -> Unit,
-    selectedTabId    : String,
-    onSelectTab      : (String) -> Unit,
-    currentStrategy  : GuideStrategy?,
-    ageInMonths      : Int,
-    language         : String,
-    isLoading        : Boolean,
-    feedbackMap      : Map<String, CardFeedbackState>,
-    playerState      : LullabyPlayerState,
-    onUseful         : (String) -> Unit,
-    onUseless        : (String) -> Unit,
-    onPlay           : (GuideItem) -> Unit,
-    onTogglePause    : () -> Unit,
-    onStop           : () -> Unit,
-    onSeek           : (Int) -> Unit,
-    onDownload       : (GuideItem) -> Unit
+    onSelectBaby: (Int) -> Unit,
+    subtitle: String,
+    categories: List<GuideCategoryItem>,
+    selectedCategory: String,
+    onSelectCategory: (String) -> Unit,
+    selectedTabId: String,
+    onSelectTab: (String) -> Unit,
+    currentStrategy: GuideStrategy?,
+    ageInMonths: Int,
+    language: String,
+    isLoading: Boolean,
+    feedbackMap: Map<String, CardFeedbackState>,
+    playerState: LullabyPlayerState,
+    onUseful: (String) -> Unit,
+    onUseless: (String) -> Unit,
+    onPlay: (GuideItem) -> Unit,
+    onTogglePause: () -> Unit,
+    onStop: () -> Unit,
+    onSeek: (Int) -> Unit,
+    onDownload: (GuideItem) -> Unit
 ) {
     val scrollState = rememberScrollState()
-    val dimensions  = LocalDimensions.current
+    val dimensions = LocalDimensions.current
 
     Column(modifier = Modifier.fillMaxSize().verticalScroll(scrollState)) {
         GuideSubtitleHeader(
-            subtitle      = subtitle,
-            babies        = babies,
+            subtitle = subtitle,
+            babies = babies,
             selectedIndex = selectedBabyIndex,
-            onSelectBaby  = onSelectBaby
+            onSelectBaby = onSelectBaby
         )
         GuideCategorySelector(
-            categories       = categories,
-            selectedId       = selectedCategory,
+            categories = categories,
+            selectedId = selectedCategory,
             onSelectCategory = onSelectCategory,
-            modifier         = Modifier.padding(top = dimensions.spacingSmall)
+            modifier = Modifier.padding(top = dimensions.spacingSmall)
         )
         HorizontalDivider(
             modifier = Modifier.padding(vertical = dimensions.spacingSmall),
-            color    = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
         )
 
         if (isLoading) {
             Box(
-                modifier         = Modifier.fillMaxWidth().padding(dimensions.spacingXLarge),
+                modifier = Modifier.fillMaxWidth().padding(dimensions.spacingXLarge),
                 contentAlignment = Alignment.Center
             ) { CircularProgressIndicator() }
         } else if (currentStrategy == null) {
             GuideEmptyState()
         } else {
             SleepStrategyContent(
-                strategy      = currentStrategy,
-                ageInMonths   = ageInMonths,
-                language      = language,
+                strategy = currentStrategy,
+                ageInMonths = ageInMonths,
+                language = language,
                 selectedTabId = selectedTabId,
-                onSelectTab   = onSelectTab,
-                feedbackMap   = feedbackMap,
-                playerState   = playerState,
-                onUseful      = onUseful,
-                onUseless     = onUseless,
-                onPlay        = onPlay,
+                onSelectTab = onSelectTab,
+                feedbackMap = feedbackMap,
+                playerState = playerState,
+                onUseful = onUseful,
+                onUseless = onUseless,
+                onPlay = onPlay,
                 onTogglePause = onTogglePause,
-                onStop        = onStop,
-                onSeek        = onSeek,
-                onDownload    = onDownload,
-                modifier      = Modifier.padding(bottom = dimensions.spacingLarge)
+                onStop = onStop,
+                onSeek = onSeek,
+                onDownload = onDownload,
+                modifier = Modifier.padding(bottom = dimensions.spacingLarge)
             )
         }
     }
 }
 
-// ── Landscape layout ──────────────────────────────────────────────────────
-
 @Composable
 private fun SleepGuideLandscape(
-    babies           : List<BabyResponse>,
+    babies: List<BabyResponse>,
     selectedBabyIndex: Int,
-    onSelectBaby     : (Int) -> Unit,
-    subtitle         : String,
-    categories       : List<GuideCategoryItem>,
-    selectedCategory : String,
-    onSelectCategory : (String) -> Unit,
-    selectedTabId    : String,
-    onSelectTab      : (String) -> Unit,
-    currentStrategy  : GuideStrategy?,
-    ageInMonths      : Int,
-    language         : String,
-    isLoading        : Boolean,
-    feedbackMap      : Map<String, CardFeedbackState>,
-    playerState      : LullabyPlayerState,
-    onUseful         : (String) -> Unit,
-    onUseless        : (String) -> Unit,
-    onPlay           : (GuideItem) -> Unit,
-    onTogglePause    : () -> Unit,
-    onStop           : () -> Unit,
-    onSeek           : (Int) -> Unit,
-    onDownload       : (GuideItem) -> Unit
+    onSelectBaby: (Int) -> Unit,
+    subtitle: String,
+    categories: List<GuideCategoryItem>,
+    selectedCategory: String,
+    onSelectCategory: (String) -> Unit,
+    selectedTabId: String,
+    onSelectTab: (String) -> Unit,
+    currentStrategy: GuideStrategy?,
+    ageInMonths: Int,
+    language: String,
+    isLoading: Boolean,
+    feedbackMap: Map<String, CardFeedbackState>,
+    playerState: LullabyPlayerState,
+    onUseful: (String) -> Unit,
+    onUseless: (String) -> Unit,
+    onPlay: (GuideItem) -> Unit,
+    onTogglePause: () -> Unit,
+    onStop: () -> Unit,
+    onSeek: (Int) -> Unit,
+    onDownload: (GuideItem) -> Unit
 ) {
     val dimensions = LocalDimensions.current
 
     Row(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
-                .width(280.dp)
+                // CHANGED: 280.dp → dimensions.landscapeWidePaneWidth
+                .width(dimensions.landscapeWidePaneWidth)
                 .fillMaxHeight()
                 .verticalScroll(rememberScrollState())
                 .background(MaterialTheme.colorScheme.surface)
         ) {
             GuideSubtitleHeader(
-                subtitle      = subtitle,
-                babies        = babies,
+                subtitle = subtitle,
+                babies = babies,
                 selectedIndex = selectedBabyIndex,
-                onSelectBaby  = onSelectBaby
+                onSelectBaby = onSelectBaby
             )
             GuideCategorySelector(
-                categories       = categories,
-                selectedId       = selectedCategory,
+                categories = categories,
+                selectedId = selectedCategory,
                 onSelectCategory = onSelectCategory
             )
         }
 
         HorizontalDivider(
-            modifier = Modifier.fillMaxHeight().width(1.dp),
-            color    = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+            modifier = Modifier.fillMaxHeight().width(dimensions.borderWidthThin),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
         )
 
         Column(
@@ -284,51 +286,51 @@ private fun SleepGuideLandscape(
                 .padding(bottom = dimensions.spacingLarge)
         ) {
             if (isLoading) {
-                Box(Modifier.fillMaxWidth().padding(dimensions.spacingXLarge),
-                    contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                Box(
+                    Modifier.fillMaxWidth().padding(dimensions.spacingXLarge),
+                    contentAlignment = Alignment.Center
+                ) { CircularProgressIndicator() }
             } else if (currentStrategy == null) {
                 GuideEmptyState()
             } else {
                 SleepStrategyContent(
-                    strategy      = currentStrategy,
-                    ageInMonths   = ageInMonths,
-                    language      = language,
+                    strategy = currentStrategy,
+                    ageInMonths = ageInMonths,
+                    language = language,
                     selectedTabId = selectedTabId,
-                    onSelectTab   = onSelectTab,
-                    feedbackMap   = feedbackMap,
-                    playerState   = playerState,
-                    onUseful      = onUseful,
-                    onUseless     = onUseless,
-                    onPlay        = onPlay,
+                    onSelectTab = onSelectTab,
+                    feedbackMap = feedbackMap,
+                    playerState = playerState,
+                    onUseful = onUseful,
+                    onUseless = onUseless,
+                    onPlay = onPlay,
                     onTogglePause = onTogglePause,
-                    onStop        = onStop,
-                    onSeek        = onSeek,
-                    onDownload    = onDownload
+                    onStop = onStop,
+                    onSeek = onSeek,
+                    onDownload = onDownload
                 )
             }
         }
     }
 }
 
-// ── Strategy content dispatcher ───────────────────────────────────────────
-
 @Composable
 private fun SleepStrategyContent(
-    strategy     : GuideStrategy,
-    ageInMonths  : Int,
-    language     : String,
+    strategy: GuideStrategy,
+    ageInMonths: Int,
+    language: String,
     selectedTabId: String,
-    onSelectTab  : (String) -> Unit,
-    feedbackMap  : Map<String, CardFeedbackState>,
-    playerState  : LullabyPlayerState,
-    onUseful     : (String) -> Unit,
-    onUseless    : (String) -> Unit,
-    onPlay       : (GuideItem) -> Unit,
+    onSelectTab: (String) -> Unit,
+    feedbackMap: Map<String, CardFeedbackState>,
+    playerState: LullabyPlayerState,
+    onUseful: (String) -> Unit,
+    onUseless: (String) -> Unit,
+    onPlay: (GuideItem) -> Unit,
     onTogglePause: () -> Unit,
-    onStop       : () -> Unit,
-    onSeek       : (Int) -> Unit,
-    onDownload   : (GuideItem) -> Unit,
-    modifier     : Modifier = Modifier
+    onStop: () -> Unit,
+    onSeek: (Int) -> Unit,
+    onDownload: (GuideItem) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val dimensions = LocalDimensions.current
 
@@ -342,18 +344,16 @@ private fun SleepStrategyContent(
                     GuideNoDataForAge()
                 } else {
                     Column(
-                        modifier            = Modifier.padding(dimensions.screenPadding),
+                        modifier = Modifier.padding(dimensions.screenPadding),
                         verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
                     ) {
                         items.forEach { item ->
-                            // FIX: always fall back to a fresh CardFeedbackState if the
-                            // map entry is missing — this makes each card self-sufficient.
                             GuideContentCard(
-                                item          = item,
-                                langCode      = language,
+                                item = item,
+                                langCode = language,
                                 feedbackState = feedbackMap[item.id] ?: CardFeedbackState(item.id),
-                                onUseful      = { onUseful(item.id) },
-                                onUseless     = { onUseless(item.id) }
+                                onUseful = { onUseful(item.id) },
+                                onUseless = { onUseless(item.id) }
                             )
                         }
                     }
@@ -367,9 +367,9 @@ private fun SleepStrategyContent(
                     addAll(rawTabs)
                 }
                 GuidePillTabs(
-                    tabs        = tabs,
-                    selectedId  = selectedTabId,
-                    langCode    = language,
+                    tabs = tabs,
+                    selectedId = selectedTabId,
+                    langCode = language,
                     onSelectTab = onSelectTab
                 )
                 val items = strategy.itemsForAgeAndTab(ageInMonths, selectedTabId)
@@ -377,16 +377,16 @@ private fun SleepStrategyContent(
                     GuideNoDataForAge()
                 } else {
                     Column(
-                        modifier            = Modifier.padding(dimensions.screenPadding),
+                        modifier = Modifier.padding(dimensions.screenPadding),
                         verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
                     ) {
                         items.forEach { item ->
                             GuideContentCard(
-                                item          = item,
-                                langCode      = language,
+                                item = item,
+                                langCode = language,
                                 feedbackState = feedbackMap[item.id] ?: CardFeedbackState(item.id),
-                                onUseful      = { onUseful(item.id) },
-                                onUseless     = { onUseless(item.id) }
+                                onUseful = { onUseful(item.id) },
+                                onUseless = { onUseless(item.id) }
                             )
                         }
                     }
@@ -400,37 +400,35 @@ private fun SleepStrategyContent(
                     addAll(rawTabs)
                 }
                 GuidePillTabs(
-                    tabs        = tabs,
-                    selectedId  = selectedTabId,
-                    langCode    = language,
+                    tabs = tabs,
+                    selectedId = selectedTabId,
+                    langCode = language,
                     onSelectTab = onSelectTab
                 )
                 val items = strategy.itemsForAgeAndTab(ageInMonths, selectedTabId)
                 LullabiesContent(
-                    items         = items,
-                    langCode      = language,
-                    playerState   = playerState,
-                    feedbackMap   = feedbackMap,
-                    guideType     = "SLEEP",
-                    onPlay        = onPlay,
+                    items = items,
+                    langCode = language,
+                    playerState = playerState,
+                    feedbackMap = feedbackMap,
+                    guideType = "SLEEP",
+                    onPlay = onPlay,
                     onTogglePause = onTogglePause,
-                    onStop        = onStop,
-                    onSeek        = onSeek,
-                    onDownload    = onDownload,
-                    onUseful      = onUseful,
-                    onUseless     = onUseless,
-                    modifier      = Modifier.padding(bottom = dimensions.spacingLarge)
+                    onStop = onStop,
+                    onSeek = onSeek,
+                    onDownload = onDownload,
+                    onUseful = onUseful,
+                    onUseless = onUseless,
+                    modifier = Modifier.padding(bottom = dimensions.spacingLarge)
                 )
             }
         }
     }
 }
 
-// ── Section header ────────────────────────────────────────────────────────
-
 @Composable
 private fun SleepStrategySection(label: String) {
-    val dimensions   = LocalDimensions.current
+    val dimensions = LocalDimensions.current
     val customColors = MaterialTheme.customColors
     Box(
         modifier = Modifier
@@ -439,29 +437,27 @@ private fun SleepStrategySection(label: String) {
             .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingSmall)
     ) {
         Text(
-            text          = label.uppercase(),
-            style         = MaterialTheme.typography.labelMedium,
-            fontWeight    = FontWeight.Bold,
-            color         = customColors.accentGradientStart,
+            text = label.uppercase(),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
+            color = customColors.accentGradientStart,
             letterSpacing = 1.sp
         )
     }
 }
 
-// ── Empty states ──────────────────────────────────────────────────────────
-
 @Composable
 private fun GuideEmptyState() {
     val dimensions = LocalDimensions.current
     Box(
-        modifier         = Modifier.fillMaxWidth().padding(dimensions.spacingXLarge),
+        modifier = Modifier.fillMaxWidth().padding(dimensions.spacingXLarge),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("📖", fontSize = 48.sp)
             Spacer(Modifier.height(dimensions.spacingMedium))
             Text(
-                text  = stringResource(Res.string.sleep_guide_no_data),
+                text = stringResource(Res.string.sleep_guide_no_data),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
             )
@@ -473,21 +469,20 @@ private fun GuideEmptyState() {
 private fun GuideNoDataForAge() {
     val dimensions = LocalDimensions.current
     Box(
-        modifier         = Modifier.fillMaxWidth().padding(dimensions.spacingLarge),
+        modifier = Modifier.fillMaxWidth().padding(dimensions.spacingLarge),
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text  = stringResource(Res.string.sleep_guide_no_data),
+            text = stringResource(Res.string.sleep_guide_no_data),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
         )
     }
 }
 
-// ── Helper ────────────────────────────────────────────────────────────────
 private fun buildLocalizedAll() = LocalizedString(
-    en        = "All",
+    en = "All",
     ku_sorani = "هەموو",
     ku_badini = "هەمی",
-    ar        = "الكل"
+    ar = "الكل"
 )

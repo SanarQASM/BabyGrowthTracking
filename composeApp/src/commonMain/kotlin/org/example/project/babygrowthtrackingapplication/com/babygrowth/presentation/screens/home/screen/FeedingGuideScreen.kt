@@ -21,137 +21,135 @@ import babygrowthtrackingapplication.composeapp.generated.resources.*
 
 // ═══════════════════════════════════════════════════════════════════════════
 // FeedingGuideScreen.kt
+//
+// REFACTORED:
+//  • 300.dp landscape left pane width → dimensions.landscapeWidePaneWidth
 // ═══════════════════════════════════════════════════════════════════════════
 
-private const val CAT_MILK     = "milk_feeding"
-private const val CAT_SOLID    = "solid_foods"
+private const val CAT_MILK = "milk_feeding"
+private const val CAT_SOLID = "solid_foods"
 private const val CAT_SCHEDULE = "sample_schedule"
-private const val CAT_AVOID    = "foods_to_avoid"
-private const val CAT_TIPS     = "feeding_tips"
+private const val CAT_AVOID = "foods_to_avoid"
+private const val CAT_TIPS = "feeding_tips"
 
 @Composable
 fun FeedingGuideScreen(
-    babies   : List<BabyResponse>,
+    babies: List<BabyResponse>,
     viewModel: GuideViewModel,
-    language : String,
-    onBack   : () -> Unit
+    language: String,
+    onBack: () -> Unit
 ) {
     val state = viewModel.uiState
 
     LaunchedEffect(Unit) { viewModel.loadFeedingGuide() }
 
-    var selectedCategory  by remember { mutableStateOf(CAT_MILK) }
-    var selectedTabId     by remember { mutableStateOf("all") }
+    var selectedCategory by remember { mutableStateOf(CAT_MILK) }
+    var selectedTabId by remember { mutableStateOf("all") }
     var selectedBabyIndex by remember { mutableStateOf(0) }
 
-    val selectedBaby  = babies.getOrNull(selectedBabyIndex)
-    val ageInMonths   = selectedBaby?.ageInMonths ?: 8
+    val selectedBaby = babies.getOrNull(selectedBabyIndex)
+    val ageInMonths = selectedBaby?.ageInMonths ?: 8
 
-    val guide           = state.feedingGuide
+    val guide = state.feedingGuide
     val currentStrategy = guide?.strategyById(selectedCategory)
 
-    // FIX: Key on `currentStrategy` (not just selectedCategory + selectedBabyIndex)
-    // so this effect fires once the guide finishes loading asynchronously.
-    // loadFeedbackForStrategy loads ALL age-ranges in the strategy, not just
-    // the currently visible age, so every card has counts pre-fetched.
     LaunchedEffect(currentStrategy, selectedBabyIndex) {
         val strategy = currentStrategy ?: return@LaunchedEffect
         viewModel.loadFeedbackForStrategy(strategy, "FEEDING")
     }
 
     val childName = selectedBaby?.fullName ?: ""
-    val subtitle  = if (childName.isNotBlank())
+    val subtitle = if (childName.isNotBlank())
         guide?.subtitle?.get(language)?.replace("{childName}", childName)
             ?: stringResource(Res.string.feeding_guide_title)
     else
         guide?.title?.get(language) ?: stringResource(Res.string.feeding_guide_title)
 
     val categories = listOf(
-        GuideCategoryItem(CAT_MILK,     "🥛", stringResource(Res.string.feeding_guide_cat_milk)),
-        GuideCategoryItem(CAT_SOLID,    "🥣", stringResource(Res.string.feeding_guide_cat_solid)),
+        GuideCategoryItem(CAT_MILK, "🥛", stringResource(Res.string.feeding_guide_cat_milk)),
+        GuideCategoryItem(CAT_SOLID, "🥣", stringResource(Res.string.feeding_guide_cat_solid)),
         GuideCategoryItem(CAT_SCHEDULE, "📅", stringResource(Res.string.feeding_guide_cat_schedule)),
-        GuideCategoryItem(CAT_AVOID,    "🚫", stringResource(Res.string.feeding_guide_cat_avoid)),
-        GuideCategoryItem(CAT_TIPS,     "💡", stringResource(Res.string.feeding_guide_cat_tips))
+        GuideCategoryItem(CAT_AVOID, "🚫", stringResource(Res.string.feeding_guide_cat_avoid)),
+        GuideCategoryItem(CAT_TIPS, "💡", stringResource(Res.string.feeding_guide_cat_tips))
     )
 
     Scaffold(
-        topBar         = {
+        topBar = {
             GuideTopBar(
-                title  = guide?.title?.get(language) ?: stringResource(Res.string.feeding_guide_title),
+                title = guide?.title?.get(language)
+                    ?: stringResource(Res.string.feeding_guide_title),
                 onBack = onBack
             )
         },
         containerColor = Color.Transparent
     ) { paddingValues ->
         AdaptiveLayout(
-            modifier  = Modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.background),
-            portrait  = {
+            portrait = {
                 FeedingGuidePortrait(
-                    babies            = babies,
+                    babies = babies,
                     selectedBabyIndex = selectedBabyIndex,
-                    onSelectBaby      = { selectedBabyIndex = it; selectedTabId = "all" },
-                    subtitle          = subtitle,
-                    categories        = categories,
-                    selectedCategory  = selectedCategory,
-                    onSelectCategory  = { selectedCategory = it; selectedTabId = "all" },
-                    selectedTabId     = selectedTabId,
-                    onSelectTab       = { selectedTabId = it },
-                    currentStrategy   = currentStrategy,
-                    ageInMonths       = ageInMonths,
-                    language          = language,
-                    isLoading         = state.isLoadingFeeding,
-                    feedbackMap       = state.feedbackMap,
-                    onUseful          = { id -> viewModel.castVote(id, "FEEDING", UserVote.USEFUL) },
-                    onUseless         = { id -> viewModel.castVote(id, "FEEDING", UserVote.USELESS) }
+                    onSelectBaby = { selectedBabyIndex = it; selectedTabId = "all" },
+                    subtitle = subtitle,
+                    categories = categories,
+                    selectedCategory = selectedCategory,
+                    onSelectCategory = { selectedCategory = it; selectedTabId = "all" },
+                    selectedTabId = selectedTabId,
+                    onSelectTab = { selectedTabId = it },
+                    currentStrategy = currentStrategy,
+                    ageInMonths = ageInMonths,
+                    language = language,
+                    isLoading = state.isLoadingFeeding,
+                    feedbackMap = state.feedbackMap,
+                    onUseful = { id -> viewModel.castVote(id, "FEEDING", UserVote.USEFUL) },
+                    onUseless = { id -> viewModel.castVote(id, "FEEDING", UserVote.USELESS) }
                 )
             },
             landscape = {
                 FeedingGuideLandscape(
-                    babies            = babies,
+                    babies = babies,
                     selectedBabyIndex = selectedBabyIndex,
-                    onSelectBaby      = { selectedBabyIndex = it; selectedTabId = "all" },
-                    subtitle          = subtitle,
-                    categories        = categories,
-                    selectedCategory  = selectedCategory,
-                    onSelectCategory  = { selectedCategory = it; selectedTabId = "all" },
-                    selectedTabId     = selectedTabId,
-                    onSelectTab       = { selectedTabId = it },
-                    currentStrategy   = currentStrategy,
-                    ageInMonths       = ageInMonths,
-                    language          = language,
-                    isLoading         = state.isLoadingFeeding,
-                    feedbackMap       = state.feedbackMap,
-                    onUseful          = { id -> viewModel.castVote(id, "FEEDING", UserVote.USEFUL) },
-                    onUseless         = { id -> viewModel.castVote(id, "FEEDING", UserVote.USELESS) }
+                    onSelectBaby = { selectedBabyIndex = it; selectedTabId = "all" },
+                    subtitle = subtitle,
+                    categories = categories,
+                    selectedCategory = selectedCategory,
+                    onSelectCategory = { selectedCategory = it; selectedTabId = "all" },
+                    selectedTabId = selectedTabId,
+                    onSelectTab = { selectedTabId = it },
+                    currentStrategy = currentStrategy,
+                    ageInMonths = ageInMonths,
+                    language = language,
+                    isLoading = state.isLoadingFeeding,
+                    feedbackMap = state.feedbackMap,
+                    onUseful = { id -> viewModel.castVote(id, "FEEDING", UserVote.USEFUL) },
+                    onUseless = { id -> viewModel.castVote(id, "FEEDING", UserVote.USELESS) }
                 )
             }
         )
     }
 }
 
-// ── Portrait layout ───────────────────────────────────────────────────────
-
 @Composable
 private fun FeedingGuidePortrait(
-    babies           : List<BabyResponse>,
+    babies: List<BabyResponse>,
     selectedBabyIndex: Int,
-    onSelectBaby     : (Int) -> Unit,
-    subtitle         : String,
-    categories       : List<GuideCategoryItem>,
-    selectedCategory : String,
-    onSelectCategory : (String) -> Unit,
-    selectedTabId    : String,
-    onSelectTab      : (String) -> Unit,
-    currentStrategy  : GuideStrategy?,
-    ageInMonths      : Int,
-    language         : String,
-    isLoading        : Boolean,
-    feedbackMap      : Map<String, CardFeedbackState>,
-    onUseful         : (String) -> Unit,
-    onUseless        : (String) -> Unit
+    onSelectBaby: (Int) -> Unit,
+    subtitle: String,
+    categories: List<GuideCategoryItem>,
+    selectedCategory: String,
+    onSelectCategory: (String) -> Unit,
+    selectedTabId: String,
+    onSelectTab: (String) -> Unit,
+    currentStrategy: GuideStrategy?,
+    ageInMonths: Int,
+    language: String,
+    isLoading: Boolean,
+    feedbackMap: Map<String, CardFeedbackState>,
+    onUseful: (String) -> Unit,
+    onUseless: (String) -> Unit
 ) {
     val dimensions = LocalDimensions.current
 
@@ -161,22 +159,22 @@ private fun FeedingGuidePortrait(
             .verticalScroll(rememberScrollState())
     ) {
         GuideSubtitleHeader(
-            subtitle      = subtitle,
-            babies        = babies,
+            subtitle = subtitle,
+            babies = babies,
             selectedIndex = selectedBabyIndex,
-            onSelectBaby  = onSelectBaby
+            onSelectBaby = onSelectBaby
         )
 
         GuideCategorySelector(
-            categories       = categories,
-            selectedId       = selectedCategory,
+            categories = categories,
+            selectedId = selectedCategory,
             onSelectCategory = onSelectCategory,
-            modifier         = Modifier.padding(top = dimensions.spacingSmall)
+            modifier = Modifier.padding(top = dimensions.spacingSmall)
         )
 
         HorizontalDivider(
             modifier = Modifier.padding(vertical = dimensions.spacingSmall),
-            color    = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
         )
 
         if (isLoading) {
@@ -188,67 +186,66 @@ private fun FeedingGuidePortrait(
             FeedingEmptyState()
         } else {
             FeedingStrategyContent(
-                strategy      = currentStrategy,
-                ageInMonths   = ageInMonths,
-                language      = language,
+                strategy = currentStrategy,
+                ageInMonths = ageInMonths,
+                language = language,
                 selectedTabId = selectedTabId,
-                onSelectTab   = onSelectTab,
-                feedbackMap   = feedbackMap,
-                onUseful      = onUseful,
-                onUseless     = onUseless,
-                modifier      = Modifier.padding(bottom = dimensions.spacingLarge)
+                onSelectTab = onSelectTab,
+                feedbackMap = feedbackMap,
+                onUseful = onUseful,
+                onUseless = onUseless,
+                modifier = Modifier.padding(bottom = dimensions.spacingLarge)
             )
         }
     }
 }
 
-// ── Landscape layout ──────────────────────────────────────────────────────
-
 @Composable
 private fun FeedingGuideLandscape(
-    babies           : List<BabyResponse>,
+    babies: List<BabyResponse>,
     selectedBabyIndex: Int,
-    onSelectBaby     : (Int) -> Unit,
-    subtitle         : String,
-    categories       : List<GuideCategoryItem>,
-    selectedCategory : String,
-    onSelectCategory : (String) -> Unit,
-    selectedTabId    : String,
-    onSelectTab      : (String) -> Unit,
-    currentStrategy  : GuideStrategy?,
-    ageInMonths      : Int,
-    language         : String,
-    isLoading        : Boolean,
-    feedbackMap      : Map<String, CardFeedbackState>,
-    onUseful         : (String) -> Unit,
-    onUseless        : (String) -> Unit
+    onSelectBaby: (Int) -> Unit,
+    subtitle: String,
+    categories: List<GuideCategoryItem>,
+    selectedCategory: String,
+    onSelectCategory: (String) -> Unit,
+    selectedTabId: String,
+    onSelectTab: (String) -> Unit,
+    currentStrategy: GuideStrategy?,
+    ageInMonths: Int,
+    language: String,
+    isLoading: Boolean,
+    feedbackMap: Map<String, CardFeedbackState>,
+    onUseful: (String) -> Unit,
+    onUseless: (String) -> Unit
 ) {
     val dimensions = LocalDimensions.current
 
     Row(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
-                .width(300.dp)
+                // CHANGED: 300.dp → dimensions.landscapeWidePaneWidth
+                .width(dimensions.landscapeWidePaneWidth)
                 .fillMaxHeight()
                 .verticalScroll(rememberScrollState())
                 .background(MaterialTheme.colorScheme.surface)
         ) {
             GuideSubtitleHeader(
-                subtitle      = subtitle,
-                babies        = babies,
+                subtitle = subtitle,
+                babies = babies,
                 selectedIndex = selectedBabyIndex,
-                onSelectBaby  = onSelectBaby
+                onSelectBaby = onSelectBaby
             )
             GuideCategorySelector(
-                categories       = categories,
-                selectedId       = selectedCategory,
+                categories = categories,
+                selectedId = selectedCategory,
                 onSelectCategory = onSelectCategory
             )
         }
 
         HorizontalDivider(
-            modifier = Modifier.fillMaxHeight().width(1.dp),
-            color    = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
+            modifier = Modifier.fillMaxHeight().width(dimensions.borderWidthThin),
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f)
         )
 
         Column(
@@ -259,41 +256,41 @@ private fun FeedingGuideLandscape(
                 .padding(bottom = dimensions.spacingLarge)
         ) {
             if (isLoading) {
-                Box(Modifier.fillMaxWidth().padding(dimensions.spacingXLarge),
-                    contentAlignment = Alignment.Center) { CircularProgressIndicator() }
+                Box(
+                    Modifier.fillMaxWidth().padding(dimensions.spacingXLarge),
+                    contentAlignment = Alignment.Center
+                ) { CircularProgressIndicator() }
             } else if (currentStrategy == null) {
                 FeedingEmptyState()
             } else {
                 FeedingStrategyContent(
-                    strategy      = currentStrategy,
-                    ageInMonths   = ageInMonths,
-                    language      = language,
+                    strategy = currentStrategy,
+                    ageInMonths = ageInMonths,
+                    language = language,
                     selectedTabId = selectedTabId,
-                    onSelectTab   = onSelectTab,
-                    feedbackMap   = feedbackMap,
-                    onUseful      = onUseful,
-                    onUseless     = onUseless
+                    onSelectTab = onSelectTab,
+                    feedbackMap = feedbackMap,
+                    onUseful = onUseful,
+                    onUseless = onUseless
                 )
             }
         }
     }
 }
 
-// ── Strategy content dispatcher ───────────────────────────────────────────
-
 @Composable
 private fun FeedingStrategyContent(
-    strategy     : GuideStrategy,
-    ageInMonths  : Int,
-    language     : String,
+    strategy: GuideStrategy,
+    ageInMonths: Int,
+    language: String,
     selectedTabId: String,
-    onSelectTab  : (String) -> Unit,
-    feedbackMap  : Map<String, CardFeedbackState>,
-    onUseful     : (String) -> Unit,
-    onUseless    : (String) -> Unit,
-    modifier     : Modifier = Modifier
+    onSelectTab: (String) -> Unit,
+    feedbackMap: Map<String, CardFeedbackState>,
+    onUseful: (String) -> Unit,
+    onUseless: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val dimensions   = LocalDimensions.current
+    val dimensions = LocalDimensions.current
     val customColors = MaterialTheme.customColors
 
     Column(modifier = modifier) {
@@ -305,10 +302,10 @@ private fun FeedingStrategyContent(
                 .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingSmall)
         ) {
             Text(
-                text          = strategy.title.get(language).uppercase(),
-                style         = MaterialTheme.typography.labelMedium,
-                fontWeight    = FontWeight.Bold,
-                color         = customColors.accentGradientStart,
+                text = strategy.title.get(language).uppercase(),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = customColors.accentGradientStart,
                 letterSpacing = 1.sp
             )
         }
@@ -326,9 +323,9 @@ private fun FeedingStrategyContent(
                     }
                 }
                 GuidePillTabs(
-                    tabs        = tabs,
-                    selectedId  = selectedTabId,
-                    langCode    = language,
+                    tabs = tabs,
+                    selectedId = selectedTabId,
+                    langCode = language,
                     onSelectTab = onSelectTab
                 )
                 val items = strategy.itemsForAgeAndTab(ageInMonths, selectedTabId)
@@ -349,11 +346,11 @@ private fun FeedingStrategyContent(
 
 @Composable
 private fun FeedingCardsColumn(
-    items      : List<GuideItem>,
-    language   : String,
+    items: List<GuideItem>,
+    language: String,
     feedbackMap: Map<String, CardFeedbackState>,
-    onUseful   : (String) -> Unit,
-    onUseless  : (String) -> Unit
+    onUseful: (String) -> Unit,
+    onUseless: (String) -> Unit
 ) {
     val dimensions = LocalDimensions.current
     if (items.isEmpty()) {
@@ -361,37 +358,33 @@ private fun FeedingCardsColumn(
         return
     }
     Column(
-        modifier            = Modifier.padding(dimensions.screenPadding),
+        modifier = Modifier.padding(dimensions.screenPadding),
         verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
     ) {
         items.forEach { item ->
-            // FIX: always provide a fallback CardFeedbackState so the card's
-            // buttons are never in a "no state" limbo.
             GuideContentCard(
-                item          = item,
-                langCode      = language,
+                item = item,
+                langCode = language,
                 feedbackState = feedbackMap[item.id] ?: CardFeedbackState(item.id),
-                onUseful      = { onUseful(item.id) },
-                onUseless     = { onUseless(item.id) }
+                onUseful = { onUseful(item.id) },
+                onUseless = { onUseless(item.id) }
             )
         }
     }
 }
 
-// ── Empty / no-data states ────────────────────────────────────────────────
-
 @Composable
 private fun FeedingEmptyState() {
     val dimensions = LocalDimensions.current
     Box(
-        modifier         = Modifier.fillMaxWidth().padding(dimensions.spacingXLarge),
+        modifier = Modifier.fillMaxWidth().padding(dimensions.spacingXLarge),
         contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Text("🍼", fontSize = 48.sp)
             Spacer(Modifier.height(dimensions.spacingMedium))
             Text(
-                text  = stringResource(Res.string.feeding_guide_no_data),
+                text = stringResource(Res.string.feeding_guide_no_data),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
             )
@@ -404,25 +397,24 @@ private fun FeedingNoDataForAge(strategyId: String) {
     val dimensions = LocalDimensions.current
     val msg = when (strategyId) {
         CAT_SOLID -> stringResource(Res.string.feeding_guide_no_solid)
-        else      -> stringResource(Res.string.feeding_guide_no_data)
+        else -> stringResource(Res.string.feeding_guide_no_data)
     }
     Box(
-        modifier         = Modifier.fillMaxWidth().padding(dimensions.spacingLarge),
+        modifier = Modifier.fillMaxWidth().padding(dimensions.spacingLarge),
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text  = msg,
+            text = msg,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
         )
     }
 }
 
-// ── Helper: build localised "All" tab ────────────────────────────────────
 private fun buildLocalizedAll() =
     LocalizedString(
-        en        = "All",
+        en = "All",
         ku_sorani = "هەموو",
         ku_badini = "هەمی",
-        ar        = "الكل"
+        ar = "الكل"
     )

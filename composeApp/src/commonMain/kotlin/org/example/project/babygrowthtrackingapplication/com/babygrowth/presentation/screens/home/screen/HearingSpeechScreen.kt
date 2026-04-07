@@ -23,26 +23,29 @@ import org.example.project.babygrowthtrackingapplication.theme.*
 import org.jetbrains.compose.resources.stringResource
 
 // ─────────────────────────────────────────────────────────────────────────────
-// HearingSpeechScreen — بیستن + ئاغاوتن (Hearing + Talking)
-// Screen 2 of Child Development Tracker
+// HearingSpeechScreen
+//
+// REFACTORED:
+//  • 220.dp landscape left pane → dimensions.landscapeNarrowPaneWidth
+//  • 36.dp edit button size     → dimensions.devEditButtonSize
 // ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HearingSpeechScreen(
-    babyId       : String,
-    babyName     : String,
+    babyId: String,
+    babyName: String,
     babyAgeMonths: Int,
-    viewModel    : HearingSpeechViewModel,
-    onBack       : () -> Unit
+    viewModel: HearingSpeechViewModel,
+    onBack: () -> Unit
 ) {
-    val state        = viewModel.uiState
+    val state = viewModel.uiState
     val customColors = MaterialTheme.customColors
-    val dimensions   = LocalDimensions.current
-    val isLandscape  = LocalIsLandscape.current
-    val snackbar     = remember { SnackbarHostState() }
+    val dimensions = LocalDimensions.current
+    val isLandscape = LocalIsLandscape.current
+    val snackbar = remember { SnackbarHostState() }
 
-    val msgSaved   = stringResource(Res.string.child_dev_saved)
+    val msgSaved = stringResource(Res.string.child_dev_saved)
     val errGeneric = stringResource(Res.string.child_dev_error_generic)
 
     LaunchedEffect(babyId) { viewModel.load(babyId, babyAgeMonths) }
@@ -62,25 +65,25 @@ fun HearingSpeechScreen(
 
     if (state.editingMonth != null && state.editingState != null) {
         HearingSpeechEditPanel(
-            state        = state,
-            viewModel    = viewModel,
-            babyId       = babyId,
+            state = state,
+            viewModel = viewModel,
+            babyId = babyId,
             customColors = customColors,
-            dimensions   = dimensions
+            dimensions = dimensions
         )
         return
     }
 
     Scaffold(
-        snackbarHost   = { SnackbarHost(snackbar) },
-        topBar         = {
+        snackbarHost = { SnackbarHost(snackbar) },
+        topBar = {
             ChildDevTopBar(
-                title        = stringResource(Res.string.child_dev_hearing_speech_title),
-                subtitle     = babyName,
-                emoji        = stringResource(Res.string.child_dev_hearing_emoji),
-                onBack       = onBack,
+                title = stringResource(Res.string.child_dev_hearing_speech_title),
+                subtitle = babyName,
+                emoji = stringResource(Res.string.child_dev_hearing_emoji),
+                onBack = onBack,
                 customColors = customColors,
-                dimensions   = dimensions
+                dimensions = dimensions
             )
         },
         containerColor = Color.Transparent
@@ -88,11 +91,15 @@ fun HearingSpeechScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(
-                    customColors.accentGradientStart.copy(0.12f),
-                    customColors.accentGradientEnd.copy(0.06f),
-                    MaterialTheme.colorScheme.background
-                )))
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            customColors.accentGradientStart.copy(0.12f),
+                            customColors.accentGradientEnd.copy(0.06f),
+                            MaterialTheme.colorScheme.background
+                        )
+                    )
+                )
                 .padding(padding)
         ) {
             if (state.isLoading) {
@@ -110,27 +117,26 @@ fun HearingSpeechScreen(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Portrait Layout
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun HearingSpeechPortraitLayout(
     state: HearingSpeechUiState, viewModel: HearingSpeechViewModel,
     customColors: CustomColors, dimensions: Dimensions
 ) {
     LazyColumn(
-        contentPadding      = PaddingValues(horizontal = dimensions.screenPadding, vertical = dimensions.spacingMedium),
+        contentPadding = PaddingValues(
+            horizontal = dimensions.screenPadding,
+            vertical = dimensions.spacingMedium
+        ),
         verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium),
-        modifier            = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize()
     ) {
         item {
             ChildDevHeaderCard(
-                title        = stringResource(Res.string.child_dev_hearing_speech_title),
-                subtitle     = stringResource(Res.string.child_dev_hearing_speech_subtitle),
-                emoji        = stringResource(Res.string.child_dev_hearing_emoji),
+                title = stringResource(Res.string.child_dev_hearing_speech_title),
+                subtitle = stringResource(Res.string.child_dev_hearing_speech_subtitle),
+                emoji = stringResource(Res.string.child_dev_hearing_emoji),
                 customColors = customColors,
-                dimensions   = dimensions
+                dimensions = dimensions
             )
         }
         HEARING_SPEECH_MILESTONE_MONTHS.forEach { month ->
@@ -142,19 +148,17 @@ private fun HearingSpeechPortraitLayout(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Landscape Layout
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun HearingSpeechLandscapeLayout(
     state: HearingSpeechUiState, viewModel: HearingSpeechViewModel,
     customColors: CustomColors, dimensions: Dimensions
 ) {
     Row(Modifier.fillMaxSize()) {
+        // CHANGED: 220.dp → dimensions.landscapeNarrowPaneWidth
         Column(
             modifier = Modifier
-                .width(220.dp).fillMaxHeight()
+                .width(dimensions.landscapeNarrowPaneWidth)
+                .fillMaxHeight()
                 .background(customColors.accentGradientStart.copy(0.55f))
                 .verticalScroll(rememberScrollState())
                 .padding(dimensions.spacingMedium),
@@ -162,8 +166,10 @@ private fun HearingSpeechLandscapeLayout(
             verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
         ) {
             Spacer(Modifier.height(dimensions.spacingSmall))
-            Text(stringResource(Res.string.child_dev_hearing_emoji),
-                style = MaterialTheme.typography.displaySmall)
+            Text(
+                stringResource(Res.string.child_dev_hearing_emoji),
+                style = MaterialTheme.typography.displaySmall
+            )
             Text(
                 stringResource(Res.string.child_dev_hearing_speech_title),
                 style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold,
@@ -171,15 +177,17 @@ private fun HearingSpeechLandscapeLayout(
             )
             Spacer(Modifier.height(dimensions.spacingSmall))
             HEARING_SPEECH_MILESTONE_MONTHS.forEach { month ->
-                val enabled  = viewModel.isMonthEnabled(month)
-                val hasData  = state.savedRecords.containsKey(month)
-                val color    = when {
+                val enabled = viewModel.isMonthEnabled(month)
+                val hasData = state.savedRecords.containsKey(month)
+                val color = when {
                     !enabled -> MaterialTheme.colorScheme.onSurface.copy(0.3f)
-                    hasData  -> Color(0xFF22C55E)
-                    else     -> customColors.accentGradientEnd
+                    hasData -> Color(0xFF22C55E)
+                    else -> customColors.accentGradientEnd
                 }
-                Surface(shape = RoundedCornerShape(50), color = color.copy(0.2f),
-                    modifier = Modifier.fillMaxWidth()) {
+                Surface(
+                    shape = RoundedCornerShape(50), color = color.copy(0.2f),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     Text(
                         text = stringResource(Res.string.child_dev_month_label, month),
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
@@ -191,40 +199,44 @@ private fun HearingSpeechLandscapeLayout(
             }
         }
         LazyColumn(
-            contentPadding      = PaddingValues(dimensions.spacingMedium),
+            contentPadding = PaddingValues(dimensions.spacingMedium),
             verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium),
-            modifier            = Modifier.weight(1f).fillMaxHeight()
+            modifier = Modifier.weight(1f).fillMaxHeight()
         ) {
             HEARING_SPEECH_MILESTONE_MONTHS.forEach { month ->
-                item { HearingSpeechMilestoneCard(month, state, viewModel, customColors, dimensions) }
+                item {
+                    HearingSpeechMilestoneCard(
+                        month,
+                        state,
+                        viewModel,
+                        customColors,
+                        dimensions
+                    )
+                }
             }
             item { Spacer(Modifier.height(dimensions.spacingXXLarge)) }
         }
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Milestone Card
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun HearingSpeechMilestoneCard(
     month: Int, state: HearingSpeechUiState, viewModel: HearingSpeechViewModel,
     customColors: CustomColors, dimensions: Dimensions
 ) {
-    val isEnabled  = viewModel.isMonthEnabled(month)
-    val record     = state.savedRecords[month]
-    val hasData    = record != null
+    val isEnabled = viewModel.isMonthEnabled(month)
+    val record = state.savedRecords[month]
+    val hasData = record != null
     val statusColor = when {
         !isEnabled -> MaterialTheme.colorScheme.onSurface.copy(0.3f)
-        hasData    -> Color(0xFF22C55E)
-        else       -> customColors.warning
+        hasData -> Color(0xFF22C55E)
+        else -> customColors.warning
     }
 
     Card(
-        modifier  = Modifier.fillMaxWidth(),
-        shape     = RoundedCornerShape(dimensions.cardCornerRadius),
-        colors    = CardDefaults.cardColors(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(dimensions.cardCornerRadius),
+        colors = CardDefaults.cardColors(
             containerColor = if (isEnabled) customColors.glassBackground
             else MaterialTheme.colorScheme.surfaceVariant.copy(0.3f)
         ),
@@ -232,12 +244,13 @@ private fun HearingSpeechMilestoneCard(
     ) {
         Column(Modifier.fillMaxWidth().padding(dimensions.spacingMedium)) {
             Row(
-                verticalAlignment     = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall),
-                modifier              = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             ) {
+                // CHANGED: 40.dp → dimensions.devMonthBadgeSize
                 Box(
-                    modifier = Modifier.size(40.dp).clip(CircleShape)
+                    modifier = Modifier.size(dimensions.devMonthBadgeSize).clip(CircleShape)
                         .background(statusColor.copy(0.15f)),
                     contentAlignment = Alignment.Center
                 ) {
@@ -259,19 +272,24 @@ private fun HearingSpeechMilestoneCard(
                     Text(
                         text = when {
                             !isEnabled -> stringResource(Res.string.child_dev_locked_hint)
-                            hasData    -> stringResource(Res.string.child_dev_status_recorded)
-                            else       -> stringResource(Res.string.child_dev_status_not_recorded)
+                            hasData -> stringResource(Res.string.child_dev_status_recorded)
+                            else -> stringResource(Res.string.child_dev_status_not_recorded)
                         },
                         style = MaterialTheme.typography.bodySmall, color = statusColor
                     )
                 }
                 if (!isEnabled) {
-                    Icon(Icons.Default.Lock, null,
+                    Icon(
+                        Icons.Default.Lock, null,
                         tint = MaterialTheme.colorScheme.onSurface.copy(0.3f),
-                        modifier = Modifier.size(dimensions.iconSmall))
+                        modifier = Modifier.size(dimensions.iconSmall)
+                    )
                 } else {
-                    IconButton(onClick = { viewModel.startEditing(month) },
-                        modifier = Modifier.size(36.dp)) {
+                    // CHANGED: 36.dp → dimensions.devEditButtonSize
+                    IconButton(
+                        onClick = { viewModel.startEditing(month) },
+                        modifier = Modifier.size(dimensions.devEditButtonSize)
+                    ) {
                         Icon(
                             if (hasData) Icons.Default.Edit else Icons.Default.Add,
                             contentDescription = null,
@@ -286,7 +304,11 @@ private fun HearingSpeechMilestoneCard(
                 Spacer(Modifier.height(dimensions.spacingSmall))
                 HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(0.07f))
                 Spacer(Modifier.height(dimensions.spacingSmall))
-                HearingSpeechChecklistPreview(month = month, record = record!!, dimensions = dimensions)
+                HearingSpeechChecklistPreview(
+                    month = month,
+                    record = record!!,
+                    dimensions = dimensions
+                )
             }
 
             if (!isEnabled) {
@@ -307,31 +329,57 @@ private fun HearingSpeechChecklistPreview(
     month: Int, record: HearingSpeechMonthState, dimensions: Dimensions
 ) {
     val items: List<Boolean?> = when (month) {
-        1  -> listOf(record.m1StartlesFixatesAttentive, record.m1TurnsToSoundBrief,
-            record.m1CriesHungerDiscomfort, record.m1PrefersVoicesOverSounds)
-        3  -> listOf(record.m3CalmWithLoudSound, record.m3CalmsWithMothersVoice,
-            record.m3LocalizesSoundSource, record.m3VocalDuringFeeding, record.m3RespondsToNearbySound)
-        6  -> listOf(record.m6LocatesMothersVoice, record.m6VocalizesSoundsBabbles, record.m6SmilesImitateSpeech)
-        9  -> listOf(record.m9AwareOfDailySounds, record.m9AttemptsReciprocalTalking,
-            record.m9CallsForAttention, record.m9ReduplicatedBabble, record.m9RespondsToSimpleQuestions)
-        12 -> listOf(record.m12RespondsToOwnName, record.m12MeaningfulWords,
-            record.m12UnderstandsSimpleCommands, record.m12GivesTakesOnRequest)
+        1 -> listOf(
+            record.m1StartlesFixatesAttentive, record.m1TurnsToSoundBrief,
+            record.m1CriesHungerDiscomfort, record.m1PrefersVoicesOverSounds
+        )
+
+        3 -> listOf(
+            record.m3CalmWithLoudSound,
+            record.m3CalmsWithMothersVoice,
+            record.m3LocalizesSoundSource,
+            record.m3VocalDuringFeeding,
+            record.m3RespondsToNearbySound
+        )
+
+        6 -> listOf(
+            record.m6LocatesMothersVoice,
+            record.m6VocalizesSoundsBabbles,
+            record.m6SmilesImitateSpeech
+        )
+
+        9 -> listOf(
+            record.m9AwareOfDailySounds,
+            record.m9AttemptsReciprocalTalking,
+            record.m9CallsForAttention,
+            record.m9ReduplicatedBabble,
+            record.m9RespondsToSimpleQuestions
+        )
+
+        12 -> listOf(
+            record.m12RespondsToOwnName, record.m12MeaningfulWords,
+            record.m12UnderstandsSimpleCommands, record.m12GivesTakesOnRequest
+        )
+
         else -> emptyList()
     }
     val checkedCount = items.count { it == true }
     Row(
-        verticalAlignment     = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall),
-        modifier              = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth()
     ) {
         items.forEach { value ->
-            Box(modifier = Modifier.size(8.dp).clip(CircleShape).background(
-                when (value) {
-                    true  -> Color(0xFF22C55E)
-                    false -> MaterialTheme.colorScheme.error.copy(0.7f)
-                    null  -> MaterialTheme.colorScheme.onSurface.copy(0.2f)
-                }
-            ))
+            Box(
+                modifier = Modifier.size(dimensions.devIndicatorDotSize).clip(CircleShape)
+                    .background(
+                        when (value) {
+                            true -> Color(0xFF22C55E)
+                            false -> MaterialTheme.colorScheme.error.copy(0.7f)
+                            null -> MaterialTheme.colorScheme.onSurface.copy(0.2f)
+                        }
+                    )
+            )
         }
         Spacer(Modifier.weight(1f))
         Text(
@@ -344,17 +392,13 @@ private fun HearingSpeechChecklistPreview(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Edit Panel
-// ─────────────────────────────────────────────────────────────────────────────
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun HearingSpeechEditPanel(
     state: HearingSpeechUiState, viewModel: HearingSpeechViewModel,
     babyId: String, customColors: CustomColors, dimensions: Dimensions
 ) {
-    val month   = state.editingMonth ?: return
+    val month = state.editingMonth ?: return
     val editing = state.editingState ?: return
 
     Scaffold(
@@ -377,8 +421,10 @@ private fun HearingSpeechEditPanel(
                 },
                 navigationIcon = {
                     IconButton(onClick = viewModel::cancelEditing) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, null,
-                            tint = customColors.accentGradientStart)
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack, null,
+                            tint = customColors.accentGradientStart
+                        )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -391,10 +437,14 @@ private fun HearingSpeechEditPanel(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Brush.verticalGradient(listOf(
-                    customColors.accentGradientStart.copy(0.12f),
-                    MaterialTheme.colorScheme.background
-                )))
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            customColors.accentGradientStart.copy(0.12f),
+                            MaterialTheme.colorScheme.background
+                        )
+                    )
+                )
                 .padding(padding)
         ) {
             Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
@@ -402,19 +452,30 @@ private fun HearingSpeechEditPanel(
                     modifier = Modifier
                         .fillMaxWidth()
                         .background(
-                            Brush.verticalGradient(listOf(
-                                customColors.accentGradientStart.copy(0.6f),
-                                customColors.accentGradientEnd.copy(0.45f)
-                            )),
-                            RoundedCornerShape(bottomStart = dimensions.cardCornerRadius,
-                                bottomEnd = dimensions.cardCornerRadius)
+                            Brush.verticalGradient(
+                                listOf(
+                                    customColors.accentGradientStart.copy(0.6f),
+                                    customColors.accentGradientEnd.copy(0.45f)
+                                )
+                            ),
+                            RoundedCornerShape(
+                                bottomStart = dimensions.cardCornerRadius,
+                                bottomEnd = dimensions.cardCornerRadius
+                            )
                         )
-                        .padding(horizontal = dimensions.spacingLarge, vertical = dimensions.spacingMedium)
+                        .padding(
+                            horizontal = dimensions.spacingLarge,
+                            vertical = dimensions.spacingMedium
+                        )
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
-                        Text(stringResource(Res.string.child_dev_hearing_emoji),
-                            style = MaterialTheme.typography.titleLarge)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
+                    ) {
+                        Text(
+                            stringResource(Res.string.child_dev_hearing_emoji),
+                            style = MaterialTheme.typography.titleLarge
+                        )
                         Column {
                             Text(
                                 stringResource(Res.string.child_dev_hearing_speech_subtitle),
@@ -437,21 +498,26 @@ private fun HearingSpeechEditPanel(
                     verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
                 ) {
                     when (month) {
-                        1  -> HearingSpeechMonth1Fields(editing, viewModel, customColors, dimensions)
-                        3  -> HearingSpeechMonth3Fields(editing, viewModel, customColors, dimensions)
-                        6  -> HearingSpeechMonth6Fields(editing, viewModel, customColors, dimensions)
-                        9  -> HearingSpeechMonth9Fields(editing, viewModel, customColors, dimensions)
-                        12 -> HearingSpeechMonth12Fields(editing, viewModel, customColors, dimensions)
+                        1 -> HearingSpeechMonth1Fields(editing, viewModel, customColors, dimensions)
+                        3 -> HearingSpeechMonth3Fields(editing, viewModel, customColors, dimensions)
+                        6 -> HearingSpeechMonth6Fields(editing, viewModel, customColors, dimensions)
+                        9 -> HearingSpeechMonth9Fields(editing, viewModel, customColors, dimensions)
+                        12 -> HearingSpeechMonth12Fields(
+                            editing,
+                            viewModel,
+                            customColors,
+                            dimensions
+                        )
                     }
 
                     Spacer(Modifier.height(dimensions.spacingMedium))
 
                     ChildDevSaveButton(
-                        isSaving     = state.isSaving,
-                        onSave       = { viewModel.save(babyId) },
-                        onCancel     = viewModel::cancelEditing,
+                        isSaving = state.isSaving,
+                        onSave = { viewModel.save(babyId) },
+                        onCancel = viewModel::cancelEditing,
                         customColors = customColors,
-                        dimensions   = dimensions
+                        dimensions = dimensions
                     )
 
                     Spacer(Modifier.height(dimensions.spacingXXLarge))
@@ -461,78 +527,245 @@ private fun HearingSpeechEditPanel(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Month-specific fields
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun HearingSpeechMonth1Fields(
-    s: HearingSpeechMonthState, vm: HearingSpeechViewModel, cc: CustomColors, d: Dimensions
+    s: HearingSpeechMonthState,
+    vm: HearingSpeechViewModel,
+    cc: CustomColors,
+    d: Dimensions
 ) {
-    DevCheckItem(stringResource(Res.string.hs_m1_1), s.m1StartlesFixatesAttentive,
-        { vm.updateField { it.copy(m1StartlesFixatesAttentive = it.m1StartlesFixatesAttentive?.not() ?: true) } }, cc, d)
-    DevCheckItem(stringResource(Res.string.hs_m1_2), s.m1TurnsToSoundBrief,
-        { vm.updateField { it.copy(m1TurnsToSoundBrief = it.m1TurnsToSoundBrief?.not() ?: true) } }, cc, d)
-    DevCheckItem(stringResource(Res.string.hs_m1_3), s.m1CriesHungerDiscomfort,
-        { vm.updateField { it.copy(m1CriesHungerDiscomfort = it.m1CriesHungerDiscomfort?.not() ?: true) } }, cc, d)
-    DevCheckItem(stringResource(Res.string.hs_m1_4), s.m1PrefersVoicesOverSounds,
-        { vm.updateField { it.copy(m1PrefersVoicesOverSounds = it.m1PrefersVoicesOverSounds?.not() ?: true) } }, cc, d)
+    DevCheckItem(
+        stringResource(Res.string.hs_m1_1), s.m1StartlesFixatesAttentive,
+        {
+            vm.updateField {
+                it.copy(
+                    m1StartlesFixatesAttentive = it.m1StartlesFixatesAttentive?.not() ?: true
+                )
+            }
+        }, cc, d
+    )
+    DevCheckItem(
+        stringResource(Res.string.hs_m1_2),
+        s.m1TurnsToSoundBrief,
+        { vm.updateField { it.copy(m1TurnsToSoundBrief = it.m1TurnsToSoundBrief?.not() ?: true) } },
+        cc,
+        d
+    )
+    DevCheckItem(
+        stringResource(Res.string.hs_m1_3), s.m1CriesHungerDiscomfort,
+        {
+            vm.updateField {
+                it.copy(
+                    m1CriesHungerDiscomfort = it.m1CriesHungerDiscomfort?.not() ?: true
+                )
+            }
+        }, cc, d
+    )
+    DevCheckItem(
+        stringResource(Res.string.hs_m1_4), s.m1PrefersVoicesOverSounds,
+        {
+            vm.updateField {
+                it.copy(
+                    m1PrefersVoicesOverSounds = it.m1PrefersVoicesOverSounds?.not() ?: true
+                )
+            }
+        }, cc, d
+    )
 }
 
 @Composable
 private fun HearingSpeechMonth3Fields(
-    s: HearingSpeechMonthState, vm: HearingSpeechViewModel, cc: CustomColors, d: Dimensions
+    s: HearingSpeechMonthState,
+    vm: HearingSpeechViewModel,
+    cc: CustomColors,
+    d: Dimensions
 ) {
-    DevCheckItem(stringResource(Res.string.hs_m3_1), s.m3CalmWithLoudSound,
-        { vm.updateField { it.copy(m3CalmWithLoudSound = it.m3CalmWithLoudSound?.not() ?: true) } }, cc, d)
-    DevCheckItem(stringResource(Res.string.hs_m3_2), s.m3CalmsWithMothersVoice,
-        { vm.updateField { it.copy(m3CalmsWithMothersVoice = it.m3CalmsWithMothersVoice?.not() ?: true) } }, cc, d)
-    DevCheckItem(stringResource(Res.string.hs_m3_3), s.m3LocalizesSoundSource,
-        { vm.updateField { it.copy(m3LocalizesSoundSource = it.m3LocalizesSoundSource?.not() ?: true) } }, cc, d)
-    DevCheckItem(stringResource(Res.string.hs_m3_4), s.m3VocalDuringFeeding,
-        { vm.updateField { it.copy(m3VocalDuringFeeding = it.m3VocalDuringFeeding?.not() ?: true) } }, cc, d)
-    DevCheckItem(stringResource(Res.string.hs_m3_5), s.m3RespondsToNearbySound,
-        { vm.updateField { it.copy(m3RespondsToNearbySound = it.m3RespondsToNearbySound?.not() ?: true) } }, cc, d)
+    DevCheckItem(
+        stringResource(Res.string.hs_m3_1),
+        s.m3CalmWithLoudSound,
+        { vm.updateField { it.copy(m3CalmWithLoudSound = it.m3CalmWithLoudSound?.not() ?: true) } },
+        cc,
+        d
+    )
+    DevCheckItem(
+        stringResource(Res.string.hs_m3_2), s.m3CalmsWithMothersVoice,
+        {
+            vm.updateField {
+                it.copy(
+                    m3CalmsWithMothersVoice = it.m3CalmsWithMothersVoice?.not() ?: true
+                )
+            }
+        }, cc, d
+    )
+    DevCheckItem(
+        stringResource(Res.string.hs_m3_3), s.m3LocalizesSoundSource,
+        {
+            vm.updateField {
+                it.copy(
+                    m3LocalizesSoundSource = it.m3LocalizesSoundSource?.not() ?: true
+                )
+            }
+        }, cc, d
+    )
+    DevCheckItem(
+        stringResource(Res.string.hs_m3_4), s.m3VocalDuringFeeding,
+        {
+            vm.updateField {
+                it.copy(
+                    m3VocalDuringFeeding = it.m3VocalDuringFeeding?.not() ?: true
+                )
+            }
+        }, cc, d
+    )
+    DevCheckItem(
+        stringResource(Res.string.hs_m3_5), s.m3RespondsToNearbySound,
+        {
+            vm.updateField {
+                it.copy(
+                    m3RespondsToNearbySound = it.m3RespondsToNearbySound?.not() ?: true
+                )
+            }
+        }, cc, d
+    )
 }
 
 @Composable
 private fun HearingSpeechMonth6Fields(
-    s: HearingSpeechMonthState, vm: HearingSpeechViewModel, cc: CustomColors, d: Dimensions
+    s: HearingSpeechMonthState,
+    vm: HearingSpeechViewModel,
+    cc: CustomColors,
+    d: Dimensions
 ) {
-    DevCheckItem(stringResource(Res.string.hs_m6_1), s.m6LocatesMothersVoice,
-        { vm.updateField { it.copy(m6LocatesMothersVoice = it.m6LocatesMothersVoice?.not() ?: true) } }, cc, d)
-    DevCheckItem(stringResource(Res.string.hs_m6_2), s.m6VocalizesSoundsBabbles,
-        { vm.updateField { it.copy(m6VocalizesSoundsBabbles = it.m6VocalizesSoundsBabbles?.not() ?: true) } }, cc, d)
-    DevCheckItem(stringResource(Res.string.hs_m6_3), s.m6SmilesImitateSpeech,
-        { vm.updateField { it.copy(m6SmilesImitateSpeech = it.m6SmilesImitateSpeech?.not() ?: true) } }, cc, d)
+    DevCheckItem(
+        stringResource(Res.string.hs_m6_1), s.m6LocatesMothersVoice,
+        {
+            vm.updateField {
+                it.copy(
+                    m6LocatesMothersVoice = it.m6LocatesMothersVoice?.not() ?: true
+                )
+            }
+        }, cc, d
+    )
+    DevCheckItem(
+        stringResource(Res.string.hs_m6_2), s.m6VocalizesSoundsBabbles,
+        {
+            vm.updateField {
+                it.copy(
+                    m6VocalizesSoundsBabbles = it.m6VocalizesSoundsBabbles?.not() ?: true
+                )
+            }
+        }, cc, d
+    )
+    DevCheckItem(
+        stringResource(Res.string.hs_m6_3), s.m6SmilesImitateSpeech,
+        {
+            vm.updateField {
+                it.copy(
+                    m6SmilesImitateSpeech = it.m6SmilesImitateSpeech?.not() ?: true
+                )
+            }
+        }, cc, d
+    )
 }
 
 @Composable
 private fun HearingSpeechMonth9Fields(
-    s: HearingSpeechMonthState, vm: HearingSpeechViewModel, cc: CustomColors, d: Dimensions
+    s: HearingSpeechMonthState,
+    vm: HearingSpeechViewModel,
+    cc: CustomColors,
+    d: Dimensions
 ) {
-    DevCheckItem(stringResource(Res.string.hs_m9_1), s.m9AwareOfDailySounds,
-        { vm.updateField { it.copy(m9AwareOfDailySounds = it.m9AwareOfDailySounds?.not() ?: true) } }, cc, d)
-    DevCheckItem(stringResource(Res.string.hs_m9_2), s.m9AttemptsReciprocalTalking,
-        { vm.updateField { it.copy(m9AttemptsReciprocalTalking = it.m9AttemptsReciprocalTalking?.not() ?: true) } }, cc, d)
-    DevCheckItem(stringResource(Res.string.hs_m9_3), s.m9CallsForAttention,
-        { vm.updateField { it.copy(m9CallsForAttention = it.m9CallsForAttention?.not() ?: true) } }, cc, d)
-    DevCheckItem(stringResource(Res.string.hs_m9_4), s.m9ReduplicatedBabble,
-        { vm.updateField { it.copy(m9ReduplicatedBabble = it.m9ReduplicatedBabble?.not() ?: true) } }, cc, d)
-    DevCheckItem(stringResource(Res.string.hs_m9_5), s.m9RespondsToSimpleQuestions,
-        { vm.updateField { it.copy(m9RespondsToSimpleQuestions = it.m9RespondsToSimpleQuestions?.not() ?: true) } }, cc, d)
+    DevCheckItem(
+        stringResource(Res.string.hs_m9_1), s.m9AwareOfDailySounds,
+        {
+            vm.updateField {
+                it.copy(
+                    m9AwareOfDailySounds = it.m9AwareOfDailySounds?.not() ?: true
+                )
+            }
+        }, cc, d
+    )
+    DevCheckItem(
+        stringResource(Res.string.hs_m9_2), s.m9AttemptsReciprocalTalking,
+        {
+            vm.updateField {
+                it.copy(
+                    m9AttemptsReciprocalTalking = it.m9AttemptsReciprocalTalking?.not() ?: true
+                )
+            }
+        }, cc, d
+    )
+    DevCheckItem(
+        stringResource(Res.string.hs_m9_3),
+        s.m9CallsForAttention,
+        { vm.updateField { it.copy(m9CallsForAttention = it.m9CallsForAttention?.not() ?: true) } },
+        cc,
+        d
+    )
+    DevCheckItem(
+        stringResource(Res.string.hs_m9_4), s.m9ReduplicatedBabble,
+        {
+            vm.updateField {
+                it.copy(
+                    m9ReduplicatedBabble = it.m9ReduplicatedBabble?.not() ?: true
+                )
+            }
+        }, cc, d
+    )
+    DevCheckItem(
+        stringResource(Res.string.hs_m9_5), s.m9RespondsToSimpleQuestions,
+        {
+            vm.updateField {
+                it.copy(
+                    m9RespondsToSimpleQuestions = it.m9RespondsToSimpleQuestions?.not() ?: true
+                )
+            }
+        }, cc, d
+    )
 }
 
 @Composable
 private fun HearingSpeechMonth12Fields(
-    s: HearingSpeechMonthState, vm: HearingSpeechViewModel, cc: CustomColors, d: Dimensions
+    s: HearingSpeechMonthState,
+    vm: HearingSpeechViewModel,
+    cc: CustomColors,
+    d: Dimensions
 ) {
-    DevCheckItem(stringResource(Res.string.hs_m12_1), s.m12RespondsToOwnName,
-        { vm.updateField { it.copy(m12RespondsToOwnName = it.m12RespondsToOwnName?.not() ?: true) } }, cc, d)
-    DevCheckItem(stringResource(Res.string.hs_m12_2), s.m12MeaningfulWords,
-        { vm.updateField { it.copy(m12MeaningfulWords = it.m12MeaningfulWords?.not() ?: true) } }, cc, d)
-    DevCheckItem(stringResource(Res.string.hs_m12_3), s.m12UnderstandsSimpleCommands,
-        { vm.updateField { it.copy(m12UnderstandsSimpleCommands = it.m12UnderstandsSimpleCommands?.not() ?: true) } }, cc, d)
-    DevCheckItem(stringResource(Res.string.hs_m12_4), s.m12GivesTakesOnRequest,
-        { vm.updateField { it.copy(m12GivesTakesOnRequest = it.m12GivesTakesOnRequest?.not() ?: true) } }, cc, d)
+    DevCheckItem(
+        stringResource(Res.string.hs_m12_1), s.m12RespondsToOwnName,
+        {
+            vm.updateField {
+                it.copy(
+                    m12RespondsToOwnName = it.m12RespondsToOwnName?.not() ?: true
+                )
+            }
+        }, cc, d
+    )
+    DevCheckItem(
+        stringResource(Res.string.hs_m12_2),
+        s.m12MeaningfulWords,
+        { vm.updateField { it.copy(m12MeaningfulWords = it.m12MeaningfulWords?.not() ?: true) } },
+        cc,
+        d
+    )
+    DevCheckItem(
+        stringResource(Res.string.hs_m12_3), s.m12UnderstandsSimpleCommands,
+        {
+            vm.updateField {
+                it.copy(
+                    m12UnderstandsSimpleCommands = it.m12UnderstandsSimpleCommands?.not() ?: true
+                )
+            }
+        }, cc, d
+    )
+    DevCheckItem(
+        stringResource(Res.string.hs_m12_4), s.m12GivesTakesOnRequest,
+        {
+            vm.updateField {
+                it.copy(
+                    m12GivesTakesOnRequest = it.m12GivesTakesOnRequest?.not() ?: true
+                )
+            }
+        }, cc, d
+    )
 }
