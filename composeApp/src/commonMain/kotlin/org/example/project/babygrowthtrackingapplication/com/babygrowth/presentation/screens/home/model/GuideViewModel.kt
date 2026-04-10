@@ -10,24 +10,6 @@ import org.example.project.babygrowthtrackingapplication.platform.createLullabyP
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 
-// ═══════════════════════════════════════════════════════════════════════════
-// GuideViewModel.kt
-//
-// FIX summary (v2):
-//   1. loadFeedbackCounts() now ALWAYS overwrites existing states so that
-//      switching babies / categories always refreshes from source of truth.
-//   2. castVote() optimistic-update logic corrected: the second early-return
-//      block no longer re-copies state (was harmless but confusing). More
-//      importantly the count delta now correctly handles USELESS→USEFUL flip.
-//   3. Added loadAllFeedbackForStrategy() — a helper that collects ALL item
-//      IDs across ALL age-ranges in a strategy (not just the current age),
-//      then batch-loads them. This ensures every card rendered on screen has
-//      a CardFeedbackState entry in the map.
-//   4. The offline/preview path (repository == null) always seeds missing
-//      entries but never clobbers existing ones, so optimistic updates
-//      survive re-compositions.
-// ═══════════════════════════════════════════════════════════════════════════
-
 private val guideJson = Json {
     ignoreUnknownKeys = true
     isLenient         = true
@@ -82,8 +64,6 @@ class GuideViewModel(
                 val bytes = Res.readBytes("files/sleep_guide_content.json")
                 val doc   = guideJson.decodeFromString<GuideDocument>(bytes.decodeToString())
                 uiState   = uiState.copy(sleepGuide = doc, isLoadingSleep = false)
-                // FIX: seed feedback map for all items in the document immediately
-                // after loading, so every card has an entry before it's rendered.
                 seedFeedbackMap(doc)
             } catch (e: Exception) {
                 uiState = uiState.copy(isLoadingSleep = false, errorMessage = e.message)
@@ -100,7 +80,6 @@ class GuideViewModel(
                 val bytes = Res.readBytes("files/feeding_guide_content.json")
                 val doc   = guideJson.decodeFromString<GuideDocument>(bytes.decodeToString())
                 uiState   = uiState.copy(feedingGuide = doc, isLoadingFeeding = false)
-                // FIX: seed feedback map for all items in the document immediately.
                 seedFeedbackMap(doc)
             } catch (e: Exception) {
                 uiState = uiState.copy(isLoadingFeeding = false, errorMessage = e.message)
@@ -108,14 +87,6 @@ class GuideViewModel(
         }
     }
 
-    /**
-     * FIX: Seeds the feedbackMap with a default CardFeedbackState for every
-     * item in every strategy / age-range of the given document.
-     * This is a local-only operation — no network call. It ensures that every
-     * rendered card immediately has a state object so the buttons are
-     * responsive even before the real counts arrive from the backend.
-     * Existing entries (e.g. already voted) are NOT overwritten.
-     */
     private fun seedFeedbackMap(doc: GuideDocument) {
         val seeded = uiState.feedbackMap.toMutableMap()
         for (strategy in doc.strategies) {
@@ -132,24 +103,13 @@ class GuideViewModel(
 
     // ── Feedback loading ───────────────────────────────────────────────────
 
-    /**
-     * Loads feedback counts for the given content IDs from the backend.
-     *
-     * FIX (v2): This now ALWAYS updates entries in the map (not just missing
-     * ones), so switching between babies or categories always reflects the
-     * real server counts. Entries that are currently mid-vote (isLoading=true)
-     * are skipped so we don't clobber an in-flight optimistic update.
-     */
     fun loadFeedbackCounts(contentIds: List<String>, guideType: String) {
         if (contentIds.isEmpty()) return
 
-        // Offline / preview mode — ensure every ID has at least a default entry.
         if (repository == null) {
             val seeded = uiState.feedbackMap.toMutableMap()
             for (id in contentIds) {
-                if (!seeded.containsKey(id)) {
-                    seeded[id] = CardFeedbackState(contentId = id)
-                }
+                if (!seeded.containsKey(id)) seeded[id] = CardFeedbackState(contentId = id)
             }
             uiState = uiState.copy(feedbackMap = seeded)
             return
@@ -160,7 +120,6 @@ class GuideViewModel(
                 is ApiResult.Success -> {
                     val updated = uiState.feedbackMap.toMutableMap()
                     for (item in result.data.counts) {
-                        // Don't overwrite a card that is mid-flight for a vote.
                         val existing = updated[item.contentId]
                         if (existing?.isLoading == true) continue
 
@@ -175,10 +134,13 @@ class GuideViewModel(
                             isLoading   = false
                         )
                     }
+                    // Ensure every requested ID has at least a default entry
+                    for (id in contentIds) {
+                        if (!updated.containsKey(id)) updated[id] = CardFeedbackState(id)
+                    }
                     uiState = uiState.copy(feedbackMap = updated)
                 }
                 is ApiResult.Error -> {
-                    // Seed with empty state so buttons still work offline.
                     val seeded = uiState.feedbackMap.toMutableMap()
                     for (id in contentIds) {
                         if (!seeded.containsKey(id)) seeded[id] = CardFeedbackState(id)
@@ -190,14 +152,6 @@ class GuideViewModel(
         }
     }
 
-    /**
-     * FIX: Convenience overload that collects ALL item IDs from the given
-     * strategy (across every age-range, not just the currently visible age),
-     * then calls loadFeedbackCounts in one batch.
-     *
-     * Call this from the screen after the guide document is loaded, e.g.
-     *   LaunchedEffect(strategy) { viewModel.loadFeedbackForStrategy(strategy, "SLEEP") }
-     */
     fun loadFeedbackForStrategy(strategy: GuideStrategy, guideType: String) {
         val ids = strategy.age_ranges
             .flatMap { it.items }
@@ -209,59 +163,67 @@ class GuideViewModel(
     // ── Vote casting ───────────────────────────────────────────────────────
 
     /**
-     * FIX (v2): Full rewrite of the optimistic-update + rollback logic.
+     * FIX — complete rewrite to correctly handle toggle-off.
      *
-     * Rules:
-     *  - Tapping the same vote again → UNDO (vote becomes NONE, count reverses).
-     *  - Switching from USEFUL → USELESS (or vice-versa) → flip both counts.
-     *  - Tapping a fresh vote → add +1 to the relevant count.
-     *  - On backend error → roll back to the pre-tap state.
-     *  - When repository == null → keep the optimistic state permanently.
+     * The flow:
+     *  1. Read the current vote state for this card.
+     *  2. ALWAYS send the tapped vote to the server — the server compares
+     *     with the stored row and decides insert / update / delete.
+     *  3. Apply an optimistic update immediately so the UI responds.
+     *     For optimistic purposes, toggle off if same vote, otherwise flip.
+     *  4. On server success, replace the optimistic state with the server-
+     *     confirmed state (usefulCount from DB, vote=null if toggled off).
+     *  5. On error, roll back to the pre-tap state.
+     *
+     * Key fix: we ALWAYS send `vote` (the button the user tapped) to the
+     * server. The old code sent `current.userVote` when toggling off, which
+     * re-saved the old vote instead of removing it. The server now handles
+     * "same vote → delete" and returns vote=null in the response.
      */
     fun castVote(contentId: String, guideType: String, vote: UserVote) {
         val current = uiState.feedbackMap[contentId] ?: CardFeedbackState(contentId)
 
-        // Determine the new intended vote state.
-        val newVote: UserVote = if (current.userVote == vote) UserVote.NONE else vote
+        // Guard: ignore taps while a request is already in flight for this card
+        if (current.isLoading) return
 
-        // Compute optimistic useful count delta.
+        // Optimistic: toggling same vote → NONE, different or fresh → new vote
+        val optimisticVote: UserVote = if (current.userVote == vote) UserVote.NONE else vote
+
         val optimisticUseful: Long = when {
-            // Was USEFUL, now toggling off → subtract 1
-            current.userVote == UserVote.USEFUL && newVote != UserVote.USEFUL ->
+            current.userVote == UserVote.USEFUL && optimisticVote != UserVote.USEFUL ->
                 (current.usefulCount - 1L).coerceAtLeast(0L)
-            // Was NOT USEFUL, now becoming USEFUL → add 1
-            current.userVote != UserVote.USEFUL && newVote == UserVote.USEFUL ->
+            current.userVote != UserVote.USEFUL && optimisticVote == UserVote.USEFUL ->
                 current.usefulCount + 1L
-            // No change in useful direction
             else -> current.usefulCount
         }
 
         val optimistic = current.copy(
-            userVote    = newVote,
+            userVote    = optimisticVote,
             usefulCount = optimisticUseful,
-            // Show spinner only when we actually have a backend to call.
-            isLoading   = repository != null
+            isLoading   = repository != null   // no spinner in offline/preview mode
         )
 
-        // Apply optimistic update immediately so UI responds without latency.
         uiState = uiState.copy(
             feedbackMap = uiState.feedbackMap + (contentId to optimistic)
         )
 
-        // Offline / preview mode — optimistic state is permanent.
+        // Offline / preview: keep optimistic state permanently
         if (repository == null) return
 
-        // When the user toggled their vote off (newVote == NONE), we still call
-        // the backend with the original vote so the server can handle the flip.
-        val voteToSend = if (newVote == UserVote.NONE) current.userVote else newVote
-
+        // FIX: always send the tapped vote; the server handles the toggle-off
         scope.launch {
-            when (val result = repository.castVote(contentId, guideType, voteToSend.name)) {
+            when (val result = repository.castVote(contentId, guideType, vote.name)) {
                 is ApiResult.Success -> {
+                    // Server tells us the real post-mutation state
+                    val confirmedVote = when (result.data.vote) {
+                        "USEFUL"  -> UserVote.USEFUL
+                        "USELESS" -> UserVote.USELESS
+                        else      -> UserVote.NONE   // null → vote was removed
+                    }
                     val confirmed = CardFeedbackState(
                         contentId   = contentId,
                         usefulCount = result.data.usefulCount,
-                        userVote    = newVote,
+                        userVote    = confirmedVote,
                         isLoading   = false
                     )
                     uiState = uiState.copy(
@@ -269,13 +231,18 @@ class GuideViewModel(
                     )
                 }
                 is ApiResult.Error -> {
-                    // Roll back to the state that existed before this tap.
+                    // Roll back and clear spinner
                     uiState = uiState.copy(
                         feedbackMap  = uiState.feedbackMap + (contentId to current.copy(isLoading = false)),
                         errorMessage = result.message
                     )
                 }
-                else -> Unit
+                else -> {
+                    // Loading state shouldn't happen; clear spinner defensively
+                    uiState = uiState.copy(
+                        feedbackMap = uiState.feedbackMap + (contentId to current.copy(isLoading = false))
+                    )
+                }
             }
         }
     }

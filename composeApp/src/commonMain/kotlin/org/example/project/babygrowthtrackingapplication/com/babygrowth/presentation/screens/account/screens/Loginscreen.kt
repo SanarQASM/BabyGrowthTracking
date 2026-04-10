@@ -32,6 +32,7 @@ import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 import io.github.alexzhirkevich.compottie.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -512,12 +513,13 @@ private fun AnimatedLoginCard(
 
                     Text(
                         text     = stringResource(Res.string.login_forget_password),
-                        style    = MaterialTheme.typography.bodyMedium.copy(
+                        style    = MaterialTheme.typography.labelMedium.copy(
                             textDecoration = TextDecoration.Underline,
                             fontWeight     = FontWeight.Medium
                         ),
                         color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
                         modifier = Modifier.clickable { onForgotPasswordClick() }
+                            .widthIn(max = 140.dp)
                     )
                 }
 

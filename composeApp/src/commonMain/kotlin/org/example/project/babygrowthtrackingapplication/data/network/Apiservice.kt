@@ -725,6 +725,7 @@ data class ApiSingleResponse<T>(
     val resolvedNotes: String? = null
 )
 
+
 // ── Family History ────────────────────────────────────────────────────────────
 
 @Serializable data class FamilyHistoryRequest(

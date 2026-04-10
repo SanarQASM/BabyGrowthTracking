@@ -91,6 +91,7 @@ fun ForgotPasswordScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
+                .imePadding()
                 .padding(horizontal = dimensions.screenPadding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {

@@ -16,7 +16,6 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.*
 import androidx.compose.ui.unit.*
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.LocalIsRTL
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.readingTextAlign
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.*
 import org.example.project.babygrowthtrackingapplication.data.network.BabyResponse
@@ -419,41 +418,63 @@ fun GuideFeedbackRow(
         verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
     ) {
+        // FIX: show the server-confirmed usefulCount (Long → Int coerced safely)
         Text(
-            text     = stringResource(Res.string.sleep_guide_useful_for, feedbackState.usefulCount.toInt()),
+            text     = stringResource(
+                Res.string.sleep_guide_useful_for,
+                feedbackState.usefulCount.coerceIn(0L, Int.MAX_VALUE.toLong()).toInt()
+            ),
             style    = MaterialTheme.typography.labelSmall,
             color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
             modifier = Modifier.weight(1f)
         )
+
+        // FIX: pass the specific vote this pill represents so FeedbackPill
+        // can correctly determine its own selected state from feedbackState.userVote
         FeedbackPill(
-            label     = stringResource(Res.string.sleep_guide_useless),
-            selected  = feedbackState.userVote == UserVote.USELESS,
-            isLoading = feedbackState.isLoading,
-            colorSel  = MaterialTheme.colorScheme.error,
-            colorText = MaterialTheme.colorScheme.error,
-            onClick   = onUseless
+            label       = stringResource(Res.string.sleep_guide_useless),
+            voteType    = UserVote.USELESS,
+            currentVote = feedbackState.userVote,
+            isLoading   = feedbackState.isLoading,
+            colorSel    = MaterialTheme.colorScheme.error,
+            colorText   = MaterialTheme.colorScheme.error,
+            onClick     = onUseless
         )
         FeedbackPill(
-            label     = stringResource(Res.string.sleep_guide_useful),
-            selected  = feedbackState.userVote == UserVote.USEFUL,
-            isLoading = feedbackState.isLoading,
-            colorSel  = customColors.accentGradientStart,
-            colorText = customColors.accentGradientStart,
-            onClick   = onUseful
+            label       = stringResource(Res.string.sleep_guide_useful),
+            voteType    = UserVote.USEFUL,
+            currentVote = feedbackState.userVote,
+            isLoading   = feedbackState.isLoading,
+            colorSel    = customColors.accentGradientStart,
+            colorText   = customColors.accentGradientStart,
+            onClick     = onUseful
         )
     }
 }
 
+/**
+ * FIX: Replaced the old `selected: Boolean` parameter with `voteType` +
+ * `currentVote` so each pill independently determines its own selected state
+ * from the shared CardFeedbackState — no stale closure issues.
+ *
+ * Visual contract:
+ *  - selected=true  → filled background, full color text, checkmark prefix
+ *  - selected=false → transparent background, muted text, no checkmark
+ *  - isLoading=true → show spinner, disable tap (only while a request is in flight)
+ */
 @Composable
 private fun FeedbackPill(
-    label    : String,
-    selected : Boolean,
-    isLoading: Boolean,
-    colorSel : Color,
-    colorText: Color,
-    onClick  : () -> Unit
+    label      : String,
+    voteType   : UserVote,
+    currentVote: UserVote,
+    isLoading  : Boolean,
+    colorSel   : Color,
+    colorText  : Color,
+    onClick    : () -> Unit
 ) {
     val dimensions = LocalDimensions.current
+    val selected   = currentVote == voteType
+
     val bgAlpha by animateFloatAsState(
         targetValue   = if (selected) 1f else 0f,
         animationSpec = tween(durationMillis = 200),
@@ -468,6 +489,7 @@ private fun FeedbackPill(
         targetValue = if (selected) colorSel else colorText.copy(alpha = 0.6f),
         label       = "pill_text_color"
     )
+
     Box(
         modifier = Modifier
             .scale(scale)

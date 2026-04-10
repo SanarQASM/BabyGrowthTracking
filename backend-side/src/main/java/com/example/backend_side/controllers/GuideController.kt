@@ -11,18 +11,13 @@ import org.springframework.web.bind.annotation.*
 /**
  * GuideController — REST API for Sleep Guide and Feeding Guide feedback.
  *
- * Base path: /api/v1/guide
+ * FIX: getCounts() now accepts contentIds as a comma-separated single string
+ * parameter ("id1,id2,id3") in addition to repeated params ("contentIds=a&contentIds=b").
+ * The client sends a joined string; Spring's List<String> binding only works
+ * for repeated params, so we split manually here.
  *
- * Endpoints:
- *   POST  /v1/guide/feedback          — cast or update a vote
- *   GET   /v1/guide/feedback/counts   — batch-fetch vote counts
- *
- * Authentication: JWT bearer token (resolved via Spring Security).
- * The userId is extracted from the authenticated principal, never from the
- * request body, to prevent impersonation.
- *
- * All responses follow the shared ApiResponse<T> envelope already used
- * throughout the application.
+ * castVote() response now correctly reflects toggle-off (vote=null) so the
+ * client can clear the button highlight state.
  */
 @RestController
 @RequestMapping("/v1/guide")
@@ -34,10 +29,8 @@ class GuideController(
     // ─────────────────────────────────────────────────────────────────────────
     // POST /v1/guide/feedback
     //
-    // Cast or update a USEFUL / USELESS vote for a guide content card.
-    //
-    // Request body: { contentId, guideType, vote }
-    // Response:     GuideFeedbackResponse (incl. updated usefulCount)
+    // FIX: The response now includes vote=null when a vote was toggled off
+    // (same vote tapped twice). The client reads this to clear the highlight.
     // ─────────────────────────────────────────────────────────────────────────
     @PostMapping("/feedback")
     fun castVote(
@@ -52,33 +45,30 @@ class GuideController(
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // GET /v1/guide/feedback/counts?guideType=SLEEP&contentIds=id1,id2,...
+    // GET /v1/guide/feedback/counts?guideType=SLEEP&contentIds=id1,id2,id3
     //
-    // Batch-fetch vote counts for a list of content IDs.
-    // The current user's own vote for each item is included in the response.
-    //
-    // Query params:
-    //   guideType  — SLEEP | FEEDING
-    //   contentIds — comma-separated list of content IDs (max 100)
+    // FIX: Accept contentIds as a single comma-separated string param OR as
+    // repeated params. The Kotlin client sends a single joined string via
+    // parameter("contentIds", idsParam), so we split on "," here.
+    // Spring's List<String> binding works for ?contentIds=a&contentIds=b
+    // but NOT for ?contentIds=a,b — that arrives as a single string "a,b".
     // ─────────────────────────────────────────────────────────────────────────
     @GetMapping("/feedback/counts")
     fun getCounts(
-        @AuthenticationPrincipal principal  : UserDetails,
-        @RequestParam            guideType  : GuideType,
-        @RequestParam            contentIds : List<String>
+        @AuthenticationPrincipal principal : UserDetails,
+        @RequestParam            guideType : GuideType,
+        @RequestParam            contentIds: String        // comma-separated or single id
     ): ResponseEntity<ApiResponse<GuideContentCountsResponse>> {
-        val userId   = resolveUserId(principal)
-        val response = guideFeedbackService.getCounts(userId, contentIds, guideType)
+        val userId  = resolveUserId(principal)
+        val idList  = contentIds.split(",").map { it.trim() }.filter { it.isNotBlank() }
+        val response = guideFeedbackService.getCounts(userId, idList, guideType)
         return ResponseEntity.ok(
             ApiResponse(success = true, message = "Counts fetched", data = response)
         )
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Helper: resolve the real userId from the JWT principal.
-    //
-    // The JWT subject is the user's email (set in JwtUtil.generateToken).
-    // We look up the User entity by email to get the stable UUID-based userId.
+    // Helper
     // ─────────────────────────────────────────────────────────────────────────
     private fun resolveUserId(principal: UserDetails): String =
         userRepository.findByEmail(principal.username)
