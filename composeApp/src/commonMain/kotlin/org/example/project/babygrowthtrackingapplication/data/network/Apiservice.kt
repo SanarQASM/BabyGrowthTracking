@@ -31,9 +31,9 @@ class ApiService(
     private val getToken: () -> String? = { null }
 ) {
     companion object {
-//        private const val BASE_URL = "http://10.0.2.2:8080/api"
+        //        private const val BASE_URL = "http://10.0.2.2:8080/api"
 //          private const val BASE_URL = "http://localhost:8080/api"
-private const val BASE_URL = "http://172.20.10.3:8080/api"
+        private const val BASE_URL = "http://172.20.10.3:8080/api"
 
         object Endpoints {
             // Auth
@@ -108,6 +108,11 @@ private const val BASE_URL = "http://172.20.10.3:8080/api"
             const val CHILD_DEV_HEARING_SPEECH = "/v1/child-development/hearing-speech"
             fun childDevVisionMotorByBaby(babyId: String)   = "$CHILD_DEV_VISION_MOTOR/baby/$babyId"
             fun childDevHearingSpeechByBaby(babyId: String) = "$CHILD_DEV_HEARING_SPEECH/baby/$babyId"
+
+            // ── Memories ──────────────────────────────────────────────────────
+            const val MEMORIES = "/v1/memories"
+            fun memoriesByBaby(babyId: String) = "$MEMORIES/baby/$babyId"
+            fun memory(id: String)             = "$MEMORIES/$id"
         }
     }
 
@@ -433,6 +438,28 @@ private const val BASE_URL = "http://172.20.10.3:8080/api"
             resp.body<ApiSingleResponse<HearingSpeechNet>>().data!!
         }
 
+    // ── Memories ──────────────────────────────────────────────────────────────
+
+    suspend fun getMemoriesByBaby(babyId: String): ApiResult<List<MemoryNet>> =
+        safeCall {
+            val resp = client.get("$BASE_URL${Endpoints.memoriesByBaby(babyId)}")
+            resp.body<ApiListResponse<MemoryNet>>().data
+        }
+
+    suspend fun createMemory(userId: String, request: CreateMemoryRequest): ApiResult<MemoryNet> =
+        safeCall {
+            val resp = client.post("$BASE_URL${Endpoints.MEMORIES}") {
+                if (userId.isNotBlank()) header("X-User-Id", userId)
+                setBody(request)
+            }
+            resp.body<ApiSingleResponse<MemoryNet>>().data!!
+        }
+
+    suspend fun deleteMemory(memoryId: String): ApiResult<Unit> =
+        safeCall {
+            client.delete("$BASE_URL${Endpoints.memory(memoryId)}")
+        }
+
     // ── Request helpers ───────────────────────────────────────────────────────
 
     private suspend inline fun <reified T> makeRequest(
@@ -725,7 +752,6 @@ data class ApiSingleResponse<T>(
     val resolvedNotes: String? = null
 )
 
-
 // ── Family History ────────────────────────────────────────────────────────────
 
 @Serializable data class FamilyHistoryRequest(
@@ -792,6 +818,31 @@ data class ApiSingleResponse<T>(
     val notes           : String? = null
 )
 
+// ── Memories ──────────────────────────────────────────────────────────────────
+
+@Serializable data class MemoryNet(
+    val memoryId    : String,
+    val babyId      : String,
+    val babyName    : String,
+    val title       : String,
+    val description : String?       = null,
+    val memoryDate  : String,
+    val imageCount  : Int?          = null,
+    val captions    : List<String>? = null,
+    val ageInMonths : Int?          = null,
+    val ageInDays   : Int?          = null,
+    val createdAt   : String?       = null,
+    val updatedAt   : String?       = null
+)
+
+@Serializable data class CreateMemoryRequest(
+    val babyId      : String,
+    val title       : String,
+    val description : String?       = null,
+    val memoryDate  : String,
+    val imageCount  : Int           = 0,
+    val captions    : List<String>? = null
+)
 
 // =============================================================================
 // Net → UI mappers

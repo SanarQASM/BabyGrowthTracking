@@ -7,6 +7,8 @@
     <string name="decorative_corner_description">Decorative corner image</string>
     <string name="coming_soon">Coming Soon</string>
     <string name="btn_cancel">Cancel</string>
+    <string name="btn_selct_time">Select Time</string>
+
 
     <string name="welcome_select_one">Select one</string>
     <string name="welcome_login">Login</string>
@@ -887,4 +889,32 @@ Last updated: 2025.</string>
     <string name="chart_filter_label">Filter</string>
     <string name="chart_legend_parent_label">👪  Parent Added</string>
     <string name="chart_legend_team_label">🏥  Team Added</string>
+    <string name="memory_screen_title">Child\'s Memories</string>
+    <string name="memory_add">Add Memory</string>
+    <string name="memory_add_title">Add New Child\'s Memories</string>
+    <string name="memory_add_first">Add First Memory</string>
+    <string name="memory_save">Save Memory</string>
+    <string name="memory_delete">Delete Memory</string>
+    <string name="memory_delete_confirm_title">Delete Memory?</string>
+    <string name="memory_delete_confirm_message">This will permanently delete this memory and all associated images from this device.</string>
+    <string name="memory_delete_confirm_action">Yes, Delete</string>
+    <string name="memory_no_memories_title">No Memories Yet</string>
+    <string name="memory_no_memories_desc">Start capturing precious moments! Add your first memory.</string>
+    <string name="memory_select_child">SELECT CHILD</string>
+    <string name="memory_all_children">All Children</string>
+    <string name="memory_local_storage_warning">Photos are saved on this device only. Changing or losing your device may cause photo loss.</string>
+    <string name="memory_images_not_available">Some photos are missing — they may have been saved on a different device.</string>
+    <string name="memory_images_missing_card">Some photos unavailable on this device</string>
+    <string name="memory_add_images">Add Photos</string>
+    <string name="memory_max_images_reached">Maximum 10 photos reached</string>
+    <string name="memory_image_unavailable">Photo not available</string>
+    <string name="memory_no_images">No photos added</string>
+    <string name="memory_age_at_moment">AGE AT THIS MOMENT</string>
+    <string name="memory_title_label">TITLE *</string>
+    <string name="memory_title_placeholder">e.g. First Smile, First Steps…</string>
+    <string name="memory_date_label">DATE</string>
+    <string name="memory_desc_label">DESCRIPTION</string>
+    <string name="memory_desc_placeholder">Describe this precious moment…</string>
+    <string name="memory_images_label">PHOTOS</string>
+    <string name="memory_count">memories</string>
 </resources>

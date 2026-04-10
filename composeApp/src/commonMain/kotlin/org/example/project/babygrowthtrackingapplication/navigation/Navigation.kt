@@ -8,6 +8,7 @@ import org.example.project.babygrowthtrackingapplication.com.babygrowth.presenta
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.AddBabyScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.AddMeasurementScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.BabyProfileScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.MemoryScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.Language
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.PreferencesManager
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.onBoarding.OnboardingScreen
@@ -33,6 +34,7 @@ import org.example.project.babygrowthtrackingapplication.com.babygrowth.presenta
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.VisionMotorViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HearingSpeechViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.GuideViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.MemoryViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.AllMeasurementsScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.ChildIllnessesScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.FamilyHistoryScreen
@@ -76,7 +78,8 @@ enum class Screen {
     ChildDevVisionMotor,
     ChildDevHearingSpeech,
     SleepGuide,
-    FeedingGuide
+    FeedingGuide,
+    Memory                  // ← NEW
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -158,6 +161,11 @@ fun AppNavigation(
     val guideRepository = remember { GuideRepository(apiService) }
     val guideViewModel  = remember { GuideViewModel(repository = guideRepository) }
 
+    // ── NEW: Memory ───────────────────────────────────────────────────────────
+    val memoryViewModel = remember {
+        MemoryViewModel(apiService = apiService, preferencesManager = preferencesManager)
+    }
+
     val signupViewModel = remember {
         SignupViewModel(
             repository        = repository,
@@ -192,6 +200,7 @@ fun AppNavigation(
             visionMotorViewModel.onDestroy()
             hearingSpeechViewModel.onDestroy()
             guideViewModel.onDestroy()
+            memoryViewModel.onDestroy()             // ← NEW
             cleanupSocialAuth(socialAuthManager)
         }
     }
@@ -245,7 +254,8 @@ fun AppNavigation(
                     Screen.ChildDevVisionMotor,
                     Screen.ChildDevHearingSpeech,
                     Screen.SleepGuide,
-                    Screen.FeedingGuide ->
+                    Screen.FeedingGuide,
+                    Screen.Memory ->                // ← NEW
                         slideInHorizontally(
                             initialOffsetX = { it },
                             animationSpec  = tween(400, easing = FastOutSlowInEasing)
@@ -491,7 +501,6 @@ fun AppNavigation(
                                 .firstOrNull { it.babyId == babyId }
                             if (baby != null) {
                                 childDevBaby  = baby
-                                // Pre-load so the screen is ready instantly
                                 visionMotorViewModel.load(baby.babyId, baby.ageInMonths)
                                 currentScreen = Screen.ChildDevVisionMotor
                             }
@@ -501,7 +510,6 @@ fun AppNavigation(
                                 .firstOrNull { it.babyId == babyId }
                             if (baby != null) {
                                 childDevBaby  = baby
-                                // Pre-load so the screen is ready instantly
                                 hearingSpeechViewModel.load(baby.babyId, baby.ageInMonths)
                                 currentScreen = Screen.ChildDevHearingSpeech
                             }
@@ -513,7 +521,11 @@ fun AppNavigation(
                         onNavigateToFeedingGuide   = {
                             originTab     = selectedTab
                             currentScreen = Screen.FeedingGuide
-                        }
+                        },
+                        onNavigateToMemory         = {         // ← NEW
+                            originTab     = selectedTab
+                            currentScreen = Screen.Memory
+                        }//fix this
                     )
                 }
 
@@ -735,6 +747,20 @@ fun AppNavigation(
                         viewModel = guideViewModel,
                         language  = currentLanguage.code,
                         onBack    = {
+                            selectedTab   = originTab
+                            currentScreen = Screen.Home
+                        }
+                    )
+                }
+
+                // ── Memory ────────────────────────────────────────────────────
+                Screen.Memory -> {
+                    MemoryScreen(
+                        viewModel      = memoryViewModel,
+                        babies         = homeViewModel.uiState.babies,
+                        selectedBabyId = homeViewModel.uiState.selectedBaby?.babyId,
+                        language       = currentLanguage,
+                        onBack         = {
                             selectedTab   = originTab
                             currentScreen = Screen.Home
                         }
