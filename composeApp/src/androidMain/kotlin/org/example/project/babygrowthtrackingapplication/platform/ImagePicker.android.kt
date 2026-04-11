@@ -1,5 +1,7 @@
+// composeApp/src/androidMain/.../platform/ImagePicker.android.kt
 package org.example.project.babygrowthtrackingapplication.platform
 
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -11,7 +13,6 @@ import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
-import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -21,12 +22,8 @@ import org.jetbrains.compose.resources.stringResource
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 import babygrowthtrackingapplication.composeapp.generated.resources.memory_add_images
 import org.example.project.babygrowthtrackingapplication.theme.customColors
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Android — ImagePickerButton
-// Uses ActivityResultContracts.GetMultipleContents to let the user pick
-// up to [remaining] images from the device gallery.
-// ─────────────────────────────────────────────────────────────────────────────
+import java.io.ByteArrayOutputStream
+import androidx.core.graphics.scale
 
 @Composable
 actual fun ImagePickerButton(
@@ -34,7 +31,7 @@ actual fun ImagePickerButton(
     dimensions : Dimensions,
     onPicked   : (List<ByteArray>) -> Unit
 ) {
-    val context = LocalContext.current
+    val context      = LocalContext.current
     val customColors = MaterialTheme.customColors
 
     val launcher = rememberLauncherForActivityResult(
@@ -42,8 +39,23 @@ actual fun ImagePickerButton(
     ) { uris ->
         val bytesList = uris.take(remaining).mapNotNull { uri ->
             try {
-                context.contentResolver.openInputStream(uri)?.use { it.readBytes() }
+                context.contentResolver.openInputStream(uri)?.use { stream ->
+                    val original = BitmapFactory.decodeStream(stream) ?: return@use null
+                    // Compress + resize to max 1024px to keep storage manageable
+                    val maxPx = 1024
+                    val scaled = if (original.width > maxPx || original.height > maxPx) {
+                        val ratio = maxPx.toFloat() / maxOf(original.width, original.height)
+                        original.scale(
+                            (original.width  * ratio).toInt(),
+                            (original.height * ratio).toInt()
+                        )
+                    } else original
+                    val out = ByteArrayOutputStream()
+                    scaled.compress(Bitmap.CompressFormat.JPEG, 85, out)
+                    out.toByteArray()
+                }
             } catch (e: Exception) {
+                e.printStackTrace()
                 null
             }
         }
@@ -71,11 +83,6 @@ actual fun ImagePickerButton(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Android — ByteArrayImage
-// Decodes the byte array to a Bitmap via BitmapFactory and renders it.
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 actual fun ByteArrayImage(
     bytes             : ByteArray,
@@ -84,7 +91,12 @@ actual fun ByteArrayImage(
     contentDescription: String
 ) {
     val bitmap = remember(bytes) {
-        BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
+        try {
+            BitmapFactory.decodeByteArray(bytes, 0, bytes.size)?.asImageBitmap()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
     if (bitmap != null) {
         Image(

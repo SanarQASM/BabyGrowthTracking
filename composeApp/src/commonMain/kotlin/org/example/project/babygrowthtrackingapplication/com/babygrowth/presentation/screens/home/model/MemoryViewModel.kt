@@ -1,3 +1,4 @@
+// composeApp/src/commonMain/.../home/model/MemoryViewModel.kt
 package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model
 
 import androidx.compose.runtime.*
@@ -10,16 +11,12 @@ import org.example.project.babygrowthtrackingapplication.platform.MemoryLocalSto
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MemoryUiImage — a single image in a memory, with local availability status
-// ─────────────────────────────────────────────────────────────────────────────
-
 data class MemoryUiImage(
     val index       : Int,
-    val localKey    : String,   // "memory_{memoryId}_{index}"
-    val caption     : String?   = null,
-    val bytes       : ByteArray? = null,   // null = not available locally
-    val isAvailable : Boolean   = false
+    val localKey    : String,
+    val caption     : String?    = null,
+    val bytes       : ByteArray? = null,
+    val isAvailable : Boolean    = false
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -29,67 +26,49 @@ data class MemoryUiImage(
     override fun hashCode() = localKey.hashCode()
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MemoryUiItem — a memory with its locally resolved images
-// ─────────────────────────────────────────────────────────────────────────────
-
 data class MemoryUiItem(
-    val memoryId    : String,
-    val babyId      : String,
-    val babyName    : String,
-    val title       : String,
-    val description : String?   = null,
-    val memoryDate  : String,   // "YYYY-MM-DD"
-    val ageInMonths : Int?      = null,
-    val ageInDays   : Int?      = null,
-    val images      : List<MemoryUiImage> = emptyList(),
-    val hasMissingImages: Boolean = false
+    val memoryId         : String,
+    val babyId           : String,
+    val babyName         : String,
+    val title            : String,
+    val description      : String?             = null,
+    val memoryDate       : String,
+    val ageInMonths      : Int?                = null,
+    val ageInDays        : Int?                = null,
+    val images           : List<MemoryUiImage> = emptyList(),
+    val hasMissingImages : Boolean             = false
 )
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Add-Memory Form State
-// ─────────────────────────────────────────────────────────────────────────────
-
 data class AddMemoryFormState(
-    val title            : String              = "",
-    val description      : String              = "",
-    val memoryDate       : String              = "",
-    val selectedBytes    : List<ByteArray>     = emptyList(),   // max 10
-    val captions         : List<String>        = emptyList(),
-    val isLoading        : Boolean             = false,
-    val errorMessage     : String?             = null,
-    val successMessage   : String?             = null,
-    val isSaved          : Boolean             = false,
-    val titleError       : String?             = null,
-    val dateError        : String?             = null
+    val title          : String          = "",
+    val description    : String          = "",
+    val memoryDate     : String          = "",
+    val selectedBytes  : List<ByteArray> = emptyList(),
+    val captions       : List<String>    = emptyList(),
+    val isLoading      : Boolean         = false,
+    val errorMessage   : String?         = null,
+    val successMessage : String?         = null,
+    val isSaved        : Boolean         = false,
+    val titleError     : String?         = null,
+    val dateError      : String?         = null
 ) {
-    val imageCount: Int get() = selectedBytes.size
+    val imageCount: Int     get() = selectedBytes.size
     val canAddMore: Boolean get() = imageCount < MAX_IMAGES
-
-    companion object {
-        const val MAX_IMAGES = 10
-    }
+    companion object { const val MAX_IMAGES = 10 }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MemoryUiState
-// ─────────────────────────────────────────────────────────────────────────────
-
 data class MemoryUiState(
-    val isLoading           : Boolean              = true,
-    val memories            : List<MemoryUiItem>   = emptyList(),
-    val selectedBabyId      : String?              = null,
-    val babies              : List<BabyResponse>   = emptyList(),
-    val errorMessage        : String?              = null,
-    val actionMessage       : String?              = null,
-    // View image full-screen
-    val viewingImage        : MemoryUiImage?       = null,
-    val viewingMemoryTitle  : String               = "",
-    // Form
-    val showAddForm         : Boolean              = false,
-    val addForm             : AddMemoryFormState   = AddMemoryFormState(),
-    // Delete confirm
-    val deletingMemoryId    : String?              = null
+    val isLoading          : Boolean            = true,
+    val memories           : List<MemoryUiItem> = emptyList(),
+    val selectedBabyId     : String?            = null,
+    val babies             : List<BabyResponse> = emptyList(),
+    val errorMessage       : String?            = null,
+    val actionMessage      : String?            = null,
+    val viewingImage       : MemoryUiImage?     = null,
+    val viewingMemoryTitle : String             = "",
+    val showAddForm        : Boolean            = false,
+    val addForm            : AddMemoryFormState = AddMemoryFormState(),
+    val deletingMemoryId   : String?            = null
 ) {
     val selectedBabyName: String
         get() = babies.find { it.babyId == selectedBabyId }?.fullName ?: ""
@@ -102,10 +81,6 @@ data class MemoryUiState(
         get() = filteredMemories.any { it.hasMissingImages }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// MemoryViewModel
-// ─────────────────────────────────────────────────────────────────────────────
-
 class MemoryViewModel(
     private val apiService         : ApiService,
     private val preferencesManager : PreferencesManager,
@@ -114,25 +89,41 @@ class MemoryViewModel(
     var uiState by mutableStateOf(MemoryUiState())
         private set
 
-    private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private val scope       = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private var loadJob     : Job? = null
+    // Track the last loaded babyIds to avoid redundant reloads
+    private var lastLoadKey : String = ""
 
     // ── Load ──────────────────────────────────────────────────────────────────
 
     fun load(babies: List<BabyResponse>, selectedBabyId: String? = null) {
+        val key = babies.joinToString(",") { it.babyId }
+        // Skip if same babies already loaded (avoid reload loop)
+        if (key == lastLoadKey && uiState.babies.isNotEmpty()) {
+            // Just update selectedBabyId if it changed
+            if (uiState.selectedBabyId != selectedBabyId) {
+                uiState = uiState.copy(
+                    selectedBabyId = selectedBabyId ?: babies.firstOrNull()?.babyId
+                )
+            }
+            return
+        }
+        lastLoadKey = key
+
+        loadJob?.cancel()
         uiState = uiState.copy(
-            babies       = babies,
+            babies         = babies,
             selectedBabyId = selectedBabyId ?: babies.firstOrNull()?.babyId,
-            isLoading    = true
+            isLoading      = true
         )
-        scope.launch {
+
+        loadJob = scope.launch {
             val allMemories = mutableListOf<MemoryUiItem>()
-            // Load memories for ALL babies (not just selected — we filter in UI)
             babies.forEach { baby ->
                 when (val result = apiService.getMemoriesByBaby(baby.babyId)) {
                     is ApiResult.Success -> {
                         result.data.forEach { net ->
-                            val uiItem = resolveLocalImages(net)
-                            allMemories.add(uiItem)
+                            allMemories.add(resolveLocalImages(net))
                         }
                     }
                     else -> Unit
@@ -143,13 +134,10 @@ class MemoryViewModel(
         }
     }
 
-    /**
-     * Resolve local image availability for a memory network response.
-     */
     private suspend fun resolveLocalImages(net: MemoryNet): MemoryUiItem {
         val imageCount = net.imageCount ?: 0
         val images = (0 until imageCount).map { i ->
-            val key = imageKey(net.memoryId, i)
+            val key   = imageKey(net.memoryId, i)
             val bytes = localStore.loadImage(key)
             MemoryUiImage(
                 index       = i,
@@ -181,7 +169,7 @@ class MemoryViewModel(
         uiState = uiState.copy(selectedBabyId = babyId)
     }
 
-    // ── View image full-screen ────────────────────────────────────────────────
+    // ── Image viewer ──────────────────────────────────────────────────────────
 
     fun viewImage(image: MemoryUiImage, memoryTitle: String) {
         uiState = uiState.copy(viewingImage = image, viewingMemoryTitle = memoryTitle)
@@ -196,9 +184,7 @@ class MemoryViewModel(
     fun openAddForm() {
         uiState = uiState.copy(
             showAddForm = true,
-            addForm = AddMemoryFormState(
-                memoryDate = todayDateString()
-            )
+            addForm     = AddMemoryFormState(memoryDate = todayDateString())
         )
     }
 
@@ -229,10 +215,9 @@ class MemoryViewModel(
     }
 
     fun onImagesSelected(bytesList: List<ByteArray>) {
-        val current     = uiState.addForm.selectedBytes.toMutableList()
-        val available   = AddMemoryFormState.MAX_IMAGES - current.size
-        val toAdd       = bytesList.take(available)
-        current.addAll(toAdd)
+        val current   = uiState.addForm.selectedBytes.toMutableList()
+        val available = AddMemoryFormState.MAX_IMAGES - current.size
+        current.addAll(bytesList.take(available))
         uiState = uiState.copy(addForm = uiState.addForm.copy(selectedBytes = current))
     }
 
@@ -254,16 +239,13 @@ class MemoryViewModel(
         val babyId = uiState.selectedBabyId
         val userId = preferencesManager.getUserId()
 
-        var titleErr : String? = null
-        var dateErr  : String? = null
+        val titleErr = if (form.title.isBlank()) "Title is required" else null
+        val dateErr  = if (form.memoryDate.isBlank()) "Date is required" else null
 
-        if (form.title.isBlank()) titleErr = "Title is required"
-        if (form.memoryDate.isBlank()) dateErr = "Date is required"
         if (babyId == null) {
             uiState = uiState.copy(addForm = form.copy(errorMessage = "Please select a child"))
             return
         }
-
         if (titleErr != null || dateErr != null) {
             uiState = uiState.copy(addForm = form.copy(titleError = titleErr, dateError = dateErr))
             return
@@ -272,7 +254,6 @@ class MemoryViewModel(
         scope.launch {
             uiState = uiState.copy(addForm = form.copy(isLoading = true, errorMessage = null))
 
-            // Create memory on backend (no images sent to backend — stored locally)
             val request = CreateMemoryRequest(
                 babyId      = babyId,
                 title       = form.title.trim(),
@@ -285,16 +266,23 @@ class MemoryViewModel(
             when (val result = apiService.createMemory(userId ?: "", request)) {
                 is ApiResult.Success -> {
                     val memoryId = result.data.memoryId
-                    // Save images locally
+                    // Save all images locally, verify each one
+                    var allSaved = true
                     form.selectedBytes.forEachIndexed { i, bytes ->
-                        localStore.saveImage(imageKey(memoryId, i), bytes)
+                        val saved = localStore.saveImage(imageKey(memoryId, i), bytes)
+                        if (!saved) allSaved = false
                     }
+
+                    // Reset load key so reload fetches fresh data
+                    lastLoadKey = ""
+
                     uiState = uiState.copy(
-                        showAddForm  = false,
-                        addForm      = AddMemoryFormState(),
-                        actionMessage = "Memory saved! 📸"
+                        showAddForm   = false,
+                        addForm       = AddMemoryFormState(),
+                        actionMessage = if (allSaved) "Memory saved! 📸"
+                        else "Memory saved, but some photos failed to store locally"
                     )
-                    // Reload
+                    // Reload with same babies
                     load(uiState.babies, uiState.selectedBabyId)
                 }
                 is ApiResult.Error -> {
@@ -326,7 +314,6 @@ class MemoryViewModel(
         scope.launch {
             when (apiService.deleteMemory(memoryId)) {
                 is ApiResult.Success -> {
-                    // Delete local images
                     localStore.deleteImagesByPrefix("memory_$memoryId")
                     val updated = uiState.memories.filter { it.memoryId != memoryId }
                     uiState = uiState.copy(
@@ -353,10 +340,9 @@ class MemoryViewModel(
 
     @OptIn(ExperimentalTime::class)
     private fun todayDateString(): String {
-        // Returns YYYY-MM-DD for today using platform clock
         val now = Clock.System.now()
             .toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault())
-        return "${now.year}-${now.month.number.toString().padStart(2,'0')}-${now.day.toString().padStart(2,'0')}"
+        return "${now.year}-${now.month.number.toString().padStart(2, '0')}-${now.day.toString().padStart(2, '0')}"
     }
 
     fun onDestroy() { scope.cancel() }

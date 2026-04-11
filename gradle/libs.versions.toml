@@ -72,6 +72,7 @@ twilio                          = "10.6.6"
 # ─── Testing ──────────────────────────────────────────────────────────────────
 junit                           = "4.13.2"
 kotlin-test                     = "2.1.21"
+lifecycleProcess = "2.10.0"
 
 # =============================================================================
 
@@ -187,6 +188,7 @@ h2-database                     = { module = "com.h2database:h2" }
 kotlin-reflect                  = { module = "org.jetbrains.kotlin:kotlin-reflect",     version.ref = "kotlin" }
 logback-classic                 = { module = "ch.qos.logback:logback-classic",          version.ref = "logback" }
 kotlin-logging                  = { module = "io.github.oshai:kotlin-logging-jvm",      version.ref = "kotlin-logging" }
+androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycleProcess" }
 
 # =============================================================================
 

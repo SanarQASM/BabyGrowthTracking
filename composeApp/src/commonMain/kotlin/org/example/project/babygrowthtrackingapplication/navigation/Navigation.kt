@@ -52,10 +52,21 @@ import org.example.project.babygrowthtrackingapplication.theme.GenderTheme
 import org.example.project.babygrowthtrackingapplication.ui.components.NavigationTab
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Screen enum
+// Screens that are safe to restore after the app resumes.
+// Screens that depend on transient state (AddBaby, EditBaby, AddMeasurement,
+// BabyProfile, etc.) are NOT restored — we fall back to Home instead.
 // ─────────────────────────────────────────────────────────────────────────────
-//update scroll down in vaccination
-//update growth colors for chartsd
+private val RESTORABLE_SCREENS = setOf(
+    Screen.Home,
+    Screen.Memory,
+    Screen.SleepGuide,
+    Screen.FeedingGuide,
+    Screen.FamilyHistory,
+    Screen.ChildIllnesses,
+    Screen.ChildDevVisionMotor,
+    Screen.ChildDevHearingSpeech,
+    Screen.AllMeasurements,
+)
 
 enum class Screen {
     Splash,
@@ -79,7 +90,28 @@ enum class Screen {
     ChildDevHearingSpeech,
     SleepGuide,
     FeedingGuide,
-    Memory                  // ← NEW
+    Memory
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper — resolve a saved screen name back to a Screen enum value safely
+// ─────────────────────────────────────────────────────────────────────────────
+private fun resolveScreen(name: String?): Screen? {
+    if (name == null) return null
+    return try {
+        val candidate = Screen.valueOf(name)
+        if (candidate in RESTORABLE_SCREENS) candidate else null
+    } catch (_: IllegalArgumentException) {
+        null
+    }
+}
+
+private fun resolveTab(name: String): NavigationTab {
+    return try {
+        NavigationTab.valueOf(name)
+    } catch (_: IllegalArgumentException) {
+        NavigationTab.HOME
+    }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -106,7 +138,6 @@ fun AppNavigation(
     var allMeasurementsBaby by remember { mutableStateOf<BabyResponse?>(null) }
     var familyHistoryBaby   by remember { mutableStateOf<BabyResponse?>(null) }
     var childIllnessesBaby  by remember { mutableStateOf<BabyResponse?>(null) }
-    // Shared baby reference for both child-dev screens
     var childDevBaby        by remember { mutableStateOf<BabyResponse?>(null) }
 
     var selectedTab by remember { mutableStateOf(NavigationTab.HOME) }
@@ -125,15 +156,12 @@ fun AppNavigation(
     val homeViewModel = remember {
         HomeViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
-
     val addBabyViewModel = remember {
         AddBabyViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
-
     val healthRecordViewModel = remember {
         HealthRecordViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
-
     val settingsViewModel = remember {
         SettingsViewModel(
             apiService         = apiService,
@@ -141,31 +169,23 @@ fun AppNavigation(
             accountRepository  = repository,
         )
     }
-
     val familyHistoryViewModel = remember {
         FamilyHistoryViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
-
     val childIllnessesViewModel = remember {
         ChildIllnessesViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
-
     val visionMotorViewModel = remember {
         VisionMotorViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
-
     val hearingSpeechViewModel = remember {
         HearingSpeechViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
-
     val guideRepository = remember { GuideRepository(apiService) }
     val guideViewModel  = remember { GuideViewModel(repository = guideRepository) }
-
-    // ── NEW: Memory ───────────────────────────────────────────────────────────
     val memoryViewModel = remember {
         MemoryViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
-
     val signupViewModel = remember {
         SignupViewModel(
             repository        = repository,
@@ -173,7 +193,6 @@ fun AppNavigation(
             socialLoginHelper = socialLoginHelper
         )
     }
-
     val verifyAccountViewModel = remember {
         VerifyAccountViewModel(
             repository = repository,
@@ -181,12 +200,19 @@ fun AppNavigation(
             userPhone  = signupViewModel.uiState.phone
         )
     }
-
     val enterNewPasswordViewModel = remember {
         EnterNewPasswordViewModel(authRepository = repository)
     }
 
-    // ── Lifecycle ──────────────────────────────────────────────────────────────
+    // ── Persist navigation state on every screen change ───────────────────────
+    // Only persist screens that are safe to restore (logged-in, non-transient)
+    LaunchedEffect(currentScreen, selectedTab) {
+        if (currentScreen in RESTORABLE_SCREENS && repository.isLoggedIn()) {
+            preferencesManager.saveLastScreen(currentScreen.name, selectedTab.name)
+        }
+    }
+
+    // ── Lifecycle ─────────────────────────────────────────────────────────────
     InitializeSocialAuth(socialAuthManager)
     DisposableEffect(Unit) {
         onDispose {
@@ -200,7 +226,7 @@ fun AppNavigation(
             visionMotorViewModel.onDestroy()
             hearingSpeechViewModel.onDestroy()
             guideViewModel.onDestroy()
-            memoryViewModel.onDestroy()             // ← NEW
+            memoryViewModel.onDestroy()
             cleanupSocialAuth(socialAuthManager)
         }
     }
@@ -255,7 +281,7 @@ fun AppNavigation(
                     Screen.ChildDevHearingSpeech,
                     Screen.SleepGuide,
                     Screen.FeedingGuide,
-                    Screen.Memory ->                // ← NEW
+                    Screen.Memory ->
                         slideInHorizontally(
                             initialOffsetX = { it },
                             animationSpec  = tween(400, easing = FastOutSlowInEasing)
@@ -274,17 +300,46 @@ fun AppNavigation(
             when (screen) {
 
                 // ── Splash ────────────────────────────────────────────────────
+                // KEY CHANGE: After splash, check for a saved screen to restore.
+                // If the user was logged in and left on a restorable screen
+                // within the TTL window, skip straight back to it.
                 Screen.Splash -> {
                     CompleteSplashScreen(
                         onSplashComplete = {
-                            currentScreen = when {
-                                repository.isLoggedIn() -> {
+                            if (!repository.isLoggedIn()) {
+                                // Not logged in — normal flow
+                                currentScreen = if (!preferencesManager.isOnboardingComplete())
+                                    Screen.Onboarding else Screen.Welcome
+                            } else {
+                                // Logged in — try to restore last screen
+                                val restoredScreen = resolveScreen(preferencesManager.getLastScreen())
+                                val restoredTab    = resolveTab(preferencesManager.getLastTab())
+
+                                if (restoredScreen != null) {
+                                    // Restore exactly where the user was
+                                    selectedTab   = restoredTab
+                                    originTab     = restoredTab
+                                    // Pre-load data needed for the restored screen
                                     homeViewModel.loadHomeData()
                                     settingsViewModel.refreshProfile()
-                                    Screen.Home
+                                    // For screens that need extra data, trigger loading
+                                    when (restoredScreen) {
+                                        Screen.Memory -> {
+                                            /* MemoryViewModel loads lazily — no extra call needed */
+                                        }
+                                        Screen.SleepGuide,
+                                        Screen.FeedingGuide -> {
+                                            /* GuideViewModel loads on demand */
+                                        }
+                                        else -> { /* Home loads above */ }
+                                    }
+                                    currentScreen = restoredScreen
+                                } else {
+                                    // No saved state or TTL expired — go to Home
+                                    homeViewModel.loadHomeData()
+                                    settingsViewModel.refreshProfile()
+                                    currentScreen = Screen.Home
                                 }
-                                !preferencesManager.isOnboardingComplete() -> Screen.Onboarding
-                                else -> Screen.Welcome
                             }
                         }
                     )
@@ -476,6 +531,8 @@ fun AppNavigation(
                             }
                         },
                         onNavigateToWelcome        = {
+                            // On logout, wipe saved nav state so next launch starts fresh
+                            preferencesManager.clearLastScreen()
                             currentScreen = Screen.Welcome
                         },
                         onNavigateToFamilyHistory  = { babyId, babyName ->

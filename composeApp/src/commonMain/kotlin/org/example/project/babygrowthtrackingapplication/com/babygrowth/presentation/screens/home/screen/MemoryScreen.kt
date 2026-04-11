@@ -43,8 +43,10 @@ fun MemoryScreen(
     language       : Language          = Language.ENGLISH,
     onBack         : () -> Unit        = {}
 ) {
-    // Initialise on first composition
-    LaunchedEffect(babies, selectedBabyId) {
+    // Use a stable key: join of babyIds so list-reference churn doesn't retrigger
+    val babiesKey = remember(babies) { babies.joinToString(",") { it.babyId } }
+
+    LaunchedEffect(babiesKey, selectedBabyId) {
         viewModel.load(babies, selectedBabyId)
     }
 

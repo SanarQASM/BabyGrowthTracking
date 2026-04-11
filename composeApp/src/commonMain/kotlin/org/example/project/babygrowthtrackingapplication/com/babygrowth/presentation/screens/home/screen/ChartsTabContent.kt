@@ -645,9 +645,9 @@ private fun GrowthChartCanvas(
                     drawDataLine(parentRecords, { it.weight }, accentStart)
                     drawDataLine(parentRecords, { it.height }, accentEnd)
                     drawDataLine(parentRecords, { it.headCircumference }, HEAD_COLOR)
-                    drawDataLine(teamRecords, { it.weight }, TEAM_COLOR, dashed = true)           // ← fixed
-                    drawDataLine(teamRecords, { it.height }, TEAM_COLOR, dashed = true)           // ← fixed
-                    drawDataLine(teamRecords, { it.headCircumference }, TEAM_COLOR, dashed = true) // ← fixed
+                    drawDataLine(teamRecords, { it.weight }, accentStart, dashed = true)
+                    drawDataLine(teamRecords, { it.height }, accentEnd, dashed = true)
+                    drawDataLine(teamRecords, { it.headCircumference }, HEAD_COLOR, dashed = true)
                 }
 
                 ChartFilter.WEIGHT -> {
@@ -761,12 +761,17 @@ private fun ChartLegend(
                 LegendRow(HEAD_COLOR, headCm, dashed = false, showDot = true)
                 Spacer(Modifier.height(dimensions.spacingXSmall))
                 LegendSectionHeader(legendTeamAdded)
-                LegendRow(TEAM_COLOR, weightKg, dashed = true, showDot = true)    // ← fixed
-                LegendRow(TEAM_COLOR, heightCm, dashed = true, showDot = true)    // ← fixed
-                LegendRow(TEAM_COLOR, headCm, dashed = true, showDot = true)      // ← fixed
+                LegendRow(accentStart, weightKg, dashed = true, showDot = true)
+                LegendRow(accentEnd, heightCm, dashed = true, showDot = true)
+                LegendRow(HEAD_COLOR, headCm, dashed = true, showDot = true)
                 Spacer(Modifier.height(dimensions.spacingXSmall))
                 LegendSectionHeader(legendWhoRef)
-                LegendRow(WHO_50_COLOR.copy(alpha = 0.5f), legendWhoAvg, dashed = true, showDot = false)
+                LegendRow(
+                    WHO_50_COLOR.copy(alpha = 0.5f),
+                    legendWhoAvg,
+                    dashed = true,
+                    showDot = false
+                )
             }
 
             ChartFilter.WEIGHT, ChartFilter.HEIGHT, ChartFilter.HEAD -> {

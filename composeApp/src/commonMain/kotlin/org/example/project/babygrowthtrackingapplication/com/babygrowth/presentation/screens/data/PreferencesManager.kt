@@ -55,6 +55,11 @@ class PreferencesManager(private val settings: Settings) {
         // Gender Theme
         private const val KEY_GENDER_THEME          = "gender_theme"
         private const val KEY_BABY_GENDER_IS_FEMALE = "baby_gender_is_female"
+        // Navigation State — add inside companion object
+        private const val KEY_LAST_SCREEN    = "last_screen"
+        private const val KEY_LAST_TAB       = "last_tab"
+        private const val KEY_LAST_SCREEN_TS = "last_screen_timestamp"
+        private const val NAV_STATE_TTL_MS   = 30 * 60 * 1000L // 30 minutes
     }
 
     private val languageManager = LanguageManager(settings)
@@ -264,6 +269,32 @@ class PreferencesManager(private val settings: Settings) {
     fun clearGenderTheme() {
         settings.remove(KEY_GENDER_THEME)
         settings.remove(KEY_BABY_GENDER_IS_FEMALE)
+    }
+// ============================================================================
+// NAVIGATION STATE PERSISTENCE
+// ============================================================================
+
+    @OptIn(ExperimentalTime::class)
+    fun saveLastScreen(screenName: String, tabName: String) {
+        settings.putString(KEY_LAST_SCREEN, screenName)
+        settings.putString(KEY_LAST_TAB, tabName)
+        settings.putLong(KEY_LAST_SCREEN_TS, Clock.System.now().toEpochMilliseconds())
+    }
+
+    @OptIn(ExperimentalTime::class)
+    fun getLastScreen(): String? {
+        val ts = settings.getLong(KEY_LAST_SCREEN_TS, 0L)
+        if (ts == 0L) return null
+        val age = Clock.System.now().toEpochMilliseconds() - ts
+        return if (age < NAV_STATE_TTL_MS) settings.getStringOrNull(KEY_LAST_SCREEN) else null
+    }
+
+    fun getLastTab(): String = settings.getString(KEY_LAST_TAB, "HOME")
+
+    fun clearLastScreen() {
+        settings.remove(KEY_LAST_SCREEN)
+        settings.remove(KEY_LAST_TAB)
+        settings.remove(KEY_LAST_SCREEN_TS)
     }
 
     // ============================================================================

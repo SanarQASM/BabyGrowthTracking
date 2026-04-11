@@ -12,24 +12,26 @@ import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
 
-    // ✅ Koin is now started in MyApplication before this runs
     private val socialAuthManager: SocialAuthManager by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // ✅ Initialize the shared SocialAuthManager with this Activity
         socialAuthManager.initialize(this)
-
-        // ✅ Enable edge-to-edge display
         enableEdgeToEdge()
-
-        // ✅ Make status bar transparent
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {
             App()
         }
+    }
+
+    // Called when the user minimizes or leaves the app (process still alive).
+    // The PreferencesManager already persisted the screen via LaunchedEffect
+    // in Navigation.kt, so nothing extra is needed here.
+    override fun onPause() {
+        super.onPause()
+        // State is already saved continuously via LaunchedEffect in Navigation.kt
     }
 
     override fun onDestroy() {

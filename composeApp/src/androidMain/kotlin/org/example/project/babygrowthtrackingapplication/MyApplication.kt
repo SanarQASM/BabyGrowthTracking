@@ -4,6 +4,7 @@ import android.app.Application
 import com.google.firebase.FirebaseApp
 import org.example.project.babygrowthtrackingapplication.data.auth.SocialAuthManager
 import org.example.project.babygrowthtrackingapplication.platform.AppContextHolder
+import org.example.project.babygrowthtrackingapplication.platform.initMemoryLocalStorage
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
@@ -20,6 +21,7 @@ class MyApplication : Application() {
         // ✅ Initialize Firebase first
         FirebaseApp.initializeApp(this)
         AppContextHolder.init(this)
+        initMemoryLocalStorage(this)
         // ✅ Start Koin
         startKoin {
             androidLogger()

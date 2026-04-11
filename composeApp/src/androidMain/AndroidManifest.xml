@@ -37,6 +37,7 @@
 
         <activity
             android:name="org.example.project.babygrowthtrackingapplication.MainActivity"
+            android:launchMode="singleTop"
             android:exported="true"
             android:configChanges="orientation|screenSize|screenLayout|keyboardHidden|smallestScreenSize"
             android:theme="@style/Theme.BabyGrowth"
