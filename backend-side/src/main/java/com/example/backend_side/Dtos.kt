@@ -228,6 +228,7 @@ data class VaccinationResponse(
 // ============================================================
 
 data class MemoryCreateRequest @JsonCreator constructor(
+
     @JsonProperty("babyId")
     @field:NotBlank(message = "Baby ID is required")
     val babyId: String,
@@ -236,16 +237,27 @@ data class MemoryCreateRequest @JsonCreator constructor(
     @field:NotBlank(message = "Title is required")
     val title: String,
 
-    @JsonProperty("description") val description  : String?        = null,
+    @JsonProperty("description")
+    val description: String? = null,
 
     @JsonProperty("memoryDate")
     @field:NotNull(message = "Memory date is required")
     val memoryDate: LocalDate,
 
-    @JsonProperty("imageUrls")     val imageUrls    : List<String>  = emptyList(),
-    @JsonProperty("imageCaptions") val imageCaptions: List<String?> = emptyList()
-)
+    // ── Backward-compatible image URL list (kept from original) ───────────────
+    @JsonProperty("imageUrls")
+    val imageUrls: List<String> = emptyList(),
 
+    @JsonProperty("imageCaptions")
+    val imageCaptions: List<String?> = emptyList(),
+
+    // ── NEW: local-storage image metadata sent by the Kotlin client ───────────
+    @JsonProperty("imageCount")
+    val imageCount: Int = 0,
+
+    @JsonProperty("captions")
+    val captions: List<String?>? = null
+)
 // Response DTOs — no @JsonCreator needed
 data class MemoryResponse(
     val memoryId   : String,

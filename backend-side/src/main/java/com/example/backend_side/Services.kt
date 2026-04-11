@@ -445,51 +445,60 @@ interface MemoryService {
 @Service
 @Transactional
 class MemoryServiceImpl(
-    private val memoryRepository: MemoryRepository,
-    private val memoryImageRepository: MemoryImageRepository,
-    private val babyRepository: BabyRepository,
-    private val userRepository: UserRepository
+    private val memoryRepository      : MemoryRepository,
+    private val memoryImageRepository : MemoryImageRepository,
+    private val babyRepository        : BabyRepository,
+    private val userRepository        : UserRepository
 ) : MemoryService {
 
     override fun createMemory(parentUserId: String, request: MemoryCreateRequest): MemoryResponse {
         logger.info { "Creating memory for baby: ${request.babyId}" }
 
+        // ── 1. Resolve Baby entity from the String ID ─────────────────────────
+        //    This is what the old controller was missing — it never looked up
+        //    the Baby, so memory.baby stayed null and baby_id was null in the DB.
         val baby = babyRepository.findById(request.babyId)
             .orElseThrow { ResourceNotFoundException("Baby not found with ID: ${request.babyId}") }
 
+        // ── 2. Resolve Parent User entity ─────────────────────────────────────
         val parent = userRepository.findById(parentUserId)
             .orElseThrow { ResourceNotFoundException("Parent not found with ID: $parentUserId") }
 
+        // ── 3. Compute age at memory date ─────────────────────────────────────
         val ageInMonths = Period.between(baby.dateOfBirth, request.memoryDate).toTotalMonths().toInt()
-        val ageInDays = ChronoUnit.DAYS.between(baby.dateOfBirth, request.memoryDate).toInt()
+        val ageInDays   = ChronoUnit.DAYS.between(baby.dateOfBirth, request.memoryDate).toInt()
 
+        // ── 4. Build and persist the Memory entity ────────────────────────────
         val memory = Memory(
-            memoryId = UUID.randomUUID().toString(),
-            baby = baby,
-            parentUser = parent,
-            title = request.title,
-            description = request.description,
-            memoryDate = request.memoryDate,
-            ageInMonths = ageInMonths,
-            ageInDays = ageInDays
+            memoryId     = UUID.randomUUID().toString(),
+            baby         = baby,          // ← entity reference, not a String
+            parentUser   = parent,        // ← entity reference, not a String
+            title        = request.title,
+            description  = request.description,
+            memoryDate   = request.memoryDate,
+            ageInMonths  = ageInMonths,
+            ageInDays    = ageInDays,
+            // ── NEW: store image metadata sent by the client ──────────────────
+            imageCount   = request.imageCount,
+            captionsJson = encodeCaptions(request.captions)
         )
 
         val savedMemory = memoryRepository.save(memory)
+        logger.info { "Memory created successfully with ID: ${savedMemory.memoryId}" }
 
-        // Add images if provided
+        // ── 5. Save MemoryImage records if imageUrls were supplied ────────────
+        //    (kept for backward compat — imageUrls may be empty for local-only mode)
         request.imageUrls.forEachIndexed { index, imageUrl ->
             val memoryImage = MemoryImage(
-                memory = savedMemory,
-                imageUrl = imageUrl,
-                caption = request.imageCaptions.getOrNull(index),
+                memory    = savedMemory,
+                imageUrl  = imageUrl,
+                caption   = request.imageCaptions.getOrNull(index),
                 sortOrder = index
             )
             savedMemory.images.add(memoryImage)
         }
 
         val finalMemory = memoryRepository.save(savedMemory)
-        logger.info { "Memory created successfully with ID: ${finalMemory.memoryId}" }
-
         return finalMemory.toResponse()
     }
 
@@ -499,10 +508,9 @@ class MemoryServiceImpl(
         return memory.toResponse()
     }
 
-    override fun getMemoriesByBaby(babyId: String): List<MemoryResponse> {
-        return memoryRepository.findByBaby_BabyIdOrderByMemoryDateDesc(babyId)
+    override fun getMemoriesByBaby(babyId: String): List<MemoryResponse> =
+        memoryRepository.findByBaby_BabyIdOrderByMemoryDateDesc(babyId)
             .map { it.toResponse() }
-    }
 
     override fun deleteMemory(memoryId: String) {
         if (!memoryRepository.existsById(memoryId)) {
@@ -512,28 +520,39 @@ class MemoryServiceImpl(
         logger.info { "Memory deleted: $memoryId" }
     }
 
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    /** Encode a list of caption strings to a simple JSON array string. */
+    private fun encodeCaptions(captions: List<String?>?): String? {
+        if (captions.isNullOrEmpty()) return null
+        val escaped = captions.map { c ->
+            "\"${c?.replace("\"", "\\\"") ?: ""}\""
+        }
+        return "[${escaped.joinToString(",")}]"
+    }
+
+    /** Map Memory entity → MemoryResponse DTO. */
     private fun Memory.toResponse() = MemoryResponse(
-        memoryId = memoryId,
-        babyId = baby?.babyId ?: "",
-        babyName = baby?.fullName ?: "",
-        parentName = parentUser?.fullName ?: "",
-        title = title,
+        memoryId    = memoryId,
+        babyId      = baby?.babyId      ?: "",
+        babyName    = baby?.fullName     ?: "",
+        parentName  = parentUser?.fullName ?: "",
+        title       = title,
         description = description,
-        memoryDate = memoryDate,
+        memoryDate  = memoryDate,
         ageInMonths = ageInMonths,
-        ageInDays = ageInDays,
-        images = images.map { img ->
+        ageInDays   = ageInDays,
+        images      = images.map { img ->
             MemoryImageResponse(
-                imageId = img.imageId ?: 0,
-                imageUrl = img.imageUrl,
-                caption = img.caption,
+                imageId   = img.imageId ?: 0,
+                imageUrl  = img.imageUrl,
+                caption   = img.caption,
                 sortOrder = img.sortOrder
             )
         },
         createdAt = createdAt
     )
 }
-
 // ============================================================
 // APPOINTMENT SERVICE
 // ============================================================

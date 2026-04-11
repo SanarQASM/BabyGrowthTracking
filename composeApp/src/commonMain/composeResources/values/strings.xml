@@ -889,9 +889,9 @@ Last updated: 2025.</string>
     <string name="chart_filter_label">Filter</string>
     <string name="chart_legend_parent_label">👪  Parent Added</string>
     <string name="chart_legend_team_label">🏥  Team Added</string>
-    <string name="memory_screen_title">Child\'s Memories</string>
+    <string name="memory_screen_title">Child's Memories</string>
     <string name="memory_add">Add Memory</string>
-    <string name="memory_add_title">Add New Child\'s Memories</string>
+    <string name="memory_add_title">Add New Child's Memories</string>
     <string name="memory_add_first">Add First Memory</string>
     <string name="memory_save">Save Memory</string>
     <string name="memory_delete">Delete Memory</string>
