@@ -522,10 +522,10 @@ fun AppNavigation(
                             originTab     = selectedTab
                             currentScreen = Screen.FeedingGuide
                         },
-                        onNavigateToMemory         = {         // ← NEW
+                        onNavigateToMemory         = {
                             originTab     = selectedTab
                             currentScreen = Screen.Memory
-                        }//fix this
+                        }
                     )
                 }
 

@@ -47,10 +47,10 @@ fun HomeScreen(
     onNavigateToHearingSpeech  : (String, String) -> Unit = { _, _ -> },
     onNavigateToSleepGuide     : () -> Unit = {},
     onNavigateToFeedingGuide   : () -> Unit = {},
+    onNavigateToMemory         : () -> Unit = {},   // ← ADDED
 ) {
     val state       = viewModel.uiState
     val useSideRail = rememberUseSideRail()
-    // ADDED: pull dimensions so we can use the hairline token instead of Dp.Hairline
     val dimensions  = LocalDimensions.current
 
     if (useSideRail) {
@@ -60,7 +60,6 @@ fun HomeScreen(
                 onTabSelected = onTabChange
             )
 
-            // CHANGED: Dp.Hairline (hardcoded) → dimensions.hairlineDividerThickness (token)
             HorizontalDivider(
                 modifier = Modifier
                     .fillMaxHeight()
@@ -103,8 +102,7 @@ fun HomeScreen(
                     onNavigateToHearingSpeech  = onNavigateToHearingSpeech,
                     onNavigateToSleepGuide     = onNavigateToSleepGuide,
                     onNavigateToFeedingGuide   = onNavigateToFeedingGuide,
-                    // CHANGED: Dp(0f) hardcoded → 0.dp (idiomatic) for the side-rail layout
-                    // where there is no bottom navigation bar consuming space.
+                    onNavigateToMemory         = onNavigateToMemory,         // ← ADDED
                     bottomPadding              = 0.dp
                 )
             }
@@ -154,6 +152,7 @@ fun HomeScreen(
                     onNavigateToHearingSpeech  = onNavigateToHearingSpeech,
                     onNavigateToSleepGuide     = onNavigateToSleepGuide,
                     onNavigateToFeedingGuide   = onNavigateToFeedingGuide,
+                    onNavigateToMemory         = onNavigateToMemory,         // ← ADDED
                     bottomPadding              = paddingValues.calculateBottomPadding()
                 )
             }
@@ -162,7 +161,7 @@ fun HomeScreen(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TabContent — unchanged logic, included for completeness
+// TabContent
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -195,6 +194,7 @@ private fun TabContent(
     onNavigateToHearingSpeech  : (String, String) -> Unit,
     onNavigateToSleepGuide     : () -> Unit,
     onNavigateToFeedingGuide   : () -> Unit,
+    onNavigateToMemory         : () -> Unit,                // ← ADDED
     bottomPadding              : androidx.compose.ui.unit.Dp,
 ) {
     when (selectedTab) {
@@ -203,7 +203,8 @@ private fun TabContent(
                 viewModel      = viewModel,
                 onAddBaby      = onAddBaby,
                 onSleepGuide   = onNavigateToSleepGuide,
-                onFeedingGuide = onNavigateToFeedingGuide
+                onFeedingGuide = onNavigateToFeedingGuide,
+                onMemory       = onNavigateToMemory,        // ← ADDED
             )
 
         NavigationTab.BABY ->

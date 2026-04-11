@@ -1,16 +1,10 @@
 package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen
 
-import ByteArrayImage
-import ImagePickerButton
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.*
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.*
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
@@ -20,11 +14,10 @@ import androidx.compose.ui.*
 import androidx.compose.ui.draw.*
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.*
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.*
 import androidx.compose.ui.unit.*
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.Language
@@ -34,6 +27,9 @@ import org.example.project.babygrowthtrackingapplication.theme.*
 import org.jetbrains.compose.resources.stringResource
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 import babygrowthtrackingapplication.composeapp.generated.resources.*
+import kotlinx.coroutines.delay
+import org.example.project.babygrowthtrackingapplication.platform.ByteArrayImage
+import org.example.project.babygrowthtrackingapplication.platform.ImagePickerButton
 
 // ─────────────────────────────────────────────────────────────────────────────
 // MemoryScreen — landscape-aware entry point
@@ -126,7 +122,7 @@ fun MemoryScreen(
             // Snackbar
             state.actionMessage?.let { msg ->
                 LaunchedEffect(msg) {
-                    kotlinx.coroutines.delay(2500)
+                    delay(2500)
                     viewModel.clearActionMessage()
                 }
                 Snackbar(
@@ -542,7 +538,7 @@ private fun MemoryCard(
                     color     = MaterialTheme.colorScheme.onSurface.copy(0.65f),
                     maxLines  = 3,
                     overflow  = TextOverflow.Ellipsis,
-                    fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                    fontStyle = FontStyle.Italic
                 )
             }
 
@@ -1362,13 +1358,19 @@ private fun ConfirmDeleteDialog(
 // Date formatter helper
 // ─────────────────────────────────────────────────────────────────────────────
 
+@Composable
 private fun formatMemoryDate(dateStr: String): String {
     val parts = dateStr.split("-")
     if (parts.size != 3) return dateStr
+    val monthIndex = parts[1].toIntOrNull() ?: return dateStr
     val monthNames = listOf(
-        "Jan","Feb","Mar","Apr","May","Jun",
-        "Jul","Aug","Sep","Oct","Nov","Dec"
+        "", stringResource(Res.string.month_jan), stringResource(Res.string.month_feb),
+        stringResource(Res.string.month_mar), stringResource(Res.string.month_apr),
+        stringResource(Res.string.month_may), stringResource(Res.string.month_jun),
+        stringResource(Res.string.month_jul), stringResource(Res.string.month_aug),
+        stringResource(Res.string.month_sep), stringResource(Res.string.month_oct),
+        stringResource(Res.string.month_nov), stringResource(Res.string.month_dec)
     )
-    val month = (parts[1].toIntOrNull() ?: 1).coerceIn(1, 12)
-    return "${monthNames[month - 1]} ${parts[2]}, ${parts[0]}"
+    val month = monthNames.getOrElse(monthIndex) { parts[1] }
+    return "$month ${parts[2]}, ${parts[0]}"
 }
