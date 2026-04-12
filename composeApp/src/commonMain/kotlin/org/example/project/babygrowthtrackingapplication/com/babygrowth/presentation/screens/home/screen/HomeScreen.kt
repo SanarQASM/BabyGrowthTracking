@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.Language
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.*
 import org.example.project.babygrowthtrackingapplication.data.network.BabyResponse
+import org.example.project.babygrowthtrackingapplication.notifications.NotificationViewModel   // ← NEW
 import org.example.project.babygrowthtrackingapplication.theme.GenderTheme
 import org.example.project.babygrowthtrackingapplication.theme.LocalDimensions
 import org.example.project.babygrowthtrackingapplication.ui.components.BottomNavigationBar
@@ -27,6 +28,7 @@ fun HomeScreen(
     visionMotorViewModel       : VisionMotorViewModel,
     hearingSpeechViewModel     : HearingSpeechViewModel,
     guideViewModel             : GuideViewModel,
+    notificationViewModel      : NotificationViewModel,                        // ← NEW
     currentLanguage            : Language = Language.ENGLISH,
     onLanguageChange           : (Language) -> Unit = {},
     onDarkModeChange           : (Boolean) -> Unit = {},
@@ -47,7 +49,8 @@ fun HomeScreen(
     onNavigateToHearingSpeech  : (String, String) -> Unit = { _, _ -> },
     onNavigateToSleepGuide     : () -> Unit = {},
     onNavigateToFeedingGuide   : () -> Unit = {},
-    onNavigateToMemory         : () -> Unit = {},   // ← ADDED
+    onNavigateToMemory         : () -> Unit = {},
+    onNavigateToNotifications  : () -> Unit = {},                              // ← NEW
 ) {
     val state       = viewModel.uiState
     val useSideRail = rememberUseSideRail()
@@ -83,6 +86,7 @@ fun HomeScreen(
                     visionMotorViewModel       = visionMotorViewModel,
                     hearingSpeechViewModel     = hearingSpeechViewModel,
                     guideViewModel             = guideViewModel,
+                    notificationViewModel      = notificationViewModel,        // ← NEW
                     state                      = state,
                     currentLanguage            = currentLanguage,
                     onLanguageChange           = onLanguageChange,
@@ -102,7 +106,8 @@ fun HomeScreen(
                     onNavigateToHearingSpeech  = onNavigateToHearingSpeech,
                     onNavigateToSleepGuide     = onNavigateToSleepGuide,
                     onNavigateToFeedingGuide   = onNavigateToFeedingGuide,
-                    onNavigateToMemory         = onNavigateToMemory,         // ← ADDED
+                    onNavigateToMemory         = onNavigateToMemory,
+                    onNavigateToNotifications  = onNavigateToNotifications,    // ← NEW
                     bottomPadding              = 0.dp
                 )
             }
@@ -133,6 +138,7 @@ fun HomeScreen(
                     visionMotorViewModel       = visionMotorViewModel,
                     hearingSpeechViewModel     = hearingSpeechViewModel,
                     guideViewModel             = guideViewModel,
+                    notificationViewModel      = notificationViewModel,        // ← NEW
                     state                      = state,
                     currentLanguage            = currentLanguage,
                     onLanguageChange           = onLanguageChange,
@@ -152,7 +158,8 @@ fun HomeScreen(
                     onNavigateToHearingSpeech  = onNavigateToHearingSpeech,
                     onNavigateToSleepGuide     = onNavigateToSleepGuide,
                     onNavigateToFeedingGuide   = onNavigateToFeedingGuide,
-                    onNavigateToMemory         = onNavigateToMemory,         // ← ADDED
+                    onNavigateToMemory         = onNavigateToMemory,
+                    onNavigateToNotifications  = onNavigateToNotifications,    // ← NEW
                     bottomPadding              = paddingValues.calculateBottomPadding()
                 )
             }
@@ -175,6 +182,7 @@ private fun TabContent(
     visionMotorViewModel       : VisionMotorViewModel,
     hearingSpeechViewModel     : HearingSpeechViewModel,
     guideViewModel             : GuideViewModel,
+    notificationViewModel      : NotificationViewModel,                        // ← NEW
     state                      : HomeUiState,
     currentLanguage            : Language,
     onLanguageChange           : (Language) -> Unit,
@@ -194,17 +202,20 @@ private fun TabContent(
     onNavigateToHearingSpeech  : (String, String) -> Unit,
     onNavigateToSleepGuide     : () -> Unit,
     onNavigateToFeedingGuide   : () -> Unit,
-    onNavigateToMemory         : () -> Unit,                // ← ADDED
+    onNavigateToMemory         : () -> Unit,
+    onNavigateToNotifications  : () -> Unit,                                   // ← NEW
     bottomPadding              : androidx.compose.ui.unit.Dp,
 ) {
     when (selectedTab) {
         NavigationTab.HOME ->
             HomeTabContent(
-                viewModel      = viewModel,
-                onAddBaby      = onAddBaby,
-                onSleepGuide   = onNavigateToSleepGuide,
-                onFeedingGuide = onNavigateToFeedingGuide,
-                onMemory       = onNavigateToMemory,        // ← ADDED
+                viewModel             = viewModel,
+                notificationViewModel = notificationViewModel,                 // ← NEW
+                onAddBaby             = onAddBaby,
+                onSleepGuide          = onNavigateToSleepGuide,
+                onFeedingGuide        = onNavigateToFeedingGuide,
+                onMemory              = onNavigateToMemory,
+                onNotifications       = onNavigateToNotifications,             // ← NEW
             )
 
         NavigationTab.BABY ->

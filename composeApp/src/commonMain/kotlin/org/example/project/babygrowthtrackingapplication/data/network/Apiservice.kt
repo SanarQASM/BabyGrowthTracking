@@ -29,13 +29,15 @@ sealed class ApiResult<out T> {
 
 class ApiService(
     private val getToken: () -> String? = { null }
+
 ) {
     companion object {
         //        private const val BASE_URL = "http://10.0.2.2:8080/api"
 //          private const val BASE_URL = "http://localhost:8080/api"
-        private const val BASE_URL = "http://172.20.10.3:8080/api"
+        internal const val BASE_URL = "http://172.20.10.3:8080/api"
 
         object Endpoints {
+
             // Auth
             const val AUTH_REGISTER         = "/v1/auth/register"
             const val AUTH_LOGIN            = "/v1/auth/login"
@@ -116,6 +118,7 @@ class ApiService(
         }
     }
 
+
     internal val client = HttpClient {
         install(ContentNegotiation) {
             json(Json { prettyPrint = true; isLenient = true; ignoreUnknownKeys = true })
@@ -131,7 +134,8 @@ class ApiService(
             getToken()?.let { header(HttpHeaders.Authorization, "Bearer $it") }
         }
     }
-
+    val httpClient get() = client
+    val baseUrl = BASE_URL
     // ── Auth ──────────────────────────────────────────────────────────────────
 
     suspend fun register(request: RegisterRequest): ApiResult<AuthResponse> =

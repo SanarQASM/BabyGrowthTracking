@@ -24,15 +24,52 @@ interface AppointmentRepository : JpaRepository<Appointment, String> {
 
     fun findByScheduledDateBetween(startDate: LocalDate, endDate: LocalDate): List<Appointment>
 
-    @Query("SELECT a FROM Appointment a WHERE a.scheduledDate >= :startDate AND a.status IN ('SCHEDULED', 'CONFIRMED') ORDER BY a.scheduledDate, a.scheduledTime")
-    fun findUpcomingAppointments(@Param("startDate") startDate: LocalDate): List<Appointment>
+    // FIX: replaced raw string literals 'SCHEDULED','CONFIRMED' with typed :statuses param
+    @Query("""
+        SELECT a FROM Appointment a
+        WHERE a.scheduledDate >= :startDate
+        AND a.status IN :statuses
+        ORDER BY a.scheduledDate, a.scheduledTime
+    """)
+    fun findUpcomingAppointments(
+        @Param("startDate") startDate: LocalDate,
+        @Param("statuses")  statuses : List<AppointmentStatus> = listOf(
+            AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED
+        )
+    ): List<Appointment>
 
-    @Query("SELECT a FROM Appointment a WHERE a.baby.babyId = :babyId AND a.scheduledDate >= CURRENT_DATE AND a.status IN ('SCHEDULED', 'CONFIRMED') ORDER BY a.scheduledDate, a.scheduledTime")
-    fun findUpcomingAppointmentsForBaby(@Param("babyId") babyId: String): List<Appointment>
+    // FIX: replaced raw string literals with typed :statuses param
+    @Query("""
+        SELECT a FROM Appointment a
+        WHERE a.baby.babyId = :babyId
+        AND a.scheduledDate >= CURRENT_DATE
+        AND a.status IN :statuses
+        ORDER BY a.scheduledDate, a.scheduledTime
+    """)
+    fun findUpcomingAppointmentsForBaby(
+        @Param("babyId")   babyId  : String,
+        @Param("statuses") statuses: List<AppointmentStatus> = listOf(
+            AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED
+        )
+    ): List<Appointment>
 
-    @Query("SELECT a FROM Appointment a WHERE a.scheduledDate = :date AND a.reminderSent = false AND a.status IN ('SCHEDULED', 'CONFIRMED')")
-    fun findAppointmentsNeedingReminder(@Param("date") date: LocalDate): List<Appointment>
+    // FIX: replaced raw string literals with typed :statuses param
+    @Query("""
+        SELECT a FROM Appointment a
+        WHERE a.scheduledDate = :date
+        AND a.reminderSent = false
+        AND a.status IN :statuses
+    """)
+    fun findAppointmentsNeedingReminder(
+        @Param("date")     date    : LocalDate,
+        @Param("statuses") statuses: List<AppointmentStatus> = listOf(
+            AppointmentStatus.SCHEDULED, AppointmentStatus.CONFIRMED
+        )
+    ): List<Appointment>
 
     @Query("SELECT COUNT(a) FROM Appointment a WHERE a.baby.babyId = :babyId AND a.status = :status")
-    fun countByBabyIdAndStatus(@Param("babyId") babyId: String, @Param("status") status: AppointmentStatus): Long
+    fun countByBabyIdAndStatus(
+        @Param("babyId") babyId: String,
+        @Param("status") status: AppointmentStatus
+    ): Long
 }

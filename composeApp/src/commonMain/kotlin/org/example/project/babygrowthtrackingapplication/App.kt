@@ -9,12 +9,11 @@ import org.example.project.babygrowthtrackingapplication.theme.BabyGrowthTheme
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
-fun App() {
+fun App(startRoute: String? = null) {
     ConfigureFullScreen()
 
     val preferencesManager = rememberPreferencesManager()
 
-    // ── Single source of truth for all 3 theme/language states ───────────────
     var currentLanguage by remember {
         mutableStateOf(preferencesManager.getCurrentLanguage())
     }
@@ -23,7 +22,6 @@ fun App() {
         mutableStateOf(preferencesManager.getGenderTheme())
     }
 
-    // FIX: read dark-mode from prefs on startup instead of hardcoding false
     var isDarkMode by remember {
         mutableStateOf(preferencesManager.getBoolean("dark_mode", false))
     }
@@ -34,21 +32,16 @@ fun App() {
     ) {
         LanguageProvider(language = currentLanguage) {
             AppNavigation(
-                // FIX: pass currentLanguage so Navigation.kt doesn't hold a duplicate copy
-                currentLanguage      = currentLanguage,
-
-                onLanguageChange     = { newLanguage ->
+                currentLanguage     = currentLanguage,
+                startRoute          = startRoute,
+                onLanguageChange    = { newLanguage ->
                     currentLanguage = newLanguage
                     preferencesManager.setLanguage(newLanguage)
                 },
-
-                // FIX: wire dark-mode so BabyGrowthTheme actually re-composes
-                onDarkModeChange     = { dark ->
+                onDarkModeChange    = { dark ->
                     isDarkMode = dark
                 },
-
-                // FIX: wire gender theme so BabyGrowthTheme actually re-composes
-                onGenderThemeChange  = { theme ->
+                onGenderThemeChange = { theme ->
                     currentGenderTheme = theme
                 }
             )

@@ -73,6 +73,10 @@ twilio                          = "10.6.6"
 junit                           = "4.13.2"
 kotlin-test                     = "2.1.21"
 lifecycleProcess = "2.10.0"
+firebase-admin = "9.4.3"
+
+
+
 
 # =============================================================================
 
@@ -156,6 +160,9 @@ firebase-bom                    = { module = "com.google.firebase:firebase-bom",
 firebase-auth                   = { module = "com.google.firebase:firebase-auth-ktx" }
 firebase-analytics              = { module = "com.google.firebase:firebase-analytics-ktx" }
 firebase-storage                = { module = "com.google.firebase:firebase-storage-ktx" }
+firebase-messaging              = { module = "com.google.firebase:firebase-messaging-ktx" }
+firebase-admin                  = { module = "com.google.firebase:firebase-admin", version.ref = "firebase-admin" }
+
 
 play-services-auth              = { module = "com.google.android.gms:play-services-auth",                        version.ref = "play-services-auth" }
 credentials-core                = { module = "androidx.credentials:credentials",                                  version.ref = "credentials" }

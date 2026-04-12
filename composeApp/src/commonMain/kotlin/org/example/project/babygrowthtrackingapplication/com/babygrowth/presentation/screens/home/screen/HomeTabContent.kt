@@ -25,6 +25,9 @@ import androidx.compose.ui.unit.*
 import org.example.project.babygrowthtrackingapplication.data.network.BabyResponse
 import org.example.project.babygrowthtrackingapplication.data.network.GrowthRecordResponse
 import org.example.project.babygrowthtrackingapplication.data.network.VaccinationResponse
+import org.example.project.babygrowthtrackingapplication.notifications.NotificationBell          // ← NEW
+import org.example.project.babygrowthtrackingapplication.notifications.NotificationPreviewPanel  // ← NEW
+import org.example.project.babygrowthtrackingapplication.notifications.NotificationViewModel     // ← NEW
 import org.example.project.babygrowthtrackingapplication.theme.*
 import org.jetbrains.compose.resources.stringResource
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
@@ -34,22 +37,30 @@ import org.jetbrains.compose.resources.painterResource
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HomeTabContent
-// CHANGE: added onMemory parameter (was hardcoded { }) — now wired through
-//         both UsefulToolsSection and UsefulToolsSectionLandscape
+// CHANGES:
+//  • notificationViewModel parameter added
+//  • onNotifications callback added
+//  • HomeTopBar now receives unreadCount (Long) + bell click + long-press preview
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 fun HomeTabContent(
-    viewModel      : HomeViewModel,
-    onAddBaby      : () -> Unit = {},
-    onSleepGuide   : () -> Unit = {},
-    onFeedingGuide : () -> Unit = {},
-    onMemory       : () -> Unit = {},   // ← ADDED
+    viewModel             : HomeViewModel,
+    notificationViewModel : NotificationViewModel,  // ← NEW
+    onAddBaby             : () -> Unit = {},
+    onSleepGuide          : () -> Unit = {},
+    onFeedingGuide        : () -> Unit = {},
+    onMemory              : () -> Unit = {},
+    onNotifications       : () -> Unit = {},        // ← NEW
 ) {
     val state            = viewModel.uiState
+    val notifState       = notificationViewModel.uiState                       // ← NEW
     val dimensions       = LocalDimensions.current
     val isLandscape      = LocalIsLandscape.current
     var dropdownExpanded by remember { mutableStateOf(false) }
+
+    // ── Preview panel visibility (long-press on bell) ─────────────────────────
+    var showPreview by remember { mutableStateOf(false) }                      // ← NEW
 
     if (isLandscape) {
         // ── LANDSCAPE: two-column layout ────────────────────────────────────
@@ -61,7 +72,11 @@ fun HomeTabContent(
                     .verticalScroll(rememberScrollState())
                     .background(MaterialTheme.colorScheme.surface)
             ) {
-                HomeTopBar(notificationCount = state.notificationCount)
+                HomeTopBar(
+                    unreadCount         = notifState.unreadCount,              // ← NEW
+                    onBellClick         = onNotifications,                     // ← NEW
+                    onBellLongPress     = { showPreview = !showPreview },      // ← NEW
+                )
                 Column(
                     modifier = Modifier.padding(dimensions.screenPadding),
                     verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
@@ -113,77 +128,121 @@ fun HomeTabContent(
                     genderTheme    = state.genderTheme,
                     onSleepGuide   = onSleepGuide,
                     onFeedingGuide = onFeedingGuide,
-                    onMemory       = onMemory,   // ← CHANGED: was { }
+                    onMemory       = onMemory,
                     onAddBaby      = onAddBaby
                 )
             }
         }
     } else {
-        // ── PORTRAIT: original single-column layout ──────────────────────────
-        Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
-            HomeTopBar(notificationCount = state.notificationCount)
-            GenderBanner(genderTheme = state.genderTheme)
+        // ── PORTRAIT: single-column layout ──────────────────────────────────
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+                HomeTopBar(
+                    unreadCount         = notifState.unreadCount,              // ← NEW
+                    onBellClick         = onNotifications,                     // ← NEW
+                    onBellLongPress     = { showPreview = !showPreview },      // ← NEW
+                )
+                GenderBanner(genderTheme = state.genderTheme)
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(
-                        topStart    = dimensions.cardCornerRadius + dimensions.spacingSmall,
-                        topEnd      = dimensions.cardCornerRadius + dimensions.spacingSmall,
-                        bottomStart = 0.dp, bottomEnd = 0.dp))
-                    .background(MaterialTheme.colorScheme.background)
-            ) {
-                Column(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(
-                            top    = dimensions.spacingMedium + dimensions.spacingSmall,
-                            start  = dimensions.screenPadding,
-                            end    = dimensions.screenPadding,
-                            bottom = dimensions.spacingLarge
-                        )
+                        .clip(RoundedCornerShape(
+                            topStart    = dimensions.cardCornerRadius + dimensions.spacingSmall,
+                            topEnd      = dimensions.cardCornerRadius + dimensions.spacingSmall,
+                            bottomStart = 0.dp, bottomEnd = 0.dp))
+                        .background(MaterialTheme.colorScheme.background)
                 ) {
-                    WelcomeSection(
-                        userName   = state.userName,
-                        childCount = state.babies.size,
-                        onAddChild = onAddBaby
-                    )
-                    Spacer(Modifier.height(dimensions.spacingMedium))
-
-                    when {
-                        state.isLoading        -> LoadingSection()
-                        state.babies.isEmpty() -> NoBabiesSection(onAddBaby = onAddBaby)
-                        else -> {
-                            ChildSelectorDropdown(
-                                babies         = state.babies,
-                                selectedIndex  = state.selectedBabyIndex,
-                                expanded       = dropdownExpanded,
-                                onExpandToggle = { dropdownExpanded = !dropdownExpanded },
-                                onSelect       = { index ->
-                                    viewModel.selectBaby(index)
-                                    dropdownExpanded = false
-                                }
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                top    = dimensions.spacingMedium + dimensions.spacingSmall,
+                                start  = dimensions.screenPadding,
+                                end    = dimensions.screenPadding,
+                                bottom = dimensions.spacingLarge
                             )
-                            Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
-                            state.selectedBaby?.let { baby ->
-                                BabyInfoCard(
-                                    baby            = baby,
-                                    nextVaccination = state.nextVaccination,
-                                    genderTheme     = state.genderTheme,
-                                    latestGrowth    = state.latestGrowthRecords[baby.babyId]
+                    ) {
+                        WelcomeSection(
+                            userName   = state.userName,
+                            childCount = state.babies.size,
+                            onAddChild = onAddBaby
+                        )
+                        Spacer(Modifier.height(dimensions.spacingMedium))
+
+                        when {
+                            state.isLoading        -> LoadingSection()
+                            state.babies.isEmpty() -> NoBabiesSection(onAddBaby = onAddBaby)
+                            else -> {
+                                ChildSelectorDropdown(
+                                    babies         = state.babies,
+                                    selectedIndex  = state.selectedBabyIndex,
+                                    expanded       = dropdownExpanded,
+                                    onExpandToggle = { dropdownExpanded = !dropdownExpanded },
+                                    onSelect       = { index ->
+                                        viewModel.selectBaby(index)
+                                        dropdownExpanded = false
+                                    }
                                 )
+                                Spacer(Modifier.height(dimensions.spacingSmall + dimensions.spacingXSmall))
+                                state.selectedBaby?.let { baby ->
+                                    BabyInfoCard(
+                                        baby            = baby,
+                                        nextVaccination = state.nextVaccination,
+                                        genderTheme     = state.genderTheme,
+                                        latestGrowth    = state.latestGrowthRecords[baby.babyId]
+                                    )
+                                }
                             }
                         }
-                    }
 
-                    Spacer(Modifier.height(dimensions.spacingLarge))
-                    UsefulToolsSection(
-                        genderTheme    = state.genderTheme,
-                        onSleepGuide   = onSleepGuide,
-                        onFeedingGuide = onFeedingGuide,
-                        onMemory       = onMemory,   // ← CHANGED: was { }
-                        onAddBaby      = onAddBaby
-                    )
+                        Spacer(Modifier.height(dimensions.spacingLarge))
+                        UsefulToolsSection(
+                            genderTheme    = state.genderTheme,
+                            onSleepGuide   = onSleepGuide,
+                            onFeedingGuide = onFeedingGuide,
+                            onMemory       = onMemory,
+                            onAddBaby      = onAddBaby
+                        )
+                    }
+                }
+            }
+
+            // ── Notification preview panel (shown on bell long-press) ─────── ← NEW
+            if (showPreview) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable(
+                            interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() },
+                            indication        = null,
+                            onClick           = { showPreview = false }
+                        )
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(
+                                top   = dimensions.spacingXLarge + dimensions.spacingLarge,
+                                end   = dimensions.screenPadding
+                            )
+                    ) {
+                        NotificationPreviewPanel(
+                            notifications = notifState.notifications.take(5),
+                            unreadCount   = notifState.unreadCount,
+                            customColors  = MaterialTheme.customColors,
+                            dimensions    = LocalDimensions.current,
+                            onViewAll     = {
+                                showPreview = false
+                                onNotifications()
+                            },
+                            onTapItem     = { notification ->
+                                showPreview = false
+                                notificationViewModel.onNotificationTapped(notification)
+                            },
+                            onDismiss     = { showPreview = false }
+                        )
+                    }
                 }
             }
         }
@@ -253,11 +312,15 @@ private fun UsefulToolsSectionLandscape(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TOP BAR
+// TOP BAR — now uses NotificationBell with live unread count
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun HomeTopBar(notificationCount: Int) {
+private fun HomeTopBar(
+    unreadCount    : Long,          // ← CHANGED: was notificationCount: Int
+    onBellClick    : () -> Unit,    // ← NEW
+    onBellLongPress: () -> Unit,    // ← NEW
+) {
     val customColors = MaterialTheme.customColors
     val dimensions   = LocalDimensions.current
 
@@ -275,6 +338,7 @@ private fun HomeTopBar(notificationCount: Int) {
             verticalAlignment     = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            // App logo + name
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
@@ -299,33 +363,17 @@ private fun HomeTopBar(notificationCount: Int) {
                     color      = MaterialTheme.colorScheme.onSurface
                 )
             }
-            Box {
-                IconButton(onClick = { }) {
-                    Icon(
-                        Icons.Default.Notifications, null,
-                        tint     = customColors.accentGradientStart,
-                        modifier = Modifier.size(dimensions.iconMedium)
-                    )
-                }
-                if (notificationCount > 0) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .size(dimensions.spacingSmall + dimensions.spacingXSmall)
-                            .background(MaterialTheme.colorScheme.error, CircleShape)
-                            .border(dimensions.borderWidthThin, MaterialTheme.colorScheme.surface, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text       = if (notificationCount > 99) "99+" else notificationCount.toString(),
-                            fontSize   = dimensions.homeSmallTextSize,
-                            fontWeight = FontWeight.Bold,
-                            color      = MaterialTheme.colorScheme.onError,
-                            lineHeight = dimensions.homeSmallLineHeight
-                        )
-                    }
-                }
-            }
+
+            // ── Live notification bell ────────────────────────────────────── ← CHANGED
+            // Replaces the old static IconButton + manual badge box.
+            // Long-press shows the preview panel; single tap opens the full screen.
+            NotificationBell(
+                unreadCount  = unreadCount,
+                onClick      = onBellClick,
+                onLongClick  = onBellLongPress,
+                customColors = customColors,
+                dimensions   = dimensions,
+            )
         }
     }
 }

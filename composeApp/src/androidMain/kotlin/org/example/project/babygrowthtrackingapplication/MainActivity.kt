@@ -1,18 +1,22 @@
 package org.example.project.babygrowthtrackingapplication
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.view.WindowCompat
 import org.example.project.babygrowthtrackingapplication.data.auth.SocialAuthManager
+import org.example.project.babygrowthtrackingapplication.notifications.BabyGrowthFirebaseService
 import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
 
     private val socialAuthManager: SocialAuthManager by inject()
+    private val pendingRoute = mutableStateOf<String?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,22 +25,28 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
+        BabyGrowthFirebaseService.createChannels(this)
+
+        // Capture deep link route from notification tap
+        pendingRoute.value = intent.getStringExtra("notification_route")
+
         setContent {
-            App()
+            App(startRoute = pendingRoute.value)
         }
     }
 
-    // Called when the user minimizes or leaves the app (process still alive).
-    // The PreferencesManager already persisted the screen via LaunchedEffect
-    // in Navigation.kt, so nothing extra is needed here.
     override fun onPause() {
         super.onPause()
-        // State is already saved continuously via LaunchedEffect in Navigation.kt
     }
 
     override fun onDestroy() {
         super.onDestroy()
         socialAuthManager.cleanup()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        pendingRoute.value = intent.getStringExtra("notification_route")
     }
 }
 

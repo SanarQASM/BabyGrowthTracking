@@ -14,6 +14,7 @@ plugins {
 group = "com.example"
 version = "1.0.0"
 
+
 java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
@@ -47,6 +48,7 @@ dependencies {
     implementation(libs.spring.boot.starter.validation)
     implementation(libs.spring.boot.starter.actuator)
     implementation(libs.spring.boot.starter.mail)
+    implementation(libs.firebase.admin)
 
     // ─── SMS (Twilio) ─────────────────────────────────────────────────────────
     implementation(libs.twilio)

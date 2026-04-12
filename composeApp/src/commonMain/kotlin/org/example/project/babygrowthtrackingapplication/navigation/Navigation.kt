@@ -48,13 +48,16 @@ import org.example.project.babygrowthtrackingapplication.data.network.ApiService
 import org.example.project.babygrowthtrackingapplication.data.network.BabyResponse
 import org.example.project.babygrowthtrackingapplication.data.repository.AccountRepository
 import org.example.project.babygrowthtrackingapplication.data.repository.GuideRepository
+import org.example.project.babygrowthtrackingapplication.notifications.DeepLinkRoutes
+import org.example.project.babygrowthtrackingapplication.notifications.FcmTokenService
+import org.example.project.babygrowthtrackingapplication.notifications.NotificationRepository
+import org.example.project.babygrowthtrackingapplication.notifications.NotificationScreen
+import org.example.project.babygrowthtrackingapplication.notifications.NotificationViewModel
 import org.example.project.babygrowthtrackingapplication.theme.GenderTheme
 import org.example.project.babygrowthtrackingapplication.ui.components.NavigationTab
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Screens that are safe to restore after the app resumes.
-// Screens that depend on transient state (AddBaby, EditBaby, AddMeasurement,
-// BabyProfile, etc.) are NOT restored — we fall back to Home instead.
 // ─────────────────────────────────────────────────────────────────────────────
 private val RESTORABLE_SCREENS = setOf(
     Screen.Home,
@@ -90,12 +93,15 @@ enum class Screen {
     ChildDevHearingSpeech,
     SleepGuide,
     FeedingGuide,
-    Memory
+    Memory,
+    // ── NEW ──────────────────────────────────────────────────────────────────
+    Notifications,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Helper — resolve a saved screen name back to a Screen enum value safely
+// Helpers
 // ─────────────────────────────────────────────────────────────────────────────
+
 private fun resolveScreen(name: String?): Screen? {
     if (name == null) return null
     return try {
@@ -115,6 +121,24 @@ private fun resolveTab(name: String): NavigationTab {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Deep-link route → Screen mapping
+// Translates the String route stored inside AppNotification.deepLinkRoute
+// into a concrete Screen enum value so AppNavigation can navigate to it.
+// ─────────────────────────────────────────────────────────────────────────────
+private fun deepLinkRouteToScreen(route: String): Screen? = when (route) {
+    DeepLinkRoutes.HOME            -> Screen.Home
+    DeepLinkRoutes.GROWTH_CHART    -> Screen.Home   // we switch the tab below
+    DeepLinkRoutes.FAMILY_HISTORY  -> Screen.FamilyHistory
+    DeepLinkRoutes.CHILD_ILLNESSES -> Screen.ChildIllnesses
+    DeepLinkRoutes.VISION_MOTOR    -> Screen.ChildDevVisionMotor
+    DeepLinkRoutes.HEARING_SPEECH  -> Screen.ChildDevHearingSpeech
+    DeepLinkRoutes.MEMORIES        -> Screen.Memory
+    DeepLinkRoutes.SETTINGS        -> Screen.Home   // we switch to settings tab
+    DeepLinkRoutes.ADD_MEASUREMENT -> Screen.AddMeasurement
+    else                           -> null
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // AppNavigation
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -122,6 +146,7 @@ private fun resolveTab(name: String): NavigationTab {
 @Composable
 fun AppNavigation(
     currentLanguage     : Language              = Language.ENGLISH,
+    startRoute          : String?               = null,
     onLanguageChange    : (Language) -> Unit    = {},
     onDarkModeChange    : (Boolean) -> Unit     = {},
     onGenderThemeChange : (GenderTheme) -> Unit = {},
@@ -186,6 +211,29 @@ fun AppNavigation(
     val memoryViewModel = remember {
         MemoryViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
+
+    // ── NEW: Notification infrastructure ─────────────────────────────────────
+    //
+    // NotificationRepository needs an HttpClient.  We re-use apiService's
+    // internal client via a thin wrapper that borrows the same base URL and
+    // auth-token supplier.  Adjust the baseUrl constant to match your backend.
+    val notificationRepository = remember {
+        NotificationRepository(
+            client   = apiService.httpClient,          // expose httpClient from ApiService (see note below)
+            baseUrl  = apiService.baseUrl,             // expose baseUrl from ApiService
+            getToken = { preferencesManager.getAuthToken() }
+        )
+    }
+    val fcmTokenService = remember { FcmTokenService() }
+    val notificationViewModel = remember {
+        NotificationViewModel(
+            repository      = notificationRepository,
+            getUserId       = { preferencesManager.getUserId() },
+            fcmTokenService = fcmTokenService
+        )
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     val signupViewModel = remember {
         SignupViewModel(
             repository        = repository,
@@ -204,12 +252,103 @@ fun AppNavigation(
         EnterNewPasswordViewModel(authRepository = repository)
     }
 
+    LaunchedEffect(startRoute, repository.isLoggedIn()) {
+        if (startRoute != null && repository.isLoggedIn()) {
+            notificationViewModel.onDeepLinkReceived(startRoute)
+        }
+    }
+
     // ── Persist navigation state on every screen change ───────────────────────
-    // Only persist screens that are safe to restore (logged-in, non-transient)
     LaunchedEffect(currentScreen, selectedTab) {
         if (currentScreen in RESTORABLE_SCREENS && repository.isLoggedIn()) {
             preferencesManager.saveLastScreen(currentScreen.name, selectedTab.name)
         }
+    }
+
+    // ── Start / stop notification polling based on login state ────────────────
+    // When the user logs out we stop polling; on login we (re)start it.
+    LaunchedEffect(repository.isLoggedIn()) {
+        if (repository.isLoggedIn()) {
+            notificationViewModel.startUnreadPolling()
+        } else {
+            notificationViewModel.stopPolling()
+        }
+    }
+
+
+    // ── Handle deep-link navigation emitted by NotificationViewModel ──────────
+    // When the user taps a notification that carries a deepLinkRoute, the
+    // NotificationViewModel sets pendingNavigateTo.  We observe it here so that
+    // we can perform the actual navigation inside AppNavigation, which owns all
+    // navigation state.
+    val notifState = notificationViewModel.uiState
+    LaunchedEffect(notifState.pendingNavigateTo) {
+        val route = notifState.pendingNavigateTo ?: return@LaunchedEffect
+        val targetScreen = deepLinkRouteToScreen(route)
+
+        when (route) {
+            DeepLinkRoutes.GROWTH_CHART -> {
+                selectedTab   = NavigationTab.CHARTS
+                currentScreen = Screen.Home
+            }
+            DeepLinkRoutes.SETTINGS -> {
+                selectedTab   = NavigationTab.SETTINGS
+                currentScreen = Screen.Home
+            }
+            DeepLinkRoutes.ADD_MEASUREMENT -> {
+                // Navigate to AddMeasurement for the currently-selected baby
+                val baby = homeViewModel.uiState.selectedBaby
+                if (baby != null) {
+                    originTab       = selectedTab
+                    measurementBaby = baby
+                    currentScreen   = Screen.AddMeasurement
+                } else {
+                    currentScreen = Screen.Home
+                }
+            }
+            DeepLinkRoutes.FAMILY_HISTORY -> {
+                val baby = homeViewModel.uiState.selectedBaby
+                if (baby != null) {
+                    familyHistoryBaby = baby
+                    familyHistoryViewModel.loadFamilyHistory(baby.babyId)
+                    currentScreen = Screen.FamilyHistory
+                } else currentScreen = Screen.Home
+            }
+            DeepLinkRoutes.CHILD_ILLNESSES -> {
+                val baby = homeViewModel.uiState.selectedBaby
+                if (baby != null) {
+                    childIllnessesBaby = baby
+                    childIllnessesViewModel.loadIllnesses(baby.babyId)
+                    currentScreen = Screen.ChildIllnesses
+                } else currentScreen = Screen.Home
+            }
+            DeepLinkRoutes.VISION_MOTOR -> {
+                val baby = homeViewModel.uiState.selectedBaby
+                if (baby != null) {
+                    childDevBaby  = baby
+                    visionMotorViewModel.load(baby.babyId, baby.ageInMonths)
+                    currentScreen = Screen.ChildDevVisionMotor
+                } else currentScreen = Screen.Home
+            }
+            DeepLinkRoutes.HEARING_SPEECH -> {
+                val baby = homeViewModel.uiState.selectedBaby
+                if (baby != null) {
+                    childDevBaby  = baby
+                    hearingSpeechViewModel.load(baby.babyId, baby.ageInMonths)
+                    currentScreen = Screen.ChildDevHearingSpeech
+                } else currentScreen = Screen.Home
+            }
+            DeepLinkRoutes.MEMORIES -> {
+                originTab     = selectedTab
+                currentScreen = Screen.Memory
+            }
+            else -> {
+                if (targetScreen != null) currentScreen = targetScreen
+                else currentScreen = Screen.Home
+            }
+        }
+
+        notificationViewModel.onNavigationHandled()
     }
 
     // ── Lifecycle ─────────────────────────────────────────────────────────────
@@ -227,6 +366,7 @@ fun AppNavigation(
             hearingSpeechViewModel.onDestroy()
             guideViewModel.onDestroy()
             memoryViewModel.onDestroy()
+            notificationViewModel.onDestroy()   // ← NEW
             cleanupSocialAuth(socialAuthManager)
         }
     }
@@ -281,7 +421,8 @@ fun AppNavigation(
                     Screen.ChildDevHearingSpeech,
                     Screen.SleepGuide,
                     Screen.FeedingGuide,
-                    Screen.Memory ->
+                    Screen.Memory,
+                    Screen.Notifications ->          // ← NEW: same slide-in transition
                         slideInHorizontally(
                             initialOffsetX = { it },
                             animationSpec  = tween(400, easing = FastOutSlowInEasing)
@@ -300,42 +441,29 @@ fun AppNavigation(
             when (screen) {
 
                 // ── Splash ────────────────────────────────────────────────────
-                // KEY CHANGE: After splash, check for a saved screen to restore.
-                // If the user was logged in and left on a restorable screen
-                // within the TTL window, skip straight back to it.
                 Screen.Splash -> {
                     CompleteSplashScreen(
                         onSplashComplete = {
                             if (!repository.isLoggedIn()) {
-                                // Not logged in — normal flow
                                 currentScreen = if (!preferencesManager.isOnboardingComplete())
                                     Screen.Onboarding else Screen.Welcome
                             } else {
-                                // Logged in — try to restore last screen
                                 val restoredScreen = resolveScreen(preferencesManager.getLastScreen())
                                 val restoredTab    = resolveTab(preferencesManager.getLastTab())
 
                                 if (restoredScreen != null) {
-                                    // Restore exactly where the user was
                                     selectedTab   = restoredTab
                                     originTab     = restoredTab
-                                    // Pre-load data needed for the restored screen
                                     homeViewModel.loadHomeData()
                                     settingsViewModel.refreshProfile()
-                                    // For screens that need extra data, trigger loading
                                     when (restoredScreen) {
-                                        Screen.Memory -> {
-                                            /* MemoryViewModel loads lazily — no extra call needed */
-                                        }
+                                        Screen.Memory -> { /* loads lazily */ }
                                         Screen.SleepGuide,
-                                        Screen.FeedingGuide -> {
-                                            /* GuideViewModel loads on demand */
-                                        }
-                                        else -> { /* Home loads above */ }
+                                        Screen.FeedingGuide -> { /* loads on demand */ }
+                                        else -> { }
                                     }
                                     currentScreen = restoredScreen
                                 } else {
-                                    // No saved state or TTL expired — go to Home
                                     homeViewModel.loadHomeData()
                                     settingsViewModel.refreshProfile()
                                     currentScreen = Screen.Home
@@ -370,6 +498,7 @@ fun AppNavigation(
                         onLoginSuccess        = {
                             homeViewModel.loadHomeData()
                             settingsViewModel.refreshProfile()
+                            notificationViewModel.startUnreadPolling()  // ← NEW
                             currentScreen = Screen.Home
                         },
                         onForgotPasswordClick = { currentScreen = Screen.ForgotPassword },
@@ -393,6 +522,7 @@ fun AppNavigation(
                         onSocialSignupSuccess = {
                             homeViewModel.loadHomeData()
                             settingsViewModel.refreshProfile()
+                            notificationViewModel.startUnreadPolling()  // ← NEW
                             currentScreen = Screen.Home
                         },
                         sharedTransitionScope = this@SharedTransitionLayout,
@@ -452,6 +582,7 @@ fun AppNavigation(
                             preferencesManager.setUserLoggedIn(true)
                             homeViewModel.loadHomeData()
                             settingsViewModel.refreshProfile()
+                            notificationViewModel.startUnreadPolling()  // ← NEW
                             currentScreen = Screen.Home
                         },
                         sharedTransitionScope = this@SharedTransitionLayout,
@@ -480,6 +611,7 @@ fun AppNavigation(
                         visionMotorViewModel       = visionMotorViewModel,
                         hearingSpeechViewModel     = hearingSpeechViewModel,
                         guideViewModel             = guideViewModel,
+                        notificationViewModel      = notificationViewModel,  // ← NEW
                         currentLanguage            = currentLanguage,
                         onLanguageChange           = { newLanguage ->
                             preferencesManager.setLanguage(newLanguage)
@@ -531,8 +663,8 @@ fun AppNavigation(
                             }
                         },
                         onNavigateToWelcome        = {
-                            // On logout, wipe saved nav state so next launch starts fresh
                             preferencesManager.clearLastScreen()
+                            notificationViewModel.stopPolling()             // ← NEW
                             currentScreen = Screen.Welcome
                         },
                         onNavigateToFamilyHistory  = { babyId, babyName ->
@@ -582,7 +714,12 @@ fun AppNavigation(
                         onNavigateToMemory         = {
                             originTab     = selectedTab
                             currentScreen = Screen.Memory
-                        }
+                        },
+                        onNavigateToNotifications  = {                       // ← NEW
+                            originTab     = selectedTab
+                            notificationViewModel.loadNotifications(refresh = true)
+                            currentScreen = Screen.Notifications
+                        },
                     )
                 }
 
@@ -821,6 +958,22 @@ fun AppNavigation(
                             selectedTab   = originTab
                             currentScreen = Screen.Home
                         }
+                    )
+                }
+
+                // ── Notifications ─────────────────────────────────────────────  ← NEW
+                Screen.Notifications -> {
+                    NotificationScreen(
+                        viewModel  = notificationViewModel,
+                        onBack     = {
+                            selectedTab   = originTab
+                            currentScreen = Screen.Home
+                        },
+                        // Deep-link navigation is handled by the LaunchedEffect
+                        // above that watches pendingNavigateTo, so onNavigate
+                        // here is intentionally a no-op (the ViewModel already
+                        // set pendingNavigateTo and the effect will fire).
+                        onNavigate = { /* handled by LaunchedEffect above */ }
                     )
                 }
 

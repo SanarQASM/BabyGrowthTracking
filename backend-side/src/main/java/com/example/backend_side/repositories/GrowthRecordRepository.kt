@@ -24,6 +24,24 @@ interface GrowthRecordRepository : JpaRepository<GrowthRecord, String>, JpaSpeci
     @Query("SELECT gr FROM GrowthRecord gr WHERE gr.baby.babyId = :babyId ORDER BY gr.measurementDate DESC LIMIT 1")
     fun findLatestByBabyId(@Param("babyId") babyId: String): Optional<GrowthRecord>
 
+    fun findByBaby_BabyId(babyId: String): List<GrowthRecord>
+
+    fun findByBaby_BabyIdAndMeasurementDateBetween(
+        babyId    : String,
+        startDate : LocalDate,
+        endDate   : LocalDate
+    ): List<GrowthRecord>
+
+    // Used by PushNotificationScheduler.checkMonthlyMeasurementReminder()
+    fun existsByBaby_BabyIdAndMeasurementDateBetween(
+        babyId    : String,
+        startDate : LocalDate,
+        endDate   : LocalDate
+    ): Boolean
+
+    @Query("SELECT COUNT(g) FROM GrowthRecord g WHERE g.baby.babyId = :babyId")
+    fun countByBabyId(@Param("babyId") babyId: String): Long
+
     @Query("SELECT gr FROM GrowthRecord gr WHERE gr.baby.babyId = :babyId AND gr.measurementDate BETWEEN :startDate AND :endDate")
     fun findByBabyAndDateRange(
         @Param("babyId") babyId: String,

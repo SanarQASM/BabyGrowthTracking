@@ -124,11 +124,13 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.koin.android)
             implementation(compose.preview)
+            implementation(libs.androidx.lifecycle.process)
 
             // Firebase — versions all come from the BOM above
             implementation(libs.firebase.auth)
             implementation(libs.firebase.analytics)
             implementation(libs.firebase.storage)
+            implementation(libs.firebase.messaging)
 
             // ✅ Needed for .await() on Firebase Task objects
             implementation(libs.kotlinx.coroutines.play.services)

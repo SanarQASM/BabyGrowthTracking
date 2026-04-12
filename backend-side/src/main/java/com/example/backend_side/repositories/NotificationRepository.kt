@@ -35,9 +35,30 @@ interface NotificationRepository : JpaRepository<Notification, String> {
     @Query("SELECT COUNT(n) FROM Notification n WHERE n.user.userId = :userId AND n.isRead = false")
     fun countUnreadByUserId(@Param("userId") userId: String): Long
 
-    @Query("SELECT n FROM Notification n WHERE n.user.userId = :userId AND n.notificationType = :type AND n.isRead = false")
+    @Query("""
+        SELECT n FROM Notification n
+        WHERE n.user.userId = :userId
+        AND n.notificationType = :type
+        AND n.isRead = false
+    """)
     fun findUnreadByUserIdAndType(
         @Param("userId") userId: String,
-        @Param("type") type: NotificationType
+        @Param("type")   type  : NotificationType
     ): List<Notification>
+
+    // NEW: stable deduplication — checks the dedupeKey field instead of fragile title substring matching.
+    // The dedupeKey column must be added to the Notification entity (see entity update below).
+    @Query("""
+        SELECT CASE WHEN COUNT(n) > 0 THEN true ELSE false END
+        FROM Notification n
+        WHERE n.user.userId = :userId
+        AND n.dedupeKey = :dedupeKey
+        AND n.isSent = true
+        AND n.createdAt >= :since
+    """)
+    fun existsSentNotificationAfter(
+        @Param("userId")    userId   : String,
+        @Param("dedupeKey") dedupeKey: String,
+        @Param("since")     since    : LocalDateTime
+    ): Boolean
 }

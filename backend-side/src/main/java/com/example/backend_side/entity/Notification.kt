@@ -42,6 +42,9 @@ data class Notification(
     @Column(name = "read_at")
     var readAt: LocalDateTime? = null,
 
+    @Column(name = "dedupe_key", length = 120)
+    var dedupeKey: String? = null,
+
     @Column(name = "priority", columnDefinition = "ENUM('low','medium','high','urgent')")
     var priority: NotificationPriority = NotificationPriority.MEDIUM,
 

@@ -917,4 +917,41 @@ Last updated: 2025.</string>
     <string name="memory_desc_placeholder">Describe this precious moment…</string>
     <string name="memory_images_label">PHOTOS</string>
     <string name="memory_count">memories</string>
+<!--    &#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;&#45;-->
+    <!-- ── NotificationScreen ──────────────────────────────────────────────── -->
+    <string name="notif_screen_title">Notifications</string>
+    <string name="notif_unread_badge_max">99+</string>
+    <string name="notif_mark_all_read">Mark all read</string>
+    <string name="notif_filter_unread_only">Unread only</string>
+    <string name="notif_back_cd">Back</string>
+
+    <!-- Date headers -->
+    <string name="notif_date_today">Today</string>
+    <string name="notif_date_yesterday">Yesterday</string>
+
+    <!-- Empty states -->
+    <string name="notif_empty_no_unread">No unread notifications</string>
+    <string name="notif_empty_no_notifications">No notifications yet</string>
+    <string name="notif_empty_no_category">No %1$s notifications</string>
+    <string name="notif_empty_caught_up">You\'re all caught up!</string>
+    <string name="notif_empty_icon">🔔</string>
+
+    <!-- Error state -->
+    <string name="notif_error_icon">⚠️</string>
+    <string name="notif_error_retry">Retry</string>
+
+    <!-- Card actions -->
+    <string name="notif_delete_cd">Delete</string>
+
+    <!-- Baby name badge -->
+    <string name="notif_baby_badge">👶 %1$s</string>
+
+    <!-- App name fallback title (used in BabyGrowthFirebaseService too) -->
+    <string name="notif_default_title">Baby Growth Tracker</string>
+    <!-- ── Relative Time ───────────────────────────────────────────────── -->
+    <string name="relative_time_just_now">Just now</string>
+    <string name="relative_time_minutes">%1$dm ago</string>
+    <string name="relative_time_hours">%1$dh ago</string>
+    <string name="relative_time_days">%1$dd ago</string>
+
 </resources>
