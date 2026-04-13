@@ -126,6 +126,7 @@ fun NotificationBell(
 fun NotificationPreviewPanel(
     notifications : List<AppNotification>,
     unreadCount   : Long,
+    badgeMax      : String,
     customColors  : CustomColors,
     dimensions    : Dimensions,
     onViewAll     : () -> Unit,
@@ -180,7 +181,7 @@ fun NotificationPreviewPanel(
                     if (unreadCount > 0) {
                         Surface(shape = CircleShape, color = MaterialTheme.colorScheme.error) {
                             Text(
-                                if (unreadCount > 9) "9+" else unreadCount.toString(),
+                                if (unreadCount > 99) badgeMax else unreadCount.toString(),
                                 style    = MaterialTheme.typography.labelSmall,
                                 color    = MaterialTheme.colorScheme.onError,
                                 modifier = Modifier.padding(

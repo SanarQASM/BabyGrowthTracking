@@ -11,6 +11,8 @@ import org.example.project.babygrowthtrackingapplication.data.network.ApiResult
 import org.example.project.babygrowthtrackingapplication.data.network.ApiService
 import org.example.project.babygrowthtrackingapplication.data.network.UpdateUserRequest
 import org.example.project.babygrowthtrackingapplication.data.repository.AccountRepository
+import org.example.project.babygrowthtrackingapplication.notifications.NotificationViewModel
+import org.example.project.babygrowthtrackingapplication.notifications.UpdateNotificationPreferencesRequest
 import org.example.project.babygrowthtrackingapplication.theme.GenderTheme
 
 // =============================================================================
@@ -26,7 +28,6 @@ data class SettingsUiState(
     val isDarkMode           : Boolean     = false,
     val genderTheme          : GenderTheme = GenderTheme.NEUTRAL,
 
-    // Save Password — only meaningful for email/password logins.
     val savePasswordEnabled  : Boolean     = false,
     val isEmailLogin         : Boolean     = false,
 
@@ -47,9 +48,11 @@ data class SettingsUiState(
 // =============================================================================
 
 class SettingsViewModel(
-    private val apiService         : ApiService,
-    private val preferencesManager : PreferencesManager,
-    private val accountRepository  : AccountRepository,
+    private val apiService            : ApiService,
+    private val preferencesManager    : PreferencesManager,
+    private val accountRepository     : AccountRepository,
+    // NEW: inject so we can sync toggles to the backend
+    private val notificationViewModel : NotificationViewModel? = null
 ) {
     var uiState by mutableStateOf(SettingsUiState())
         private set
@@ -61,9 +64,7 @@ class SettingsViewModel(
         loadUserProfile()
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // INIT & REFRESH
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─── Init ────────────────────────────────────────────────────────────────
 
     private fun loadFromPreferences() {
         val isEmail = accountRepository.isEmailLogin()
@@ -85,10 +86,9 @@ class SettingsViewModel(
         )
     }
 
-    /** 🔄 Force a refresh of the user profile from the database */
     fun refreshProfile() {
-        loadFromPreferences() // Re-read ID/cached data first
-        loadUserProfile()     // Then fetch fresh from server
+        loadFromPreferences()
+        loadUserProfile()
     }
 
     private fun loadUserProfile() {
@@ -100,39 +100,27 @@ class SettingsViewModel(
                     preferencesManager.saveUserName(user.fullName)
                     preferencesManager.saveUserEmail(user.email)
                     user.phone?.let { preferencesManager.saveUserPhone(it) }
-
                     uiState = uiState.copy(
-                        userName  = user.fullName,
-                        userEmail = user.email,
-                        userPhone = user.phone ?: ""
-                    )
+                        userName = user.fullName, userEmail = user.email,
+                        userPhone = user.phone ?: "")
                 }
-                else -> { /* keep existing preferences values */ }
+                else -> {}
             }
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // ACCOUNT ACTIONS
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─── Account actions ─────────────────────────────────────────────────────
 
     fun updateProfile(name: String, phone: String) {
         val userId = uiState.userId.ifBlank {
-            uiState = uiState.copy(errorMessage = "Session expired. Please log in again.")
-            return
+            uiState = uiState.copy(errorMessage = "Session expired. Please log in again."); return
         }
         scope.launch {
             uiState = uiState.copy(isLoading = true, errorMessage = null)
             when (val result = apiService.updateUser(userId, UpdateUserRequest(fullName = name, phone = phone))) {
                 is ApiResult.Success -> {
-                    preferencesManager.saveUserName(name)
-                    preferencesManager.saveUserPhone(phone)
-                    uiState = uiState.copy(
-                        isLoading      = false,
-                        userName       = name,
-                        userPhone      = phone,
-                        successMessage = "Profile updated ✓"
-                    )
+                    preferencesManager.saveUserName(name); preferencesManager.saveUserPhone(phone)
+                    uiState = uiState.copy(isLoading = false, userName = name, userPhone = phone, successMessage = "Profile updated ✓")
                 }
                 is ApiResult.Error   -> uiState = uiState.copy(isLoading = false, errorMessage = result.message)
                 is ApiResult.Loading -> uiState = uiState.copy(isLoading = false)
@@ -145,10 +133,7 @@ class SettingsViewModel(
         scope.launch {
             uiState = uiState.copy(isLoading = true, errorMessage = null)
             when (val result = accountRepository.requestPasswordReset(email)) {
-                is ApiResult.Success -> {
-                    uiState = uiState.copy(isLoading = false, successMessage = "Code sent to $email")
-                    onCodeSent()
-                }
+                is ApiResult.Success -> { uiState = uiState.copy(isLoading = false, successMessage = "Code sent to $email"); onCodeSent() }
                 is ApiResult.Error   -> uiState = uiState.copy(isLoading = false, errorMessage = result.message)
                 is ApiResult.Loading -> uiState = uiState.copy(isLoading = false)
             }
@@ -160,10 +145,7 @@ class SettingsViewModel(
         scope.launch {
             uiState = uiState.copy(isLoading = true, errorMessage = null)
             when (val result = accountRepository.verifyResetCode(email, code)) {
-                is ApiResult.Success -> {
-                    uiState = uiState.copy(isLoading = false)
-                    onVerified(code)
-                }
+                is ApiResult.Success -> { uiState = uiState.copy(isLoading = false); onVerified(code) }
                 is ApiResult.Error   -> uiState = uiState.copy(isLoading = false, errorMessage = result.message)
                 is ApiResult.Loading -> uiState = uiState.copy(isLoading = false)
             }
@@ -172,10 +154,7 @@ class SettingsViewModel(
 
     fun confirmNewPassword(verifiedCode: String, newPassword: String) {
         val email = uiState.userEmail.ifBlank { return }
-        if (newPassword.length < 6) {
-            uiState = uiState.copy(errorMessage = "Password must be at least 6 characters")
-            return
-        }
+        if (newPassword.length < 6) { uiState = uiState.copy(errorMessage = "Password must be at least 6 characters"); return }
         scope.launch {
             uiState = uiState.copy(isLoading = true, errorMessage = null)
             when (val result = accountRepository.resetPasswordWithCode(email, verifiedCode, newPassword)) {
@@ -192,6 +171,8 @@ class SettingsViewModel(
         }
     }
 
+    // ─── Preferences (local + backend sync) ──────────────────────────────────
+
     fun setLanguage(language: Language) {
         preferencesManager.setLanguage(language)
         uiState = uiState.copy(currentLanguage = language)
@@ -207,29 +188,69 @@ class SettingsViewModel(
         uiState = uiState.copy(genderTheme = theme)
     }
 
+    // ─── Notification toggles — write locally AND sync to backend ────────────
+
     fun setNotificationsEnabled(on: Boolean) {
         preferencesManager.putBoolean("notif_enabled", on)
         uiState = uiState.copy(notificationsEnabled = on)
+        // When master toggle is OFF, disable every category on the backend
+        if (!on) {
+            syncPrefs(vaccination = false, growth = false, appointment = false, health = false, development = false)
+        } else {
+            // Restore current per-category state
+            syncPrefs(
+                vaccination  = uiState.vaccinationReminders,
+                growth       = uiState.growthAlerts,
+                appointment  = uiState.appointmentReminders
+            )
+        }
     }
 
     fun setVaccinationReminders(on: Boolean) {
         preferencesManager.putBoolean("notif_vaccination", on)
         uiState = uiState.copy(vaccinationReminders = on)
+        syncPrefs(vaccination = on)
     }
 
     fun setGrowthAlerts(on: Boolean) {
         preferencesManager.putBoolean("notif_growth", on)
         uiState = uiState.copy(growthAlerts = on)
+        syncPrefs(growth = on)
     }
 
     fun setAppointmentReminders(on: Boolean) {
         preferencesManager.putBoolean("notif_appointment", on)
         uiState = uiState.copy(appointmentReminders = on)
+        syncPrefs(appointment = on)
     }
 
     fun setReminderDays(days: Int) {
         preferencesManager.putInt("notif_reminder_days", days)
         uiState = uiState.copy(reminderDaysBefore = days)
+        syncPrefs(reminderDaysBefore = days)
+    }
+
+    /** Sends only the changed fields to the backend. */
+    private fun syncPrefs(
+        vaccination      : Boolean? = null,
+        growth           : Boolean? = null,
+        appointment      : Boolean? = null,
+        health           : Boolean? = null,
+        development      : Boolean? = null,
+        milestones       : Boolean? = null,
+        general          : Boolean? = null,
+        reminderDaysBefore: Int?    = null
+    ) {
+        notificationViewModel?.updatePreferences(UpdateNotificationPreferencesRequest(
+            vaccination        = vaccination,
+            growth             = growth,
+            appointment        = appointment,
+            health             = health,
+            development        = development,
+            milestones         = milestones,
+            general            = general,
+            reminderDaysBefore = reminderDaysBefore
+        ))
     }
 
     fun setSavePassword(on: Boolean) {
@@ -237,13 +258,10 @@ class SettingsViewModel(
             val email    = preferencesManager.getUserEmail() ?: ""
             val password = preferencesManager.getSavedPassword() ?: ""
             if (email.isBlank() || password.isBlank()) {
-                uiState = uiState.copy(errorMessage = "Please log in again with 'Save Password' checked.")
-                return
+                uiState = uiState.copy(errorMessage = "Please log in again with 'Save Password' checked."); return
             }
             preferencesManager.saveLoginCredentials(email, password)
-        } else {
-            preferencesManager.clearLoginCredentials()
-        }
+        } else preferencesManager.clearLoginCredentials()
         uiState = uiState.copy(savePasswordEnabled = on)
     }
 
@@ -254,27 +272,18 @@ class SettingsViewModel(
 
     fun deleteAccount() {
         val userId = uiState.userId.ifBlank {
-            uiState = uiState.copy(errorMessage = "Cannot identify account. Please log in again.")
-            return
+            uiState = uiState.copy(errorMessage = "Cannot identify account. Please log in again."); return
         }
         scope.launch {
             uiState = uiState.copy(isLoading = true, errorMessage = null)
             when (val result = apiService.deleteUser(userId)) {
-                is ApiResult.Success -> {
-                    accountRepository.logoutAndClearCredentials()
-                    uiState = uiState.copy(isLoading = false, navigateToWelcome = true)
-                }
+                is ApiResult.Success -> { accountRepository.logoutAndClearCredentials(); uiState = uiState.copy(isLoading = false, navigateToWelcome = true) }
                 is ApiResult.Error   -> uiState = uiState.copy(isLoading = false, errorMessage = result.message)
                 is ApiResult.Loading -> uiState = uiState.copy(isLoading = false)
             }
         }
     }
 
-    fun clearMessages() {
-        uiState = uiState.copy(successMessage = null, errorMessage = null)
-    }
-
-    fun onDestroy() {
-        scope.coroutineContext[kotlinx.coroutines.Job]?.cancel()
-    }
+    fun clearMessages() { uiState = uiState.copy(successMessage = null, errorMessage = null) }
+    fun onDestroy() { scope.coroutineContext[kotlinx.coroutines.Job]?.cancel() }
 }

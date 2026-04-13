@@ -1,5 +1,6 @@
 import SwiftUI
-
+import FirebaseCore
+import FirebaseMessaging
 /**
  * iOSApp.swift — UPDATED FOR LANDSCAPE SUPPORT
  *
@@ -32,15 +33,26 @@ import SwiftUI
  * fills the entire safe area and Compose reads LocalWindowInfo.containerSize
  * which UIKit updates automatically on rotation.
  */
+
 @main
 struct iOSApp: App {
+    init() {
+        FirebaseApp.configure()
+
+        Messaging.messaging().token { token, error in
+            if let error = error {
+                print("FCM token error: \(error)")
+            } else if let token = token {
+                print("FCM token: \(token)")
+                // Store it in UserDefaults so Kotlin can read it
+                UserDefaults.standard.set(token, forKey: "fcm_token")
+            }
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()
         }
-        // ✅ Allow all orientations — Compose handles the layout changes.
-        // Remove .supportedOrientations if your iOS target < 16 and use
-        // the Info.plist approach described above instead.
-        .supportedOrientations(.all)  // requires iOS 16+
     }
 }

@@ -9,7 +9,7 @@ actual class FcmTokenService actual constructor() {
     actual suspend fun getToken(): String? {
         return try {
             FirebaseMessaging.getInstance().token.await()
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }

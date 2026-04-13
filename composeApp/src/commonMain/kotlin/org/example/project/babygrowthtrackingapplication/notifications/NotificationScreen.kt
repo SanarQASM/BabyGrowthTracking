@@ -403,10 +403,11 @@ private fun NotificationCardContent(
     val iconEmoji = notificationCategoryEmoji(notification.category)
 
     val priorityColor = when (notification.priority) {
-        NotificationPriorityLevel.URGENT -> MaterialTheme.colorScheme.error
-        NotificationPriorityLevel.HIGH   -> customColors.warning
-        NotificationPriorityLevel.MEDIUM -> customColors.accentGradientStart
-        NotificationPriorityLevel.LOW    -> MaterialTheme.colorScheme.onSurface.copy(0.4f)
+        "URGENT" -> MaterialTheme.colorScheme.error
+        "HIGH"   -> customColors.warning
+        "MEDIUM" -> customColors.accentGradientStart
+        "LOW"    -> MaterialTheme.colorScheme.onSurface.copy(0.4f)
+        else     -> MaterialTheme.colorScheme.onSurface.copy(0.4f)
     }
 
     Card(
@@ -666,17 +667,18 @@ private fun NotificationErrorState(
 // Shared helper — category → emoji mapping (single source of truth)
 // ─────────────────────────────────────────────────────────────────────────────
 
-internal fun notificationCategoryEmoji(category: NotificationCategory): String =
+internal fun notificationCategoryEmoji(category: String): String =
     when (category) {
-        NotificationCategory.VACCINATION  -> "💉"
-        NotificationCategory.GROWTH       -> "📏"
-        NotificationCategory.APPOINTMENT  -> "📅"
-        NotificationCategory.HEALTH       -> "❤️"
-        NotificationCategory.DEVELOPMENT  -> "🧠"
-        NotificationCategory.BABY_PROFILE -> "👶"
-        NotificationCategory.MEMORIES     -> "📸"
-        NotificationCategory.ACCOUNT      -> "🔐"
-        NotificationCategory.SYSTEM       -> "⚙️"
+        "VACCINATION"  -> "💉"
+        "GROWTH"       -> "📏"
+        "APPOINTMENT"  -> "📅"
+        "HEALTH"       -> "❤️"
+        "DEVELOPMENT"  -> "🧠"
+        "BABY_PROFILE" -> "👶"
+        "MEMORIES"     -> "📸"
+        "ACCOUNT"      -> "🔐"
+        "SYSTEM"       -> "⚙️"
+        else           -> "🔔"
     }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -230,6 +230,7 @@ fun HomeTabContent(
                         NotificationPreviewPanel(
                             notifications = notifState.notifications.take(5),
                             unreadCount   = notifState.unreadCount,
+                            badgeMax      = stringResource(Res.string.notif_unread_badge_max),
                             customColors  = MaterialTheme.customColors,
                             dimensions    = LocalDimensions.current,
                             onViewAll     = {

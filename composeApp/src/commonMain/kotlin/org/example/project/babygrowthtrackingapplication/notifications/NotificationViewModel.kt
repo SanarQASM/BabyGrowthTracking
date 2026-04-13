@@ -9,28 +9,26 @@ import org.example.project.babygrowthtrackingapplication.data.network.ApiResult
 // ─────────────────────────────────────────────────────────────────────────────
 
 data class NotificationUiState(
-    val notifications         : List<AppNotification> = emptyList(),
-    val filteredNotifications : List<AppNotification> = emptyList(),
-    val unreadCount           : Long                  = 0L,
-    val isLoading             : Boolean               = false,
-    val isRefreshing          : Boolean               = false,
-    val errorMessage          : String?               = null,
-    val successMessage        : String?               = null,
-    val selectedFilter        : NotificationFilter    = NotificationFilter.ALL,
-    val showOnlyUnread        : Boolean               = false,
-    val pendingNavigateTo     : String?               = null,
-    val hasMore               : Boolean               = true,
-    val currentPage           : Int                   = 0
+    val notifications         : List<AppNotification>     = emptyList(),
+    val filteredNotifications : List<AppNotification>     = emptyList(),
+    val unreadCount           : Long                      = 0L,
+    val isLoading             : Boolean                   = false,
+    val isRefreshing          : Boolean                   = false,
+    val errorMessage          : String?                   = null,
+    val successMessage        : String?                   = null,
+    val selectedFilter        : NotificationFilter        = NotificationFilter.ALL,
+    val showOnlyUnread        : Boolean                   = false,
+    val pendingNavigateTo     : String?                   = null,
+    val hasMore               : Boolean                   = true,
+    val currentPage           : Int                       = 0,
+    // Preferences — kept in sync with backend
+    val preferences           : NotificationPreferencesDto? = null,
+    val preferencesLoading    : Boolean                   = false
 )
 
 enum class NotificationFilter(val label: String) {
-    ALL("All"),
-    VACCINATION("Vaccination"),
-    GROWTH("Growth"),
-    APPOINTMENT("Appointment"),
-    HEALTH("Health"),
-    DEVELOPMENT("Development"),
-    ACCOUNT("Account")
+    ALL("All"), VACCINATION("Vaccination"), GROWTH("Growth"),
+    APPOINTMENT("Appointment"), HEALTH("Health"), DEVELOPMENT("Development"), ACCOUNT("Account")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -51,20 +49,18 @@ class NotificationViewModel(
     init {
         startUnreadPolling()
         registerFcmToken()
+        loadPreferences()
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // LOAD & REFRESH
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─── Load / Refresh notifications ────────────────────────────────────────
 
     fun loadNotifications(refresh: Boolean = false) {
         val userId = getUserId() ?: return
         scope.launch {
-            uiState = if (refresh) {
+            uiState = if (refresh)
                 uiState.copy(isRefreshing = true, currentPage = 0, errorMessage = null)
-            } else {
+            else
                 uiState.copy(isLoading = true, errorMessage = null)
-            }
 
             when (val result = repository.getNotifications(
                 userId = userId,
@@ -83,13 +79,8 @@ class NotificationViewModel(
                         currentPage           = if (refresh) 1 else uiState.currentPage + 1
                     )
                 }
-                is ApiResult.Error -> {
-                    uiState = uiState.copy(
-                        isLoading    = false,
-                        isRefreshing = false,
-                        errorMessage = result.message
-                    )
-                }
+                is ApiResult.Error -> uiState = uiState.copy(
+                    isLoading = false, isRefreshing = false, errorMessage = result.message)
                 is ApiResult.Loading -> {}
             }
         }
@@ -100,9 +91,7 @@ class NotificationViewModel(
         loadNotifications(refresh = false)
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // MARK READ / DELETE
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─── Mark read / delete ───────────────────────────────────────────────────
 
     fun markAsRead(notificationId: String) {
         scope.launch {
@@ -110,13 +99,11 @@ class NotificationViewModel(
             val updated = uiState.notifications.map {
                 if (it.notificationId == notificationId) it.copy(isRead = true) else it
             }
-            val newUnread = uiState.notifications
-                .count { it.notificationId == notificationId && !it.isRead }
-                .toLong()
+            val wasUnread = uiState.notifications.any { it.notificationId == notificationId && !it.isRead }
             uiState = uiState.copy(
                 notifications         = updated,
                 filteredNotifications = applyFilter(updated),
-                unreadCount           = maxOf(0L, uiState.unreadCount - newUnread)
+                unreadCount           = if (wasUnread) maxOf(0L, uiState.unreadCount - 1) else uiState.unreadCount
             )
         }
     }
@@ -134,8 +121,7 @@ class NotificationViewModel(
                         successMessage        = "All notifications marked as read"
                     )
                 }
-                is ApiResult.Error   -> {}
-                is ApiResult.Loading -> {}
+                else -> {}
             }
         }
     }
@@ -151,18 +137,13 @@ class NotificationViewModel(
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // NAVIGATION — notification tap + cold-start deep link
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─── Navigation ───────────────────────────────────────────────────────────
 
     fun onNotificationTapped(notification: AppNotification) {
         markAsRead(notification.notificationId)
-        notification.deepLinkRoute?.let { route ->
-            uiState = uiState.copy(pendingNavigateTo = route)
-        }
+        notification.deepLinkRoute?.let { uiState = uiState.copy(pendingNavigateTo = it) }
     }
 
-    /** Called from MainActivity / AppNavigation when a cold-start deep link arrives. */
     fun onDeepLinkReceived(route: String) {
         uiState = uiState.copy(pendingNavigateTo = route)
     }
@@ -171,18 +152,12 @@ class NotificationViewModel(
         uiState = uiState.copy(pendingNavigateTo = null)
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // FILTERING
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─── Filtering ────────────────────────────────────────────────────────────
 
     fun setFilter(filter: NotificationFilter) {
         uiState = uiState.copy(
             selectedFilter        = filter,
-            filteredNotifications = applyFilter(
-                uiState.notifications,
-                filter,
-                uiState.showOnlyUnread
-            )
+            filteredNotifications = applyFilter(uiState.notifications, filter, uiState.showOnlyUnread)
         )
     }
 
@@ -201,21 +176,19 @@ class NotificationViewModel(
     ): List<AppNotification> {
         val categoryFiltered = when (filter) {
             NotificationFilter.ALL         -> list
-            NotificationFilter.VACCINATION -> list.filter { it.category == NotificationCategory.VACCINATION }
-            NotificationFilter.GROWTH      -> list.filter { it.category == NotificationCategory.GROWTH }
-            NotificationFilter.APPOINTMENT -> list.filter { it.category == NotificationCategory.APPOINTMENT }
-            NotificationFilter.HEALTH      -> list.filter { it.category in listOf(
-                NotificationCategory.HEALTH, NotificationCategory.DEVELOPMENT
-            )}
-            NotificationFilter.DEVELOPMENT -> list.filter { it.category == NotificationCategory.DEVELOPMENT }
-            NotificationFilter.ACCOUNT     -> list.filter { it.category == NotificationCategory.ACCOUNT }
+            NotificationFilter.VACCINATION -> list.filter { it.categoryEnum == NotificationCategory.VACCINATION }
+            NotificationFilter.GROWTH      -> list.filter { it.categoryEnum == NotificationCategory.GROWTH }
+            NotificationFilter.APPOINTMENT -> list.filter { it.categoryEnum == NotificationCategory.APPOINTMENT }
+            NotificationFilter.HEALTH      -> list.filter {
+                it.categoryEnum in listOf(NotificationCategory.HEALTH, NotificationCategory.DEVELOPMENT)
+            }
+            NotificationFilter.DEVELOPMENT -> list.filter { it.categoryEnum == NotificationCategory.DEVELOPMENT }
+            NotificationFilter.ACCOUNT     -> list.filter { it.categoryEnum == NotificationCategory.ACCOUNT }
         }
         return if (unreadOnly) categoryFiltered.filter { !it.isRead } else categoryFiltered
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // POLLING — unread count refresh every 60 seconds
-    // ─────────────────────────────────────────────────────────────────────────
+    // ─── Polling ──────────────────────────────────────────────────────────────
 
     fun startUnreadPolling() {
         pollingJob?.cancel()
@@ -227,12 +200,7 @@ class NotificationViewModel(
                         is ApiResult.Success -> {
                             val previousCount = uiState.unreadCount
                             val newCount      = result.data
-
-                            // Update badge first, then check if new ones arrived
                             uiState = uiState.copy(unreadCount = newCount)
-
-                            // BUG FIX: compare against previousCount, not uiState.unreadCount
-                            // (which was already updated on the line above)
                             if (newCount > previousCount) {
                                 loadNotifications(refresh = true)
                             }
@@ -245,45 +213,57 @@ class NotificationViewModel(
         }
     }
 
-    fun stopPolling() {
-        pollingJob?.cancel()
+    fun stopPolling() { pollingJob?.cancel() }
+
+    // ─── Preferences — load from backend, sync on every Settings toggle ───────
+
+    fun loadPreferences() {
+        val userId = getUserId() ?: return
+        scope.launch {
+            uiState = uiState.copy(preferencesLoading = true)
+            when (val result = repository.getPreferences(userId)) {
+                is ApiResult.Success -> uiState = uiState.copy(
+                    preferences = result.data, preferencesLoading = false)
+                else -> uiState = uiState.copy(preferencesLoading = false)
+            }
+        }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // FCM TOKEN REGISTRATION
-    // ─────────────────────────────────────────────────────────────────────────
+    /**
+     * Called by SettingsViewModel whenever the user flips a notification toggle.
+     * Sends the change to the backend so PushNotificationScheduler respects it.
+     */
+    fun updatePreferences(request: UpdateNotificationPreferencesRequest) {
+        val userId = getUserId() ?: return
+        scope.launch {
+            when (val result = repository.updatePreferences(userId, request)) {
+                is ApiResult.Success -> uiState = uiState.copy(preferences = result.data)
+                else -> {}  // silently fail — local toggle already applied in SettingsViewModel
+            }
+        }
+    }
+
+    // ─── FCM token registration ───────────────────────────────────────────────
 
     private fun registerFcmToken() {
         val userId = getUserId() ?: return
         scope.launch {
             try {
                 val token = fcmTokenService.getToken() ?: return@launch
-                repository.registerFcmToken(
-                    RegisterFcmTokenRequest(
-                        userId   = userId,
-                        fcmToken = token,
-                        platform = fcmTokenService.platform
-                    )
-                )
-            } catch (_: Exception) {
-                // Non-fatal — FCM registration failure doesn't block the app
-            }
+                repository.registerFcmToken(RegisterFcmTokenRequest(
+                    userId = userId, fcmToken = token, platform = fcmTokenService.platform))
+            } catch (_: Exception) {}
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // CLEANUP
-    // ─────────────────────────────────────────────────────────────────────────
-    fun clearMessages() {
-        uiState = uiState.copy(successMessage = null, errorMessage = null)
-    }
-    fun onDestroy() {
-        scope.cancel()
-    }
+    // ─── Cleanup ──────────────────────────────────────────────────────────────
+
+    fun clearMessages() { uiState = uiState.copy(successMessage = null, errorMessage = null) }
+    fun onDestroy() { scope.cancel() }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Platform expect — implemented per platform (Android / iOS / Desktop / Web)
+// Platform expect
 // ─────────────────────────────────────────────────────────────────────────────
 
 expect class FcmTokenService() {
