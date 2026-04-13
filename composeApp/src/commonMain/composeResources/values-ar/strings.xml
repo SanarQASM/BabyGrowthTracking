@@ -877,4 +877,33 @@
     <string name="memory_desc_placeholder">صف هذه اللحظة الثمينة…</string>
     <string name="memory_images_label">الصور</string>
     <string name="memory_count">ذكريات</string>
+    <string name="notif_screen_title">الإشعارات</string>
+    <string name="notif_unread_badge_max">٩٩+</string>
+    <string name="notif_mark_all_read">تحديد الكل كمقروء</string>
+    <string name="notif_filter_unread_only">غير المقروءة فقط</string>
+    <string name="notif_back_cd">رجوع</string>
+    <string name="view_all_format">عرض الكل %s</string>
+
+    <string name="notif_date_today">اليوم</string>
+    <string name="notif_date_yesterday">أمس</string>
+
+    <string name="notif_empty_no_unread">لا توجد إشعارات غير مقروءة</string>
+    <string name="notif_empty_no_notifications">لا توجد إشعارات بعد</string>
+    <string name="notif_empty_no_category">لا توجد إشعارات %1$s</string>
+    <string name="notif_empty_caught_up">لقد اطلعت على كل شيء!</string>
+    <string name="notif_empty_icon">🔔</string>
+
+    <string name="notif_error_icon">⚠️</string>
+    <string name="notif_error_retry">إعادة المحاولة</string>
+
+    <string name="notif_delete_cd">حذف</string>
+
+    <string name="notif_baby_badge">👶 %1$s</string>
+
+    <string name="notif_default_title">متتبع نمو الطفل</string>
+
+    <string name="relative_time_just_now">الآن</string>
+    <string name="relative_time_minutes">منذ %1$d دقيقة</string>
+    <string name="relative_time_hours">منذ %1$d ساعة</string>
+    <string name="relative_time_days">منذ %1$d يوم</string>
 </resources>

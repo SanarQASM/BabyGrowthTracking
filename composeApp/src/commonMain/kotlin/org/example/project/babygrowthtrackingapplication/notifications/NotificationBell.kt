@@ -13,26 +13,31 @@ import androidx.compose.ui.*
 import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.*
 import org.example.project.babygrowthtrackingapplication.theme.*
+import babygrowthtrackingapplication.composeapp.generated.resources.Res
+import babygrowthtrackingapplication.composeapp.generated.resources.notif_screen_title
+import babygrowthtrackingapplication.composeapp.generated.resources.notif_unread_badge_max
+import babygrowthtrackingapplication.composeapp.generated.resources.notif_empty_no_unread
+import babygrowthtrackingapplication.composeapp.generated.resources.view_all_format
+import org.jetbrains.compose.resources.stringResource
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Animated notification bell with live badge
-// CHANGE: onLongClick parameter added so HomeTopBar can show preview panel
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 fun NotificationBell(
     unreadCount  : Long,
     onClick      : () -> Unit,
-    onLongClick  : () -> Unit = {},    // ← NEW: triggers the preview panel
+    onLongClick  : () -> Unit = {},
     customColors : CustomColors,
     dimensions   : Dimensions,
     modifier     : Modifier = Modifier
 ) {
-    // Shake animation when new notifications arrive
     val previousCount = remember { mutableStateOf(unreadCount) }
     var shouldShake   by remember { mutableStateOf(false) }
+
+    val badgeMax = stringResource(Res.string.notif_unread_badge_max)
 
     LaunchedEffect(unreadCount) {
         if (unreadCount > previousCount.value) {
@@ -51,11 +56,13 @@ fun NotificationBell(
         label = "bell_rotation"
     )
 
+    // Standard IconButton touch-target size
+    val touchTarget = dimensions.avatarMedium  // 48dp across all sizes
+
     Box(modifier = modifier) {
-        // ── Long-press support via combinedClickable ──────────────────────────
         Box(
             modifier = Modifier
-                .size(48.dp)    // standard IconButton touch target
+                .size(touchTarget)
                 .rotate(rotation)
                 .combinedClickable(
                     onClick     = onClick,
@@ -66,7 +73,7 @@ fun NotificationBell(
             Icon(
                 if (unreadCount > 0) Icons.Default.Notifications
                 else Icons.Default.NotificationsNone,
-                contentDescription = "Notifications",
+                contentDescription = null,
                 tint     = if (unreadCount > 0) customColors.accentGradientStart
                 else customColors.accentGradientStart.copy(0.7f),
                 modifier = Modifier.size(dimensions.iconMedium)
@@ -75,23 +82,34 @@ fun NotificationBell(
 
         // Unread badge
         AnimatedVisibility(
-            visible = unreadCount > 0,
-            enter   = scaleIn(transformOrigin = TransformOrigin(1f, 0f)) + fadeIn(),
-            exit    = scaleOut(transformOrigin = TransformOrigin(1f, 0f)) + fadeOut(),
-            modifier = Modifier.align(Alignment.TopEnd).padding(top = 4.dp, end = 4.dp)
+            visible  = unreadCount > 0,
+            enter    = scaleIn(transformOrigin = TransformOrigin(1f, 0f)) + fadeIn(),
+            exit     = scaleOut(transformOrigin = TransformOrigin(1f, 0f)) + fadeOut(),
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(
+                    top = dimensions.spacingXSmall,
+                    end = dimensions.spacingXSmall
+                )
         ) {
             Box(
                 modifier = Modifier
-                    .sizeIn(minWidth = 16.dp, minHeight = 16.dp)
+                    .sizeIn(
+                        minWidth  = dimensions.iconSmall,
+                        minHeight = dimensions.iconSmall
+                    )
                     .background(MaterialTheme.colorScheme.error, CircleShape)
-                    .border(1.dp, MaterialTheme.colorScheme.surface, CircleShape)
-                    .padding(horizontal = 3.dp),
+                    .border(
+                        dimensions.borderWidthThin,
+                        MaterialTheme.colorScheme.surface,
+                        CircleShape
+                    )
+                    .padding(horizontal = dimensions.borderWidthThin + dimensions.borderWidthMedium),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text       = if (unreadCount > 99) "99+" else unreadCount.toString(),
+                    text       = if (unreadCount > 99) badgeMax else unreadCount.toString(),
                     style      = MaterialTheme.typography.labelSmall,
-                    fontSize   = 9.sp,
                     fontWeight = FontWeight.Bold,
                     color      = MaterialTheme.colorScheme.onError
                 )
@@ -114,13 +132,21 @@ fun NotificationPreviewPanel(
     onTapItem     : (AppNotification) -> Unit,
     onDismiss     : () -> Unit
 ) {
+    val title        = stringResource(Res.string.notif_screen_title)
+    val badgeMax     = stringResource(Res.string.notif_unread_badge_max)
+    val emptyText    = stringResource(Res.string.notif_empty_no_unread)
+    val emptyIcon    = "🔔"                      // decorative — not translatable
+
+    // Panel width: derived from a landscape pane width token (320dp equivalent)
+    val panelWidth = dimensions.landscapeNarrowPaneWidth + dimensions.spacingXLarge
+
     Card(
         modifier  = Modifier
-            .width(320.dp)
+            .width(panelWidth)
             .wrapContentHeight(),
         shape     = RoundedCornerShape(dimensions.cardCornerRadius),
         colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = dimensions.cardElevation * 2)
     ) {
         Column {
             // Header
@@ -128,7 +154,10 @@ fun NotificationPreviewPanel(
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(customColors.accentGradientStart.copy(0.1f))
-                    .padding(horizontal = dimensions.spacingMedium, vertical = dimensions.spacingSmall),
+                    .padding(
+                        horizontal = dimensions.spacingMedium,
+                        vertical   = dimensions.spacingSmall
+                    ),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment     = Alignment.CenterVertically
             ) {
@@ -139,11 +168,11 @@ fun NotificationPreviewPanel(
                     Icon(
                         Icons.Default.Notifications,
                         contentDescription = null,
-                        tint = customColors.accentGradientStart,
+                        tint     = customColors.accentGradientStart,
                         modifier = Modifier.size(dimensions.iconSmall)
                     )
                     Text(
-                        "Notifications",
+                        title,
                         style      = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color      = customColors.accentGradientStart
@@ -154,17 +183,23 @@ fun NotificationPreviewPanel(
                                 if (unreadCount > 9) "9+" else unreadCount.toString(),
                                 style    = MaterialTheme.typography.labelSmall,
                                 color    = MaterialTheme.colorScheme.onError,
-                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
+                                modifier = Modifier.padding(
+                                    horizontal = dimensions.spacingXSmall + dimensions.borderWidthThin,
+                                    vertical   = dimensions.borderWidthThin
+                                )
                             )
                         }
                     }
                 }
-                IconButton(onClick = onDismiss, modifier = Modifier.size(24.dp)) {
+                IconButton(
+                    onClick  = onDismiss,
+                    modifier = Modifier.size(dimensions.iconMedium)
+                ) {
                     Icon(
                         Icons.Default.Close,
-                        contentDescription = "Close",
-                        tint = MaterialTheme.colorScheme.onSurface.copy(0.4f),
-                        modifier = Modifier.size(16.dp)
+                        contentDescription = null,
+                        tint     = MaterialTheme.colorScheme.onSurface.copy(0.4f),
+                        modifier = Modifier.size(dimensions.iconSmall)
                     )
                 }
             }
@@ -179,10 +214,10 @@ fun NotificationPreviewPanel(
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("🔔", style = MaterialTheme.typography.titleLarge)
+                        Text(emptyIcon, style = MaterialTheme.typography.titleLarge)
                         Spacer(Modifier.height(dimensions.spacingSmall))
                         Text(
-                            "No notifications",
+                            emptyText,
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
                         )
@@ -204,23 +239,23 @@ fun NotificationPreviewPanel(
                 }
             }
 
-            // View all button
+            // View all button — label comes from the screen title resource
             TextButton(
                 onClick  = onViewAll,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    "View all notifications",
-                    style  = MaterialTheme.typography.labelMedium,
-                    color  = customColors.accentGradientStart,
+                    text = stringResource(Res.string.view_all_format, title),
+                    style      = MaterialTheme.typography.labelMedium,
+                    color      = customColors.accentGradientStart,
                     fontWeight = FontWeight.SemiBold
                 )
-                Spacer(Modifier.width(4.dp))
+                Spacer(Modifier.width(dimensions.spacingXSmall))
                 Icon(
                     Icons.Default.ChevronRight,
                     contentDescription = null,
                     tint     = customColors.accentGradientStart,
-                    modifier = Modifier.size(14.dp)
+                    modifier = Modifier.size(dimensions.iconSmall - dimensions.borderWidthMedium)
                 )
             }
         }
@@ -234,17 +269,7 @@ private fun PreviewNotificationRow(
     dimensions   : Dimensions,
     onTap        : () -> Unit
 ) {
-    val emoji = when (notification.category) {
-        NotificationCategory.VACCINATION  -> "💉"
-        NotificationCategory.GROWTH       -> "📏"
-        NotificationCategory.APPOINTMENT  -> "📅"
-        NotificationCategory.HEALTH       -> "❤️"
-        NotificationCategory.DEVELOPMENT  -> "🧠"
-        NotificationCategory.BABY_PROFILE -> "👶"
-        NotificationCategory.MEMORIES     -> "📸"
-        NotificationCategory.ACCOUNT      -> "🔐"
-        NotificationCategory.SYSTEM       -> "⚙️"
-    }
+    val emoji = notificationCategoryEmoji(notification.category)
 
     Row(
         modifier = Modifier
@@ -254,7 +279,10 @@ private fun PreviewNotificationRow(
                 else Color.Transparent
             )
             .clickable { onTap() }
-            .padding(horizontal = dimensions.spacingMedium, vertical = dimensions.spacingSmall),
+            .padding(
+                horizontal = dimensions.spacingMedium,
+                vertical   = dimensions.spacingSmall
+            ),
         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall),
         verticalAlignment     = Alignment.Top
     ) {
@@ -279,10 +307,10 @@ private fun PreviewNotificationRow(
         if (!notification.isRead) {
             Box(
                 modifier = Modifier
-                    .size(6.dp)
+                    .size(dimensions.spacingSmall - dimensions.borderWidthMedium)
                     .clip(CircleShape)
                     .background(customColors.accentGradientStart)
-                    .padding(top = 4.dp)
+                    .padding(top = dimensions.spacingXSmall)
             )
         }
     }

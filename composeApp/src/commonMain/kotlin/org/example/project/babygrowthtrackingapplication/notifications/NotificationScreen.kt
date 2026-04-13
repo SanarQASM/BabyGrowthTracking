@@ -20,6 +20,22 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
+import babygrowthtrackingapplication.composeapp.generated.resources.notif_back_cd
+import babygrowthtrackingapplication.composeapp.generated.resources.notif_baby_badge
+import babygrowthtrackingapplication.composeapp.generated.resources.notif_date_today
+import babygrowthtrackingapplication.composeapp.generated.resources.notif_date_yesterday
+import babygrowthtrackingapplication.composeapp.generated.resources.notif_delete_cd
+import babygrowthtrackingapplication.composeapp.generated.resources.notif_empty_caught_up
+import babygrowthtrackingapplication.composeapp.generated.resources.notif_empty_icon
+import babygrowthtrackingapplication.composeapp.generated.resources.notif_empty_no_category
+import babygrowthtrackingapplication.composeapp.generated.resources.notif_empty_no_notifications
+import babygrowthtrackingapplication.composeapp.generated.resources.notif_empty_no_unread
+import babygrowthtrackingapplication.composeapp.generated.resources.notif_error_icon
+import babygrowthtrackingapplication.composeapp.generated.resources.notif_error_retry
+import babygrowthtrackingapplication.composeapp.generated.resources.notif_filter_unread_only
+import babygrowthtrackingapplication.composeapp.generated.resources.notif_mark_all_read
+import babygrowthtrackingapplication.composeapp.generated.resources.notif_screen_title
+import babygrowthtrackingapplication.composeapp.generated.resources.notif_unread_badge_max
 import babygrowthtrackingapplication.composeapp.generated.resources.relative_time_days
 import babygrowthtrackingapplication.composeapp.generated.resources.relative_time_hours
 import babygrowthtrackingapplication.composeapp.generated.resources.relative_time_just_now
@@ -42,6 +58,11 @@ fun NotificationScreen(
     val customColors = MaterialTheme.customColors
     val dimensions   = LocalDimensions.current
     val snackbar     = remember { SnackbarHostState() }
+
+    val screenTitle     = stringResource(Res.string.notif_screen_title)
+    val badgeMax        = stringResource(Res.string.notif_unread_badge_max)
+    val markAllRead     = stringResource(Res.string.notif_mark_all_read)
+    val backCd          = stringResource(Res.string.notif_back_cd)
 
     // Handle deep-link navigation from tapped notification
     LaunchedEffect(state.pendingNavigateTo) {
@@ -67,7 +88,7 @@ fun NotificationScreen(
                         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
                     ) {
                         Text(
-                            "Notifications",
+                            screenTitle,
                             style      = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold,
                             color      = customColors.accentGradientStart
@@ -75,7 +96,8 @@ fun NotificationScreen(
                         if (state.unreadCount > 0) {
                             Badge(containerColor = customColors.accentGradientStart) {
                                 Text(
-                                    if (state.unreadCount > 99) "99+" else state.unreadCount.toString(),
+                                    if (state.unreadCount > 99) badgeMax
+                                    else state.unreadCount.toString(),
                                     color = MaterialTheme.colorScheme.onPrimary,
                                     style = MaterialTheme.typography.labelSmall
                                 )
@@ -87,7 +109,7 @@ fun NotificationScreen(
                     IconButton(onClick = onBack) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = backCd,
                             tint = customColors.accentGradientStart
                         )
                     }
@@ -96,7 +118,7 @@ fun NotificationScreen(
                     if (state.unreadCount > 0) {
                         TextButton(onClick = viewModel::markAllAsRead) {
                             Text(
-                                "Mark all read",
+                                markAllRead,
                                 style = MaterialTheme.typography.labelMedium,
                                 color = customColors.accentGradientStart
                             )
@@ -174,6 +196,8 @@ private fun NotificationFilterRow(
     customColors   : CustomColors,
     dimensions     : Dimensions
 ) {
+    val unreadOnlyLabel = stringResource(Res.string.notif_filter_unread_only)
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -185,7 +209,7 @@ private fun NotificationFilterRow(
         FilterChip(
             selected = showOnlyUnread,
             onClick  = onToggleUnread,
-            label    = { Text("Unread only", style = MaterialTheme.typography.labelMedium) },
+            label    = { Text(unreadOnlyLabel, style = MaterialTheme.typography.labelMedium) },
             shape    = RoundedCornerShape(50),
             colors   = FilterChipDefaults.filterChipColors(
                 selectedContainerColor = customColors.accentGradientEnd,
@@ -236,8 +260,8 @@ private fun NotificationList(
 
     if (isRefreshing) {
         LinearProgressIndicator(
-            modifier = Modifier.fillMaxWidth(),
-            color    = customColors.accentGradientStart,
+            modifier   = Modifier.fillMaxWidth(),
+            color      = customColors.accentGradientStart,
             trackColor = customColors.accentGradientStart.copy(0.2f)
         )
     }
@@ -273,11 +297,16 @@ private fun NotificationList(
 
         if (hasMore) {
             item {
-                Box(Modifier.fillMaxWidth().padding(dimensions.spacingMedium), Alignment.Center) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(dimensions.spacingMedium),
+                    Alignment.Center
+                ) {
                     CircularProgressIndicator(
-                        modifier    = Modifier.size(24.dp),
+                        modifier    = Modifier.size(dimensions.iconMedium),
                         color       = customColors.accentGradientStart,
-                        strokeWidth = 2.dp
+                        strokeWidth = dimensions.borderWidthThin
                     )
                 }
             }
@@ -293,17 +322,20 @@ private fun NotificationList(
 
 @Composable
 private fun NotificationDateHeader(date: String, dimensions: Dimensions) {
+    val todayLabel     = stringResource(Res.string.notif_date_today)
+    val yesterdayLabel = stringResource(Res.string.notif_date_yesterday)
+
     val label = when (date) {
-        getCurrentDate()               -> "Today"
-        getYesterdayDate()             -> "Yesterday"
-        else                           -> formatDisplayDate(date)
+        getCurrentDate()   -> todayLabel
+        getYesterdayDate() -> yesterdayLabel
+        else               -> formatDisplayDate(date)
     }
     Text(
-        text     = label,
-        style    = MaterialTheme.typography.labelMedium,
-        color    = MaterialTheme.colorScheme.onBackground.copy(0.5f),
+        text       = label,
+        style      = MaterialTheme.typography.labelMedium,
+        color      = MaterialTheme.colorScheme.onBackground.copy(0.5f),
         fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.padding(
+        modifier   = Modifier.padding(
             top    = dimensions.spacingMedium,
             bottom = dimensions.spacingXSmall
         )
@@ -329,9 +361,11 @@ private fun NotificationCard(
         }
     )
 
+    val deleteCd = stringResource(Res.string.notif_delete_cd)
+
     SwipeToDismissBox(
-        state            = dismissState,
-        enableDismissFromStartToEnd = false,
+        state                        = dismissState,
+        enableDismissFromStartToEnd  = false,
         backgroundContent = {
             Box(
                 modifier = Modifier
@@ -342,7 +376,7 @@ private fun NotificationCard(
             ) {
                 Icon(
                     Icons.Default.Delete,
-                    contentDescription = "Delete",
+                    contentDescription = deleteCd,
                     tint     = Color.White,
                     modifier = Modifier.padding(end = dimensions.spacingLarge)
                 )
@@ -365,22 +399,12 @@ private fun NotificationCardContent(
     dimensions   : Dimensions,
     onTap        : () -> Unit
 ) {
-    val isUnread = !notification.isRead
-    val iconEmoji = when (notification.category) {
-        NotificationCategory.VACCINATION  -> "💉"
-        NotificationCategory.GROWTH       -> "📏"
-        NotificationCategory.APPOINTMENT  -> "📅"
-        NotificationCategory.HEALTH       -> "❤️"
-        NotificationCategory.DEVELOPMENT  -> "🧠"
-        NotificationCategory.BABY_PROFILE -> "👶"
-        NotificationCategory.MEMORIES     -> "📸"
-        NotificationCategory.ACCOUNT      -> "🔐"
-        NotificationCategory.SYSTEM       -> "⚙️"
-    }
+    val isUnread  = !notification.isRead
+    val iconEmoji = notificationCategoryEmoji(notification.category)
 
     val priorityColor = when (notification.priority) {
         NotificationPriorityLevel.URGENT -> MaterialTheme.colorScheme.error
-        NotificationPriorityLevel.HIGH   -> Color(0xFFF59E0B)
+        NotificationPriorityLevel.HIGH   -> customColors.warning
         NotificationPriorityLevel.MEDIUM -> customColors.accentGradientStart
         NotificationPriorityLevel.LOW    -> MaterialTheme.colorScheme.onSurface.copy(0.4f)
     }
@@ -397,7 +421,7 @@ private fun NotificationCardContent(
                 MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isUnread) 2.dp else 1.dp
+            defaultElevation = if (isUnread) dimensions.borderWidthMedium else dimensions.borderWidthThin
         )
     ) {
         Row(
@@ -410,8 +434,8 @@ private fun NotificationCardContent(
             // Priority indicator bar
             Box(
                 modifier = Modifier
-                    .width(3.dp)
-                    .height(48.dp)
+                    .width(dimensions.borderWidthMedium + dimensions.borderWidthThin)
+                    .height(dimensions.avatarMedium)
                     .clip(RoundedCornerShape(50))
                     .background(if (isUnread) priorityColor else Color.Transparent)
             )
@@ -419,7 +443,7 @@ private fun NotificationCardContent(
             // Emoji icon box
             Box(
                 modifier = Modifier
-                    .size(42.dp)
+                    .size(dimensions.addButtonSize + dimensions.spacingXSmall)
                     .clip(RoundedCornerShape(dimensions.spacingSmall))
                     .background(priorityColor.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
@@ -446,15 +470,18 @@ private fun NotificationCardContent(
                     if (isUnread) {
                         Box(
                             modifier = Modifier
-                                .padding(start = dimensions.spacingSmall, top = 2.dp)
-                                .size(8.dp)
+                                .padding(
+                                    start = dimensions.spacingSmall,
+                                    top   = dimensions.borderWidthMedium
+                                )
+                                .size(dimensions.spacingSmall)
                                 .clip(CircleShape)
                                 .background(customColors.accentGradientStart)
                         )
                     }
                 }
 
-                Spacer(Modifier.height(2.dp))
+                Spacer(Modifier.height(dimensions.borderWidthMedium))
 
                 Text(
                     text     = notification.body,
@@ -480,10 +507,14 @@ private fun NotificationCardContent(
                             color = customColors.accentGradientStart.copy(0.1f)
                         ) {
                             Text(
-                                "👶 $name",
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
-                                style    = MaterialTheme.typography.labelSmall,
-                                color    = customColors.accentGradientStart
+                                // Pass the name directly into the stringResource function
+                                text = stringResource(Res.string.notif_baby_badge, name),
+                                modifier = Modifier.padding(
+                                    horizontal = dimensions.spacingSmall,
+                                    vertical   = dimensions.borderWidthMedium
+                                ),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = customColors.accentGradientStart
                             )
                         }
                     }
@@ -519,8 +550,12 @@ private fun NotificationCardContent(
                             style      = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.SemiBold
                         )
-                        Spacer(Modifier.width(4.dp))
-                        Icon(Icons.Default.ChevronRight, null, modifier = Modifier.size(14.dp))
+                        Spacer(Modifier.width(dimensions.spacingXSmall))
+                        Icon(
+                            Icons.Default.ChevronRight,
+                            null,
+                            modifier = Modifier.size(dimensions.iconSmall - dimensions.borderWidthMedium)
+                        )
                     }
                 }
             }
@@ -549,17 +584,15 @@ private fun NotificationLoadingState(dimensions: Dimensions) {
 private fun NotificationSkeletonCard(dimensions: Dimensions) {
     val shimmer = rememberInfiniteTransition(label = "sk")
     val alpha by shimmer.animateFloat(
-        initialValue = 0.15f,
-        targetValue  = 0.35f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 900)
-        ),
-        label = "sk_alpha"
+        initialValue  = 0.15f,
+        targetValue   = 0.35f,
+        animationSpec = infiniteRepeatable(animation = tween(durationMillis = 900)),
+        label         = "sk_alpha"
     )
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(88.dp)
+            .height(dimensions.avatarLarge + dimensions.spacingXLarge)
             .clip(RoundedCornerShape(dimensions.cardCornerRadius))
             .background(MaterialTheme.colorScheme.onBackground.copy(alpha))
     )
@@ -571,21 +604,33 @@ private fun NotificationEmptyState(
     unreadOnly : Boolean,
     dimensions : Dimensions
 ) {
+    val emptyIcon         = stringResource(Res.string.notif_empty_icon)
+    val noUnread          = stringResource(Res.string.notif_empty_no_unread)
+    val noNotifications   = stringResource(Res.string.notif_empty_no_notifications)
+    val caughtUp          = stringResource(Res.string.notif_empty_caught_up)
+
+    val headlineText = when {
+        unreadOnly -> noUnread
+        filter == NotificationFilter.ALL -> noNotifications
+        else -> stringResource(
+            Res.string.notif_empty_no_category,
+            filter.label.lowercase()
+        )
+    }
+
     Box(Modifier.fillMaxSize(), Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("🔔", style = MaterialTheme.typography.displaySmall)
+            Text(emptyIcon, style = MaterialTheme.typography.displaySmall)
             Spacer(Modifier.height(dimensions.spacingMedium))
             Text(
-                text       = if (unreadOnly) "No unread notifications"
-                else if (filter == NotificationFilter.ALL) "No notifications yet"
-                else "No ${filter.label.lowercase()} notifications",
+                text       = headlineText,
                 style      = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
                 color      = MaterialTheme.colorScheme.onBackground
             )
             Spacer(Modifier.height(dimensions.spacingSmall))
             Text(
-                text  = "You're all caught up!",
+                text  = caughtUp,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onBackground.copy(0.55f)
             )
@@ -599,17 +644,40 @@ private fun NotificationErrorState(
     onRetry    : () -> Unit,
     dimensions : Dimensions
 ) {
+    val errorIcon  = stringResource(Res.string.notif_error_icon)
+    val retryLabel = stringResource(Res.string.notif_error_retry)
+
     Box(Modifier.fillMaxSize(), Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("⚠️", style = MaterialTheme.typography.displaySmall)
+            Text(errorIcon, style = MaterialTheme.typography.displaySmall)
             Spacer(Modifier.height(dimensions.spacingMedium))
-            Text(message, style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(0.7f))
+            Text(
+                message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground.copy(0.7f)
+            )
             Spacer(Modifier.height(dimensions.spacingMedium))
-            Button(onClick = onRetry) { Text("Retry") }
+            Button(onClick = onRetry) { Text(retryLabel) }
         }
     }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared helper — category → emoji mapping (single source of truth)
+// ─────────────────────────────────────────────────────────────────────────────
+
+internal fun notificationCategoryEmoji(category: NotificationCategory): String =
+    when (category) {
+        NotificationCategory.VACCINATION  -> "💉"
+        NotificationCategory.GROWTH       -> "📏"
+        NotificationCategory.APPOINTMENT  -> "📅"
+        NotificationCategory.HEALTH       -> "❤️"
+        NotificationCategory.DEVELOPMENT  -> "🧠"
+        NotificationCategory.BABY_PROFILE -> "👶"
+        NotificationCategory.MEMORIES     -> "📸"
+        NotificationCategory.ACCOUNT      -> "🔐"
+        NotificationCategory.SYSTEM       -> "⚙️"
+    }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers — platform-specific date implementations expected
@@ -621,8 +689,8 @@ expect fun formatDisplayDate(iso: String): String
 expect fun formatRelativeTime(isoDateTime: String, strings: RelativeTimeStrings): String
 
 data class RelativeTimeStrings(
-    val justNow : String,
-    val minsAgo : String,   // use %1$d for the number
-    val hoursAgo: String,
-    val daysAgo : String,
+    val justNow  : String,
+    val minsAgo  : String,   // use %1$d for the number
+    val hoursAgo : String,
+    val daysAgo  : String,
 )

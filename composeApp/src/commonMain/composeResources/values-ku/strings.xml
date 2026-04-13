@@ -875,4 +875,33 @@
     <string name="memory_desc_placeholder">ئەم ساتە جوانە باس بکە…</string>
     <string name="memory_images_label">وێنەکان</string>
     <string name="memory_count">یادگاری</string>
+    <string name="notif_screen_title">ئاگادارکردنەوەکان</string>
+    <string name="notif_unread_badge_max">٩٩+</string>
+    <string name="notif_mark_all_read">هەموو وەک خوێندراوە نیشان بکە</string>
+    <string name="notif_filter_unread_only">تەنها نەخوێندراوەکان</string>
+    <string name="notif_back_cd">گەڕانەوە</string>
+    <string name="view_all_format">بینینی هەموو %s</string>
+
+    <string name="notif_date_today">ئەمڕۆ</string>
+    <string name="notif_date_yesterday">دوێنێ</string>
+
+    <string name="notif_empty_no_unread">هیچ ئاگادارکردنەوەیەکی نەخوێندراوە نییە</string>
+    <string name="notif_empty_no_notifications">هێشتا هیچ ئاگادارکردنەوەیەک نییە</string>
+    <string name="notif_empty_no_category">هیچ ئاگادارکردنەوەیەکی %1$s نییە</string>
+    <string name="notif_empty_caught_up">هەموو ئاگادارکردنەوەکانت بینیوە!</string>
+    <string name="notif_empty_icon">🔔</string>
+
+    <string name="notif_error_icon">⚠️</string>
+    <string name="notif_error_retry">دووبارە هەوڵبدەرەوە</string>
+
+    <string name="notif_delete_cd">سڕینەوە</string>
+
+    <string name="notif_baby_badge">👶 %1$s</string>
+
+    <string name="notif_default_title">گەشەی منداڵ</string>
+
+    <string name="relative_time_just_now">ئێستا</string>
+    <string name="relative_time_minutes">پێش %1$d خولەک</string>
+    <string name="relative_time_hours">پێش %1$d کاتژمێر</string>
+    <string name="relative_time_days">پێش %1$d ڕۆژ</string>
 </resources>

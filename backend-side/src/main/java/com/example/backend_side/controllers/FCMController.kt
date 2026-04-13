@@ -31,7 +31,7 @@ data class SendNotificationRequest(
 )
 
 @RestController
-@RequestMapping("/v1/notifications")
+@RequestMapping("/v1/fcm")
 @CrossOrigin(origins = ["*"])
 class FCMController(
     private val fcmService             : FCMService,
@@ -98,33 +98,6 @@ class FCMController(
         } catch (e: Exception) {
             ResponseEntity.internalServerError().body(ApiResponse(false, e.message ?: "Error"))
         }
-    }
-
-    // ── List user notifications (with pagination) ─────────────────────────────
-
-    @GetMapping("/user/{userId}")
-    fun getUserNotifications(
-        @PathVariable userId : String,
-        @RequestParam(defaultValue = "0")  page: Int,
-        @RequestParam(defaultValue = "50") size: Int
-    ): ResponseEntity<Map<String, Any>> {
-        val all     = notificationRepository.findByUser_UserIdOrderByCreatedAtDesc(userId)
-        val unread  = notificationRepository.countUnreadByUserId(userId)
-        val paged   = all.drop(page * size).take(size)
-
-        return ResponseEntity.ok(mapOf(
-            "success"       to true,
-            "notifications" to paged.map { it.toApiModel() },
-            "unreadCount"   to unread,
-            "totalCount"    to all.size
-        ))
-    }
-
-    // ── Unread count (lightweight polling endpoint) ────────────────────────────
-
-    @GetMapping("/user/{userId}/unread-count")
-    fun getUnreadCount(@PathVariable userId: String): ResponseEntity<Map<String, Long>> {
-        return ResponseEntity.ok(mapOf("count" to notificationRepository.countUnreadByUserId(userId)))
     }
 
     // ─── Helper ───────────────────────────────────────────────────────────────

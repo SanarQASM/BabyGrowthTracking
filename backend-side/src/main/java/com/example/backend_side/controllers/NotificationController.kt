@@ -28,8 +28,15 @@ class NotificationController(private val notificationRepository: NotificationRep
     }
 
     @GetMapping("/user/{userId}")
-    fun getNotificationsByUser(@PathVariable userId: String): ResponseEntity<List<Notification>> {
-        return ResponseEntity.ok(notificationRepository.findByUser_UserIdOrderByCreatedAtDesc(userId))
+    fun getNotificationsByUser(@PathVariable userId: String): ResponseEntity<Map<String, Any>> {
+        val notifications = notificationRepository.findByUser_UserIdOrderByCreatedAtDesc(userId)
+        val unreadCount   = notificationRepository.countUnreadByUserId(userId)
+        return ResponseEntity.ok(mapOf(
+            "success"       to true,        // ← ADD THIS
+            "notifications" to notifications,
+            "unreadCount"   to unreadCount,
+            "totalCount"    to notifications.size
+        ))
     }
 
     @GetMapping("/user/{userId}/unread")

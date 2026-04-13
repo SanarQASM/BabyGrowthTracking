@@ -265,7 +265,7 @@ class NotificationViewModel(
                         platform = fcmTokenService.platform
                     )
                 )
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 // Non-fatal — FCM registration failure doesn't block the app
             }
         }
@@ -274,11 +274,9 @@ class NotificationViewModel(
     // ─────────────────────────────────────────────────────────────────────────
     // CLEANUP
     // ─────────────────────────────────────────────────────────────────────────
-
     fun clearMessages() {
         uiState = uiState.copy(successMessage = null, errorMessage = null)
     }
-
     fun onDestroy() {
         scope.cancel()
     }

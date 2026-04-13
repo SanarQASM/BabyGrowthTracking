@@ -924,6 +924,7 @@ Last updated: 2025.</string>
     <string name="notif_mark_all_read">Mark all read</string>
     <string name="notif_filter_unread_only">Unread only</string>
     <string name="notif_back_cd">Back</string>
+    <string name="view_all_format">View all %s</string>
 
     <!-- Date headers -->
     <string name="notif_date_today">Today</string>
@@ -954,4 +955,5 @@ Last updated: 2025.</string>
     <string name="relative_time_hours">%1$dh ago</string>
     <string name="relative_time_days">%1$dd ago</string>
 
+    
 </resources>

@@ -28,7 +28,10 @@ class FCMService(
     fun initializeFirebase() {
         try {
             if (FirebaseApp.getApps().isEmpty()) {
-                val serviceAccount = FileInputStream(serviceAccountPath)
+                val serviceAccount = javaClass.classLoader
+                    .getResourceAsStream(serviceAccountPath)
+                    ?: throw IllegalStateException("File not found: $serviceAccountPath")
+
                 val options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                     .build()
