@@ -448,6 +448,10 @@
     <string name="settings_notif_growth_sub">Notify on growth milestones</string>
     <string name="settings_notif_appointment">Appointment Reminders</string>
     <string name="settings_notif_appointment_sub">Remind before scheduled visits</string>
+    <string name="settings_notif_health">Health Alerts</string>
+    <string name="settings_notif_health_sub">Notify on health issue updates</string>
+    <string name="settings_notif_development">Development Alerts</string>
+    <string name="settings_notif_development_sub">Notify on development milestone updates</string>
     <string name="settings_notif_reminder_days">Reminder Lead Time</string>
     <string name="settings_reminder_days_value">%1$d days before</string>
     <string name="settings_save_password">Save Password</string>

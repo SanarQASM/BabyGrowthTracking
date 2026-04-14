@@ -447,6 +447,10 @@
     <string name="settings_notif_growth_sub">ئاگادارکردنەوە کاتێک منداڵ گەشە دەکات</string>
     <string name="settings_notif_appointment">ئاگادارکردنەوەی ژوانەکان</string>
     <string name="settings_notif_appointment_sub">ئاگادارکردنەوە پێش کاتی بینینی دکتۆر</string>
+    <string name="settings_notif_health">ئاگادارکردنەوەکانی تەندروستی</string>
+    <string name="settings_notif_health_sub">ئاگادارکردنەوە لە نوێکارییەکانی کێشە تەندروستییەکان</string>
+    <string name="settings_notif_development">ئاگادارکردنەوەکانی گەشەکردن</string>
+    <string name="settings_notif_development_sub">ئاگادارکردنەوە لە نوێکارییەکانی قۆناغەکانی گەشەکردن</string>
     <string name="settings_notif_reminder_days">کاتی ئاگادارکردنەوە</string>
     <string name="settings_reminder_days_value">%1$d ڕۆژ پێشتر</string>
     <string name="settings_save_password">هەڵگرتنی وشەی تێپەڕ</string>

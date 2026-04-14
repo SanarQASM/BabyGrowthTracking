@@ -447,6 +447,10 @@
     <string name="settings_notif_growth_sub">التنبيه عند تحقيق مراحل نمو</string>
     <string name="settings_notif_appointment">تذكيرات المواعيد</string>
     <string name="settings_notif_appointment_sub">التذكير قبل الزيارات المجدولة</string>
+    <string name="settings_notif_health">تنبيهات الصحة</string>
+    <string name="settings_notif_health_sub">الإخطار عند تحديثات المشاكل الصحية</string>
+    <string name="settings_notif_development">تنبيهات النمو</string>
+    <string name="settings_notif_development_sub">الإخطار عند تحديثات مراحل النمو</string>
     <string name="settings_notif_reminder_days">مهلة التذكير</string>
     <string name="settings_reminder_days_value">قبل %1$d أيام</string>
     <string name="settings_save_password">حفظ كلمة المرور</string>

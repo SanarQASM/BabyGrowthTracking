@@ -3,12 +3,14 @@ package org.example.project.babygrowthtrackingapplication.com.babygrowth.present
 import androidx.compose.runtime.*
 import kotlinx.coroutines.*
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.PreferencesManager
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.util.DataCache
 import org.example.project.babygrowthtrackingapplication.data.network.*
 import org.example.project.babygrowthtrackingapplication.theme.GenderTheme
 import kotlin.collections.get
+import kotlin.time.Duration.Companion.minutes
 
 // ─────────────────────────────────────────────────────────────────────────────
-// UI State
+// UI State — unchanged
 // ─────────────────────────────────────────────────────────────────────────────
 
 data class HomeUiState(
@@ -22,7 +24,7 @@ data class HomeUiState(
     val allGrowthRecords     : Map<String, List<GrowthRecordResponse>>  = emptyMap(),
     val notificationCount    : Int                                      = 0,
     val errorMessage         : String?                                  = null,
-    val actionMessage        : String?                                  = null  // snackbar feedback
+    val actionMessage        : String?                                  = null
 ) {
     val selectedBaby: BabyResponse?
         get() = babies.getOrNull(selectedBabyIndex)
@@ -31,10 +33,8 @@ data class HomeUiState(
         get() = when {
             selectedBaby == null -> GenderTheme.NEUTRAL
             selectedBaby!!.gender.equals("FEMALE", ignoreCase = true) ||
-                    selectedBaby!!.gender.equals("GIRL",   ignoreCase = true) ->
-                GenderTheme.GIRL
-            else ->
-                GenderTheme.BOY
+                    selectedBaby!!.gender.equals("GIRL", ignoreCase = true) -> GenderTheme.GIRL
+            else -> GenderTheme.BOY
         }
 
     val selectedBabyVaccinations: List<VaccinationResponse>
@@ -47,7 +47,7 @@ data class HomeUiState(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ViewModel
+// ViewModel — FIX: DataCache now wired in for babies, vaccinations, and growth
 // ─────────────────────────────────────────────────────────────────────────────
 
 class HomeViewModel(
@@ -59,20 +59,36 @@ class HomeViewModel(
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
+    // ── Caches ────────────────────────────────────────────────────────────────
+    // FIX: DataCache was declared in the project but never instantiated anywhere.
+    // These caches prevent redundant API calls when the user switches tabs and
+    // returns to Home within the TTL window (5 min for babies/growth, 2 min for
+    // vaccinations since they are more time-sensitive).
+
+    private val babiesCache = DataCache<List<BabyResponse>>(ttl = 5.minutes)
+
+    // Per-baby caches keyed by babyId
+    private val vaccinationCaches  = mutableMapOf<String, DataCache<List<VaccinationResponse>>>()
+    private val latestGrowthCaches = mutableMapOf<String, DataCache<GrowthRecordResponse>>()
+    private val allGrowthCaches    = mutableMapOf<String, DataCache<List<GrowthRecordResponse>>>()
+
+    private fun vaccinationCache(babyId: String)  =
+        vaccinationCaches.getOrPut(babyId)  { DataCache(ttl = 2.minutes) }
+    private fun latestGrowthCache(babyId: String) =
+        latestGrowthCaches.getOrPut(babyId) { DataCache(ttl = 5.minutes) }
+    private fun allGrowthCache(babyId: String)    =
+        allGrowthCaches.getOrPut(babyId)    { DataCache(ttl = 5.minutes) }
+
     // ─────────────────────────────────────────────────────────────────────────
-    // Auto-archive threshold: babies aged ≥ 6 years (72 months) are silently
-    // archived on every data load. The ageInMonths field is computed server-side
-    // so no client-side date math is needed.
-    // ─────────────────────────────────────────────────────────────────────────
-    private val AUTO_ARCHIVE_MONTHS = 72   // 6 years
+    private val AUTO_ARCHIVE_MONTHS = 72
 
     init { loadHomeData() }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Initial load
+    // Initial load — uses cache when fresh, hits network when stale
     // ─────────────────────────────────────────────────────────────────────────
 
-    fun loadHomeData() {
+    fun loadHomeData(forceRefresh: Boolean = false) {
         scope.launch {
             uiState = uiState.copy(isLoading = true, errorMessage = null)
 
@@ -80,23 +96,32 @@ class HomeViewModel(
             val userName = preferencesManager.getUserName() ?: ""
             uiState = uiState.copy(userId = userId, userName = userName)
 
+            // FIX: use cached baby list when available and not forcing refresh
+            val cachedBabies = if (!forceRefresh) babiesCache.get() else null
+            if (cachedBabies != null) {
+                uiState = uiState.copy(babies = cachedBabies, isLoading = false)
+                cachedBabies.forEach { baby ->
+                    launch { loadVaccinationsForBaby(baby.babyId, forceRefresh) }
+                    launch { loadLatestGrowthForBaby(baby.babyId, forceRefresh) }
+                    launch { loadAllGrowthForBaby(baby.babyId, forceRefresh) }
+                }
+                return@launch
+            }
+
             when (val result = apiService.getBabiesByParent(userId)) {
                 is ApiResult.Success -> {
                     val babies = result.data
+                    babiesCache.set(babies) // FIX: store in cache
                     uiState = uiState.copy(babies = babies, isLoading = false)
 
-                    // Auto-archive babies ≥ 6 years (silent — no snackbar)
                     babies
                         .filter { it.isActive && it.ageInMonths >= AUTO_ARCHIVE_MONTHS }
-                        .forEach { baby ->
-                            launch { autoArchiveBaby(baby.babyId) }
-                        }
+                        .forEach { baby -> launch { autoArchiveBaby(baby.babyId) } }
 
-                    // Load vaccinations + growth records in parallel for all babies
                     babies.forEach { baby ->
-                        launch { loadVaccinationsForBaby(baby.babyId) }
-                        launch { loadLatestGrowthForBaby(baby.babyId) }
-                        launch { loadAllGrowthForBaby(baby.babyId) }
+                        launch { loadVaccinationsForBaby(baby.babyId, forceRefresh) }
+                        launch { loadLatestGrowthForBaby(baby.babyId, forceRefresh) }
+                        launch { loadAllGrowthForBaby(baby.babyId, forceRefresh) }
                     }
                 }
                 is ApiResult.Error ->
@@ -108,8 +133,7 @@ class HomeViewModel(
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Auto-archive (silent — no snackbar, no user prompt)
-    // Called only by loadHomeData() for babies who have reached 6 years.
+    // Auto-archive — silent, no snackbar
     // ─────────────────────────────────────────────────────────────────────────
 
     private suspend fun autoArchiveBaby(babyId: String) {
@@ -118,25 +142,32 @@ class HomeViewModel(
                 val updated = uiState.babies.map { b ->
                     if (b.babyId == babyId) result.data else b
                 }
+                // FIX: invalidate cache after mutation
+                babiesCache.invalidate()
                 val newIndex = if (uiState.selectedBaby?.babyId == babyId) 0
                 else uiState.selectedBabyIndex
-                uiState = uiState.copy(
-                    babies            = updated,
-                    selectedBabyIndex = newIndex
-                    // No actionMessage — this is a silent background operation
-                )
+                uiState = uiState.copy(babies = updated, selectedBabyIndex = newIndex)
             }
-            else -> Unit // Silently ignore errors for auto-archive
+            else -> Unit
         }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Per-baby loaders
+    // Per-baby loaders — FIX: each checks its own DataCache before hitting API
     // ─────────────────────────────────────────────────────────────────────────
 
-    private suspend fun loadVaccinationsForBaby(babyId: String) {
+    private suspend fun loadVaccinationsForBaby(babyId: String, forceRefresh: Boolean = false) {
+        val cache  = vaccinationCache(babyId)
+        val cached = if (!forceRefresh) cache.get() else null
+        if (cached != null) {
+            val map = uiState.upcomingVaccinations.toMutableMap()
+            map[babyId] = cached
+            uiState = uiState.copy(upcomingVaccinations = map)
+            return
+        }
         when (val v = apiService.getUpcomingVaccinations(babyId)) {
             is ApiResult.Success -> {
+                cache.set(v.data) // FIX: populate cache
                 val map = uiState.upcomingVaccinations.toMutableMap()
                 map[babyId] = v.data
                 uiState = uiState.copy(upcomingVaccinations = map)
@@ -145,9 +176,18 @@ class HomeViewModel(
         }
     }
 
-    private suspend fun loadLatestGrowthForBaby(babyId: String) {
+    private suspend fun loadLatestGrowthForBaby(babyId: String, forceRefresh: Boolean = false) {
+        val cache  = latestGrowthCache(babyId)
+        val cached = if (!forceRefresh) cache.get() else null
+        if (cached != null) {
+            val map = uiState.latestGrowthRecords.toMutableMap()
+            map[babyId] = cached
+            uiState = uiState.copy(latestGrowthRecords = map)
+            return
+        }
         when (val g = apiService.getLatestGrowthRecord(babyId)) {
             is ApiResult.Success -> {
+                cache.set(g.data) // FIX: populate cache
                 val map = uiState.latestGrowthRecords.toMutableMap()
                 map[babyId] = g.data
                 uiState = uiState.copy(latestGrowthRecords = map)
@@ -156,21 +196,39 @@ class HomeViewModel(
         }
     }
 
-    private suspend fun loadAllGrowthForBaby(babyId: String) {
+    private suspend fun loadAllGrowthForBaby(babyId: String, forceRefresh: Boolean = false) {
+        val cache  = allGrowthCache(babyId)
+        val cached = if (!forceRefresh) cache.get() else null
+        if (cached != null) {
+            val map = uiState.allGrowthRecords.toMutableMap()
+            map[babyId] = cached
+            uiState = uiState.copy(allGrowthRecords = map)
+            return
+        }
         when (val g = apiService.getGrowthRecords(babyId)) {
             is ApiResult.Success -> {
+                val sorted = g.data.sortedBy { it.measurementDate }
+                cache.set(sorted) // FIX: populate cache
                 val map = uiState.allGrowthRecords.toMutableMap()
-                map[babyId] = g.data.sortedBy { it.measurementDate }
+                map[babyId] = sorted
                 uiState = uiState.copy(allGrowthRecords = map)
             }
             else -> Unit
         }
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Refresh helpers — force-bypass cache so UI always gets fresh data after
+    // a user action (e.g. adding a measurement).
+    // ─────────────────────────────────────────────────────────────────────────
+
     fun refreshGrowthForBaby(babyId: String) {
+        // FIX: invalidate the affected caches before re-fetching
+        latestGrowthCaches[babyId]?.invalidate()
+        allGrowthCaches[babyId]?.invalidate()
         scope.launch {
-            loadLatestGrowthForBaby(babyId)
-            loadAllGrowthForBaby(babyId)
+            loadLatestGrowthForBaby(babyId, forceRefresh = true)
+            loadAllGrowthForBaby(babyId, forceRefresh = true)
         }
     }
 
@@ -197,19 +255,12 @@ class HomeViewModel(
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Archive / Unarchive (manual — shows snackbar)
-    //
-    // FIX: Uses OPTIMISTIC UPDATE pattern so the UI moves the baby
-    //      to the correct list immediately without waiting for the network.
-    //
-    //  1. Flip baby.isActive locally right away  → UI updates instantly
-    //  2. Call PATCH /v1/babies/{id}/status in background
-    //  3. On success  → replace optimistic copy with server-confirmed response
-    //  4. On error    → roll back to the original list + show error message
+    // Archive / Unarchive — optimistic update pattern
+    // FIX: babiesCache is invalidated after every status mutation so the next
+    // loadHomeData() fetches a fresh list from the backend.
     // ─────────────────────────────────────────────────────────────────────────
 
     fun archiveBaby(babyId: String) {
-        // Step 1: Optimistic update — mark baby inactive immediately
         val originalBabies = uiState.babies
         val optimistic = originalBabies.map { b ->
             if (b.babyId == babyId) b.copy(isActive = false) else b
@@ -222,18 +273,16 @@ class HomeViewModel(
             actionMessage     = "Child archived successfully"
         )
 
-        // Step 2: Persist to backend — replace or roll back depending on result
         scope.launch {
             when (val result = apiService.updateBabyStatus(babyId, "ARCHIVED")) {
                 is ApiResult.Success -> {
-                    // Replace the optimistic entry with the server-confirmed BabyResponse
+                    babiesCache.invalidate() // FIX
                     val confirmed = uiState.babies.map { b ->
                         if (b.babyId == babyId) result.data else b
                     }
                     uiState = uiState.copy(babies = confirmed)
                 }
                 is ApiResult.Error -> {
-                    // Roll back and surface the error
                     uiState = uiState.copy(
                         babies        = originalBabies,
                         actionMessage = "Failed to archive: ${result.message}"
@@ -245,7 +294,6 @@ class HomeViewModel(
     }
 
     fun unarchiveBaby(babyId: String) {
-        // Step 1: Optimistic update — mark baby active immediately
         val originalBabies = uiState.babies
         val optimistic = originalBabies.map { b ->
             if (b.babyId == babyId) b.copy(isActive = true) else b
@@ -255,18 +303,16 @@ class HomeViewModel(
             actionMessage = "Child restored successfully"
         )
 
-        // Step 2: Persist to backend — replace or roll back depending on result
         scope.launch {
             when (val result = apiService.updateBabyStatus(babyId, "ACTIVE")) {
                 is ApiResult.Success -> {
-                    // Replace the optimistic entry with the server-confirmed BabyResponse
+                    babiesCache.invalidate() // FIX
                     val confirmed = uiState.babies.map { b ->
                         if (b.babyId == babyId) result.data else b
                     }
                     uiState = uiState.copy(babies = confirmed)
                 }
                 is ApiResult.Error -> {
-                    // Roll back and surface the error
                     uiState = uiState.copy(
                         babies        = originalBabies,
                         actionMessage = "Failed to restore: ${result.message}"
@@ -278,10 +324,9 @@ class HomeViewModel(
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Snackbar / message helpers
+    // Snackbar helpers
     // ─────────────────────────────────────────────────────────────────────────
 
-    /** Call this after the snackbar has been shown to clear the message. */
     fun clearActionMessage() {
         uiState = uiState.copy(actionMessage = null)
     }

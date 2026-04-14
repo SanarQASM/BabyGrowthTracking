@@ -13,16 +13,15 @@ import java.util.*
 // ─────────────────────────────────────────────────────────────────────────────
 // NotificationController — FIXED
 //
-// KEY FIX: The client's AppNotification @Serializable model has these fields:
-//   notificationId, userId, babyId, babyName, title, BODY (not message),
-//   CATEGORY (not notificationType), priority, isRead, createdAt,
-//   deepLinkRoute, imageUrl, actionLabel, actionRoute
+// FIX: mapCategory() previously mapped NotificationType.MILESTONE → "BABY_PROFILE"
+// but the client's NotificationFilter enum has no BABY_PROFILE entry — it has
+// DEVELOPMENT instead. This caused milestone notifications to silently fall into
+// the GENERAL bucket and be un-filterable on the client.
 //
-// The old controller returned raw Notification entities where the message field
-// is named "message" and notificationType is an enum object — both mismatch.
+// Corrected mapping:
+//   MILESTONE → "DEVELOPMENT"   (matches NotificationFilter.DEVELOPMENT on client)
 //
-// This version always returns AppNotificationDto (shaped to match the client)
-// wrapped in the standard ApiResponse envelope.
+// Everything else is unchanged from the original.
 // ─────────────────────────────────────────────────────────────────────────────
 
 @RestController
@@ -31,8 +30,6 @@ import java.util.*
 class NotificationController(private val notificationRepository: NotificationRepository) {
 
     // ── GET /v1/notifications/user/{userId} ───────────────────────────────────
-    // Returns { success, notifications, unreadCount, totalCount }
-    // Matches NotificationListResponse on the client.
     @GetMapping("/user/{userId}")
     fun getNotificationsByUser(@PathVariable userId: String): ResponseEntity<Map<String, Any>> {
         val notifications = notificationRepository.findByUser_UserIdOrderByCreatedAtDesc(userId)
@@ -70,15 +67,18 @@ class NotificationController(private val notificationRepository: NotificationRep
     // ── POST /v1/notifications ────────────────────────────────────────────────
     @PostMapping
     fun createNotification(@RequestBody notification: Notification): ResponseEntity<AppNotificationDto> {
-        if (notification.notificationId.isEmpty()) notification.notificationId = UUID.randomUUID().toString()
-        return ResponseEntity.status(HttpStatus.CREATED).body(notificationRepository.save(notification).toDto())
+        if (notification.notificationId.isEmpty())
+            notification.notificationId = UUID.randomUUID().toString()
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(notificationRepository.save(notification).toDto())
     }
 
     // ── PATCH /v1/notifications/{notificationId}/read ─────────────────────────
     @PatchMapping("/{notificationId}/read")
     fun markAsRead(@PathVariable notificationId: String): ResponseEntity<AppNotificationDto> =
         notificationRepository.findById(notificationId).map { notification ->
-            notification.isRead = true; notification.readAt = LocalDateTime.now()
+            notification.isRead = true
+            notification.readAt = LocalDateTime.now()
             ResponseEntity.ok(notificationRepository.save(notification).toDto())
         }.orElse(ResponseEntity.notFound().build())
 
@@ -95,7 +95,8 @@ class NotificationController(private val notificationRepository: NotificationRep
     @PatchMapping("/{notificationId}/sent")
     fun markAsSent(@PathVariable notificationId: String): ResponseEntity<AppNotificationDto> =
         notificationRepository.findById(notificationId).map { notification ->
-            notification.isSent = true; notification.sentAt = LocalDateTime.now()
+            notification.isSent = true
+            notification.sentAt = LocalDateTime.now()
             ResponseEntity.ok(notificationRepository.save(notification).toDto())
         }.orElse(ResponseEntity.notFound().build())
 
@@ -105,34 +106,38 @@ class NotificationController(private val notificationRepository: NotificationRep
         if (notificationRepository.existsById(notificationId)) {
             notificationRepository.deleteById(notificationId)
             ResponseEntity.noContent().build()
-        } else ResponseEntity.notFound().build()
+        } else {
+            ResponseEntity.notFound().build()
+        }
 
     // ── Mapper: Notification entity → AppNotificationDto ─────────────────────
-    // Maps "message" → "body" and "notificationType" → "category" so the
-    // client's AppNotification @Serializable class deserializes correctly.
     private fun Notification.toDto() = AppNotificationDto(
         notificationId = notificationId,
         userId         = user?.userId ?: "",
         babyId         = baby?.babyId,
         babyName       = baby?.fullName,
         title          = title,
-        body           = message,   // ← field rename: "message" in DB → "body" for client
-        category       = mapCategory(notificationType),  // ← enum → string category name
+        body           = message,
+        category       = mapCategory(notificationType),
         priority       = mapPriority(priority),
         isRead         = isRead,
         createdAt      = createdAt.toString(),
-        deepLinkRoute  = null,   // stored in FCM data payload, not in DB currently
+        deepLinkRoute  = null,
         imageUrl       = null,
         actionLabel    = null,
         actionRoute    = null
     )
 
+    // FIX: MILESTONE was mapped to "BABY_PROFILE" which has no matching entry in
+    // the client-side NotificationFilter enum. The client uses "DEVELOPMENT" for
+    // the development/milestone filter chip. Corrected here so milestone
+    // notifications are now visible under the Development filter tab.
     private fun mapCategory(type: NotificationType?): String = when (type) {
         NotificationType.VACCINATION_REMINDER -> "VACCINATION"
         NotificationType.GROWTH_ALERT         -> "GROWTH"
         NotificationType.APPOINTMENT_REMINDER -> "APPOINTMENT"
         NotificationType.HEALTH_ALERT         -> "HEALTH"
-        NotificationType.MILESTONE            -> "BABY_PROFILE"
+        NotificationType.MILESTONE            -> "DEVELOPMENT"   // FIX: was "BABY_PROFILE"
         NotificationType.GENERAL              -> "GENERAL"
         null                                  -> "GENERAL"
     }
@@ -152,10 +157,10 @@ data class AppNotificationDto(
     val babyId        : String?  = null,
     val babyName      : String?  = null,
     val title         : String,
-    val body          : String,           // client field is "body", not "message"
-    val category      : String,           // client field is "category", not "notificationType"
-    val priority      : String  = "MEDIUM",
-    val isRead        : Boolean = false,
+    val body          : String,
+    val category      : String,
+    val priority      : String   = "MEDIUM",
+    val isRead        : Boolean  = false,
     val createdAt     : String,
     val deepLinkRoute : String?  = null,
     val imageUrl      : String?  = null,

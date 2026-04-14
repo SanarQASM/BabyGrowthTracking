@@ -447,6 +447,10 @@
     <string name="settings_notif_growth_sub">ئاگەهداری دەمێ زارۆک گەشە دکەت</string>
     <string name="settings_notif_appointment">ئاگەهدارییا ژڤانان</string>
     <string name="settings_notif_appointment_sub">ئاگەهداری بەری کاتێ بینینا دکتۆری</string>
+    <string name="settings_notif_health">ئەگه‌هدارکرنێن ساخلەمیێ</string>
+    <string name="settings_notif_health_sub">ئەگه‌هدارکرن ل سەر نووکرنێن کێشەیێن ساخلەمیێ</string>
+    <string name="settings_notif_development">ئەگه‌هدارکرنێن گەشەپێدانێ</string>
+    <string name="settings_notif_development_sub">ئەگه‌هدارکرن ل سەر نووکرنێن قۆناغێن گەشەپێدانێ</string>
     <string name="settings_notif_reminder_days">کاتێ ئاگەهداریێ</string>
     <string name="settings_reminder_days_value">%1$d ڕۆژ بەری هنگی</string>
     <string name="settings_save_password">پاراستنا پەیڤا نهێنی</string>

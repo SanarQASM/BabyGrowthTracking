@@ -187,13 +187,6 @@ fun AppNavigation(
     val healthRecordViewModel = remember {
         HealthRecordViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
-    val settingsViewModel = remember {
-        SettingsViewModel(
-            apiService         = apiService,
-            preferencesManager = preferencesManager,
-            accountRepository  = repository,
-        )
-    }
     val familyHistoryViewModel = remember {
         FamilyHistoryViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
@@ -230,6 +223,15 @@ fun AppNavigation(
             repository      = notificationRepository,
             getUserId       = { preferencesManager.getUserId() },
             fcmTokenService = fcmTokenService
+        )
+    }
+
+    val settingsViewModel = remember {
+        SettingsViewModel(
+            apiService            = apiService,
+            preferencesManager    = preferencesManager,
+            accountRepository     = repository,
+            notificationViewModel = notificationViewModel,
         )
     }
     // ─────────────────────────────────────────────────────────────────────────

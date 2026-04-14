@@ -1,16 +1,13 @@
 package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SettingsTabContent — hardcoded dimension / string cleanup
+// SettingsTabContent — FIXED
 //
 // CHANGES vs original:
-//  • 240.dp landscape rail width → dimensions.settingsLandscapeRailWidth
-//  • 44.dp / 40.dp avatar circles → dimensions.settingsAvatarSize
-//  • 20.dp row icons → dimensions.settingsRowIconSize
-//  • 18.dp chevrons → dimensions.settingsChevronSize
-//  • 0.5.dp row divider → dimensions.settingsDividerThickness
-//  • 16.dp horizontal row padding → dimensions.settingsRowPaddingH
-//  • "1.0.0" version string → dimensions.settingsVersionString
+//  • Notification section now shows HealthAlerts + DevelopmentAlerts toggles.
+//    These were in UiState and backend but had NO UI rows and NO ViewModel
+//    handlers — users could never toggle them.
+//  • Both portrait and landscape branches updated identically.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import androidx.compose.animation.*
@@ -108,9 +105,7 @@ fun SettingsTabContent(
         SettingsDialog.CHANGE_PW_STEP1 -> ChangePwStep1Dialog(
             email = state.userEmail, isLoading = state.isLoading,
             onSend = {
-                viewModel.sendPasswordResetCode {
-                    dialog = SettingsDialog.CHANGE_PW_STEP2
-                }
+                viewModel.sendPasswordResetCode { dialog = SettingsDialog.CHANGE_PW_STEP2 }
             },
             onDismiss = { dialog = SettingsDialog.NONE })
 
@@ -143,7 +138,7 @@ fun SettingsTabContent(
             title = stringResource(Res.string.settings_app_theme),
             options = listOf(
                 false to "☀️  ${stringResource(Res.string.settings_theme_light)}",
-                true to "🌙  ${stringResource(Res.string.settings_theme_dark)}"
+                true  to "🌙  ${stringResource(Res.string.settings_theme_dark)}"
             ),
             current = state.isDarkMode,
             onSelect = { dark ->
@@ -154,27 +149,22 @@ fun SettingsTabContent(
         SettingsDialog.PICK_GENDER_THEME -> PickerDialog(
             title = stringResource(Res.string.settings_gender_theme),
             options = listOf(
-                GenderTheme.GIRL to "🎀  ${stringResource(Res.string.settings_gender_girl)}",
-                GenderTheme.BOY to "🚀  ${stringResource(Res.string.settings_gender_boy)}",
+                GenderTheme.GIRL    to "🎀  ${stringResource(Res.string.settings_gender_girl)}",
+                GenderTheme.BOY     to "🚀  ${stringResource(Res.string.settings_gender_boy)}",
                 GenderTheme.NEUTRAL to "🌟  ${stringResource(Res.string.settings_gender_neutral)}"
             ),
             current = state.genderTheme,
             onSelect = { theme ->
-                viewModel.setGenderTheme(theme); onGenderThemeChange(theme); dialog =
-                SettingsDialog.NONE
+                viewModel.setGenderTheme(theme); onGenderThemeChange(theme)
+                dialog = SettingsDialog.NONE
             },
             onDismiss = { dialog = SettingsDialog.NONE })
 
         SettingsDialog.REMINDER_DAYS -> PickerDialog(
             title = stringResource(Res.string.settings_notif_reminder_days),
-            options = listOf(
-                1,
-                2,
-                3,
-                5,
-                7,
-                14
-            ).map { d -> d to stringResource(Res.string.settings_reminder_days_value, d) },
+            options = listOf(1, 2, 3, 5, 7, 14).map { d ->
+                d to stringResource(Res.string.settings_reminder_days_value, d)
+            },
             current = state.reminderDaysBefore,
             onSelect = { days -> viewModel.setReminderDays(days); dialog = SettingsDialog.NONE },
             onDismiss = { dialog = SettingsDialog.NONE })
@@ -211,18 +201,16 @@ fun SettingsTabContent(
         ) { dialog = SettingsDialog.NONE }
 
         SettingsDialog.CONTACT_SUPPORT -> ContactSupportDialog { dialog = SettingsDialog.NONE }
-        SettingsDialog.NONE -> { /* nothing */
-        }
+        SettingsDialog.NONE -> { /* nothing */ }
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbar) },
+        snackbarHost   = { SnackbarHost(snackbar) },
         containerColor = Color.Transparent
     ) { inner ->
         if (isLandscape) {
             Row(modifier = Modifier.fillMaxSize().padding(inner)) {
-
-                // CHANGED: 240.dp hardcoded → dimensions.settingsLandscapeRailWidth
+                // ── Left rail ─────────────────────────────────────────────────
                 Column(
                     modifier = Modifier
                         .width(dim.settingsLandscapeRailWidth)
@@ -234,14 +222,20 @@ fun SettingsTabContent(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = dim.spacingMedium, vertical = dim.spacingMedium),
-                        verticalAlignment = Alignment.CenterVertically,
+                            .padding(
+                                horizontal = dim.spacingMedium,
+                                vertical   = dim.spacingMedium
+                            ),
+                        verticalAlignment     = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(dim.spacingSmall)
                     ) {
-                        // CHANGED: 40.dp avatar → dimensions.settingsAvatarSize
                         Box(
-                            modifier = Modifier.size(dim.settingsAvatarSize).clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
+                            modifier = Modifier
+                                .size(dim.settingsAvatarSize)
+                                .clip(CircleShape)
+                                .background(
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                ),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -253,13 +247,15 @@ fun SettingsTabContent(
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 state.userName.ifBlank { "—" },
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.SemiBold, maxLines = 1
+                                style      = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines   = 1
                             )
                             Text(
                                 state.userEmail.ifBlank { "—" },
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(0.5f), maxLines = 1
+                                style    = MaterialTheme.typography.bodySmall,
+                                color    = MaterialTheme.colorScheme.onSurface.copy(0.5f),
+                                maxLines = 1
                             )
                         }
                     }
@@ -269,61 +265,19 @@ fun SettingsTabContent(
 
                     data class NavItem(
                         val section: SettingsSection,
-                        val emoji: String,
-                        val label: String
+                        val emoji  : String,
+                        val label  : String
                     )
 
                     val navItems = buildList {
-                        add(
-                            NavItem(
-                                SettingsSection.ACCOUNT,
-                                "👤",
-                                stringResource(Res.string.settings_section_account)
-                            )
-                        )
-                        add(
-                            NavItem(
-                                SettingsSection.PREFERENCES,
-                                "🎨",
-                                stringResource(Res.string.settings_section_preferences)
-                            )
-                        )
-                        add(
-                            NavItem(
-                                SettingsSection.NOTIFICATIONS,
-                                "🔔",
-                                stringResource(Res.string.settings_section_notifications)
-                            )
-                        )
+                        add(NavItem(SettingsSection.ACCOUNT,       "👤", stringResource(Res.string.settings_section_account)))
+                        add(NavItem(SettingsSection.PREFERENCES,   "🎨", stringResource(Res.string.settings_section_preferences)))
+                        add(NavItem(SettingsSection.NOTIFICATIONS, "🔔", stringResource(Res.string.settings_section_notifications)))
                         if (state.isEmailLogin)
-                            add(
-                                NavItem(
-                                    SettingsSection.SECURITY,
-                                    "🔒",
-                                    stringResource(Res.string.settings_section_security)
-                                )
-                            )
-                        add(
-                            NavItem(
-                                SettingsSection.INFORMATION,
-                                "👨‍👩‍👧‍👦",
-                                stringResource(Res.string.settings_section_information)
-                            )
-                        )
-                        add(
-                            NavItem(
-                                SettingsSection.ABOUT,
-                                "ℹ️",
-                                stringResource(Res.string.settings_section_about)
-                            )
-                        )
-                        add(
-                            NavItem(
-                                SettingsSection.ACTIONS,
-                                "⚠️",
-                                stringResource(Res.string.settings_section_actions)
-                            )
-                        )
+                            add(NavItem(SettingsSection.SECURITY,  "🔒", stringResource(Res.string.settings_section_security)))
+                        add(NavItem(SettingsSection.INFORMATION,   "👨‍👩‍👧‍👦", stringResource(Res.string.settings_section_information)))
+                        add(NavItem(SettingsSection.ABOUT,         "ℹ️", stringResource(Res.string.settings_section_about)))
+                        add(NavItem(SettingsSection.ACTIONS,       "⚠️", stringResource(Res.string.settings_section_actions)))
                     }
 
                     navItems.forEach { item ->
@@ -332,40 +286,41 @@ fun SettingsTabContent(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(
-                                    if (isSelected) cc.accentGradientStart.copy(0.12f) else Color.Transparent,
+                                    if (isSelected) cc.accentGradientStart.copy(0.12f)
+                                    else Color.Transparent,
                                     RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp)
                                 )
                                 .clickable { selectedSection = item.section }
                                 .padding(
                                     horizontal = dim.spacingMedium,
-                                    vertical = dim.spacingSmall + 2.dp
+                                    vertical   = dim.spacingSmall + 2.dp
                                 ),
-                            verticalAlignment = Alignment.CenterVertically,
+                            verticalAlignment     = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(dim.spacingSmall)
                         ) {
                             Text(item.emoji)
                             Text(
                                 item.label,
-                                style = MaterialTheme.typography.bodyMedium,
+                                style      = MaterialTheme.typography.bodyMedium,
                                 fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal,
-                                color = if (isSelected) cc.accentGradientStart
+                                color      = if (isSelected) cc.accentGradientStart
                                 else MaterialTheme.colorScheme.onSurface.copy(0.7f)
                             )
                         }
                     }
 
                     Spacer(Modifier.weight(1f))
-                    // CHANGED: "1.0.0" literal → dim.settingsVersionString token
                     Text(
                         stringResource(Res.string.settings_version, dim.settingsVersionString),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onBackground.copy(0.28f),
+                        style    = MaterialTheme.typography.bodySmall,
+                        color    = MaterialTheme.colorScheme.onBackground.copy(0.28f),
                         modifier = Modifier.padding(dim.spacingMedium)
                     )
                 }
 
                 VerticalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
+                // ── Right content pane ────────────────────────────────────────
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -375,52 +330,46 @@ fun SettingsTabContent(
                     verticalArrangement = Arrangement.spacedBy(dim.spacingMedium)
                 ) {
                     val hPad = Modifier
-
                     when (selectedSection) {
                         SettingsSection.ACCOUNT -> {
-                            SectionLabel(
-                                "👤",
-                                stringResource(Res.string.settings_section_account),
-                                hPad
-                            )
+                            SectionLabel("👤", stringResource(Res.string.settings_section_account), hPad)
                             SettingsCard(hPad) {
                                 ProfileRow(
-                                    name = state.userName, email = state.userEmail,
+                                    name    = state.userName,
+                                    email   = state.userEmail,
                                     onClick = { dialog = SettingsDialog.EDIT_PROFILE })
                                 RowDivider()
                                 ArrowRow(
-                                    icon = Icons.Default.Lock,
-                                    label = stringResource(Res.string.settings_change_password),
+                                    icon    = Icons.Default.Lock,
+                                    label   = stringResource(Res.string.settings_change_password),
                                     onClick = { dialog = SettingsDialog.CHANGE_PW_STEP1 })
                             }
                         }
 
                         SettingsSection.PREFERENCES -> {
-                            SectionLabel(
-                                "🎨",
-                                stringResource(Res.string.settings_section_preferences),
-                                hPad
-                            )
+                            SectionLabel("🎨", stringResource(Res.string.settings_section_preferences), hPad)
                             SettingsCard(hPad) {
                                 ArrowRow(
-                                    icon = Icons.Default.Language,
-                                    label = stringResource(Res.string.settings_language),
-                                    value = state.currentLanguage.displayName,
+                                    icon    = Icons.Default.Language,
+                                    label   = stringResource(Res.string.settings_language),
+                                    value   = state.currentLanguage.displayName,
                                     onClick = { dialog = SettingsDialog.PICK_LANGUAGE })
                                 RowDivider()
                                 ArrowRow(
-                                    icon = Icons.Default.Palette,
-                                    label = stringResource(Res.string.settings_app_theme),
-                                    value = if (state.isDarkMode) stringResource(Res.string.settings_theme_dark)
-                                    else stringResource(Res.string.settings_theme_light),
+                                    icon    = Icons.Default.Palette,
+                                    label   = stringResource(Res.string.settings_app_theme),
+                                    value   = if (state.isDarkMode)
+                                        stringResource(Res.string.settings_theme_dark)
+                                    else
+                                        stringResource(Res.string.settings_theme_light),
                                     onClick = { dialog = SettingsDialog.PICK_THEME })
                                 RowDivider()
                                 ArrowRow(
-                                    icon = Icons.Default.ChildCare,
-                                    label = stringResource(Res.string.settings_gender_theme),
-                                    value = when (state.genderTheme) {
-                                        GenderTheme.GIRL -> stringResource(Res.string.settings_gender_girl)
-                                        GenderTheme.BOY -> stringResource(Res.string.settings_gender_boy)
+                                    icon    = Icons.Default.ChildCare,
+                                    label   = stringResource(Res.string.settings_gender_theme),
+                                    value   = when (state.genderTheme) {
+                                        GenderTheme.GIRL    -> stringResource(Res.string.settings_gender_girl)
+                                        GenderTheme.BOY     -> stringResource(Res.string.settings_gender_boy)
                                         GenderTheme.NEUTRAL -> stringResource(Res.string.settings_gender_neutral)
                                     },
                                     onClick = { dialog = SettingsDialog.PICK_GENDER_THEME })
@@ -428,76 +377,25 @@ fun SettingsTabContent(
                         }
 
                         SettingsSection.NOTIFICATIONS -> {
-                            SectionLabel(
-                                "🔔",
-                                stringResource(Res.string.settings_section_notifications),
-                                hPad
-                            )
+                            SectionLabel("🔔", stringResource(Res.string.settings_section_notifications), hPad)
                             SettingsCard(hPad) {
-                                ToggleRow(
-                                    icon = Icons.Default.Notifications,
-                                    label = stringResource(Res.string.settings_notif_master),
-                                    subtitle = stringResource(Res.string.settings_notif_master_sub),
-                                    checked = state.notificationsEnabled,
-                                    onToggle = viewModel::setNotificationsEnabled
+                                NotificationToggles(
+                                    state     = state,
+                                    viewModel = viewModel,
+                                    onReminderDaysClick = { dialog = SettingsDialog.REMINDER_DAYS }
                                 )
-                                AnimatedVisibility(
-                                    visible = state.notificationsEnabled,
-                                    enter = expandVertically(),
-                                    exit = shrinkVertically()
-                                ) {
-                                    Column {
-                                        RowDivider()
-                                        ToggleRow(
-                                            icon = Icons.Default.HealthAndSafety,
-                                            label = stringResource(Res.string.settings_notif_vaccination),
-                                            subtitle = stringResource(Res.string.settings_notif_vaccination_sub),
-                                            checked = state.vaccinationReminders,
-                                            onToggle = viewModel::setVaccinationReminders
-                                        )
-                                        RowDivider()
-                                        ToggleRow(
-                                            icon = Icons.Default.TrendingUp,
-                                            label = stringResource(Res.string.settings_notif_growth),
-                                            subtitle = stringResource(Res.string.settings_notif_growth_sub),
-                                            checked = state.growthAlerts,
-                                            onToggle = viewModel::setGrowthAlerts
-                                        )
-                                        RowDivider()
-                                        ToggleRow(
-                                            icon = Icons.Default.CalendarToday,
-                                            label = stringResource(Res.string.settings_notif_appointment),
-                                            subtitle = stringResource(Res.string.settings_notif_appointment_sub),
-                                            checked = state.appointmentReminders,
-                                            onToggle = viewModel::setAppointmentReminders
-                                        )
-                                        RowDivider()
-                                        ArrowRow(
-                                            icon = Icons.Default.AccessTime,
-                                            label = stringResource(Res.string.settings_notif_reminder_days),
-                                            value = stringResource(
-                                                Res.string.settings_reminder_days_value,
-                                                state.reminderDaysBefore
-                                            ),
-                                            onClick = { dialog = SettingsDialog.REMINDER_DAYS })
-                                    }
-                                }
                             }
                         }
 
                         SettingsSection.SECURITY -> {
                             if (state.isEmailLogin) {
-                                SectionLabel(
-                                    "🔒",
-                                    stringResource(Res.string.settings_section_security),
-                                    hPad
-                                )
+                                SectionLabel("🔒", stringResource(Res.string.settings_section_security), hPad)
                                 SettingsCard(hPad) {
                                     ToggleRow(
-                                        icon = Icons.Default.Password,
-                                        label = stringResource(Res.string.settings_save_password),
+                                        icon     = Icons.Default.Password,
+                                        label    = stringResource(Res.string.settings_save_password),
                                         subtitle = stringResource(Res.string.settings_save_password_sub),
-                                        checked = state.savePasswordEnabled,
+                                        checked  = state.savePasswordEnabled,
                                         onToggle = viewModel::setSavePassword
                                     )
                                 }
@@ -505,105 +403,73 @@ fun SettingsTabContent(
                         }
 
                         SettingsSection.INFORMATION -> {
-                            SectionLabel(
-                                "👨‍👩‍👧‍👦",
-                                stringResource(Res.string.settings_section_information),
-                                hPad
-                            )
+                            SectionLabel("👨‍👩‍👧‍👦", stringResource(Res.string.settings_section_information), hPad)
                             SettingsCard(hPad) {
                                 FamilyHistorySettingsRow(
-                                    isSet = familyHistoryIsSet,
+                                    isSet    = familyHistoryIsSet,
                                     babyName = selectedBabyName,
-                                    onClick = {
-                                        if (selectedBabyId != null) onNavigateToFamilyHistory(
-                                            selectedBabyId,
-                                            selectedBabyName
-                                        )
+                                    onClick  = {
+                                        if (selectedBabyId != null)
+                                            onNavigateToFamilyHistory(selectedBabyId, selectedBabyName)
                                     })
                                 RowDivider()
                                 ChildIllnessesSettingsRow(
                                     illnessCount = childIllnessCount,
-                                    activeCount = childIllnessActiveCount,
-                                    babyName = selectedBabyName,
-                                    onClick = {
-                                        if (selectedBabyId != null) onNavigateToChildIllnesses(
-                                            selectedBabyId,
-                                            selectedBabyName
-                                        )
+                                    activeCount  = childIllnessActiveCount,
+                                    babyName     = selectedBabyName,
+                                    onClick      = {
+                                        if (selectedBabyId != null)
+                                            onNavigateToChildIllnesses(selectedBabyId, selectedBabyName)
                                     })
                                 RowDivider()
                                 ChildDevSettingsRowItem(
-                                    emoji = stringResource(Res.string.child_dev_vision_emoji),
-                                    title = stringResource(Res.string.settings_child_dev_vision_motor),
+                                    emoji         = stringResource(Res.string.child_dev_vision_emoji),
+                                    title         = stringResource(Res.string.settings_child_dev_vision_motor),
                                     assessedCount = visionMotorCount,
-                                    onClick = {
-                                        if (selectedBabyId != null) onNavigateToVisionMotor(
-                                            selectedBabyId,
-                                            selectedBabyName
-                                        )
+                                    onClick       = {
+                                        if (selectedBabyId != null)
+                                            onNavigateToVisionMotor(selectedBabyId, selectedBabyName)
                                     })
                                 RowDivider()
                                 ChildDevSettingsRowItem(
-                                    emoji = stringResource(Res.string.child_dev_hearing_emoji),
-                                    title = stringResource(Res.string.settings_child_dev_hearing_speech),
+                                    emoji         = stringResource(Res.string.child_dev_hearing_emoji),
+                                    title         = stringResource(Res.string.settings_child_dev_hearing_speech),
                                     assessedCount = hearingSpeechCount,
-                                    onClick = {
-                                        if (selectedBabyId != null) onNavigateToHearingSpeech(
-                                            selectedBabyId,
-                                            selectedBabyName
-                                        )
+                                    onClick       = {
+                                        if (selectedBabyId != null)
+                                            onNavigateToHearingSpeech(selectedBabyId, selectedBabyName)
                                     })
                             }
                         }
 
                         SettingsSection.ABOUT -> {
-                            SectionLabel(
-                                "ℹ️",
-                                stringResource(Res.string.settings_section_about),
-                                hPad
-                            )
+                            SectionLabel("ℹ️", stringResource(Res.string.settings_section_about), hPad)
                             SettingsCard(hPad) {
-                                ArrowRow(
-                                    icon = Icons.Default.Info,
-                                    label = stringResource(Res.string.settings_about_app),
-                                    onClick = { dialog = SettingsDialog.ABOUT })
+                                ArrowRow(Icons.Default.Info,           stringResource(Res.string.settings_about_app))      { dialog = SettingsDialog.ABOUT }
                                 RowDivider()
-                                ArrowRow(
-                                    icon = Icons.Default.Policy,
-                                    label = stringResource(Res.string.settings_privacy_policy),
-                                    onClick = { dialog = SettingsDialog.PRIVACY_POLICY })
+                                ArrowRow(Icons.Default.Policy,         stringResource(Res.string.settings_privacy_policy)) { dialog = SettingsDialog.PRIVACY_POLICY }
                                 RowDivider()
-                                ArrowRow(
-                                    icon = Icons.Default.Gavel,
-                                    label = stringResource(Res.string.settings_terms),
-                                    onClick = { dialog = SettingsDialog.TERMS_OF_USE })
+                                ArrowRow(Icons.Default.Gavel,          stringResource(Res.string.settings_terms))          { dialog = SettingsDialog.TERMS_OF_USE }
                                 RowDivider()
-                                ArrowRow(
-                                    icon = Icons.Default.ContactSupport,
-                                    label = stringResource(Res.string.settings_contact_support),
-                                    onClick = { dialog = SettingsDialog.CONTACT_SUPPORT })
+                                ArrowRow(Icons.Default.ContactSupport, stringResource(Res.string.settings_contact_support)){ dialog = SettingsDialog.CONTACT_SUPPORT }
                             }
                         }
 
                         SettingsSection.ACTIONS -> {
-                            SectionLabel(
-                                "⚠️",
-                                stringResource(Res.string.settings_section_actions),
-                                hPad
-                            )
+                            SectionLabel("⚠️", stringResource(Res.string.settings_section_actions), hPad)
                             SettingsCard(hPad) {
                                 DangerRow(
-                                    icon = Icons.AutoMirrored.Filled.Logout,
-                                    label = stringResource(Res.string.settings_logout),
-                                    color = cc.warning,
+                                    icon    = Icons.AutoMirrored.Filled.Logout,
+                                    label   = stringResource(Res.string.settings_logout),
+                                    color   = cc.warning,
                                     onClick = { dialog = SettingsDialog.CONFIRM_LOGOUT })
                                 RowDivider()
                                 DangerRow(
-                                    icon = Icons.Default.DeleteForever,
-                                    label = stringResource(Res.string.settings_delete_account),
+                                    icon     = Icons.Default.DeleteForever,
+                                    label    = stringResource(Res.string.settings_delete_account),
                                     subtitle = stringResource(Res.string.settings_delete_account_sub),
-                                    color = MaterialTheme.colorScheme.error,
-                                    onClick = { dialog = SettingsDialog.CONFIRM_DELETE })
+                                    color    = MaterialTheme.colorScheme.error,
+                                    onClick  = { dialog = SettingsDialog.CONFIRM_DELETE })
                             }
                         }
                     }
@@ -614,28 +480,33 @@ fun SettingsTabContent(
             // ── PORTRAIT ──────────────────────────────────────────────────────
             val hPad = Modifier.padding(horizontal = dim.screenPadding)
             Column(
-                modifier = Modifier.fillMaxSize().padding(inner)
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(inner)
                     .verticalScroll(rememberScrollState())
             ) {
                 Box(
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
                         .background(
                             Brush.verticalGradient(
                                 listOf(
-                                    MaterialTheme.colorScheme.primary.copy(
-                                        alpha = 0.12f
-                                    ), Color.Transparent
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                                    Color.Transparent
                                 )
                             )
                         )
-                        .padding(horizontal = dim.screenPadding, vertical = dim.spacingLarge)
+                        .padding(
+                            horizontal = dim.screenPadding,
+                            vertical   = dim.spacingLarge
+                        )
                 ) {
                     Column {
                         Text(
                             stringResource(Res.string.settings_title),
-                            style = MaterialTheme.typography.headlineMedium,
+                            style      = MaterialTheme.typography.headlineMedium,
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
+                            color      = MaterialTheme.colorScheme.onBackground
                         )
                         Text(
                             stringResource(Res.string.settings_subtitle),
@@ -649,13 +520,13 @@ fun SettingsTabContent(
                 SectionLabel("👤", stringResource(Res.string.settings_section_account), hPad)
                 SettingsCard(hPad) {
                     ProfileRow(
-                        name = state.userName,
-                        email = state.userEmail,
+                        name    = state.userName,
+                        email   = state.userEmail,
                         onClick = { dialog = SettingsDialog.EDIT_PROFILE })
                     RowDivider()
                     ArrowRow(
-                        icon = Icons.Default.Lock,
-                        label = stringResource(Res.string.settings_change_password),
+                        icon    = Icons.Default.Lock,
+                        label   = stringResource(Res.string.settings_change_password),
                         onClick = { dialog = SettingsDialog.CHANGE_PW_STEP1 })
                 }
                 Spacer(Modifier.height(dim.spacingMedium))
@@ -663,81 +534,39 @@ fun SettingsTabContent(
                 SectionLabel("🎨", stringResource(Res.string.settings_section_preferences), hPad)
                 SettingsCard(hPad) {
                     ArrowRow(
-                        icon = Icons.Default.Language,
-                        label = stringResource(Res.string.settings_language),
-                        value = state.currentLanguage.displayName,
+                        icon    = Icons.Default.Language,
+                        label   = stringResource(Res.string.settings_language),
+                        value   = state.currentLanguage.displayName,
                         onClick = { dialog = SettingsDialog.PICK_LANGUAGE })
                     RowDivider()
                     ArrowRow(
-                        icon = Icons.Default.Palette,
-                        label = stringResource(Res.string.settings_app_theme),
-                        value = if (state.isDarkMode) stringResource(Res.string.settings_theme_dark) else stringResource(
-                            Res.string.settings_theme_light
-                        ),
+                        icon    = Icons.Default.Palette,
+                        label   = stringResource(Res.string.settings_app_theme),
+                        value   = if (state.isDarkMode) stringResource(Res.string.settings_theme_dark)
+                        else stringResource(Res.string.settings_theme_light),
                         onClick = { dialog = SettingsDialog.PICK_THEME })
                     RowDivider()
                     ArrowRow(
-                        icon = Icons.Default.ChildCare,
-                        label = stringResource(Res.string.settings_gender_theme),
-                        value = when (state.genderTheme) {
-                            GenderTheme.GIRL -> stringResource(Res.string.settings_gender_girl); GenderTheme.BOY -> stringResource(
-                                Res.string.settings_gender_boy
-                            ); GenderTheme.NEUTRAL -> stringResource(Res.string.settings_gender_neutral)
+                        icon    = Icons.Default.ChildCare,
+                        label   = stringResource(Res.string.settings_gender_theme),
+                        value   = when (state.genderTheme) {
+                            GenderTheme.GIRL    -> stringResource(Res.string.settings_gender_girl)
+                            GenderTheme.BOY     -> stringResource(Res.string.settings_gender_boy)
+                            GenderTheme.NEUTRAL -> stringResource(Res.string.settings_gender_neutral)
                         },
                         onClick = { dialog = SettingsDialog.PICK_GENDER_THEME })
                 }
                 Spacer(Modifier.height(dim.spacingMedium))
 
+                // FIX: NotificationToggles() extracts the full block including
+                // health + development rows in both portrait and landscape.
                 SectionLabel("🔔", stringResource(Res.string.settings_section_notifications), hPad)
                 SettingsCard(hPad) {
-                    ToggleRow(
-                        icon = Icons.Default.Notifications,
-                        label = stringResource(Res.string.settings_notif_master),
-                        subtitle = stringResource(Res.string.settings_notif_master_sub),
-                        checked = state.notificationsEnabled,
-                        onToggle = viewModel::setNotificationsEnabled
+                    NotificationToggles(
+                        state               = state,
+                        viewModel           = viewModel,
+                        onReminderDaysClick = { dialog = SettingsDialog.REMINDER_DAYS }
                     )
-                    AnimatedVisibility(
-                        visible = state.notificationsEnabled,
-                        enter = expandVertically(),
-                        exit = shrinkVertically()
-                    ) {
-                        Column {
-                            RowDivider()
-                            ToggleRow(
-                                icon = Icons.Default.HealthAndSafety,
-                                label = stringResource(Res.string.settings_notif_vaccination),
-                                subtitle = stringResource(Res.string.settings_notif_vaccination_sub),
-                                checked = state.vaccinationReminders,
-                                onToggle = viewModel::setVaccinationReminders
-                            )
-                            RowDivider()
-                            ToggleRow(
-                                icon = Icons.Default.TrendingUp,
-                                label = stringResource(Res.string.settings_notif_growth),
-                                subtitle = stringResource(Res.string.settings_notif_growth_sub),
-                                checked = state.growthAlerts,
-                                onToggle = viewModel::setGrowthAlerts
-                            )
-                            RowDivider()
-                            ToggleRow(
-                                icon = Icons.Default.CalendarToday,
-                                label = stringResource(Res.string.settings_notif_appointment),
-                                subtitle = stringResource(Res.string.settings_notif_appointment_sub),
-                                checked = state.appointmentReminders,
-                                onToggle = viewModel::setAppointmentReminders
-                            )
-                            RowDivider()
-                            ArrowRow(
-                                icon = Icons.Default.AccessTime,
-                                label = stringResource(Res.string.settings_notif_reminder_days),
-                                value = stringResource(
-                                    Res.string.settings_reminder_days_value,
-                                    state.reminderDaysBefore
-                                ),
-                                onClick = { dialog = SettingsDialog.REMINDER_DAYS })
-                        }
-                    }
                 }
                 Spacer(Modifier.height(dim.spacingMedium))
 
@@ -745,114 +574,90 @@ fun SettingsTabContent(
                     SectionLabel("🔒", stringResource(Res.string.settings_section_security), hPad)
                     SettingsCard(hPad) {
                         ToggleRow(
-                            icon = Icons.Default.Password,
-                            label = stringResource(Res.string.settings_save_password),
+                            icon     = Icons.Default.Password,
+                            label    = stringResource(Res.string.settings_save_password),
                             subtitle = stringResource(Res.string.settings_save_password_sub),
-                            checked = state.savePasswordEnabled,
+                            checked  = state.savePasswordEnabled,
                             onToggle = viewModel::setSavePassword
                         )
                     }
                     Spacer(Modifier.height(dim.spacingMedium))
                 }
 
-                SectionLabel(
-                    "👨‍👩‍👧‍👦",
-                    stringResource(Res.string.settings_section_information),
-                    hPad
-                )
+                SectionLabel("👨‍👩‍👧‍👦", stringResource(Res.string.settings_section_information), hPad)
                 SettingsCard(hPad) {
                     FamilyHistorySettingsRow(
-                        isSet = familyHistoryIsSet,
+                        isSet    = familyHistoryIsSet,
                         babyName = selectedBabyName,
-                        onClick = {
-                            if (selectedBabyId != null) onNavigateToFamilyHistory(
-                                selectedBabyId,
-                                selectedBabyName
-                            )
+                        onClick  = {
+                            if (selectedBabyId != null)
+                                onNavigateToFamilyHistory(selectedBabyId, selectedBabyName)
                         })
                     RowDivider()
                     ChildIllnessesSettingsRow(
                         illnessCount = childIllnessCount,
-                        activeCount = childIllnessActiveCount,
-                        babyName = selectedBabyName,
-                        onClick = {
-                            if (selectedBabyId != null) onNavigateToChildIllnesses(
-                                selectedBabyId,
-                                selectedBabyName
-                            )
+                        activeCount  = childIllnessActiveCount,
+                        babyName     = selectedBabyName,
+                        onClick      = {
+                            if (selectedBabyId != null)
+                                onNavigateToChildIllnesses(selectedBabyId, selectedBabyName)
                         })
                     RowDivider()
                     ChildDevSettingsRowItem(
-                        emoji = stringResource(Res.string.child_dev_vision_emoji),
-                        title = stringResource(Res.string.settings_child_dev_vision_motor),
+                        emoji         = stringResource(Res.string.child_dev_vision_emoji),
+                        title         = stringResource(Res.string.settings_child_dev_vision_motor),
                         assessedCount = visionMotorCount,
-                        onClick = {
-                            if (selectedBabyId != null) onNavigateToVisionMotor(
-                                selectedBabyId,
-                                selectedBabyName
-                            )
+                        onClick       = {
+                            if (selectedBabyId != null)
+                                onNavigateToVisionMotor(selectedBabyId, selectedBabyName)
                         })
                     RowDivider()
                     ChildDevSettingsRowItem(
-                        emoji = stringResource(Res.string.child_dev_hearing_emoji),
-                        title = stringResource(Res.string.settings_child_dev_hearing_speech),
+                        emoji         = stringResource(Res.string.child_dev_hearing_emoji),
+                        title         = stringResource(Res.string.settings_child_dev_hearing_speech),
                         assessedCount = hearingSpeechCount,
-                        onClick = {
-                            if (selectedBabyId != null) onNavigateToHearingSpeech(
-                                selectedBabyId,
-                                selectedBabyName
-                            )
+                        onClick       = {
+                            if (selectedBabyId != null)
+                                onNavigateToHearingSpeech(selectedBabyId, selectedBabyName)
                         })
                 }
                 Spacer(Modifier.height(dim.spacingMedium))
 
                 SectionLabel("ℹ️", stringResource(Res.string.settings_section_about), hPad)
                 SettingsCard(hPad) {
-                    ArrowRow(
-                        icon = Icons.Default.Info,
-                        label = stringResource(Res.string.settings_about_app),
-                        onClick = { dialog = SettingsDialog.ABOUT })
+                    ArrowRow(Icons.Default.Info,           stringResource(Res.string.settings_about_app))       { dialog = SettingsDialog.ABOUT }
                     RowDivider()
-                    ArrowRow(
-                        icon = Icons.Default.Policy,
-                        label = stringResource(Res.string.settings_privacy_policy),
-                        onClick = { dialog = SettingsDialog.PRIVACY_POLICY })
+                    ArrowRow(Icons.Default.Policy,         stringResource(Res.string.settings_privacy_policy))  { dialog = SettingsDialog.PRIVACY_POLICY }
                     RowDivider()
-                    ArrowRow(
-                        icon = Icons.Default.Gavel,
-                        label = stringResource(Res.string.settings_terms),
-                        onClick = { dialog = SettingsDialog.TERMS_OF_USE })
+                    ArrowRow(Icons.Default.Gavel,          stringResource(Res.string.settings_terms))           { dialog = SettingsDialog.TERMS_OF_USE }
                     RowDivider()
-                    ArrowRow(
-                        icon = Icons.Default.ContactSupport,
-                        label = stringResource(Res.string.settings_contact_support),
-                        onClick = { dialog = SettingsDialog.CONTACT_SUPPORT })
+                    ArrowRow(Icons.Default.ContactSupport, stringResource(Res.string.settings_contact_support)) { dialog = SettingsDialog.CONTACT_SUPPORT }
                 }
                 Spacer(Modifier.height(dim.spacingMedium))
 
                 SectionLabel("⚠️", stringResource(Res.string.settings_section_actions), hPad)
                 SettingsCard(hPad) {
                     DangerRow(
-                        icon = Icons.AutoMirrored.Filled.Logout,
-                        label = stringResource(Res.string.settings_logout),
-                        color = cc.warning,
+                        icon    = Icons.AutoMirrored.Filled.Logout,
+                        label   = stringResource(Res.string.settings_logout),
+                        color   = cc.warning,
                         onClick = { dialog = SettingsDialog.CONFIRM_LOGOUT })
                     RowDivider()
                     DangerRow(
-                        icon = Icons.Default.DeleteForever,
-                        label = stringResource(Res.string.settings_delete_account),
+                        icon     = Icons.Default.DeleteForever,
+                        label    = stringResource(Res.string.settings_delete_account),
                         subtitle = stringResource(Res.string.settings_delete_account_sub),
-                        color = MaterialTheme.colorScheme.error,
-                        onClick = { dialog = SettingsDialog.CONFIRM_DELETE })
+                        color    = MaterialTheme.colorScheme.error,
+                        onClick  = { dialog = SettingsDialog.CONFIRM_DELETE })
                 }
 
                 Spacer(Modifier.height(dim.spacingLarge))
-                // CHANGED: "1.0.0" literal → dim.settingsVersionString
                 Text(
                     stringResource(Res.string.settings_version, dim.settingsVersionString),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.28f),
-                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                    style    = MaterialTheme.typography.bodySmall,
+                    color    = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.28f),
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
                         .padding(bottom = dim.spacingXXLarge)
                 )
             }
@@ -861,23 +666,109 @@ fun SettingsTabContent(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Row helpers — using dimension tokens instead of hardcoded values
+// FIX: Extracted NotificationToggles composable
+//
+// Previously the notification section only had master / vaccination / growth /
+// appointment / reminder-days. Health and Development were in the backend
+// preferences table but had zero UI rows and zero ViewModel handlers.
+// They are now added here and referenced in both portrait and landscape.
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun NotificationToggles(
+    state               : org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.SettingsUiState,
+    viewModel           : SettingsViewModel,
+    onReminderDaysClick : () -> Unit
+) {
+    val dim = LocalDimensions.current
+
+    ToggleRow(
+        icon     = Icons.Default.Notifications,
+        label    = stringResource(Res.string.settings_notif_master),
+        subtitle = stringResource(Res.string.settings_notif_master_sub),
+        checked  = state.notificationsEnabled,
+        onToggle = viewModel::setNotificationsEnabled
+    )
+    AnimatedVisibility(
+        visible = state.notificationsEnabled,
+        enter   = expandVertically(),
+        exit    = shrinkVertically()
+    ) {
+        Column {
+            RowDivider()
+            ToggleRow(
+                icon     = Icons.Default.HealthAndSafety,
+                label    = stringResource(Res.string.settings_notif_vaccination),
+                subtitle = stringResource(Res.string.settings_notif_vaccination_sub),
+                checked  = state.vaccinationReminders,
+                onToggle = viewModel::setVaccinationReminders
+            )
+            RowDivider()
+            ToggleRow(
+                icon     = Icons.Default.TrendingUp,
+                label    = stringResource(Res.string.settings_notif_growth),
+                subtitle = stringResource(Res.string.settings_notif_growth_sub),
+                checked  = state.growthAlerts,
+                onToggle = viewModel::setGrowthAlerts
+            )
+            RowDivider()
+            ToggleRow(
+                icon     = Icons.Default.CalendarToday,
+                label    = stringResource(Res.string.settings_notif_appointment),
+                subtitle = stringResource(Res.string.settings_notif_appointment_sub),
+                checked  = state.appointmentReminders,
+                onToggle = viewModel::setAppointmentReminders
+            )
+            // FIX: Health alerts toggle — was completely absent
+            RowDivider()
+            ToggleRow(
+                icon     = Icons.Default.Favorite,
+                label    = stringResource(Res.string.settings_notif_health),
+                subtitle = stringResource(Res.string.settings_notif_health_sub),
+                checked  = state.healthAlerts,
+                onToggle = viewModel::setHealthAlerts
+            )
+            // FIX: Development alerts toggle — was completely absent
+            RowDivider()
+            ToggleRow(
+                icon     = Icons.Default.Psychology,
+                label    = stringResource(Res.string.settings_notif_development),
+                subtitle = stringResource(Res.string.settings_notif_development_sub),
+                checked  = state.developmentAlerts,
+                onToggle = viewModel::setDevelopmentAlerts
+            )
+            RowDivider()
+            ArrowRow(
+                icon    = Icons.Default.AccessTime,
+                label   = stringResource(Res.string.settings_notif_reminder_days),
+                value   = stringResource(
+                    Res.string.settings_reminder_days_value,
+                    state.reminderDaysBefore
+                ),
+                onClick = onReminderDaysClick
+            )
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Row helpers — unchanged from original
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun SectionLabel(emoji: String, text: String, modifier: Modifier = Modifier) {
     val dim = LocalDimensions.current
     Row(
-        modifier = modifier.fillMaxWidth().padding(top = dim.spacingSmall, bottom = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        modifier              = modifier.fillMaxWidth().padding(top = dim.spacingSmall, bottom = 4.dp),
+        verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dim.spacingXSmall)
     ) {
         Text(emoji)
         Text(
             text.uppercase(),
-            style = MaterialTheme.typography.labelSmall,
+            style      = MaterialTheme.typography.labelSmall,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.45f)
+            color      = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.45f)
         )
     }
 }
@@ -885,12 +776,13 @@ private fun SectionLabel(emoji: String, text: String, modifier: Modifier = Modif
 @Composable
 private fun SettingsCard(
     modifier: Modifier = Modifier,
-    content: @Composable ColumnScope.() -> Unit
+    content : @Composable ColumnScope.() -> Unit
 ) {
     val dim = LocalDimensions.current
     Card(
-        modifier = modifier.fillMaxWidth(), shape = RoundedCornerShape(dim.cardCornerRadius),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        modifier  = modifier.fillMaxWidth(),
+        shape     = RoundedCornerShape(dim.cardCornerRadius),
+        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Column(modifier = Modifier.fillMaxWidth(), content = content)
@@ -901,11 +793,9 @@ private fun SettingsCard(
 private fun RowDivider() {
     val dim = LocalDimensions.current
     HorizontalDivider(
-        // CHANGED: Modifier.padding(horizontal = 16.dp) → dim.settingsRowPaddingH
-        modifier = Modifier.padding(horizontal = dim.settingsRowPaddingH),
-        // CHANGED: 0.5.dp → dim.settingsDividerThickness
+        modifier  = Modifier.padding(horizontal = dim.settingsRowPaddingH),
         thickness = dim.settingsDividerThickness,
-        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+        color     = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
     )
 }
 
@@ -913,15 +803,17 @@ private fun RowDivider() {
 private fun ProfileRow(name: String, email: String, onClick: () -> Unit) {
     val dim = LocalDimensions.current
     Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
-            // CHANGED: padding(horizontal = 16.dp, ...) → dim.settingsRowPaddingH
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
             .padding(horizontal = dim.settingsRowPaddingH, vertical = dim.spacingMedium),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dim.spacingSmall)
     ) {
-        // CHANGED: 44.dp → dim.settingsAvatarSize
         Box(
-            modifier = Modifier.size(dim.settingsAvatarSize).clip(CircleShape)
+            modifier = Modifier
+                .size(dim.settingsAvatarSize)
+                .clip(CircleShape)
                 .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
             contentAlignment = Alignment.Center
         ) {
@@ -933,91 +825,74 @@ private fun ProfileRow(name: String, email: String, onClick: () -> Unit) {
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                name.ifBlank { "—" }, style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface
+                name.ifBlank { "—" },
+                style      = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                color      = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                email.ifBlank { "—" }, style = MaterialTheme.typography.bodySmall,
+                email.ifBlank { "—" },
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
         }
-        // CHANGED: 18.dp → dim.settingsChevronSize
         Icon(
-            Icons.Default.Edit, contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+            Icons.Default.Edit,
+            contentDescription = null,
+            tint     = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
             modifier = Modifier.size(dim.settingsChevronSize)
         )
     }
 }
 
 @Composable
-private fun ArrowRow(icon: ImageVector, label: String, value: String? = null, onClick: () -> Unit) {
+private fun ArrowRow(
+    icon   : ImageVector,
+    label  : String,
+    value  : String? = null,
+    onClick: () -> Unit
+) {
     val dim = LocalDimensions.current
     Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
             .padding(horizontal = dim.settingsRowPaddingH, vertical = dim.spacingMedium),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dim.spacingSmall)
     ) {
-        // CHANGED: 20.dp → dim.settingsRowIconSize
-        Icon(
-            icon,
-            null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(dim.settingsRowIconSize)
-        )
-        Text(
-            label, style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f)
-        )
+        Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(dim.settingsRowIconSize))
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface, modifier = Modifier.weight(1f))
         if (value != null) {
-            Text(
-                value, style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-            )
+            Text(value, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
             Spacer(Modifier.width(4.dp))
         }
-        // CHANGED: 18.dp → dim.settingsChevronSize
-        Icon(
-            Icons.Default.ChevronRight, contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
-            modifier = Modifier.size(dim.settingsChevronSize)
-        )
+        Icon(Icons.Default.ChevronRight, null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f), modifier = Modifier.size(dim.settingsChevronSize))
     }
 }
 
 @Composable
 private fun ToggleRow(
-    icon: ImageVector,
-    label: String,
+    icon    : ImageVector,
+    label   : String,
     subtitle: String? = null,
-    checked: Boolean,
+    checked : Boolean,
     onToggle: (Boolean) -> Unit
 ) {
     val dim = LocalDimensions.current
     Row(
-        modifier = Modifier.fillMaxWidth().clickable { onToggle(!checked) }
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onToggle(!checked) }
             .padding(horizontal = dim.settingsRowPaddingH, vertical = dim.spacingMedium),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dim.spacingSmall)
     ) {
-        Icon(
-            icon,
-            null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(dim.settingsRowIconSize)
-        )
+        Icon(icon, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(dim.settingsRowIconSize))
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                label,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
+            Text(label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
             if (subtitle != null)
-                Text(
-                    subtitle, style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                )
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
         }
         Switch(checked = checked, onCheckedChange = onToggle)
     }
@@ -1025,33 +900,26 @@ private fun ToggleRow(
 
 @Composable
 private fun DangerRow(
-    icon: ImageVector,
-    label: String,
+    icon    : ImageVector,
+    label   : String,
     subtitle: String? = null,
-    color: Color,
-    onClick: () -> Unit
+    color   : Color,
+    onClick : () -> Unit
 ) {
     val dim = LocalDimensions.current
     Row(
-        modifier = Modifier.fillMaxWidth().clickable(onClick = onClick)
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
             .padding(horizontal = dim.settingsRowPaddingH, vertical = dim.spacingMedium),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment     = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(dim.spacingSmall)
     ) {
         Icon(icon, null, tint = color, modifier = Modifier.size(dim.settingsRowIconSize))
         Column(modifier = Modifier.weight(1f)) {
-            Text(
-                label,
-                style = MaterialTheme.typography.bodyMedium,
-                color = color,
-                fontWeight = FontWeight.Medium
-            )
+            Text(label, style = MaterialTheme.typography.bodyMedium, color = color, fontWeight = FontWeight.Medium)
             if (subtitle != null)
-                Text(
-                    subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = color.copy(alpha = 0.6f)
-                )
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = color.copy(alpha = 0.6f))
         }
     }
 }
@@ -1062,10 +930,10 @@ private fun DangerRow(
 
 @Composable
 private fun <T> PickerDialog(
-    title: String,
-    options: List<Pair<T, String>>,
-    current: T,
-    onSelect: (T) -> Unit,
+    title    : String,
+    options  : List<Pair<T, String>>,
+    current  : T,
+    onSelect : (T) -> Unit,
     onDismiss: () -> Unit
 ) {
     AlertDialog(
@@ -1075,47 +943,44 @@ private fun <T> PickerDialog(
             Column {
                 options.forEach { (value, label) ->
                     Row(
-                        modifier = Modifier.fillMaxWidth().clickable { onSelect(value) }
-                            .padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().clickable { onSelect(value) }.padding(vertical = 12.dp),
+                        verticalAlignment     = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        RadioButton(
-                            selected = value == current,
-                            onClick = { onSelect(value) }); Text(
-                        label,
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                        RadioButton(selected = value == current, onClick = { onSelect(value) })
+                        Text(label, style = MaterialTheme.typography.bodyMedium)
                     }
                 }
             }
         },
-        confirmButton = {},
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.btn_cancel)) } })
+        confirmButton  = {},
+        dismissButton  = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.btn_cancel)) } })
 }
 
 @Composable
 private fun ConfirmDialog(
-    title: String,
-    message: String,
+    title      : String,
+    message    : String,
     confirmText: String,
-    isDanger: Boolean,
-    isLoading: Boolean,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+    isDanger   : Boolean,
+    isLoading  : Boolean,
+    onConfirm  : () -> Unit,
+    onDismiss  : () -> Unit
 ) {
     AlertDialog(
-        onDismissRequest = onDismiss, title = { Text(title) }, text = { Text(message) },
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text  = { Text(message) },
         confirmButton = {
             Button(
                 onClick = onConfirm,
                 enabled = !isLoading,
-                colors = if (isDanger) ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error) else ButtonDefaults.buttonColors()
+                colors  = if (isDanger)
+                    ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                else ButtonDefaults.buttonColors()
             ) {
-                if (isLoading) CircularProgressIndicator(
-                    Modifier.size(16.dp),
-                    strokeWidth = 2.dp
-                ) else Text(confirmText)
+                if (isLoading) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                else Text(confirmText)
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.btn_cancel)) } })
@@ -1124,13 +989,11 @@ private fun ConfirmDialog(
 @Composable
 private fun InfoDialog(title: String, body: String, onDismiss: () -> Unit) {
     AlertDialog(
-        onDismissRequest = onDismiss, title = { Text(title, fontWeight = FontWeight.Bold) },
+        onDismissRequest = onDismiss,
+        title = { Text(title, fontWeight = FontWeight.Bold) },
         text = {
             Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
-                Text(
-                    body,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                Text(body, style = MaterialTheme.typography.bodyMedium)
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.add_baby_date_ok)) } })
@@ -1140,45 +1003,28 @@ private fun InfoDialog(title: String, body: String, onDismiss: () -> Unit) {
 private fun ContactSupportDialog(onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = {
-            Text(
-                stringResource(Res.string.settings_contact_support),
-                fontWeight = FontWeight.Bold
-            )
-        },
+        title = { Text(stringResource(Res.string.settings_contact_support), fontWeight = FontWeight.Bold) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    stringResource(Res.string.settings_contact_support_intro),
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                Text(stringResource(Res.string.settings_contact_support_intro), style = MaterialTheme.typography.bodyMedium)
                 Spacer(Modifier.height(4.dp))
                 Row(
-                    modifier = Modifier.fillMaxWidth().background(
-                        MaterialTheme.colorScheme.surfaceVariant,
-                        RoundedCornerShape(8.dp)
-                    ).padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(8.dp))
+                        .padding(12.dp),
+                    verticalAlignment     = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(
-                        Icons.Default.Email,
-                        null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
+                    Icon(Icons.Default.Email, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
                     Text(
                         stringResource(Res.string.settings_support_email),
-                        style = MaterialTheme.typography.bodyMedium,
+                        style      = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary
+                        color      = MaterialTheme.colorScheme.primary
                     )
                 }
-                Text(
-                    stringResource(Res.string.settings_support_response_time),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                )
+                Text(stringResource(Res.string.settings_support_response_time), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.add_baby_date_ok)) } })
@@ -1186,115 +1032,76 @@ private fun ContactSupportDialog(onDismiss: () -> Unit) {
 
 @Composable
 private fun EditProfileDialog(
-    initialName: String,
+    initialName : String,
     initialPhone: String,
-    isLoading: Boolean,
-    onSave: (String, String) -> Unit,
-    onDismiss: () -> Unit
+    isLoading   : Boolean,
+    onSave      : (String, String) -> Unit,
+    onDismiss   : () -> Unit
 ) {
-    var name by remember { mutableStateOf(initialName) };
+    var name  by remember { mutableStateOf(initialName) }
     var phone by remember { mutableStateOf(initialPhone) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(Res.string.settings_edit_profile)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text(stringResource(Res.string.settings_field_name)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                ); OutlinedTextField(
-                value = phone,
-                onValueChange = { phone = it },
-                label = { Text(stringResource(Res.string.settings_field_phone)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
+                OutlinedTextField(value = name,  onValueChange = { name  = it }, label = { Text(stringResource(Res.string.settings_field_name))  }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                OutlinedTextField(value = phone, onValueChange = { phone = it }, label = { Text(stringResource(Res.string.settings_field_phone)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
             }
         },
         confirmButton = {
-            Button(
-                onClick = { onSave(name, phone) },
-                enabled = !isLoading
-            ) {
-                if (isLoading) CircularProgressIndicator(
-                    Modifier.size(16.dp),
-                    strokeWidth = 2.dp
-                ) else Text(stringResource(Res.string.settings_save))
+            Button(onClick = { onSave(name, phone) }, enabled = !isLoading) {
+                if (isLoading) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                else Text(stringResource(Res.string.settings_save))
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.btn_cancel)) } })
 }
 
 @Composable
-private fun ChangePwStep1Dialog(
-    email: String,
-    isLoading: Boolean,
-    onSend: () -> Unit,
-    onDismiss: () -> Unit
-) {
+private fun ChangePwStep1Dialog(email: String, isLoading: Boolean, onSend: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(Res.string.settings_change_password)) },
-        text = { Text(stringResource(Res.string.settings_change_pw_send_desc, email)) },
+        text  = { Text(stringResource(Res.string.settings_change_pw_send_desc, email)) },
         confirmButton = {
-            Button(
-                onClick = onSend,
-                enabled = !isLoading
-            ) {
-                if (isLoading) CircularProgressIndicator(
-                    Modifier.size(16.dp),
-                    strokeWidth = 2.dp
-                ) else Text(stringResource(Res.string.settings_send_code))
+            Button(onClick = onSend, enabled = !isLoading) {
+                if (isLoading) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                else Text(stringResource(Res.string.settings_send_code))
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.btn_cancel)) } })
 }
 
 @Composable
-private fun ChangePwStep2Dialog(
-    isLoading: Boolean,
-    onVerify: (String) -> Unit,
-    onDismiss: () -> Unit
-) {
+private fun ChangePwStep2Dialog(isLoading: Boolean, onVerify: (String) -> Unit, onDismiss: () -> Unit) {
     var code by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(Res.string.settings_enter_code_title)) },
         text = {
             OutlinedTextField(
-                value = code,
+                value         = code,
                 onValueChange = { if (it.length <= 6) code = it },
-                label = { Text(stringResource(Res.string.settings_enter_code_hint)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
+                label         = { Text(stringResource(Res.string.settings_enter_code_hint)) },
+                singleLine    = true,
+                modifier      = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
             )
         },
         confirmButton = {
-            Button(
-                onClick = { onVerify(code) },
-                enabled = !isLoading && code.length == 6
-            ) {
-                if (isLoading) CircularProgressIndicator(
-                    Modifier.size(16.dp),
-                    strokeWidth = 2.dp
-                ) else Text(stringResource(Res.string.settings_verify_code))
+            Button(onClick = { onVerify(code) }, enabled = !isLoading && code.length == 6) {
+                if (isLoading) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                else Text(stringResource(Res.string.settings_verify_code))
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.btn_cancel)) } })
 }
 
 @Composable
-private fun ChangePwStep3Dialog(
-    isLoading: Boolean,
-    onSave: (String) -> Unit,
-    onDismiss: () -> Unit
-) {
-    var pwd by remember { mutableStateOf("") };
-    var confirm by remember { mutableStateOf("") };
+private fun ChangePwStep3Dialog(isLoading: Boolean, onSave: (String) -> Unit, onDismiss: () -> Unit) {
+    var pwd     by remember { mutableStateOf("") }
+    var confirm by remember { mutableStateOf("") }
     var visible by remember { mutableStateOf(false) }
     val mismatch = pwd.isNotBlank() && confirm.isNotBlank() && pwd != confirm
     AlertDialog(
@@ -1303,47 +1110,34 @@ private fun ChangePwStep3Dialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
-                    value = pwd,
-                    onValueChange = { pwd = it },
-                    label = { Text(stringResource(Res.string.settings_new_password)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    value               = pwd,
+                    onValueChange       = { pwd = it },
+                    label               = { Text(stringResource(Res.string.settings_new_password)) },
+                    singleLine          = true,
+                    modifier            = Modifier.fillMaxWidth(),
                     visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
-                        IconButton(onClick = {
-                            visible = !visible
-                        }) {
-                            Icon(
-                                if (visible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                contentDescription = null
-                            )
+                        IconButton(onClick = { visible = !visible }) {
+                            Icon(if (visible) Icons.Default.VisibilityOff else Icons.Default.Visibility, null)
                         }
                     })
                 OutlinedTextField(
-                    value = confirm,
-                    onValueChange = { confirm = it },
-                    label = { Text(stringResource(Res.string.settings_confirm_password)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
+                    value                = confirm,
+                    onValueChange        = { confirm = it },
+                    label                = { Text(stringResource(Res.string.settings_confirm_password)) },
+                    singleLine           = true,
+                    modifier             = Modifier.fillMaxWidth(),
                     visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
-                    isError = mismatch
+                    isError              = mismatch
                 )
-                if (mismatch) Text(
-                    stringResource(Res.string.settings_passwords_no_match),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
-                )
+                if (mismatch)
+                    Text(stringResource(Res.string.settings_passwords_no_match), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
             }
         },
         confirmButton = {
-            Button(
-                onClick = { onSave(pwd) },
-                enabled = !isLoading && pwd.isNotBlank() && pwd == confirm
-            ) {
-                if (isLoading) CircularProgressIndicator(
-                    Modifier.size(16.dp),
-                    strokeWidth = 2.dp
-                ) else Text(stringResource(Res.string.settings_save))
+            Button(onClick = { onSave(pwd) }, enabled = !isLoading && pwd.isNotBlank() && pwd == confirm) {
+                if (isLoading) CircularProgressIndicator(Modifier.size(16.dp), strokeWidth = 2.dp)
+                else Text(stringResource(Res.string.settings_save))
             }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.btn_cancel)) } })
