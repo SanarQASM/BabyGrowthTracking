@@ -1,3 +1,10 @@
+// File: composeApp/src/commonMain/kotlin/org/example/project/babygrowthtrackingapplication/data/repository/AccountRepository.kt
+// UPDATED: saveUserSession() now also saves the user's role to preferences.
+//          This enables Navigation.kt to route admin users to AdminHomeScreen.
+//
+// DIFF from original — only saveUserSession() is updated:
+//   Added: preferencesManager.putString("user_role", user.role)
+
 package org.example.project.babygrowthtrackingapplication.data.repository
 
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.PreferencesManager
@@ -57,12 +64,8 @@ class AccountRepository(
             saveUserSession(result.data.user, rememberMe, needsVerification = false)
 
             if (rememberMe) {
-                // User checked "Save Password" → store credentials and set the flag
                 preferencesManager.saveLoginCredentials(email, password)
             } else {
-                // User did NOT check "Save Password" → clear any previously stored
-                // credentials and set the flag to false.
-                // Keep only email for field pre-fill convenience on next login.
                 preferencesManager.clearLoginCredentials()
                 preferencesManager.putString("saved_email", email)
             }
@@ -90,11 +93,7 @@ class AccountRepository(
         if (result is ApiResult.Success) {
             saveToken(result.data.token)
             preferencesManager.putString("auth_provider", "google")
-            // Google login has no password — mark as logged-in WITHOUT touching the
-            // save_password_enabled flag so the Settings toggle stays irrelevant.
             saveUserSession(result.data.user, rememberMe = true, needsVerification = false)
-            // Explicitly ensure the password flag is NOT set for Google users so
-            // there is no ambiguity if they switch to email login later.
             preferencesManager.putBoolean("save_password_enabled", false)
         }
 
@@ -176,6 +175,10 @@ class AccountRepository(
         preferencesManager.putString("auth_token", token)
     }
 
+    /**
+     * UPDATED: Now also saves user.role to preferences so Navigation.kt can
+     * route admin users to AdminHomeScreen on next launch / login.
+     */
     private fun saveUserSession(
         user             : UserResponse,
         rememberMe       : Boolean = false,
@@ -189,27 +192,20 @@ class AccountRepository(
         preferencesManager.saveUserName(user.fullName)
         user.phone?.let           { preferencesManager.saveUserPhone(it) }
         user.profileImageUrl?.let { preferencesManager.putString("user_profile_image", it) }
+
+        // ── UPDATED: Save role for admin routing ────────────────────────────
+        // user.role is the String role name from the backend (e.g. "parent", "admin")
+        preferencesManager.putString("user_role", user.role.uppercase())
     }
 
     // ─── Getters ──────────────────────────────────────────────────────────────
 
-    /**
-     * Returns true when the user has an active session.
-     *
-     * For EMAIL login:  requires is_logged_in=true + valid token + save_password_enabled=true
-     * For GOOGLE login: requires is_logged_in=true + valid token only
-     *                   (no password flag — Google users are always "remembered" by token)
-     */
     fun isLoggedIn(): Boolean {
         val flagSet    = preferencesManager.getBoolean("is_logged_in", false)
         val tokenValid = preferencesManager.isTokenValid()
         if (!flagSet || !tokenValid) return false
-
-        // Google users bypass the save-password gate
         val isGoogleUser = preferencesManager.getString("auth_provider") == "google"
         if (isGoogleUser) return true
-
-        // Email users only auto-login if they checked "Save Password" at login
         return preferencesManager.isSavePasswordEnabled()
     }
 
@@ -228,8 +224,13 @@ class AccountRepository(
     fun getSavedPassword()      = preferencesManager.getSavedPassword()
     fun isSavePasswordEnabled() = preferencesManager.isSavePasswordEnabled()
 
-    /** Returns true only for email/password login sessions (not Google). */
     fun isEmailLogin() = preferencesManager.getString("auth_provider") == "email"
+
+    // ── NEW: check if currently logged in as admin ─────────────────────────────
+    fun isAdminUser(): Boolean {
+        val role = preferencesManager.getString("user_role", "")
+        return role.equals("ADMIN", ignoreCase = true)
+    }
 
     fun logout() {
         preferencesManager.setUserLoggedIn(false)
@@ -237,7 +238,7 @@ class AccountRepository(
         preferencesManager.putBoolean("account_verified", false)
         preferencesManager.clearAuthToken()
         preferencesManager.remove("auth_provider")
-        // Intentionally keep saved credentials so login screen can pre-fill email
+        preferencesManager.remove("user_role")  // ← UPDATED: clear role on logout
     }
 
     fun logoutAndClearCredentials() {
