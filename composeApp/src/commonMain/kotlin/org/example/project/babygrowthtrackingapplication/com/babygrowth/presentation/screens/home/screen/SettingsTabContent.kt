@@ -1,15 +1,5 @@
 package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen
 
-// ─────────────────────────────────────────────────────────────────────────────
-// SettingsTabContent — FIXED
-//
-// CHANGES vs original:
-//  • Notification section now shows HealthAlerts + DevelopmentAlerts toggles.
-//    These were in UiState and backend but had NO UI rows and NO ViewModel
-//    handlers — users could never toggle them.
-//  • Both portrait and landscape branches updated identically.
-// ─────────────────────────────────────────────────────────────────────────────
-
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -56,31 +46,33 @@ private enum class SettingsSection {
 
 @Composable
 fun SettingsTabContent(
-    viewModel: SettingsViewModel,
-    onLanguageChange: (Language) -> Unit = {},
-    onDarkModeChange: (Boolean) -> Unit = {},
-    onGenderThemeChange: (GenderTheme) -> Unit = {},
-    onNavigateToWelcome: () -> Unit = {},
-    onNavigateToFamilyHistory: (babyId: String, babyName: String) -> Unit = { _, _ -> },
-    onNavigateToChildIllnesses: (babyId: String, babyName: String) -> Unit = { _, _ -> },
-    onNavigateToVisionMotor: (babyId: String, babyName: String) -> Unit = { _, _ -> },
-    onNavigateToHearingSpeech: (babyId: String, babyName: String) -> Unit = { _, _ -> },
-    selectedBabyId: String? = null,
-    selectedBabyName: String = "",
-    familyHistoryIsSet: Boolean = false,
-    childIllnessCount: Int = 0,
-    childIllnessActiveCount: Int = 0,
-    visionMotorCount: Int = 0,
-    hearingSpeechCount: Int = 0,
+    viewModel                         : SettingsViewModel,
+    onLanguageChange                  : (Language) -> Unit = {},
+    onDarkModeChange                  : (Boolean) -> Unit = {},
+    onGenderThemeChange               : (GenderTheme) -> Unit = {},
+    onNavigateToWelcome               : () -> Unit = {},
+    onNavigateToFamilyHistory         : (babyId: String, babyName: String) -> Unit = { _, _ -> },
+    onNavigateToChildIllnesses        : (babyId: String, babyName: String) -> Unit = { _, _ -> },
+    onNavigateToVisionMotor           : (babyId: String, babyName: String) -> Unit = { _, _ -> },
+    onNavigateToHearingSpeech         : (babyId: String, babyName: String) -> Unit = { _, _ -> },
+    onNavigateToPreCheckInvestigation : (babyId: String, babyName: String) -> Unit = { _, _ -> },
+    selectedBabyId                    : String? = null,
+    selectedBabyName                  : String  = "",
+    familyHistoryIsSet                : Boolean = false,
+    childIllnessCount                 : Int     = 0,
+    childIllnessActiveCount           : Int     = 0,
+    visionMotorCount                  : Int     = 0,
+    hearingSpeechCount                : Int     = 0,
+    preCheckInvestigationIsSet        : Boolean = false,
 ) {
-    val state = viewModel.uiState
-    val dim = LocalDimensions.current
-    val cc = MaterialTheme.customColors
-    val snackbar = remember { SnackbarHostState() }
+    val state       = viewModel.uiState
+    val dim         = LocalDimensions.current
+    val cc          = MaterialTheme.customColors
+    val snackbar    = remember { SnackbarHostState() }
     val isLandscape = LocalIsLandscape.current
 
-    var dialog by remember { mutableStateOf(SettingsDialog.NONE) }
-    var resetCode by remember { mutableStateOf("") }
+    var dialog          by remember { mutableStateOf(SettingsDialog.NONE) }
+    var resetCode       by remember { mutableStateOf("") }
     var selectedSection by remember { mutableStateOf(SettingsSection.ACCOUNT) }
 
     LaunchedEffect(state.navigateToWelcome) { if (state.navigateToWelcome) onNavigateToWelcome() }
@@ -94,24 +86,22 @@ fun SettingsTabContent(
     // ── Dialogs ───────────────────────────────────────────────────────────────
     when (dialog) {
         SettingsDialog.EDIT_PROFILE -> EditProfileDialog(
-            initialName = state.userName,
+            initialName  = state.userName,
             initialPhone = state.userPhone,
-            isLoading = state.isLoading,
-            onSave = { name, phone ->
+            isLoading    = state.isLoading,
+            onSave       = { name, phone ->
                 viewModel.updateProfile(name, phone); dialog = SettingsDialog.NONE
             },
             onDismiss = { dialog = SettingsDialog.NONE })
 
         SettingsDialog.CHANGE_PW_STEP1 -> ChangePwStep1Dialog(
-            email = state.userEmail, isLoading = state.isLoading,
-            onSend = {
-                viewModel.sendPasswordResetCode { dialog = SettingsDialog.CHANGE_PW_STEP2 }
-            },
+            email     = state.userEmail, isLoading = state.isLoading,
+            onSend    = { viewModel.sendPasswordResetCode { dialog = SettingsDialog.CHANGE_PW_STEP2 } },
             onDismiss = { dialog = SettingsDialog.NONE })
 
         SettingsDialog.CHANGE_PW_STEP2 -> ChangePwStep2Dialog(
             isLoading = state.isLoading,
-            onVerify = { code ->
+            onVerify  = { code ->
                 viewModel.verifyPasswordCode(code) { verified ->
                     resetCode = verified; dialog = SettingsDialog.CHANGE_PW_STEP3
                 }
@@ -120,40 +110,40 @@ fun SettingsTabContent(
 
         SettingsDialog.CHANGE_PW_STEP3 -> ChangePwStep3Dialog(
             isLoading = state.isLoading,
-            onSave = { newPwd ->
+            onSave    = { newPwd ->
                 viewModel.confirmNewPassword(resetCode, newPwd); dialog = SettingsDialog.NONE
             },
             onDismiss = { dialog = SettingsDialog.NONE })
 
         SettingsDialog.PICK_LANGUAGE -> PickerDialog(
-            title = stringResource(Res.string.select_language),
-            options = Language.entries.map { it to it.displayName },
-            current = state.currentLanguage,
+            title    = stringResource(Res.string.select_language),
+            options  = Language.entries.map { it to it.displayName },
+            current  = state.currentLanguage,
             onSelect = { lang ->
                 viewModel.setLanguage(lang); onLanguageChange(lang); dialog = SettingsDialog.NONE
             },
             onDismiss = { dialog = SettingsDialog.NONE })
 
         SettingsDialog.PICK_THEME -> PickerDialog(
-            title = stringResource(Res.string.settings_app_theme),
-            options = listOf(
+            title    = stringResource(Res.string.settings_app_theme),
+            options  = listOf(
                 false to "☀️  ${stringResource(Res.string.settings_theme_light)}",
                 true  to "🌙  ${stringResource(Res.string.settings_theme_dark)}"
             ),
-            current = state.isDarkMode,
+            current  = state.isDarkMode,
             onSelect = { dark ->
                 viewModel.setDarkMode(dark); onDarkModeChange(dark); dialog = SettingsDialog.NONE
             },
             onDismiss = { dialog = SettingsDialog.NONE })
 
         SettingsDialog.PICK_GENDER_THEME -> PickerDialog(
-            title = stringResource(Res.string.settings_gender_theme),
-            options = listOf(
+            title    = stringResource(Res.string.settings_gender_theme),
+            options  = listOf(
                 GenderTheme.GIRL    to "🎀  ${stringResource(Res.string.settings_gender_girl)}",
                 GenderTheme.BOY     to "🚀  ${stringResource(Res.string.settings_gender_boy)}",
                 GenderTheme.NEUTRAL to "🌟  ${stringResource(Res.string.settings_gender_neutral)}"
             ),
-            current = state.genderTheme,
+            current  = state.genderTheme,
             onSelect = { theme ->
                 viewModel.setGenderTheme(theme); onGenderThemeChange(theme)
                 dialog = SettingsDialog.NONE
@@ -161,29 +151,29 @@ fun SettingsTabContent(
             onDismiss = { dialog = SettingsDialog.NONE })
 
         SettingsDialog.REMINDER_DAYS -> PickerDialog(
-            title = stringResource(Res.string.settings_notif_reminder_days),
-            options = listOf(1, 2, 3, 5, 7, 14).map { d ->
+            title    = stringResource(Res.string.settings_notif_reminder_days),
+            options  = listOf(1, 2, 3, 5, 7, 14).map { d ->
                 d to stringResource(Res.string.settings_reminder_days_value, d)
             },
-            current = state.reminderDaysBefore,
+            current  = state.reminderDaysBefore,
             onSelect = { days -> viewModel.setReminderDays(days); dialog = SettingsDialog.NONE },
             onDismiss = { dialog = SettingsDialog.NONE })
 
         SettingsDialog.CONFIRM_LOGOUT -> ConfirmDialog(
-            title = stringResource(Res.string.settings_logout_title),
-            message = stringResource(Res.string.settings_logout_message),
+            title       = stringResource(Res.string.settings_logout_title),
+            message     = stringResource(Res.string.settings_logout_message),
             confirmText = stringResource(Res.string.settings_logout_confirm),
-            isDanger = false, isLoading = false,
-            onConfirm = { viewModel.logout(); dialog = SettingsDialog.NONE },
-            onDismiss = { dialog = SettingsDialog.NONE })
+            isDanger    = false, isLoading = false,
+            onConfirm   = { viewModel.logout(); dialog = SettingsDialog.NONE },
+            onDismiss   = { dialog = SettingsDialog.NONE })
 
         SettingsDialog.CONFIRM_DELETE -> ConfirmDialog(
-            title = stringResource(Res.string.settings_delete_title),
-            message = stringResource(Res.string.settings_delete_message),
+            title       = stringResource(Res.string.settings_delete_title),
+            message     = stringResource(Res.string.settings_delete_message),
             confirmText = stringResource(Res.string.settings_delete_confirm),
-            isDanger = true, isLoading = state.isLoading,
-            onConfirm = { viewModel.deleteAccount(); dialog = SettingsDialog.NONE },
-            onDismiss = { dialog = SettingsDialog.NONE })
+            isDanger    = true, isLoading = state.isLoading,
+            onConfirm   = { viewModel.deleteAccount(); dialog = SettingsDialog.NONE },
+            onDismiss   = { dialog = SettingsDialog.NONE })
 
         SettingsDialog.ABOUT -> InfoDialog(
             stringResource(Res.string.settings_about_app),
@@ -222,10 +212,7 @@ fun SettingsTabContent(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(
-                                horizontal = dim.spacingMedium,
-                                vertical   = dim.spacingMedium
-                            ),
+                            .padding(horizontal = dim.spacingMedium, vertical = dim.spacingMedium),
                         verticalAlignment     = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(dim.spacingSmall)
                     ) {
@@ -233,9 +220,7 @@ fun SettingsTabContent(
                             modifier = Modifier
                                 .size(dim.settingsAvatarSize)
                                 .clip(CircleShape)
-                                .background(
-                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
-                                ),
+                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
@@ -263,11 +248,7 @@ fun SettingsTabContent(
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                     Spacer(Modifier.height(dim.spacingSmall))
 
-                    data class NavItem(
-                        val section: SettingsSection,
-                        val emoji  : String,
-                        val label  : String
-                    )
+                    data class NavItem(val section: SettingsSection, val emoji: String, val label: String)
 
                     val navItems = buildList {
                         add(NavItem(SettingsSection.ACCOUNT,       "👤", stringResource(Res.string.settings_section_account)))
@@ -286,15 +267,11 @@ fun SettingsTabContent(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .background(
-                                    if (isSelected) cc.accentGradientStart.copy(0.12f)
-                                    else Color.Transparent,
+                                    if (isSelected) cc.accentGradientStart.copy(0.12f) else Color.Transparent,
                                     RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp)
                                 )
                                 .clickable { selectedSection = item.section }
-                                .padding(
-                                    horizontal = dim.spacingMedium,
-                                    vertical   = dim.spacingSmall + 2.dp
-                                ),
+                                .padding(horizontal = dim.spacingMedium, vertical = dim.spacingSmall + 2.dp),
                             verticalAlignment     = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(dim.spacingSmall)
                         ) {
@@ -358,10 +335,8 @@ fun SettingsTabContent(
                                 ArrowRow(
                                     icon    = Icons.Default.Palette,
                                     label   = stringResource(Res.string.settings_app_theme),
-                                    value   = if (state.isDarkMode)
-                                        stringResource(Res.string.settings_theme_dark)
-                                    else
-                                        stringResource(Res.string.settings_theme_light),
+                                    value   = if (state.isDarkMode) stringResource(Res.string.settings_theme_dark)
+                                    else stringResource(Res.string.settings_theme_light),
                                     onClick = { dialog = SettingsDialog.PICK_THEME })
                                 RowDivider()
                                 ArrowRow(
@@ -380,8 +355,8 @@ fun SettingsTabContent(
                             SectionLabel("🔔", stringResource(Res.string.settings_section_notifications), hPad)
                             SettingsCard(hPad) {
                                 NotificationToggles(
-                                    state     = state,
-                                    viewModel = viewModel,
+                                    state               = state,
+                                    viewModel           = viewModel,
                                     onReminderDaysClick = { dialog = SettingsDialog.REMINDER_DAYS }
                                 )
                             }
@@ -439,19 +414,27 @@ fun SettingsTabContent(
                                         if (selectedBabyId != null)
                                             onNavigateToHearingSpeech(selectedBabyId, selectedBabyName)
                                     })
+                                RowDivider()
+                                PreCheckInvestigationSettingsRow(
+                                    isSet    = preCheckInvestigationIsSet,
+                                    babyName = selectedBabyName,
+                                    onClick  = {
+                                        if (selectedBabyId != null)
+                                            onNavigateToPreCheckInvestigation(selectedBabyId, selectedBabyName)
+                                    })
                             }
                         }
 
                         SettingsSection.ABOUT -> {
                             SectionLabel("ℹ️", stringResource(Res.string.settings_section_about), hPad)
                             SettingsCard(hPad) {
-                                ArrowRow(Icons.Default.Info,           stringResource(Res.string.settings_about_app))      { dialog = SettingsDialog.ABOUT }
+                                ArrowRow(Icons.Default.Info,           stringResource(Res.string.settings_about_app))       { dialog = SettingsDialog.ABOUT }
                                 RowDivider()
-                                ArrowRow(Icons.Default.Policy,         stringResource(Res.string.settings_privacy_policy)) { dialog = SettingsDialog.PRIVACY_POLICY }
+                                ArrowRow(Icons.Default.Policy,         stringResource(Res.string.settings_privacy_policy))  { dialog = SettingsDialog.PRIVACY_POLICY }
                                 RowDivider()
-                                ArrowRow(Icons.Default.Gavel,          stringResource(Res.string.settings_terms))          { dialog = SettingsDialog.TERMS_OF_USE }
+                                ArrowRow(Icons.Default.Gavel,          stringResource(Res.string.settings_terms))           { dialog = SettingsDialog.TERMS_OF_USE }
                                 RowDivider()
-                                ArrowRow(Icons.Default.ContactSupport, stringResource(Res.string.settings_contact_support)){ dialog = SettingsDialog.CONTACT_SUPPORT }
+                                ArrowRow(Icons.Default.ContactSupport, stringResource(Res.string.settings_contact_support)) { dialog = SettingsDialog.CONTACT_SUPPORT }
                             }
                         }
 
@@ -496,10 +479,7 @@ fun SettingsTabContent(
                                 )
                             )
                         )
-                        .padding(
-                            horizontal = dim.screenPadding,
-                            vertical   = dim.spacingLarge
-                        )
+                        .padding(horizontal = dim.screenPadding, vertical = dim.spacingLarge)
                 ) {
                     Column {
                         Text(
@@ -558,8 +538,6 @@ fun SettingsTabContent(
                 }
                 Spacer(Modifier.height(dim.spacingMedium))
 
-                // FIX: NotificationToggles() extracts the full block including
-                // health + development rows in both portrait and landscape.
                 SectionLabel("🔔", stringResource(Res.string.settings_section_notifications), hPad)
                 SettingsCard(hPad) {
                     NotificationToggles(
@@ -620,6 +598,15 @@ fun SettingsTabContent(
                             if (selectedBabyId != null)
                                 onNavigateToHearingSpeech(selectedBabyId, selectedBabyName)
                         })
+                    RowDivider()
+                    // ── Pre-Check Investigation row ───────────────────────────
+                    PreCheckInvestigationSettingsRow(
+                        isSet    = preCheckInvestigationIsSet,
+                        babyName = selectedBabyName,
+                        onClick  = {
+                            if (selectedBabyId != null)
+                                onNavigateToPreCheckInvestigation(selectedBabyId, selectedBabyName)
+                        })
                 }
                 Spacer(Modifier.height(dim.spacingMedium))
 
@@ -666,12 +653,7 @@ fun SettingsTabContent(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FIX: Extracted NotificationToggles composable
-//
-// Previously the notification section only had master / vaccination / growth /
-// appointment / reminder-days. Health and Development were in the backend
-// preferences table but had zero UI rows and zero ViewModel handlers.
-// They are now added here and referenced in both portrait and landscape.
+// NotificationToggles
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -719,7 +701,6 @@ private fun NotificationToggles(
                 checked  = state.appointmentReminders,
                 onToggle = viewModel::setAppointmentReminders
             )
-            // FIX: Health alerts toggle — was completely absent
             RowDivider()
             ToggleRow(
                 icon     = Icons.Default.Favorite,
@@ -728,7 +709,6 @@ private fun NotificationToggles(
                 checked  = state.healthAlerts,
                 onToggle = viewModel::setHealthAlerts
             )
-            // FIX: Development alerts toggle — was completely absent
             RowDivider()
             ToggleRow(
                 icon     = Icons.Default.Psychology,
@@ -741,10 +721,7 @@ private fun NotificationToggles(
             ArrowRow(
                 icon    = Icons.Default.AccessTime,
                 label   = stringResource(Res.string.settings_notif_reminder_days),
-                value   = stringResource(
-                    Res.string.settings_reminder_days_value,
-                    state.reminderDaysBefore
-                ),
+                value   = stringResource(Res.string.settings_reminder_days_value, state.reminderDaysBefore),
                 onClick = onReminderDaysClick
             )
         }
@@ -752,7 +729,7 @@ private fun NotificationToggles(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Row helpers — unchanged from original
+// Row helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -837,8 +814,7 @@ private fun ProfileRow(name: String, email: String, onClick: () -> Unit) {
             )
         }
         Icon(
-            Icons.Default.Edit,
-            contentDescription = null,
+            Icons.Default.Edit, null,
             tint     = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
             modifier = Modifier.size(dim.settingsChevronSize)
         )
@@ -846,12 +822,7 @@ private fun ProfileRow(name: String, email: String, onClick: () -> Unit) {
 }
 
 @Composable
-private fun ArrowRow(
-    icon   : ImageVector,
-    label  : String,
-    value  : String? = null,
-    onClick: () -> Unit
-) {
+private fun ArrowRow(icon: ImageVector, label: String, value: String? = null, onClick: () -> Unit) {
     val dim = LocalDimensions.current
     Row(
         modifier = Modifier
@@ -925,7 +896,7 @@ private fun DangerRow(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Dialog composables — unchanged from original
+// Dialog composables
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -1110,11 +1081,11 @@ private fun ChangePwStep3Dialog(isLoading: Boolean, onSave: (String) -> Unit, on
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
-                    value               = pwd,
-                    onValueChange       = { pwd = it },
-                    label               = { Text(stringResource(Res.string.settings_new_password)) },
-                    singleLine          = true,
-                    modifier            = Modifier.fillMaxWidth(),
+                    value                = pwd,
+                    onValueChange        = { pwd = it },
+                    label                = { Text(stringResource(Res.string.settings_new_password)) },
+                    singleLine           = true,
+                    modifier             = Modifier.fillMaxWidth(),
                     visualTransformation = if (visible) VisualTransformation.None else PasswordVisualTransformation(),
                     trailingIcon = {
                         IconButton(onClick = { visible = !visible }) {

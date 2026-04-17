@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 import babygrowthtrackingapplication.composeapp.generated.resources.*
 import org.example.project.babygrowthtrackingapplication.data.network.BabyResponse
@@ -49,12 +50,17 @@ fun AdminBabiesScreen(
             Text(
                 text       = stringResource(Res.string.admin_babies_title),
                 style      = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                maxLines   = 1,
+                overflow   = TextOverflow.Ellipsis,
+                modifier   = Modifier.weight(1f)
             )
             Text(
-                text  = stringResource(Res.string.admin_babies_count, state.filteredBabies.size),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                text     = stringResource(Res.string.admin_babies_count, state.filteredBabies.size),
+                style    = MaterialTheme.typography.labelMedium,
+                color    = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
 
@@ -175,24 +181,30 @@ private fun AdminBabyCard(
                 Text(
                     text       = baby.fullName,
                     style      = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines   = 1,
+                    overflow   = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text  = stringResource(Res.string.admin_baby_dob_label, baby.dateOfBirth),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    text     = stringResource(Res.string.admin_baby_dob_label, baby.dateOfBirth),
+                    style    = MaterialTheme.typography.bodySmall,
+                    color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 baby.parentName?.let { parent ->
                     Text(
-                        text  = stringResource(Res.string.admin_baby_parent_label, parent),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        text     = stringResource(Res.string.admin_baby_parent_label, parent),
+                        style    = MaterialTheme.typography.labelSmall,
+                        color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
                 Spacer(Modifier.height(dimensions.spacingXSmall))
                 Row(horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)) {
-                    AdminStatusBadge(label = genderLabel,  color = genderColor)
-                    AdminStatusBadge(label = statusLabel,  color = statusColor)
+                    AdminStatusBadge(label = genderLabel, color = genderColor)
+                    AdminStatusBadge(label = statusLabel, color = statusColor)
                 }
             }
 

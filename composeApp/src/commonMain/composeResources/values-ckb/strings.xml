@@ -1057,5 +1057,104 @@
     <string name="admin_delete_cd">ژێبرنا تۆمارێ</string>
     <string name="admin_search_clear_cd">پاککرنا گەڕیانێ</string>
 
+    <string name="pre_check_title">پشکنینا پێشوەختە یا سۆکەی</string>
+    <string name="pre_check_subtitle">پشکنینا زوو یا سۆکەیێ نوی بووی</string>
+
+    <string name="pre_check_status_set">✅ پشکنین هاتە تۆمارکرن</string>
+    <string name="pre_check_status_not_set">⚠️ هێشتا نەهاتیە پرکرن — کلیک بکە بۆ زێدەکرن</string>
+    <string name="settings_pre_check">پشکنینا پێشوەختە یا سۆکەی</string>
+    <string name="settings_pre_check_sub">تۆمارا پشکنینا پێشوەختە</string>
+
+    <string name="pre_check_date_recorded">د ڕێکەوتی %1$s دا هاتیە تۆمارکرن</string>
+
+    <string name="pre_check_save">پاراستن (سەیڤ)</string>
+    <string name="pre_check_edit">دەستکاریکرن</string>
+    <string name="pre_check_delete">ژێبرن</string>
+    <string name="pre_check_add_info">زێدەکرنا پێزانینان</string>
+
+    <string name="pre_check_confirm_delete_title">ژێبرنا تۆمارا پشکنینێ</string>
+    <string name="pre_check_confirm_delete_msg">ئەرێ تو پشت راستی ژ ژێبرنا ڤێ تۆمارا پشکنینێ؟ ئەڤ کارە ناهێتە ڤەگەراندن.</string>
+
+    <string name="pre_check_not_set_title">پشکنینا سۆکەی نەهاتیە تۆمارکرن</string>
+    <string name="pre_check_not_set_msg">هیڤیە ئەنجامێن پشکنینا پێشوەختە یا سۆکەی پر بکە. ئەڤ پێزانینە د گرنگن بۆ دووڤچوونا حالەتێ ساخلەمیێ یێ دەسپێکێ یێ زارۆکی.</string>
+
+    <string name="pre_check_check_date">ڕێکەوتا پشکنینێ</string>
+    <string name="pre_check_date_placeholder">ڕێکەوتا پشکنینێ هەلبژێرە</string>
+
+    <string name="pre_check_items_section">بڕگێن پشکنینێ</string>
+
+    <string name="pre_check_jaundice">زەرتک (Jaundice)</string>
+    <string name="pre_check_shortness_of_breath">تەنگەنەفەسی</string>
+    <string name="pre_check_turning_blue">شین بوونەڤە</string>
+    <string name="pre_check_marble_heart">مەرمەرە دل</string>
+    <string name="pre_check_inflammation_of_liver">هەوکرنا جەگەرێ</string>
+    <string name="pre_check_inflammation_of_spleen">هەوکرنا سپەلهێ</string>
+    <string name="pre_check_hernia">فتق (قۆڕی)</string>
+    <string name="pre_check_hydrocele_of_ear">ئاڤزەیا گونی</string>
+    <string name="pre_check_hip_joint_dislocation">دەرکەتنا جومگێ حەوزێ</string>
+    <string name="pre_check_muscles_normal">ماسولکە د ئاسایینە</string>
+    <string name="pre_check_reactions_normal">پەرچەکردار د ئاسایینە</string>
+    <string name="pre_check_nucleus_normal">ناڤک یا ئاسایییە</string>
+    <string name="pre_check_genitals_normal">ئەندامێن زاوزێی د ئاسایینە</string>
+    <string name="pre_check_eye_normal">چاڤ یێ ئاسایییە</string>
+    <string name="pre_check_red_reflex">پەرچەکردارا سۆر</string>
+    <string name="pre_check_reaction_to_sound">پەرچەکردار بۆ دەنگی</string>
+
+    <string name="pre_check_others">یێن دی</string>
+    <string name="pre_check_others_placeholder">هەر تێبینیەکا دی…</string>
+
+    <string name="pre_check_status_yes">بەلێ</string>
+    <string name="pre_check_status_no">نەخێر</string>
+    <string name="pre_check_status_not_known">نەدیار</string>
+
+    <string name="pre_check_success_saved">تۆمارا پشکنینێ ب سەرکەفتی هاتە پاراستن</string>
+    <string name="pre_check_success_deleted">تۆمارا پشکنینێ هاتە ژێبرن</string>
+    <string name="pre_check_error_date_required">هیڤیە ڕێکەوتا پشکنینێ دیار بکە</string>
+    <string name="pre_check_error_save">پاراستن سەرنەکەفت: %1$s</string>
+    <string name="pre_check_error_delete">ژێبرن سەرنەکەفت: %1$s</string>
+
+    <string name="admin_tab_team">تیم</string>
+
+    <string name="admin_team_title">تیما کوتانێ</string>
+    <string name="admin_team_count">%1$d ئەندام</string>
+    <string name="admin_team_search_hint">لێگەرایان ل ئەندامێن تیمی…</string>
+    <string name="admin_team_add_cd">زێدەکرنا ئەندامێ تیمی</string>
+    <string name="admin_team_tab_all">هەمی</string>
+    <string name="admin_team_tab_active">چالاک</string>
+    <string name="admin_team_tab_inactive">نەچالاک</string>
+    <string name="admin_team_no_results">چو ئەندامێن تیما کوتانێ نەهاتنە دیتن</string>
+    <string name="admin_team_role_label">تیما کوتانێ</string>
+    <string name="admin_team_status_active">چالاک</string>
+    <string name="admin_team_status_inactive">نەچالاک</string>
+    <string name="admin_team_delete_title">لابرنا ئەندامێ تیمی</string>
+    <string name="admin_team_delete_message">ئەرێ تو پشت راستی ژ لابرنا %1$s ژ تیما کوتانێ ب ئاوایەکێ هەمیشەیی؟ ئەڤ کارە ناهێتە ڤەگەراندن.</string>
+    <string name="admin_team_deleted_success">ئەندامێ تیمی ب سەرکەفتی هاتە لابرن</string>
+
+    <string name="admin_team_emoji">💉</string>
+    <string name="admin_team_create_title">ئەندامەکێ نوی یێ تیمی</string>
+    <string name="admin_team_create_subtitle">دروستکرنا هەژمارەکا تیما کوتانێ ب دەستهەلاتێن تەمام بۆ ڕێڤەبرنا خشتە و تۆمارێن زارۆکان</string>
+    <string name="admin_team_create_button">دروستکرنا هەژمارا تیمی</string>
+    <string name="admin_team_created_success">هەژمارا ئەندامێ تیمی ب سەرکەفتی هاتە دروستکرن!</string>
+
+    <string name="admin_team_section_personal">پێزانینێن کەسی</string>
+    <string name="admin_team_section_credentials">پێزانینێن چوونە ژوورڤە</string>
+
+    <string name="admin_team_field_full_name">ناڤێ سێ جاران *</string>
+    <string name="admin_team_field_full_name_placeholder">بۆ نموونە: د. سارا ئەحمەد</string>
+    <string name="admin_team_field_email_placeholder">work@example.com</string>
+    <string name="admin_team_field_phone">ژمارا مۆبایلێ</string>
+    <string name="admin_team_field_phone_placeholder">بۆ نموونە: 07501234567</string>
+    <string name="admin_team_field_city">باژێر</string>
+    <string name="admin_team_field_city_placeholder">بۆ نموونە: موسڵ</string>
+    <string name="admin_team_field_address">ناڤنیشان</string>
+    <string name="admin_team_field_address_placeholder">تێبینیێن سەر جادە / گەڕەک</string>
+    <string name="admin_team_field_confirm_password">پشتراستکرنا پەیڤا نهێنی *</string>
+    <string name="admin_team_field_password_placeholder">کێمترین ٦ پیت یان ژمارە</string>
+    <string name="admin_team_field_confirm_password_placeholder">پەیڤا نهێنی دووبارە بنڤیسە</string>
+
+    <string name="admin_team_role_info">ئەڤ هەژمارە دێ دەستهەلاتێن تیما کوتانێ هەبن — دشێن تەماشەی خشتەیێن کوتانێ و تۆمارێن ساخلەمیێ بکەن یێن بۆ وان هاتینە دیارکرن.</string>
+
+    <string name="admin_stat_team_members">ئەندامێن تیمی</string>
+
 
 </resources>

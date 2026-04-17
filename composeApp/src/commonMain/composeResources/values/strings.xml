@@ -1131,5 +1131,126 @@ Last updated: 2025.</string>
     <string name="admin_delete_cd">Delete record</string>
     <string name="admin_search_clear_cd">Clear search</string>
 
+    <!-- ═══════════════════════════════════════════════════════════════════════
+         PRE-CHECK INVESTIGATION (Early Examination of Newborn)
+         ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- Screen / Settings titles -->
+    <string name="pre_check_title">Newborn Pre-Check</string>
+    <string name="pre_check_subtitle">Early examination of the newborn</string>
+
+    <!-- Settings row -->
+    <string name="pre_check_status_set">✅ Examination recorded</string>
+    <string name="pre_check_status_not_set">⚠️ Not filled yet — tap to add</string>
+    <string name="settings_pre_check">Newborn Pre-Check</string>
+    <string name="settings_pre_check_sub">Early examination record</string>
+
+    <!-- Status card -->
+    <string name="pre_check_date_recorded">Recorded on %1$s</string>
+
+    <!-- Actions -->
+    <string name="pre_check_save">Save</string>
+    <string name="pre_check_edit">Edit</string>
+    <string name="pre_check_delete">Delete</string>
+    <string name="pre_check_add_info">Add Information</string>
+
+    <!-- Confirm delete dialog -->
+    <string name="pre_check_confirm_delete_title">Delete Pre-Check Record</string>
+    <string name="pre_check_confirm_delete_msg">Are you sure you want to delete this examination record? This action cannot be undone.</string>
+
+    <!-- Not-set alert -->
+    <string name="pre_check_not_set_title">Newborn Examination Not Recorded</string>
+    <string name="pre_check_not_set_msg">Please fill in the early examination results for the newborn. This information is important for tracking the baby's initial health status.</string>
+
+    <!-- Date field -->
+    <string name="pre_check_check_date">Examination Date</string>
+    <string name="pre_check_date_placeholder">Select examination date</string>
+
+    <!-- Section header -->
+    <string name="pre_check_items_section">EXAMINATION ITEMS</string>
+
+    <!-- Investigation item labels (matching image RTL form) -->
+    <string name="pre_check_jaundice">Jaundice (زەردوی)</string>
+    <string name="pre_check_shortness_of_breath">Shortness of Breath (هەناسە تووندی)</string>
+    <string name="pre_check_turning_blue">Turning Blue (شێن بوونەوە)</string>
+    <string name="pre_check_marble_heart">Marble Heart (مەرمەر دڵ)</string>
+    <string name="pre_check_inflammation_of_liver">Inflammation of Liver (هەڵ ئاوسنی جگەر)</string>
+    <string name="pre_check_inflammation_of_spleen">Inflammation of Spleen (هەڵ ئاوسنی سپێل)</string>
+    <string name="pre_check_hernia">Hernia (قۆرى)</string>
+    <string name="pre_check_hydrocele_of_ear">Hydrocele (ئاوتیزانی گون)</string>
+    <string name="pre_check_hip_joint_dislocation">Hip Joint Dislocation (لەجی چوونی جووگەی سمت)</string>
+    <string name="pre_check_muscles_normal">Muscles Normal (ماسوڵکەکان ئاسایین)</string>
+    <string name="pre_check_reactions_normal">Reactions Normal (کاردانەوەکان ئاسایین)</string>
+    <string name="pre_check_nucleus_normal">Nucleus Normal (ناوک ئاسایییە)</string>
+    <string name="pre_check_genitals_normal">Genitals Normal (نەندامی زاوزێی ئاسایییە)</string>
+    <string name="pre_check_eye_normal">Eye Normal (چاو ئاسایییە)</string>
+    <string name="pre_check_red_reflex">Red Reflex (کاردانەوەی سور)</string>
+    <string name="pre_check_reaction_to_sound">Reaction to Sound (کاردانەوەی بۆ دەنگ)</string>
+
+    <!-- Others field -->
+    <string name="pre_check_others">Others</string>
+    <string name="pre_check_others_placeholder">Any additional notes…</string>
+
+    <!-- Three-state selector labels -->
+    <string name="pre_check_status_yes">Yes</string>
+    <string name="pre_check_status_no">No</string>
+    <string name="pre_check_status_not_known">Unknown</string>
+
+    <!-- Success / error messages -->
+    <string name="pre_check_success_saved">Examination record saved successfully</string>
+    <string name="pre_check_success_deleted">Examination record deleted</string>
+    <string name="pre_check_error_date_required">Please select the examination date</string>
+    <string name="pre_check_error_save">Save failed: %1$s</string>
+    <string name="pre_check_error_delete">Delete failed: %1$s</string>
+
+    <!-- ── Navigation tab ─────────────────────────────────────────────────────── -->
+    <string name="admin_tab_team">Team</string>
+
+    <!-- ── Team members list screen ───────────────────────────────────────────── -->
+    <string name="admin_team_title">Vaccination Team</string>
+    <string name="admin_team_count">%1$d member(s)</string>
+    <string name="admin_team_search_hint">Search team members…</string>
+    <string name="admin_team_add_cd">Add team member</string>
+    <string name="admin_team_tab_all">All</string>
+    <string name="admin_team_tab_active">Active</string>
+    <string name="admin_team_tab_inactive">Inactive</string>
+    <string name="admin_team_no_results">No vaccination team members found</string>
+    <string name="admin_team_role_label">Vaccination Team</string>
+    <string name="admin_team_status_active">Active</string>
+    <string name="admin_team_status_inactive">Inactive</string>
+    <string name="admin_team_delete_title">Remove Team Member</string>
+    <string name="admin_team_delete_message">Permanently remove %1$s from the vaccination team? This cannot be undone.</string>
+    <string name="admin_team_deleted_success">Team member removed successfully</string>
+
+    <!-- ── Create team member screen ──────────────────────────────────────────── -->
+    <string name="admin_team_emoji">💉</string>
+    <string name="admin_team_create_title">New Team Member</string>
+    <string name="admin_team_create_subtitle">Create a vaccination team account with full access to manage baby schedules and records</string>
+    <string name="admin_team_create_button">Create Team Account</string>
+    <string name="admin_team_created_success">Team member account created successfully!</string>
+
+    <!-- ── Form sections ───────────────────────────────────────────────────────── -->
+    <string name="admin_team_section_personal">Personal Information</string>
+    <string name="admin_team_section_credentials">Login Credentials</string>
+
+    <!-- ── Form field labels & placeholders ───────────────────────────────────── -->
+    <string name="admin_team_field_full_name">Full Name *</string>
+    <string name="admin_team_field_full_name_placeholder">e.g. Dr. Sara Ahmed</string>
+    <string name="admin_team_field_email_placeholder">work@example.com</string>
+    <string name="admin_team_field_phone">Phone Number</string>
+    <string name="admin_team_field_phone_placeholder">e.g. 07501234567</string>
+    <string name="admin_team_field_city">City</string>
+    <string name="admin_team_field_city_placeholder">e.g. Mosul</string>
+    <string name="admin_team_field_address">Address</string>
+    <string name="admin_team_field_address_placeholder">Street / area details</string>
+    <string name="admin_team_field_confirm_password">Confirm Password *</string>
+    <string name="admin_team_field_password_placeholder">At least 6 characters</string>
+    <string name="admin_team_field_confirm_password_placeholder">Re-enter the password</string>
+
+    <!-- ── Role info banner ────────────────────────────────────────────────────── -->
+    <string name="admin_team_role_info">This account will have the Vaccination Team role — they can view and update baby vaccination schedules and health records assigned to their bench.</string>
+
+    <!-- ── Dashboard stat ──────────────────────────────────────────────────────── -->
+    <string name="admin_stat_team_members">Team Members</string>
 
 </resources>

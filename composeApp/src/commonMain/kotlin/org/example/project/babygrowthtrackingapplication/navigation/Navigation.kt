@@ -1,5 +1,3 @@
-// File: composeApp/src/commonMain/kotlin/org/example/project/babygrowthtrackingapplication/navigation/Navigation.kt
-
 package org.example.project.babygrowthtrackingapplication.navigation
 
 import androidx.compose.animation.*
@@ -15,6 +13,7 @@ import org.example.project.babygrowthtrackingapplication.com.babygrowth.presenta
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.AddMeasurementScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.BabyProfileScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.MemoryScreen
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.PreCheckInvestigationScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.Language
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.PreferencesManager
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.onBoarding.OnboardingScreen
@@ -39,6 +38,7 @@ import org.example.project.babygrowthtrackingapplication.com.babygrowth.presenta
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.ChildIllnessesViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.VisionMotorViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HearingSpeechViewModel
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.PreCheckInvestigationViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.GuideViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.MemoryViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.AllMeasurementsScreen
@@ -74,6 +74,7 @@ private val RESTORABLE_SCREENS = setOf(
     Screen.ChildIllnesses,
     Screen.ChildDevVisionMotor,
     Screen.ChildDevHearingSpeech,
+    Screen.PreCheckInvestigation,
     Screen.AllMeasurements,
     Screen.AdminHome,
 )
@@ -98,6 +99,7 @@ enum class Screen {
     ChildIllnesses,
     ChildDevVisionMotor,
     ChildDevHearingSpeech,
+    PreCheckInvestigation,
     SleepGuide,
     FeedingGuide,
     Memory,
@@ -121,10 +123,7 @@ private fun resolveScreen(name: String?): Screen? {
         null
     }
 }
-//tasks for tomorow:
-//1- update growth(color fixing)-> no account
-//2- check how vaccination work(full vaccination work)-> no account
-//3- how to add admin(admin account)
+
 private fun resolveTab(name: String): NavigationTab {
     return try {
         NavigationTab.valueOf(name)
@@ -139,16 +138,16 @@ private fun isAdminSession(preferencesManager: PreferencesManager): Boolean {
 }
 
 private fun deepLinkRouteToScreen(route: String): Screen? = when (route) {
-    DeepLinkRoutes.HOME -> Screen.Home
-    DeepLinkRoutes.GROWTH_CHART -> Screen.Home
-    DeepLinkRoutes.FAMILY_HISTORY -> Screen.FamilyHistory
+    DeepLinkRoutes.HOME            -> Screen.Home
+    DeepLinkRoutes.GROWTH_CHART    -> Screen.Home
+    DeepLinkRoutes.FAMILY_HISTORY  -> Screen.FamilyHistory
     DeepLinkRoutes.CHILD_ILLNESSES -> Screen.ChildIllnesses
-    DeepLinkRoutes.VISION_MOTOR -> Screen.ChildDevVisionMotor
-    DeepLinkRoutes.HEARING_SPEECH -> Screen.ChildDevHearingSpeech
-    DeepLinkRoutes.MEMORIES -> Screen.Memory
-    DeepLinkRoutes.SETTINGS -> Screen.Home
+    DeepLinkRoutes.VISION_MOTOR    -> Screen.ChildDevVisionMotor
+    DeepLinkRoutes.HEARING_SPEECH  -> Screen.ChildDevHearingSpeech
+    DeepLinkRoutes.MEMORIES        -> Screen.Memory
+    DeepLinkRoutes.SETTINGS        -> Screen.Home
     DeepLinkRoutes.ADD_MEASUREMENT -> Screen.AddMeasurement
-    else -> null
+    else                           -> null
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -158,33 +157,34 @@ private fun deepLinkRouteToScreen(route: String): Screen? = when (route) {
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun AppNavigation(
-    currentLanguage: Language = Language.ENGLISH,
-    startRoute: String? = null,
-    onLanguageChange: (Language) -> Unit = {},
-    onDarkModeChange: (Boolean) -> Unit = {},
+    currentLanguage    : Language = Language.ENGLISH,
+    startRoute         : String?  = null,
+    onLanguageChange   : (Language) -> Unit    = {},
+    onDarkModeChange   : (Boolean) -> Unit     = {},
     onGenderThemeChange: (GenderTheme) -> Unit = {},
 ) {
     val preferencesManager = rememberPreferencesManager()
     var currentScreen by remember { mutableStateOf(Screen.Splash) }
 
     var resetEmail by remember { mutableStateOf("") }
-    var resetCode by remember { mutableStateOf("") }
+    var resetCode  by remember { mutableStateOf("") }
 
-    var selectedBaby by remember { mutableStateOf<BabyResponse?>(null) }
-    var measurementBaby by remember { mutableStateOf<BabyResponse?>(null) }
-    var allMeasurementsBaby by remember { mutableStateOf<BabyResponse?>(null) }
-    var familyHistoryBaby by remember { mutableStateOf<BabyResponse?>(null) }
-    var childIllnessesBaby by remember { mutableStateOf<BabyResponse?>(null) }
-    var childDevBaby by remember { mutableStateOf<BabyResponse?>(null) }
+    var selectedBaby              by remember { mutableStateOf<BabyResponse?>(null) }
+    var measurementBaby           by remember { mutableStateOf<BabyResponse?>(null) }
+    var allMeasurementsBaby       by remember { mutableStateOf<BabyResponse?>(null) }
+    var familyHistoryBaby         by remember { mutableStateOf<BabyResponse?>(null) }
+    var childIllnessesBaby        by remember { mutableStateOf<BabyResponse?>(null) }
+    var childDevBaby              by remember { mutableStateOf<BabyResponse?>(null) }
+    var preCheckInvestigationBaby by remember { mutableStateOf<BabyResponse?>(null) }
 
     var selectedTab by remember { mutableStateOf(NavigationTab.HOME) }
-    var originTab by remember { mutableStateOf(NavigationTab.HOME) }
+    var originTab   by remember { mutableStateOf(NavigationTab.HOME) }
 
     val apiService = remember {
         ApiService(getToken = { preferencesManager.getAuthToken() })
     }
 
-    val repository = remember { AccountRepository(apiService, preferencesManager) }
+    val repository        = remember { AccountRepository(apiService, preferencesManager) }
     val socialAuthManager = remember { SocialAuthManager() }
     val socialLoginHelper = remember { SocialLoginHelper(repository) }
 
@@ -209,33 +209,39 @@ fun AppNavigation(
     val hearingSpeechViewModel = remember {
         HearingSpeechViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
+    val preCheckInvestigationViewModel = remember {
+        PreCheckInvestigationViewModel(
+            apiService         = apiService,
+            preferencesManager = preferencesManager
+        )
+    }
     val guideRepository = remember { GuideRepository(apiService) }
-    val guideViewModel = remember { GuideViewModel(repository = guideRepository) }
+    val guideViewModel  = remember { GuideViewModel(repository = guideRepository) }
     val memoryViewModel = remember {
         MemoryViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
 
     val notificationRepository = remember {
         NotificationRepository(
-            client = apiService.httpClient,
-            baseUrl = apiService.baseUrl,
+            client   = apiService.httpClient,
+            baseUrl  = apiService.baseUrl,
             getToken = { preferencesManager.getAuthToken() }
         )
     }
     val fcmTokenService = remember { FcmTokenService() }
     val notificationViewModel = remember {
         NotificationViewModel(
-            repository = notificationRepository,
-            getUserId = { preferencesManager.getUserId() },
+            repository  = notificationRepository,
+            getUserId   = { preferencesManager.getUserId() },
             fcmTokenService = fcmTokenService
         )
     }
 
     val settingsViewModel = remember {
         SettingsViewModel(
-            apiService = apiService,
-            preferencesManager = preferencesManager,
-            accountRepository = repository,
+            apiService            = apiService,
+            preferencesManager    = preferencesManager,
+            accountRepository     = repository,
             notificationViewModel = notificationViewModel,
         )
     }
@@ -249,7 +255,7 @@ fun AppNavigation(
 
     val signupViewModel = remember {
         SignupViewModel(
-            repository = repository,
+            repository        = repository,
             socialAuthManager = socialAuthManager,
             socialLoginHelper = socialLoginHelper
         )
@@ -257,8 +263,8 @@ fun AppNavigation(
     val verifyAccountViewModel = remember {
         VerifyAccountViewModel(
             repository = repository,
-            userEmail = signupViewModel.uiState.email,
-            userPhone = signupViewModel.uiState.phone
+            userEmail  = signupViewModel.uiState.email,
+            userPhone  = signupViewModel.uiState.phone
         )
     }
     val enterNewPasswordViewModel = remember {
@@ -293,11 +299,9 @@ fun AppNavigation(
             DeepLinkRoutes.GROWTH_CHART -> {
                 selectedTab = NavigationTab.CHARTS; currentScreen = Screen.Home
             }
-
             DeepLinkRoutes.SETTINGS -> {
                 selectedTab = NavigationTab.SETTINGS; currentScreen = Screen.Home
             }
-
             DeepLinkRoutes.ADD_MEASUREMENT -> {
                 val baby = homeViewModel.uiState.selectedBaby
                 if (baby != null) {
@@ -305,7 +309,6 @@ fun AppNavigation(
                     currentScreen = Screen.AddMeasurement
                 } else currentScreen = Screen.Home
             }
-
             DeepLinkRoutes.FAMILY_HISTORY -> {
                 val baby = homeViewModel.uiState.selectedBaby
                 if (baby != null) {
@@ -314,7 +317,6 @@ fun AppNavigation(
                     currentScreen = Screen.FamilyHistory
                 } else currentScreen = Screen.Home
             }
-
             DeepLinkRoutes.CHILD_ILLNESSES -> {
                 val baby = homeViewModel.uiState.selectedBaby
                 if (baby != null) {
@@ -323,7 +325,6 @@ fun AppNavigation(
                     currentScreen = Screen.ChildIllnesses
                 } else currentScreen = Screen.Home
             }
-
             DeepLinkRoutes.VISION_MOTOR -> {
                 val baby = homeViewModel.uiState.selectedBaby
                 if (baby != null) {
@@ -332,7 +333,6 @@ fun AppNavigation(
                     currentScreen = Screen.ChildDevVisionMotor
                 } else currentScreen = Screen.Home
             }
-
             DeepLinkRoutes.HEARING_SPEECH -> {
                 val baby = homeViewModel.uiState.selectedBaby
                 if (baby != null) {
@@ -341,13 +341,11 @@ fun AppNavigation(
                     currentScreen = Screen.ChildDevHearingSpeech
                 } else currentScreen = Screen.Home
             }
-
             DeepLinkRoutes.MEMORIES -> {
                 originTab = selectedTab; currentScreen = Screen.Memory
             }
-
             else -> {
-                currentScreen = if (targetScreen != null) targetScreen else Screen.Home
+                currentScreen = targetScreen ?: Screen.Home
             }
         }
         notificationViewModel.onNavigationHandled()
@@ -365,6 +363,7 @@ fun AppNavigation(
             childIllnessesViewModel.onDestroy()
             visionMotorViewModel.onDestroy()
             hearingSpeechViewModel.onDestroy()
+            preCheckInvestigationViewModel.onDestroy()
             guideViewModel.onDestroy()
             memoryViewModel.onDestroy()
             notificationViewModel.onDestroy()
@@ -375,7 +374,7 @@ fun AppNavigation(
 
     SharedTransitionLayout {
         AnimatedContent(
-            targetState = currentScreen,
+            targetState  = currentScreen,
             transitionSpec = {
                 when (targetState) {
                     Screen.Login,
@@ -395,12 +394,10 @@ fun AppNavigation(
                     Screen.Welcome -> when (initialState) {
                         Screen.Login, Screen.Signup, Screen.VerifyAccount, Screen.AdminLogin ->
                             fadeIn(tween(500)) togetherWith fadeOut(tween(300))
-
                         else ->
-                            // FIX: explicit Int lambda instead of bare { it }
                             slideInHorizontally(
                                 initialOffsetX = { fullWidth: Int -> -fullWidth },
-                                animationSpec = tween(400, easing = FastOutSlowInEasing)
+                                animationSpec  = tween(400, easing = FastOutSlowInEasing)
                             ) + fadeIn(tween(300)) togetherWith
                                     slideOutHorizontally(
                                         targetOffsetX = { fullWidth: Int -> fullWidth },
@@ -413,10 +410,9 @@ fun AppNavigation(
                                 fadeOut(tween(300, easing = FastOutSlowInEasing))
 
                     Screen.AddBaby, Screen.EditBaby ->
-                        // FIX: explicit Int lambda instead of bare { it }
                         slideInVertically(
                             initialOffsetY = { fullHeight: Int -> fullHeight },
-                            animationSpec = tween(400, easing = FastOutSlowInEasing)
+                            animationSpec  = tween(400, easing = FastOutSlowInEasing)
                         ) + fadeIn(tween(300)) togetherWith
                                 slideOutVertically(
                                     targetOffsetY = { fullHeight: Int -> fullHeight },
@@ -424,10 +420,9 @@ fun AppNavigation(
                                 ) + fadeOut(tween(200))
 
                     else ->
-                        // FIX: explicit Int lambda instead of bare { it }
                         slideInHorizontally(
                             initialOffsetX = { fullWidth: Int -> fullWidth },
-                            animationSpec = tween(400, easing = FastOutSlowInEasing)
+                            animationSpec  = tween(400, easing = FastOutSlowInEasing)
                         ) + fadeIn(tween(300)) togetherWith
                                 slideOutHorizontally(
                                     targetOffsetX = { fullWidth: Int -> fullWidth },
@@ -452,12 +447,11 @@ fun AppNavigation(
                                     currentScreen = Screen.AdminHome
                                     return@CompleteSplashScreen
                                 }
-                                val restoredScreen =
-                                    resolveScreen(preferencesManager.getLastScreen())
-                                val restoredTab = resolveTab(preferencesManager.getLastTab())
+                                val restoredScreen = resolveScreen(preferencesManager.getLastScreen())
+                                val restoredTab    = resolveTab(preferencesManager.getLastTab())
                                 if (restoredScreen != null) {
                                     selectedTab = restoredTab
-                                    originTab = restoredTab
+                                    originTab   = restoredTab
                                     homeViewModel.loadHomeData()
                                     settingsViewModel.refreshProfile()
                                     currentScreen = restoredScreen
@@ -474,10 +468,10 @@ fun AppNavigation(
                 // ── Welcome ───────────────────────────────────────────────────
                 Screen.Welcome -> {
                     WelcomeScreen(
-                        onLoginClick = { currentScreen = Screen.Login },
+                        onLoginClick  = { currentScreen = Screen.Login },
                         onSignUpClick = { currentScreen = Screen.Signup },
-                        sharedTransitionScope = this@SharedTransitionLayout,
-                        animatedContentScope = this@AnimatedContent
+                        sharedTransitionScope  = this@SharedTransitionLayout,
+                        animatedContentScope   = this@AnimatedContent
                     )
                 }
 
@@ -485,15 +479,15 @@ fun AppNavigation(
                 Screen.Login -> {
                     val viewModel = remember {
                         LoginViewModel(
-                            authRepository = repository,
+                            authRepository    = repository,
                             socialAuthManager = socialAuthManager,
                             socialLoginHelper = socialLoginHelper
                         )
                     }
                     LoginScreen(
-                        viewModel = viewModel,
-                        onBackClick = { currentScreen = Screen.Welcome },
-                        onLoginSuccess = {
+                        viewModel             = viewModel,
+                        onBackClick           = { currentScreen = Screen.Welcome },
+                        onLoginSuccess        = {
                             val role = preferencesManager.getString("user_role", "")
                             if (role.equals("ADMIN", ignoreCase = true)) {
                                 currentScreen = Screen.AdminHome
@@ -506,18 +500,16 @@ fun AppNavigation(
                         },
                         onForgotPasswordClick = { currentScreen = Screen.ForgotPassword },
                         sharedTransitionScope = this@SharedTransitionLayout,
-                        animatedContentScope = this@AnimatedContent
+                        animatedContentScope  = this@AnimatedContent
                     )
                 }
 
                 // ── Admin Login ───────────────────────────────────────────────
                 Screen.AdminLogin -> {
                     AdminLoginScreen(
-                        viewModel = adminLoginViewModel,
-                        onLoginSuccess = {
-                            currentScreen = Screen.AdminHome
-                        },
-                        onBackToLogin = {
+                        viewModel     = adminLoginViewModel,
+                        onLoginSuccess = { currentScreen = Screen.AdminHome },
+                        onBackToLogin  = {
                             preferencesManager.remove("user_role")
                             currentScreen = Screen.Login
                         }
@@ -527,8 +519,9 @@ fun AppNavigation(
                 // ── Admin Home ────────────────────────────────────────────────
                 Screen.AdminHome -> {
                     AdminHomeScreen(
-                        viewModel = adminViewModel,
-                        onNavigateToLogin = {
+                        viewModel          = adminViewModel,
+                        apiService         = apiService,   // ← pass your ApiService instance here
+                        onNavigateToLogin  = {
                             preferencesManager.remove("user_role")
                             preferencesManager.clearLastScreen()
                             notificationViewModel.stopPolling()
@@ -563,8 +556,8 @@ fun AppNavigation(
                 Screen.ForgotPassword -> {
                     val viewModel = remember { ForgotPasswordViewModel(repository) }
                     ForgotPasswordScreen(
-                        viewModel = viewModel,
-                        onBackClick = { currentScreen = Screen.Login },
+                        viewModel      = viewModel,
+                        onBackClick    = { currentScreen = Screen.Login },
                         onResetSuccess = { email ->
                             resetEmail = email; currentScreen = Screen.EnterCode
                         }
@@ -575,12 +568,12 @@ fun AppNavigation(
                 Screen.EnterCode -> {
                     val viewModel = remember { EnterCodeViewModel(repository, resetEmail) }
                     EnterCodeScreen(
-                        viewModel = viewModel,
+                        viewModel    = viewModel,
                         emailOrPhone = resetEmail,
-                        onBackClick = { currentScreen = Screen.ForgotPassword },
+                        onBackClick  = { currentScreen = Screen.ForgotPassword },
                         onCodeVerified = { email, code ->
                             resetEmail = email
-                            resetCode = code
+                            resetCode  = code
                             currentScreen = Screen.EnterNewPassword
                         }
                     )
@@ -589,13 +582,13 @@ fun AppNavigation(
                 // ── Enter New Password ────────────────────────────────────────
                 Screen.EnterNewPassword -> {
                     EnterNewPasswordScreen(
-                        viewModel = enterNewPasswordViewModel,
-                        emailOrPhone = resetEmail,
-                        verificationCode = resetCode,
-                        onBackClick = { currentScreen = Screen.EnterCode },
+                        viewModel            = enterNewPasswordViewModel,
+                        emailOrPhone         = resetEmail,
+                        verificationCode     = resetCode,
+                        onBackClick          = { currentScreen = Screen.EnterCode },
                         onPasswordResetSuccess = {
                             resetEmail = ""
-                            resetCode = ""
+                            resetCode  = ""
                             currentScreen = Screen.Login
                         }
                     )
@@ -604,8 +597,8 @@ fun AppNavigation(
                 // ── Verify Account ────────────────────────────────────────────
                 Screen.VerifyAccount -> {
                     VerifyAccountScreen(
-                        viewModel = verifyAccountViewModel,
-                        onBackClick = { currentScreen = Screen.Signup },
+                        viewModel             = verifyAccountViewModel,
+                        onBackClick           = { currentScreen = Screen.Signup },
                         onVerificationSuccess = {
                             preferencesManager.setUserLoggedIn(true)
                             homeViewModel.loadHomeData()
@@ -614,7 +607,7 @@ fun AppNavigation(
                             currentScreen = Screen.Home
                         },
                         sharedTransitionScope = this@SharedTransitionLayout,
-                        animatedContentScope = this@AnimatedContent
+                        animatedContentScope  = this@AnimatedContent
                     )
                 }
 
@@ -631,118 +624,121 @@ fun AppNavigation(
                 // ── Home ──────────────────────────────────────────────────────
                 Screen.Home -> {
                     HomeScreen(
-                        viewModel = homeViewModel,
-                        healthRecordViewModel = healthRecordViewModel,
-                        settingsViewModel = settingsViewModel,
-                        familyHistoryViewModel = familyHistoryViewModel,
-                        childIllnessesViewModel = childIllnessesViewModel,
-                        visionMotorViewModel = visionMotorViewModel,
-                        hearingSpeechViewModel = hearingSpeechViewModel,
-                        guideViewModel = guideViewModel,
-                        notificationViewModel = notificationViewModel,
-                        currentLanguage = currentLanguage,
-                        onLanguageChange = { newLanguage ->
+                        viewModel                       = homeViewModel,
+                        healthRecordViewModel           = healthRecordViewModel,
+                        settingsViewModel               = settingsViewModel,
+                        familyHistoryViewModel          = familyHistoryViewModel,
+                        childIllnessesViewModel         = childIllnessesViewModel,
+                        visionMotorViewModel            = visionMotorViewModel,
+                        hearingSpeechViewModel          = hearingSpeechViewModel,
+                        preCheckInvestigationViewModel  = preCheckInvestigationViewModel,
+                        guideViewModel                  = guideViewModel,
+                        notificationViewModel           = notificationViewModel,
+                        currentLanguage                 = currentLanguage,
+                        onLanguageChange                = { newLanguage ->
                             preferencesManager.setLanguage(newLanguage)
                             onLanguageChange(newLanguage)
                         },
-                        onDarkModeChange = onDarkModeChange,
-                        onGenderThemeChange = onGenderThemeChange,
-                        selectedTab = selectedTab,
-                        onTabChange = { selectedTab = it },
-                        onAddBaby = {
+                        onDarkModeChange                = onDarkModeChange,
+                        onGenderThemeChange             = onGenderThemeChange,
+                        selectedTab                     = selectedTab,
+                        onTabChange                     = { selectedTab = it },
+                        onAddBaby                       = {
                             originTab = selectedTab
                             addBabyViewModel.resetForm()
                             currentScreen = Screen.AddBaby
                         },
-                        onSeeProfile = { baby ->
-                            originTab = selectedTab
-                            selectedBaby = baby
+                        onSeeProfile                    = { baby ->
+                            originTab     = selectedTab
+                            selectedBaby  = baby
                             currentScreen = Screen.BabyProfile
                         },
-                        onEditDetails = { baby ->
+                        onEditDetails                   = { baby ->
                             originTab = selectedTab
                             addBabyViewModel.prefillFromBaby(baby)
                             currentScreen = Screen.EditBaby
                         },
-                        onAddMeasurement = { baby ->
-                            originTab = selectedTab
+                        onAddMeasurement                = { baby ->
+                            originTab       = selectedTab
                             measurementBaby = baby
-                            currentScreen = Screen.AddMeasurement
+                            currentScreen   = Screen.AddMeasurement
                         },
-                        onViewGrowthChart = { _ -> selectedTab = NavigationTab.CHARTS },
-                        onAddMeasurementById = { babyId ->
-                            val baby =
-                                homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
+                        onViewGrowthChart               = { _ -> selectedTab = NavigationTab.CHARTS },
+                        onAddMeasurementById            = { babyId ->
+                            val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
                             if (baby != null) {
-                                originTab = selectedTab
+                                originTab       = selectedTab
                                 measurementBaby = baby
-                                currentScreen = Screen.AddMeasurement
+                                currentScreen   = Screen.AddMeasurement
                             }
                         },
-                        onViewAllMeasurementsById = { babyId ->
+                        onViewAllMeasurementsById       = { babyId ->
                             originTab = selectedTab
-                            val baby =
-                                homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
+                            val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
                             if (baby != null) {
                                 allMeasurementsBaby = baby
-                                currentScreen = Screen.AllMeasurements
+                                currentScreen       = Screen.AllMeasurements
                             }
                         },
-                        onNavigateToWelcome = {
+                        onNavigateToWelcome             = {
                             preferencesManager.clearLastScreen()
                             preferencesManager.remove("user_role")
                             notificationViewModel.stopPolling()
                             currentScreen = Screen.Welcome
                         },
-                        onNavigateToFamilyHistory = { babyId, _ ->
-                            val baby =
-                                homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
+                        onNavigateToFamilyHistory       = { babyId, _ ->
+                            val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
                             if (baby != null) {
                                 familyHistoryBaby = baby
                                 familyHistoryViewModel.loadFamilyHistory(babyId)
                                 currentScreen = Screen.FamilyHistory
                             }
                         },
-                        onNavigateToChildIllnesses = { babyId, _ ->
-                            val baby =
-                                homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
+                        onNavigateToChildIllnesses      = { babyId, _ ->
+                            val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
                             if (baby != null) {
                                 childIllnessesBaby = baby
                                 childIllnessesViewModel.loadIllnesses(babyId)
                                 currentScreen = Screen.ChildIllnesses
                             }
                         },
-                        onNavigateToVisionMotor = { babyId, _ ->
-                            val baby =
-                                homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
+                        onNavigateToVisionMotor         = { babyId, _ ->
+                            val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
                             if (baby != null) {
                                 childDevBaby = baby
                                 visionMotorViewModel.load(baby.babyId, baby.ageInMonths)
                                 currentScreen = Screen.ChildDevVisionMotor
                             }
                         },
-                        onNavigateToHearingSpeech = { babyId, _ ->
-                            val baby =
-                                homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
+                        onNavigateToHearingSpeech       = { babyId, _ ->
+                            val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
                             if (baby != null) {
                                 childDevBaby = baby
                                 hearingSpeechViewModel.load(baby.babyId, baby.ageInMonths)
                                 currentScreen = Screen.ChildDevHearingSpeech
                             }
                         },
-                        onNavigateToSleepGuide = {
-                            originTab = selectedTab
+                        onNavigateToPreCheckInvestigation = { babyId, _ ->
+                            val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
+                            if (baby != null) {
+                                preCheckInvestigationBaby = baby
+                                preCheckInvestigationViewModel.load(babyId)
+                                currentScreen = Screen.PreCheckInvestigation
+                            }
+                        },
+                        onNavigateToSleepGuide          = {
+                            originTab     = selectedTab
                             currentScreen = Screen.SleepGuide
                         },
-                        onNavigateToFeedingGuide = {
-                            originTab = selectedTab
+                        onNavigateToFeedingGuide        = {
+                            originTab     = selectedTab
                             currentScreen = Screen.FeedingGuide
                         },
-                        onNavigateToMemory = {
-                            originTab = selectedTab
+                        onNavigateToMemory              = {
+                            originTab     = selectedTab
                             currentScreen = Screen.Memory
                         },
-                        onNavigateToNotifications = {
+                        onNavigateToNotifications       = {
                             originTab = selectedTab
                             notificationViewModel.loadNotifications(refresh = true)
                             currentScreen = Screen.Notifications
@@ -754,10 +750,10 @@ fun AppNavigation(
                 Screen.AddBaby -> {
                     AddBabyScreen(
                         viewModel = addBabyViewModel,
-                        onBack = { selectedTab = originTab; currentScreen = Screen.Home },
-                        onSaved = {
+                        onBack    = { selectedTab = originTab; currentScreen = Screen.Home },
+                        onSaved   = {
                             homeViewModel.loadHomeData()
-                            selectedTab = originTab
+                            selectedTab   = originTab
                             currentScreen = Screen.Home
                         }
                     )
@@ -767,21 +763,18 @@ fun AppNavigation(
                 Screen.EditBaby -> {
                     AddBabyScreen(
                         viewModel = addBabyViewModel,
-                        onBack = {
+                        onBack    = {
                             if (selectedBaby != null) currentScreen = Screen.BabyProfile
-                            else {
-                                selectedTab = originTab; currentScreen = Screen.Home
-                            }
+                            else { selectedTab = originTab; currentScreen = Screen.Home }
                         },
-                        onSaved = {
+                        onSaved   = {
                             homeViewModel.loadHomeData()
-                            selectedBaby =
-                                homeViewModel.uiState.babies.find { it.babyId == selectedBaby?.babyId }
-                                    ?: selectedBaby
+                            selectedBaby = homeViewModel.uiState.babies.find { it.babyId == selectedBaby?.babyId }
+                                ?: selectedBaby
                             if (selectedBaby != null && originTab == NavigationTab.BABY) {
                                 currentScreen = Screen.BabyProfile
                             } else {
-                                selectedTab = originTab
+                                selectedTab   = originTab
                                 currentScreen = Screen.Home
                             }
                         }
@@ -795,32 +788,31 @@ fun AppNavigation(
                         currentScreen = Screen.Home
                     } else {
                         BabyProfileScreen(
-                            baby = baby,
-                            vaccinations = homeViewModel.uiState.upcomingVaccinations[baby.babyId]
-                                ?: emptyList(),
-                            latestGrowth = homeViewModel.uiState.latestGrowthRecords[baby.babyId],
-                            onBack = {
-                                selectedBaby = null
-                                selectedTab = originTab
+                            baby            = baby,
+                            vaccinations    = homeViewModel.uiState.upcomingVaccinations[baby.babyId] ?: emptyList(),
+                            latestGrowth    = homeViewModel.uiState.latestGrowthRecords[baby.babyId],
+                            onBack          = {
+                                selectedBaby  = null
+                                selectedTab   = originTab
                                 currentScreen = Screen.Home
                             },
-                            onEditDetails = {
+                            onEditDetails   = {
                                 addBabyViewModel.prefillFromBaby(baby)
                                 currentScreen = Screen.EditBaby
                             },
-                            onDeleteBaby = {
+                            onDeleteBaby    = {
                                 homeViewModel.loadHomeData()
-                                selectedBaby = null
-                                selectedTab = originTab
+                                selectedBaby  = null
+                                selectedTab   = originTab
                                 currentScreen = Screen.Home
                             },
                             onAddMeasurement = {
                                 measurementBaby = baby
-                                currentScreen = Screen.AddMeasurement
+                                currentScreen   = Screen.AddMeasurement
                             },
                             onViewGrowthChart = {
-                                selectedBaby = null
-                                selectedTab = NavigationTab.CHARTS
+                                selectedBaby  = null
+                                selectedTab   = NavigationTab.CHARTS
                                 currentScreen = Screen.Home
                             }
                         )
@@ -834,24 +826,20 @@ fun AppNavigation(
                         currentScreen = Screen.Home
                     } else {
                         AddMeasurementScreen(
-                            babyId = baby.babyId,
-                            babyName = baby.fullName,
-                            apiService = apiService,
+                            babyId             = baby.babyId,
+                            babyName           = baby.fullName,
+                            apiService         = apiService,
                             preferencesManager = preferencesManager,
-                            onBack = {
+                            onBack             = {
                                 measurementBaby = null
                                 if (selectedBaby != null) currentScreen = Screen.BabyProfile
-                                else {
-                                    selectedTab = originTab; currentScreen = Screen.Home
-                                }
+                                else { selectedTab = originTab; currentScreen = Screen.Home }
                             },
-                            onSaved = {
+                            onSaved            = {
                                 homeViewModel.loadHomeData()
                                 measurementBaby = null
                                 if (selectedBaby != null) currentScreen = Screen.BabyProfile
-                                else {
-                                    selectedTab = originTab; currentScreen = Screen.Home
-                                }
+                                else { selectedTab = originTab; currentScreen = Screen.Home }
                             }
                         )
                     }
@@ -866,16 +854,14 @@ fun AppNavigation(
                         val isFemale = baby.gender.equals("FEMALE", ignoreCase = true)
                                 || baby.gender.equals("GIRL", ignoreCase = true)
                         AllMeasurementsScreen(
-                            babyId = baby.babyId,
+                            babyId   = baby.babyId,
                             babyName = baby.fullName,
                             isFemale = isFemale,
                             viewModel = homeViewModel,
-                            onBack = {
+                            onBack   = {
                                 allMeasurementsBaby = null
                                 if (selectedBaby != null) currentScreen = Screen.BabyProfile
-                                else {
-                                    selectedTab = originTab; currentScreen = Screen.Home
-                                }
+                                else { selectedTab = originTab; currentScreen = Screen.Home }
                             }
                         )
                     }
@@ -886,10 +872,10 @@ fun AppNavigation(
                     val baby = familyHistoryBaby
                     if (baby == null) currentScreen = Screen.Home
                     else FamilyHistoryScreen(
-                        babyId = baby.babyId,
-                        babyName = baby.fullName,
+                        babyId    = baby.babyId,
+                        babyName  = baby.fullName,
                         viewModel = familyHistoryViewModel,
-                        onBack = { familyHistoryBaby = null; currentScreen = Screen.Home }
+                        onBack    = { familyHistoryBaby = null; currentScreen = Screen.Home }
                     )
                 }
 
@@ -898,10 +884,10 @@ fun AppNavigation(
                     val baby = childIllnessesBaby
                     if (baby == null) currentScreen = Screen.Home
                     else ChildIllnessesScreen(
-                        babyId = baby.babyId,
-                        babyName = baby.fullName,
+                        babyId    = baby.babyId,
+                        babyName  = baby.fullName,
                         viewModel = childIllnessesViewModel,
-                        onBack = { childIllnessesBaby = null; currentScreen = Screen.Home }
+                        onBack    = { childIllnessesBaby = null; currentScreen = Screen.Home }
                     )
                 }
 
@@ -910,11 +896,11 @@ fun AppNavigation(
                     val baby = childDevBaby
                     if (baby == null) currentScreen = Screen.Home
                     else VisionMotorScreen(
-                        babyId = baby.babyId,
-                        babyName = baby.fullName,
+                        babyId        = baby.babyId,
+                        babyName      = baby.fullName,
                         babyAgeMonths = baby.ageInMonths,
-                        viewModel = visionMotorViewModel,
-                        onBack = { childDevBaby = null; currentScreen = Screen.Home }
+                        viewModel     = visionMotorViewModel,
+                        onBack        = { childDevBaby = null; currentScreen = Screen.Home }
                     )
                 }
 
@@ -923,50 +909,62 @@ fun AppNavigation(
                     val baby = childDevBaby
                     if (baby == null) currentScreen = Screen.Home
                     else HearingSpeechScreen(
-                        babyId = baby.babyId,
-                        babyName = baby.fullName,
+                        babyId        = baby.babyId,
+                        babyName      = baby.fullName,
                         babyAgeMonths = baby.ageInMonths,
-                        viewModel = hearingSpeechViewModel,
-                        onBack = { childDevBaby = null; currentScreen = Screen.Home }
+                        viewModel     = hearingSpeechViewModel,
+                        onBack        = { childDevBaby = null; currentScreen = Screen.Home }
+                    )
+                }
+
+                // ── Pre-Check Investigation ───────────────────────────────────
+                Screen.PreCheckInvestigation -> {
+                    val baby = preCheckInvestigationBaby
+                    if (baby == null) currentScreen = Screen.Home
+                    else PreCheckInvestigationScreen(
+                        babyId    = baby.babyId,
+                        babyName  = baby.fullName,
+                        viewModel = preCheckInvestigationViewModel,
+                        onBack    = { preCheckInvestigationBaby = null; currentScreen = Screen.Home }
                     )
                 }
 
                 // ── Sleep Guide ───────────────────────────────────────────────
                 Screen.SleepGuide -> {
                     SleepGuideScreen(
-                        babies = homeViewModel.uiState.babies,
+                        babies    = homeViewModel.uiState.babies,
                         viewModel = guideViewModel,
-                        language = currentLanguage.code,
-                        onBack = { selectedTab = originTab; currentScreen = Screen.Home }
+                        language  = currentLanguage.code,
+                        onBack    = { selectedTab = originTab; currentScreen = Screen.Home }
                     )
                 }
 
                 // ── Feeding Guide ─────────────────────────────────────────────
                 Screen.FeedingGuide -> {
                     FeedingGuideScreen(
-                        babies = homeViewModel.uiState.babies,
+                        babies    = homeViewModel.uiState.babies,
                         viewModel = guideViewModel,
-                        language = currentLanguage.code,
-                        onBack = { selectedTab = originTab; currentScreen = Screen.Home }
+                        language  = currentLanguage.code,
+                        onBack    = { selectedTab = originTab; currentScreen = Screen.Home }
                     )
                 }
 
                 // ── Memory ────────────────────────────────────────────────────
                 Screen.Memory -> {
                     MemoryScreen(
-                        viewModel = memoryViewModel,
-                        babies = homeViewModel.uiState.babies,
+                        viewModel      = memoryViewModel,
+                        babies         = homeViewModel.uiState.babies,
                         selectedBabyId = homeViewModel.uiState.selectedBaby?.babyId,
-                        language = currentLanguage,
-                        onBack = { selectedTab = originTab; currentScreen = Screen.Home }
+                        language       = currentLanguage,
+                        onBack         = { selectedTab = originTab; currentScreen = Screen.Home }
                     )
                 }
 
                 // ── Notifications ─────────────────────────────────────────────
                 Screen.Notifications -> {
                     NotificationScreen(
-                        viewModel = notificationViewModel,
-                        onBack = { selectedTab = originTab; currentScreen = Screen.Home },
+                        viewModel  = notificationViewModel,
+                        onBack     = { selectedTab = originTab; currentScreen = Screen.Home },
                         onNavigate = { /* handled by LaunchedEffect */ }
                     )
                 }

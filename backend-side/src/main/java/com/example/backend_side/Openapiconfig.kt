@@ -53,7 +53,7 @@ class OpenApiConfig {
                 listOf(
                     Server().url("http://localhost:8080/api").description("Local Development"),
                     Server().url("http://10.0.2.2:8080/api").description("Android Emulator"),
-                    Server().url("http://172.20.10.2:8080/api").description("Physical Device"),
+                    Server().url("http://172.20.10.7:8080/api").description("Physical Device"),
                     Server().url("https://api.babygrowth.com").description("Production")
                 )
             )

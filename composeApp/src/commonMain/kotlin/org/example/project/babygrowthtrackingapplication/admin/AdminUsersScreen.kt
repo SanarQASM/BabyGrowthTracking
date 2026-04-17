@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 import babygrowthtrackingapplication.composeapp.generated.resources.*
 import org.example.project.babygrowthtrackingapplication.data.network.UserResponse
@@ -47,14 +48,19 @@ fun AdminUsersScreen(
             verticalAlignment     = Alignment.CenterVertically
         ) {
             Text(
-                text       = stringResource(Res.string.admin_users_title),
-                style      = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                text     = stringResource(Res.string.admin_users_title),
+                style    = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
             )
             Text(
-                text  = stringResource(Res.string.admin_users_count, state.filteredUsers.size),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                text     = stringResource(Res.string.admin_users_count, state.filteredUsers.size),
+                style    = MaterialTheme.typography.labelMedium,
+                color    = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
 
@@ -162,10 +168,11 @@ private fun AdminUserCard(
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     Text(
-                        text  = user.fullName.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = roleColor,
-                        fontWeight = FontWeight.Bold
+                        text       = user.fullName.firstOrNull()?.uppercaseChar()?.toString() ?: "?",
+                        style      = MaterialTheme.typography.titleMedium,
+                        color      = roleColor,
+                        fontWeight = FontWeight.Bold,
+                        maxLines   = 1,
                     )
                 }
             }
@@ -178,18 +185,24 @@ private fun AdminUserCard(
                     text       = user.fullName,
                     style      = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color      = MaterialTheme.colorScheme.onSurface
+                    color      = MaterialTheme.colorScheme.onSurface,
+                    maxLines   = 1,
+                    overflow   = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text  = user.email,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    text     = user.email,
+                    style    = MaterialTheme.typography.bodySmall,
+                    color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 if (user.phone?.isNotBlank() == true) {
                     Text(
-                        text  = stringResource(Res.string.admin_user_phone_label, user.phone),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        text     = stringResource(Res.string.admin_user_phone_label, user.phone),
+                        style    = MaterialTheme.typography.labelSmall,
+                        color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
                 Spacer(Modifier.height(dimensions.spacingXSmall))

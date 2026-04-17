@@ -2,6 +2,7 @@
 
 package org.example.project.babygrowthtrackingapplication.admin
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 import babygrowthtrackingapplication.composeapp.generated.resources.*
 import org.example.project.babygrowthtrackingapplication.theme.LocalDimensions
@@ -38,7 +40,9 @@ fun AdminSettingsScreen(
             Text(
                 text       = stringResource(Res.string.admin_tab_settings),
                 style      = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                maxLines   = 1,
+                overflow   = TextOverflow.Ellipsis,
             )
         }
 
@@ -76,12 +80,16 @@ fun AdminSettingsScreen(
                     Text(
                         text       = state.adminName.ifBlank { stringResource(Res.string.admin_role_label) },
                         style      = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        maxLines   = 1,
+                        overflow   = TextOverflow.Ellipsis,
                     )
                     Text(
-                        text  = state.adminEmail,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        text     = state.adminEmail,
+                        style    = MaterialTheme.typography.bodySmall,
+                        color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
 
                     Spacer(Modifier.height(dimensions.spacingXSmall))
@@ -95,7 +103,7 @@ fun AdminSettingsScreen(
             }
         }
 
-        // ── Logout row ─────────────────────────────────────────────────────
+        // ── About section ──────────────────────────────────────────────────
         item {
             AdminSectionHeader(title = stringResource(Res.string.admin_settings_about_title))
         }
@@ -111,8 +119,10 @@ fun AdminSettingsScreen(
                     ListItem(
                         headlineContent = {
                             Text(
-                                stringResource(Res.string.admin_settings_app_version),
-                                style = MaterialTheme.typography.bodyMedium
+                                text     = stringResource(Res.string.admin_settings_app_version),
+                                style    = MaterialTheme.typography.bodyMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
                         },
                         leadingContent = {
@@ -124,20 +134,24 @@ fun AdminSettingsScreen(
                         },
                         trailingContent = {
                             Text(
-                                text  = "1.0.0",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                                text     = "1.0.0",
+                                style    = MaterialTheme.typography.bodySmall,
+                                color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
                         }
                     )
                     HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                    // Logout row
+                    // FIX: Logout row is now properly clickable via Modifier.clickable
                     ListItem(
                         headlineContent = {
                             Text(
-                                stringResource(Res.string.admin_action_logout),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.error
+                                text     = stringResource(Res.string.admin_action_logout),
+                                style    = MaterialTheme.typography.bodyMedium,
+                                color    = MaterialTheme.colorScheme.error,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
                             )
                         },
                         leadingContent = {
@@ -149,10 +163,7 @@ fun AdminSettingsScreen(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .run {
-                                // Make the row tappable
-                                this
-                            }
+                            .clickable { showLogoutDialog = true }  // FIX: was .run { this } — non-op
                     )
                 }
             }
@@ -182,7 +193,9 @@ fun AdminSettingsScreen(
                     Text(
                         text       = stringResource(Res.string.admin_action_logout),
                         color      = MaterialTheme.colorScheme.onError,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        maxLines   = 1,
+                        overflow   = TextOverflow.Ellipsis,
                     )
                 }
             }

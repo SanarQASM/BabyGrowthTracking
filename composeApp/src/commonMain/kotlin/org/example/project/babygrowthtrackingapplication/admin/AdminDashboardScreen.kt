@@ -3,9 +3,6 @@
 package org.example.project.babygrowthtrackingapplication.admin
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -13,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 import babygrowthtrackingapplication.composeapp.generated.resources.*
 import org.example.project.babygrowthtrackingapplication.theme.LocalDimensions
@@ -36,16 +34,18 @@ fun AdminDashboardScreen(
             ) {
                 CircularProgressIndicator(color = MaterialTheme.customColors.accentGradientStart)
                 Text(
-                    stringResource(Res.string.admin_loading_data),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                    text     = stringResource(Res.string.admin_loading_data),
+                    style    = MaterialTheme.typography.bodyMedium,
+                    color    = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
         return
     }
 
-    LazyColumn(
+    androidx.compose.foundation.lazy.LazyColumn(
         modifier            = modifier.fillMaxSize(),
         contentPadding      = PaddingValues(dimensions.screenPadding),
         verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
@@ -57,17 +57,21 @@ fun AdminDashboardScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment     = Alignment.CenterVertically
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text       = stringResource(Res.string.admin_dashboard_overview),
                         style      = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
-                        color      = MaterialTheme.colorScheme.onBackground
+                        color      = MaterialTheme.colorScheme.onBackground,
+                        maxLines   = 1,
+                        overflow   = TextOverflow.Ellipsis,
                     )
                     Text(
-                        text  = state.adminName.ifBlank { state.adminEmail },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f)
+                        text     = state.adminName.ifBlank { state.adminEmail },
+                        style    = MaterialTheme.typography.bodySmall,
+                        color    = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.55f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
                 // Refresh button

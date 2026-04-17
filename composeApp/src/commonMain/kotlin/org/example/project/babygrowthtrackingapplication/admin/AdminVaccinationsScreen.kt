@@ -16,6 +16,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 import babygrowthtrackingapplication.composeapp.generated.resources.*
 import org.example.project.babygrowthtrackingapplication.theme.LocalDimensions
@@ -47,12 +48,17 @@ fun AdminVaccinationsScreen(
             Text(
                 text       = stringResource(Res.string.admin_vax_title),
                 style      = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                maxLines   = 1,
+                overflow   = TextOverflow.Ellipsis,
+                modifier   = Modifier.weight(1f)
             )
             Text(
-                text  = stringResource(Res.string.admin_vax_count, state.filteredVaxRecords.size),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                text     = stringResource(Res.string.admin_vax_count, state.filteredVaxRecords.size),
+                style    = MaterialTheme.typography.labelMedium,
+                color    = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
             )
         }
 
@@ -78,10 +84,13 @@ fun AdminVaccinationsScreen(
                         tint               = MaterialTheme.colorScheme.error
                     )
                     Text(
-                        text  = stringResource(Res.string.admin_vax_overdue_count, overdueCount),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        fontWeight = FontWeight.Medium
+                        text       = stringResource(Res.string.admin_vax_overdue_count, overdueCount),
+                        style      = MaterialTheme.typography.bodyMedium,
+                        color      = MaterialTheme.colorScheme.onErrorContainer,
+                        fontWeight = FontWeight.Medium,
+                        maxLines   = 1,
+                        overflow   = TextOverflow.Ellipsis,
+                        modifier   = Modifier.weight(1f)
                     )
                 }
             }
@@ -183,32 +192,43 @@ private fun AdminVaxCard(record: AdminVaxRecord) {
                         text       = record.vaccineName,
                         style      = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
+                        maxLines   = 1,
+                        overflow   = TextOverflow.Ellipsis,
                         modifier   = Modifier.weight(1f)
                     )
+                    Spacer(Modifier.width(dimensions.spacingXSmall))
                     AdminStatusBadge(label = statusLabel, color = statusColor)
                 }
                 Text(
-                    text  = stringResource(Res.string.admin_vax_dose_label, record.doseNumber),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                    text     = stringResource(Res.string.admin_vax_dose_label, record.doseNumber),
+                    style    = MaterialTheme.typography.labelSmall,
+                    color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text  = stringResource(Res.string.admin_vax_baby_label, record.babyName),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    text     = stringResource(Res.string.admin_vax_baby_label, record.babyName),
+                    style    = MaterialTheme.typography.bodySmall,
+                    color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 if (record.scheduledDate.isNotBlank()) {
                     Text(
-                        text  = stringResource(Res.string.admin_vax_scheduled_label, record.scheduledDate),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        text     = stringResource(Res.string.admin_vax_scheduled_label, record.scheduledDate),
+                        style    = MaterialTheme.typography.labelSmall,
+                        color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
                 if (record.benchNameEn.isNotBlank()) {
                     Text(
-                        text  = stringResource(Res.string.admin_vax_bench_label, record.benchNameEn),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                        text     = stringResource(Res.string.admin_vax_bench_label, record.benchNameEn),
+                        style    = MaterialTheme.typography.labelSmall,
+                        color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }

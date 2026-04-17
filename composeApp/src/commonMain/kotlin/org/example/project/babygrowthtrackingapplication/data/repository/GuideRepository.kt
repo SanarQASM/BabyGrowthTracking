@@ -57,7 +57,7 @@ class GuideRepository(private val apiService: ApiService) {
         // FIX: must match the BASE_URL used by ApiService exactly.
         // All URLs are constructed as BASE_URL + path so the Ktor client
         // sends to the correct host and port.
-        private const val BASE_URL = "http://172.20.10.2:8080/api"
+        private const val BASE_URL = "http://172.20.10.7:8080/api"
         private const val BASE     = "$BASE_URL/v1/guide"
     }
 

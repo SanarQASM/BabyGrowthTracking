@@ -1060,4 +1060,103 @@
     <string name="admin_delete_cd">حذف السجل</string>
     <string name="admin_search_clear_cd">مسح البحث</string>
 
+    <string name="pre_check_title">فحص حديثي الولادة المبكر</string>
+    <string name="pre_check_subtitle">الفحص الأولي للمولود الجديد</string>
+
+    <string name="pre_check_status_set">✅ تم تسجيل الفحص</string>
+    <string name="pre_check_status_not_set">⚠️ لم يتم الملء بعد — اضغط للإضافة</string>
+    <string name="settings_pre_check">فحص حديثي الولادة المبكر</string>
+    <string name="settings_pre_check_sub">سجل الفحص المبكر</string>
+
+    <string name="pre_check_date_recorded">تم التسجيل في %1$s</string>
+
+    <string name="pre_check_save">حفظ</string>
+    <string name="pre_check_edit">تعديل</string>
+    <string name="pre_check_delete">حذف</string>
+    <string name="pre_check_add_info">إضافة معلومات</string>
+
+    <string name="pre_check_confirm_delete_title">حذف سجل الفحص</string>
+    <string name="pre_check_confirm_delete_msg">هل أنت متأكد من حذف سجل الفحص هذا؟ لا يمكن التراجع عن هذا الإجراء.</string>
+
+    <string name="pre_check_not_set_title">لم يتم تسجيل فحص المولود</string>
+    <string name="pre_check_not_set_msg">يرجى ملء نتائج الفحص المبكر للمولود. هذه المعلومات مهمة لمتابعة الحالة الصحية الأولية للطفل.</string>
+
+    <string name="pre_check_check_date">تاريخ الفحص</string>
+    <string name="pre_check_date_placeholder">اختر تاريخ الفحص</string>
+
+    <string name="pre_check_items_section">بنود الفحص</string>
+
+    <string name="pre_check_jaundice">اليرقان (أبو صفار)</string>
+    <string name="pre_check_shortness_of_breath">ضيق في التنفس</string>
+    <string name="pre_check_turning_blue">الازرقاق</string>
+    <string name="pre_check_marble_heart">القلب المرمري</string>
+    <string name="pre_check_inflammation_of_liver">تضخم الكبد</string>
+    <string name="pre_check_inflammation_of_spleen">تضخم الطحال</string>
+    <string name="pre_check_hernia">الفتق</string>
+    <string name="pre_check_hydrocele_of_ear">القيلة المائية</string>
+    <string name="pre_check_hip_joint_dislocation">خلع مفصل الورك</string>
+    <string name="pre_check_muscles_normal">العضلات طبيعية</string>
+    <string name="pre_check_reactions_normal">ردود الأفعال طبيعية</string>
+    <string name="pre_check_nucleus_normal">السرة طبيعية</string>
+    <string name="pre_check_genitals_normal">الأعضاء التناسلية طبيعية</string>
+    <string name="pre_check_eye_normal">العين طبيعية</string>
+    <string name="pre_check_red_reflex">المنعكس الأحمر</string>
+    <string name="pre_check_reaction_to_sound">الاستجابة للصوت</string>
+
+    <string name="pre_check_others">أخرى</string>
+    <string name="pre_check_others_placeholder">أي ملاحظات إضافية…</string>
+
+    <string name="pre_check_status_yes">نعم</string>
+    <string name="pre_check_status_no">لا</string>
+    <string name="pre_check_status_not_known">غير معروف</string>
+
+    <string name="pre_check_success_saved">تم حفظ سجل الفحص بنجاح</string>
+    <string name="pre_check_success_deleted">تم حذف سجل الفحص</string>
+    <string name="pre_check_error_date_required">يرجى اختيار تاريخ الفحص</string>
+    <string name="pre_check_error_save">فشل الحفظ: %1$s</string>
+    <string name="pre_check_error_delete">فشل الحذف: %1$s</string>
+
+    <string name="admin_tab_team">الفريق</string>
+
+    <string name="admin_team_title">فريق التلقيح</string>
+    <string name="admin_team_count">%1$d عضو</string>
+    <string name="admin_team_search_hint">البحث عن أعضاء الفريق…</string>
+    <string name="admin_team_add_cd">إضافة عضو فريق</string>
+    <string name="admin_team_tab_all">الكل</string>
+    <string name="admin_team_tab_active">نشط</string>
+    <string name="admin_team_tab_inactive">غير نشط</string>
+    <string name="admin_team_no_results">لم يتم العثور على أعضاء في فريق التلقيح</string>
+    <string name="admin_team_role_label">فريق التلقيح</string>
+    <string name="admin_team_status_active">نشط</string>
+    <string name="admin_team_status_inactive">غير نشط</string>
+    <string name="admin_team_delete_title">إزالة عضو الفريق</string>
+    <string name="admin_team_delete_message">هل أنت متأكد من إزالة %1$s من فريق التلقيح نهائياً؟ لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="admin_team_deleted_success">تمت إزالة عضو الفريق بنجاح</string>
+
+    <string name="admin_team_emoji">💉</string>
+    <string name="admin_team_create_title">عضو فريق جديد</string>
+    <string name="admin_team_create_subtitle">إنشاء حساب لفريق التلقيح مع وصول كامل لإدارة جداول وسجلات الأطفال</string>
+    <string name="admin_team_create_button">إنشاء حساب الفريق</string>
+    <string name="admin_team_created_success">تم إنشاء حساب عضو الفريق بنجاح!</string>
+
+    <string name="admin_team_section_personal">المعلومات الشخصية</string>
+    <string name="admin_team_section_credentials">بيانات تسجيل الدخول</string>
+
+    <string name="admin_team_field_full_name">الاسم الكامل *</string>
+    <string name="admin_team_field_full_name_placeholder">مثال: د. سارة أحمد</string>
+    <string name="admin_team_field_email_placeholder">work@example.com</string>
+    <string name="admin_team_field_phone">رقم الهاتف</string>
+    <string name="admin_team_field_phone_placeholder">مثال: 07501234567</string>
+    <string name="admin_team_field_city">المدينة</string>
+    <string name="admin_team_field_city_placeholder">مثال: الموصل</string>
+    <string name="admin_team_field_address">العنوان</string>
+    <string name="admin_team_field_address_placeholder">تفاصيل الشارع / المنطقة</string>
+    <string name="admin_team_field_confirm_password">تأكيد كلمة المرور *</string>
+    <string name="admin_team_field_password_placeholder">6 أحرف على الأقل</string>
+    <string name="admin_team_field_confirm_password_placeholder">أعد إدخال كلمة المرور</string>
+
+    <string name="admin_team_role_info">سيكون لهذا الحساب دور فريق التلقيح — يمكنهم عرض وتحديث جداول تلقيح الأطفال والسجلات الصحية الموكلة إليهم.</string>
+
+    <string name="admin_stat_team_members">أعضاء الفريق</string>
+
 </resources>

@@ -82,14 +82,16 @@ fun AdminStatCard(
                 text       = value,
                 style      = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color      = MaterialTheme.colorScheme.onSurface
+                color      = MaterialTheme.colorScheme.onSurface,
+                maxLines   = 1,
+                overflow   = TextOverflow.Ellipsis,
             )
             Text(
                 text     = label,
                 style    = MaterialTheme.typography.labelMedium,
                 color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+                overflow = TextOverflow.Ellipsis,
             )
         }
     }
@@ -110,7 +112,14 @@ fun AdminSearchBar(
     OutlinedTextField(
         value         = query,
         onValueChange = onQueryChange,
-        placeholder   = { Text(hint, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)) },
+        placeholder   = {
+            Text(
+                hint,
+                color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+        },
         leadingIcon   = {
             Icon(
                 Icons.Default.Search,
@@ -165,10 +174,12 @@ fun <T> AdminFilterTabs(
                 onClick  = { onTabSelect(tab) },
                 label    = {
                     Text(
-                        text  = label,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = if (selected) MaterialTheme.colorScheme.onPrimary
-                        else          MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        text     = label,
+                        style    = MaterialTheme.typography.labelMedium,
+                        color    = if (selected) MaterialTheme.colorScheme.onPrimary
+                        else          MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 },
                 colors = FilterChipDefaults.filterChipColors(
@@ -208,7 +219,9 @@ fun AdminConfirmDialog(
             Text(
                 text       = title,
                 fontWeight = FontWeight.Bold,
-                style      = MaterialTheme.typography.titleMedium
+                style      = MaterialTheme.typography.titleMedium,
+                maxLines   = 1,
+                overflow   = TextOverflow.Ellipsis,
             )
         },
         text = {
@@ -259,9 +272,11 @@ fun AdminEmptyState(
             modifier           = Modifier.size(dimensions.iconXLarge)
         )
         Text(
-            text  = message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+            text     = message,
+            style    = MaterialTheme.typography.bodyMedium,
+            color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
         )
     }
 }
@@ -277,6 +292,8 @@ fun AdminSectionHeader(title: String, modifier: Modifier = Modifier) {
         text     = title,
         style    = MaterialTheme.typography.labelLarge,
         color    = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis,
         modifier = modifier.padding(
             horizontal = dimensions.screenPadding,
             vertical   = dimensions.spacingXSmall
@@ -302,7 +319,9 @@ fun AdminStatusBadge(label: String, color: Color) {
             text       = label,
             style      = MaterialTheme.typography.labelSmall,
             color      = color,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.SemiBold,
+            maxLines   = 1,
+            overflow   = TextOverflow.Ellipsis,
         )
     }
 }
