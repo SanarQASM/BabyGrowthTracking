@@ -910,4 +910,154 @@
     <string name="relative_time_minutes">منذ %1$d دقيقة</string>
     <string name="relative_time_hours">منذ %1$d ساعة</string>
     <string name="relative_time_days">منذ %1$d يوم</string>
+
+    <string name="phone_error_required">رقم الهاتف مطلوب</string>
+    <string name="phone_error_local_11_digits">رقم الهاتف العراقي الذي يبدأ بـ 0 يجب أن يتكون من 11 رقماً (مثال: 07501234567)</string>
+    <string name="phone_error_intl_13_digits">رقم الهاتف العراقي الذي يبدأ بـ 964 يجب أن يتكون من 13 رقماً (مثال: 9647501234567)</string>
+    <string name="phone_error_invalid_prefix">يجب أن يبدأ الرقم بـ 0 أو 964</string>
+    <string name="phone_error_invalid_operator">مزود الخدمة غير معروف (زين: 078x، آسيا سيل: 077x، كورك: 075x)</string>
+    <string name="phone_error_invalid_format">أدخل رقم هاتف عراقي صحيح (مثال: 07501234567 أو 9647501234567)</string>
+    <string name="signup_error_full_name_required">يرجى إدخال الاسم الكامل</string>
+    <string name="signup_error_email_required">يرجى إدخال البريد الإلكتروني</string>
+    <string name="signup_error_email_invalid">يرجى إدخال بريد إلكتروني صحيح</string>
+    <string name="signup_error_password_required">يرجى إدخال كلمة المرور</string>
+    <string name="signup_error_password_too_short">كلمة المرور يجب أن تكون 6 رموز على الأقل</string>
+    <string name="signup_error_confirm_required">يرجى تأكيد كلمة المرور</string>
+    <string name="signup_error_passwords_no_match">كلمتا المرور غير متطابقتين</string>
+    <string name="a11y_scroll_to_field">قم بالتمرير لإظهار حقل الإدخال</string>
+
+    <string name="schedule_reschedule_breakdown">✅ يمكن إعادة جدولة %1$d  •  ❌ %2$d متأخر جداً (تجاوز نافذة الـ %3$d أشهر)</string>
+
+    <string name="schedule_cannot_reschedule_title">لا يمكن إعادة جدولة %1$d من التطعيمات</string>
+    <string name="schedule_cannot_reschedule_body">لقد مضى على موعد هذه التطعيمات أكثر من %1$d أشهر ولا يمكن إعادة جدولتها تلقائياً. يرجى استشارة الطبيب عما إذا كان لا يزال من الممكن إعطاؤها.</string>
+    <string name="schedule_upcoming_unaffected">💉 التطعيمات القادمة لم تتأثر وستستمر كالمعتاد.</string>
+
+    <string name="schedule_was_due_prefix">كان مستحقاً في: %1$s</string>
+    <string name="schedule_past_window_hint">تجاوز نافذة الـ %1$d أشهر — استشر الطبيب</string>
+
+    <string name="vax_detail_was_due">كان مستحقاً في</string>
+    <string name="schedule_cannot_reschedule_title_short">لا يمكن إعادة الجدولة</string>
+    <string name="schedule_cannot_reschedule_detail">لقد مضى على هذا التطعيم أكثر من %1$d أشهر من موعده المثالي. يرجى استشارة الطبيب.</string>
+
+    <string name="signup_otp_title">تحقق من بريدك الإلكتروني</string>
+    <string name="signup_otp_enter_code">أدخل رمز التحقق</string>
+    <string name="signup_otp_sent_to">تم إرسال رمز مكون من 6 أرقام إلى %1$s</string>
+    <string name="signup_otp_verify_button">تحقق وإنشاء الحساب</string>
+
+    <string name="admin_panel_title">لوحة الإدارة</string>
+    <string name="admin_panel_subtitle">وصول آمن للمسؤولين</string>
+    <string name="admin_sign_in">سجل دخولك للمتابعة</string>
+    <string name="admin_sign_in_button">تسجيل الدخول كمسؤول</string>
+    <string name="admin_back_to_login">← العودة لتسجيل الدخول العادي</string>
+    <string name="admin_access_denied">تم رفض الوصول. هذه البوابة للمسؤولين فقط.</string>
+    <string name="admin_role_label">المسؤول</string>
+    <string name="admin_shield_emoji">🛡️</string>
+
+    <string name="admin_email_label">البريد الإلكتروني</string>
+    <string name="admin_password_label">كلمة المرور</string>
+    <string name="admin_password_show">إظهار كلمة المرور</string>
+    <string name="admin_password_hide">إخفاء كلمة المرور</string>
+    <string name="admin_login_email_error">يرجى إدخال عنوان بريدك الإلكتروني</string>
+    <string name="admin_login_email_invalid">يرجى إدخال عنوان بريد إلكتروني صحيح</string>
+    <string name="admin_login_password_error">يرجى إدخال كلمة المرور (6 أحرف على الأقل)</string>
+
+    <string name="admin_tab_dashboard">لوحة التحكم</string>
+    <string name="admin_tab_users">المستخدمين</string>
+    <string name="admin_tab_babies">الأطفال</string>
+    <string name="admin_tab_vaccinations">التطعيمات</string>
+    <string name="admin_tab_settings">الإعدادات</string>
+
+    <string name="admin_dashboard_overview">نظرة عامة</string>
+    <string name="admin_dashboard_quick_summary">ملخص سريع</string>
+    <string name="admin_stat_total_users">إجمالي المستخدمين</string>
+    <string name="admin_stat_total_babies">إجمالي الأطفال</string>
+    <string name="admin_stat_parents">أولياء الأمور</string>
+    <string name="admin_stat_verified">موثق</string>
+    <string name="admin_stat_active_babies">أطفال نشطون</string>
+    <string name="admin_stat_archived_babies">مؤرشف</string>
+    <string name="admin_stat_total_admins">المسؤولين</string>
+    <string name="admin_stat_today_appointments">مواعيد اليوم</string>
+    <string name="admin_stat_overdue_vaccinations">تطعيمات متأخرة</string>
+    <string name="admin_stat_pending_schedules">جداول معلقة</string>
+    <string name="admin_summary_total_users">إجمالي المستخدمين المسجلين</string>
+    <string name="admin_summary_parents">حسابات أولياء الأمور</string>
+    <string name="admin_summary_total_babies">إجمالي ملفات الأطفال</string>
+    <string name="admin_summary_active_babies">ملفات الأطفال النشطة</string>
+    <string name="admin_summary_archived_babies">ملفات الأطفال المؤرشفة</string>
+
+    <string name="admin_users_title">المستخدمين</string>
+    <string name="admin_users_search_hint">البحث عن مستخدمين...</string>
+    <string name="admin_users_count">%1$d مستخدم</string>
+    <string name="admin_user_tab_all">الكل</string>
+    <string name="admin_user_tab_parents">أولياء الأمور</string>
+    <string name="admin_user_tab_admins">المسؤولين</string>
+    <string name="admin_user_verified_badge">موثق</string>
+    <string name="admin_user_unverified_badge">غير موثق</string>
+    <string name="admin_user_no_results">لم يتم العثور على مستخدمين</string>
+    <string name="admin_user_delete_title">حذف المستخدم</string>
+    <string name="admin_user_delete_message">هل تريد حذف %1$s نهائياً؟ لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="admin_user_deleted_success">تم حذف المستخدم بنجاح</string>
+    <string name="admin_user_role_parent">ولي أمر</string>
+    <string name="admin_user_role_admin">مسؤول</string>
+    <string name="admin_user_joined">انضم في: %1$s</string>
+    <string name="admin_user_phone_label">الهاتف: %1$s</string>
+    <string name="admin_user_city_label">المدينة: %1$s</string>
+
+    <string name="admin_babies_title">الأطفال</string>
+    <string name="admin_babies_search_hint">البحث عن أطفال...</string>
+    <string name="admin_babies_count">%1$d ملف شخصي</string>
+    <string name="admin_baby_tab_all">الكل</string>
+    <string name="admin_baby_tab_active">نشط</string>
+    <string name="admin_baby_tab_archived">مؤرشف</string>
+    <string name="admin_baby_no_results">لم يتم العثور على ملفات أطفال</string>
+    <string name="admin_baby_delete_title">حذف الطفل</string>
+    <string name="admin_baby_delete_message">هل تريد حذف ملف %1$s نهائياً؟ لا يمكن التراجع عن هذا الإجراء.</string>
+    <string name="admin_baby_deleted_success">تم حذف ملف الطفل بنجاح</string>
+    <string name="admin_baby_parent_label">ولي الأمر: %1$s</string>
+    <string name="admin_baby_age_label">عمره %1$d أشهر</string>
+    <string name="admin_baby_status_active">نشط</string>
+    <string name="admin_baby_status_archived">مؤرشف</string>
+    <string name="admin_baby_gender_boy">ولد</string>
+    <string name="admin_baby_gender_girl">بنت</string>
+    <string name="admin_baby_dob_label">تاريخ الميلاد: %1$s</string>
+
+    <string name="admin_vax_title">التطعيمات</string>
+    <string name="admin_vax_tab_all">الكل</string>
+    <string name="admin_vax_tab_overdue">متأخرة</string>
+    <string name="admin_vax_tab_upcoming">قادمة</string>
+    <string name="admin_vax_tab_completed">مكتملة</string>
+    <string name="admin_vax_search_hint">البحث عن تطعيمات...</string>
+    <string name="admin_vax_count">%1$d سجل</string>
+    <string name="admin_vax_no_results">لم يتم العثور على سجلات تطعيم</string>
+    <string name="admin_vax_baby_label">الطفل: %1$s</string>
+    <string name="admin_vax_dose_label">الجرعة %1$d</string>
+    <string name="admin_vax_scheduled_label">موعد الجدولة: %1$s</string>
+    <string name="admin_vax_bench_label">المركز: %1$s</string>
+    <string name="admin_vax_overdue_count">%1$d تطعيم متأخر</string>
+    <string name="admin_vax_status_upcoming">قادم</string>
+    <string name="admin_vax_status_completed">مكتمل</string>
+    <string name="admin_vax_status_overdue">متأخر</string>
+    <string name="admin_vax_status_missed">فات الموعد</string>
+    <string name="admin_vax_status_due_soon">في انتظار الموعد قريباً</string>
+
+    <string name="admin_settings_profile_card_title">ملف المسؤول</string>
+    <string name="admin_settings_role_label">الدور</string>
+    <string name="admin_settings_email_label">البريد الإلكتروني</string>
+    <string name="admin_settings_logout_title">تسجيل الخروج</string>
+    <string name="admin_settings_logout_message">هل أنت متأكد أنك تريد تسجيل الخروج من لوحة المسؤول؟</string>
+    <string name="admin_settings_logout_confirm">تسجيل خروج</string>
+    <string name="admin_settings_app_version">إصدار التطبيق</string>
+    <string name="admin_settings_about_title">حول التطبيق</string>
+
+    <string name="admin_action_delete">حذف</string>
+    <string name="admin_action_refresh">تحديث</string>
+    <string name="admin_action_logout">تسجيل الخروج</string>
+    <string name="admin_confirm_cancel">إلغاء</string>
+    <string name="admin_loading_data">جاري تحميل بيانات المسؤول...</string>
+    <string name="admin_error_generic">حدث خطأ ما. يرجى المحاولة مرة أخرى.</string>
+    <string name="admin_refresh_cd">تحديث البيانات</string>
+    <string name="admin_logout_cd">تسجيل خروج</string>
+    <string name="admin_delete_cd">حذف السجل</string>
+    <string name="admin_search_clear_cd">مسح البحث</string>
+
 </resources>

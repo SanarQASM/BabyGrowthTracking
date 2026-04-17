@@ -1,18 +1,30 @@
 package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CHANGES vs original:
-//  • 260.dp landscape pane width  → dimensions.chartLandscapePaneWidth
-//  • 0.8.sp letterSpacing         → dimensions.chartLetterSpacing
-//  • 0.5.dp divider thickness     → dimensions.chartDividerThickness
-//  • WHO color constants moved to private vals — no change needed for tokens
-//    (Color(0xFF4CAF50) etc. are fixed WHO standard reference colors, not theme
-//     colors — they intentionally don't follow the gender theme. Kept as-is.)
-//  • "Parent" / "Team" inline prefix strings → stringResource tokens already
-//    exist as chart_legend_parent_prefix / chart_legend_team_prefix
-//  • chart_legend_parent_label / chart_legend_team_label strings → already tokens
+// FIXES in this version:
+//
+//  FIX 1 — Root cause of wrong colors (ALL screenshots):
+//    Old code split records by `measuredByName.isNullOrBlank()`.
+//    Because the backend was setting measuredByName = parent's own name,
+//    ALL records landed in teamRecords → every line got cyan/dashed team color.
+//
+//    New code uses `GrowthRecordResponse.addedByTeam` which checks the explicit
+//    `isTeamMeasurement` boolean the backend now sends, with measuredByName as
+//    a fallback. Parent records have isTeamMeasurement=false + measuredByName=null,
+//    so they correctly go to parentRecords.
+//
+//  FIX 2 — Per-metric team colors (distinct in ALL tab):
+//    TEAM_WEIGHT_COLOR = #00ACC1 (cyan)
+//    TEAM_HEIGHT_COLOR = #26A69A (teal)
+//    TEAM_HEAD_COLOR   = #7E57C2 (indigo)
+//    Parent lines always use gender-themed accentStart/accentEnd (solid).
+//
+//  FIX 3 — Smooth draw-in animation via animateFloatAsState + PathMeasure.
+//
+//  FIX 4 — Legend exactly mirrors canvas colors in every tab and every theme.
 // ─────────────────────────────────────────────────────────────────────────────
 
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
@@ -77,12 +89,26 @@ private val whoHead = mapOf(
     24 to Triple(45.2, 47.8, 50.4)
 )
 
-// WHO reference colors are intentionally fixed (not gender-themed) — kept as-is
-private val WHO_97_COLOR = Color(0xFF4CAF50)
-private val WHO_50_COLOR = Color(0xFFFFC107)
-private val WHO_3_COLOR = Color(0xFFF44336)
-private val HEAD_COLOR = Color(0xFF9C27B0)
-private val TEAM_COLOR = Color(0xFF00ACC1)
+// ─────────────────────────────────────────────────────────────────────────────
+// COLOR CONSTANTS
+//
+// WHO reference lines — intentionally fixed, not gender-themed.
+// Team colors — distinct per metric, fixed across all themes.
+// Parent lines — always use the gender-themed accentStart / accentEnd.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// WHO percentile bands (fixed medical reference colors)
+private val WHO_97_COLOR = Color(0xFF4CAF50)  // Green  — 97th percentile
+private val WHO_50_COLOR = Color(0xFFFFC107)  // Amber  — 50th percentile (median)
+private val WHO_3_COLOR = Color(0xFFF44336)  // Red    — 3rd  percentile
+
+// Head measurement for parent — fixed semantic purple (gender-neutral body metric)
+private val HEAD_COLOR = Color(0xFF9C27B0)    // Purple
+
+// Team colors — one per metric, always dashed, fixed across all gender themes
+private val TEAM_WEIGHT_COLOR = Color(0xFF00ACC1)  // Cyan    — team weight
+private val TEAM_HEIGHT_COLOR = Color(0xFF26A69A)  // Teal    — team height
+private val TEAM_HEAD_COLOR = Color(0xFF7E57C2)  // Indigo  — team head
 
 enum class ChartFilter { ALL, WEIGHT, HEIGHT, HEAD }
 
@@ -124,10 +150,20 @@ fun ChartsTabContent(
     val accentStart = customColors.accentGradientStart
     val accentEnd = customColors.accentGradientEnd
 
+    // FIX 3: Animation — restarts whenever data or filter changes
+    var animTrigger by remember { mutableStateOf(false) }
+    LaunchedEffect(allRecords.size, chartFilter, selectedBabyIndex) {
+        animTrigger = false
+        animTrigger = true
+    }
+    val animProgress by animateFloatAsState(
+        targetValue = if (animTrigger) 1f else 0f,
+        animationSpec = tween(durationMillis = 1200, easing = FastOutSlowInEasing),
+        label = "chart_draw_progress"
+    )
+
     if (isLandscape) {
         Row(modifier = Modifier.fillMaxSize()) {
-            // Left pane: selectors, filters, legend
-            // WAS: .width(260.dp) → dimensions.chartLandscapePaneWidth
             Column(
                 modifier = Modifier
                     .width(dimensions.chartLandscapePaneWidth)
@@ -143,8 +179,7 @@ fun ChartsTabContent(
                 ) {
                     Box(
                         modifier = Modifier.size(dimensions.iconLarge).background(
-                            accentStart.copy(0.15f),
-                            RoundedCornerShape(dimensions.spacingSmall)
+                            accentStart.copy(0.15f), RoundedCornerShape(dimensions.spacingSmall)
                         ),
                         contentAlignment = Alignment.Center
                     ) { Text("📈", style = MaterialTheme.typography.titleMedium) }
@@ -223,12 +258,7 @@ fun ChartsTabContent(
                             selected = sel, onClick = { chartFilter = f },
                             label = {
                                 Text(
-                                    text = when (f) {
-                                        ChartFilter.ALL -> stringResource(Res.string.chart_filter_all)
-                                        ChartFilter.WEIGHT -> stringResource(Res.string.chart_filter_weight)
-                                        ChartFilter.HEIGHT -> stringResource(Res.string.chart_filter_height)
-                                        ChartFilter.HEAD -> stringResource(Res.string.chart_filter_head)
-                                    },
+                                    filterLabel(f),
                                     fontWeight = if (sel) FontWeight.Bold else FontWeight.Normal,
                                     color = if (sel) Color.White else accentStart,
                                     style = MaterialTheme.typography.labelSmall
@@ -270,54 +300,51 @@ fun ChartsTabContent(
                     elevation = CardDefaults.cardElevation(dimensions.cardElevation)
                 ) {
                     Box(modifier = Modifier.fillMaxWidth().padding(dimensions.spacingSmall)) {
-                        if (selectedBaby == null) {
-                            EmptyChartBox(
+                        when {
+                            selectedBaby == null -> EmptyChartBox(
                                 accentStart,
                                 stringResource(Res.string.chart_no_baby),
                                 stringResource(Res.string.chart_no_baby_desc),
                                 "👶"
                             )
-                        } else if (allRecords.isEmpty()) {
-                            EmptyChartBox(
+
+                            allRecords.isEmpty() -> EmptyChartBox(
                                 accentStart,
                                 stringResource(Res.string.chart_no_measurement),
                                 stringResource(Res.string.chart_no_measurement_desc),
                                 "📊"
                             )
-                        } else {
-                            GrowthChartCanvas(
+
+                            else -> GrowthChartCanvas(
                                 records = allRecords,
                                 filter = chartFilter,
                                 accentStart = accentStart,
                                 accentEnd = accentEnd,
+                                animProgress = animProgress,
                                 landscapeHeight = dimensions.avatarLarge * 4 + dimensions.spacingXLarge
                             )
                         }
                     }
                 }
-
                 if (selectedBaby != null) {
                     LatestMeasurementCard(
                         latestGrowth = latestGrowth,
                         accentStart = accentStart,
                         accentEnd = accentEnd,
                         onViewAll = { onViewAllMeasurements(selectedBaby.babyId) },
-                        onAddMeasure = { onAddMeasurement(selectedBaby.babyId) }
-                    )
+                        onAddMeasure = { onAddMeasurement(selectedBaby.babyId) })
                 }
             }
         }
     } else {
-        // ── PORTRAIT: original single-column layout ───────────────────────────
+        // ── PORTRAIT ─────────────────────────────────────────────────────────
         Column(modifier = Modifier.fillMaxSize()) {
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Brush.horizontalGradient(listOf(accentStart, accentEnd)))
-                    .padding(
-                        horizontal = dimensions.spacingLarge,
-                        vertical = dimensions.spacingMedium - dimensions.spacingXSmall
-                    )
+                modifier = Modifier.fillMaxWidth()
+                    .background(Brush.horizontalGradient(listOf(accentStart, accentEnd))).padding(
+                    horizontal = dimensions.spacingLarge,
+                    vertical = dimensions.spacingMedium - dimensions.spacingXSmall
+                )
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -328,9 +355,10 @@ fun ChartsTabContent(
                             .background(
                                 Color.White.copy(0.25f),
                                 RoundedCornerShape(dimensions.spacingSmall + dimensions.spacingXSmall)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) { Text("📈", style = MaterialTheme.typography.titleLarge) }
+                            ), contentAlignment = Alignment.Center
+                    ) {
+                        Text("📈", style = MaterialTheme.typography.titleLarge)
+                    }
                     Text(
                         stringResource(Res.string.chart_title),
                         style = MaterialTheme.typography.titleLarge,
@@ -412,12 +440,7 @@ fun ChartsTabContent(
                                     selected = sel, onClick = { chartFilter = f },
                                     label = {
                                         Text(
-                                            text = when (f) {
-                                                ChartFilter.ALL -> stringResource(Res.string.chart_filter_all)
-                                                ChartFilter.WEIGHT -> stringResource(Res.string.chart_filter_weight)
-                                                ChartFilter.HEIGHT -> stringResource(Res.string.chart_filter_height)
-                                                ChartFilter.HEAD -> stringResource(Res.string.chart_filter_head)
-                                            },
+                                            filterLabel(f),
                                             fontWeight = if (sel) FontWeight.Bold else FontWeight.Normal,
                                             color = if (sel) Color.White else accentStart,
                                             maxLines = 1,
@@ -436,26 +459,27 @@ fun ChartsTabContent(
                             }
                         }
 
-                        if (selectedBaby == null) {
-                            EmptyChartBox(
+                        when {
+                            selectedBaby == null -> EmptyChartBox(
                                 accentStart,
                                 stringResource(Res.string.chart_no_baby),
                                 stringResource(Res.string.chart_no_baby_desc),
                                 "👶"
                             )
-                        } else if (allRecords.isEmpty()) {
-                            EmptyChartBox(
+
+                            allRecords.isEmpty() -> EmptyChartBox(
                                 accentStart,
                                 stringResource(Res.string.chart_no_measurement),
                                 stringResource(Res.string.chart_no_measurement_desc),
                                 "📊"
                             )
-                        } else {
-                            GrowthChartCanvas(
+
+                            else -> GrowthChartCanvas(
                                 records = allRecords,
                                 filter = chartFilter,
                                 accentStart = accentStart,
-                                accentEnd = accentEnd
+                                accentEnd = accentEnd,
+                                animProgress = animProgress
                             )
                         }
 
@@ -476,16 +500,31 @@ fun ChartsTabContent(
                         accentStart = accentStart,
                         accentEnd = accentEnd,
                         onViewAll = { onViewAllMeasurements(selectedBaby.babyId) },
-                        onAddMeasure = { onAddMeasurement(selectedBaby.babyId) }
-                    )
+                        onAddMeasure = { onAddMeasurement(selectedBaby.babyId) })
                 }
             }
         }
     }
 }
 
+@Composable
+private fun filterLabel(f: ChartFilter): String = when (f) {
+    ChartFilter.ALL -> stringResource(Res.string.chart_filter_all)
+    ChartFilter.WEIGHT -> stringResource(Res.string.chart_filter_weight)
+    ChartFilter.HEIGHT -> stringResource(Res.string.chart_filter_height)
+    ChartFilter.HEAD -> stringResource(Res.string.chart_filter_head)
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
-// GROWTH CHART CANVAS — landscapeHeight is now token-driven from call site
+// GROWTH CHART CANVAS
+//
+// FIX 1: Uses record.addedByTeam (which reads isTeamMeasurement first, then
+//         falls back to measuredByName) instead of measuredByName.isNullOrBlank().
+//         This is the core fix — parent records now correctly land in parentRecords.
+//
+// FIX 2: Per-metric team colors (distinct in ALL tab).
+//
+// FIX 3: Smooth draw-in animation via PathMeasure clipping.
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -494,27 +533,30 @@ private fun GrowthChartCanvas(
     filter: ChartFilter,
     accentStart: Color,
     accentEnd: Color,
+    animProgress: Float,
     landscapeHeight: Dp? = null
 ) {
     val dimensions = LocalDimensions.current
     val maxMonths = 24
 
-    val parentRecords = remember(records) { records.filter { it.measuredByName.isNullOrBlank() } }
-    val teamRecords = remember(records) { records.filter { !it.measuredByName.isNullOrBlank() } }
+    // ── FIX 1: Use addedByTeam instead of measuredByName.isNullOrBlank() ─────
+    // addedByTeam = isTeamMeasurement || !measuredByName.isNullOrBlank()
+    // When backend correctly sends isTeamMeasurement=false for parent records,
+    // parentRecords will contain all data added by the baby's own parent.
+    val parentRecords = remember(records) { records.filter { !it.addedByTeam } }
+    val teamRecords = remember(records) { records.filter { it.addedByTeam } }
 
     val whoRef = when (filter) {
-        ChartFilter.WEIGHT -> whoWeight; ChartFilter.HEIGHT -> whoHeight
-        ChartFilter.HEAD -> whoHead; ChartFilter.ALL -> whoWeight
+        ChartFilter.WEIGHT -> whoWeight
+        ChartFilter.HEIGHT -> whoHeight
+        ChartFilter.HEAD -> whoHead
+        ChartFilter.ALL -> whoWeight
     }
 
-    val showW = filter == ChartFilter.ALL || filter == ChartFilter.WEIGHT
-    val showH = filter == ChartFilter.ALL || filter == ChartFilter.HEIGHT
-    val showHC = filter == ChartFilter.ALL || filter == ChartFilter.HEAD
-
     val allValues = buildList {
-        if (showW) addAll(records.mapNotNull { it.weight?.toFloat() })
-        if (showH) addAll(records.mapNotNull { it.height?.toFloat() })
-        if (showHC) addAll(records.mapNotNull { it.headCircumference?.toFloat() })
+        if (filter == ChartFilter.ALL || filter == ChartFilter.WEIGHT) addAll(records.mapNotNull { it.weight?.toFloat() })
+        if (filter == ChartFilter.ALL || filter == ChartFilter.HEIGHT) addAll(records.mapNotNull { it.height?.toFloat() })
+        if (filter == ChartFilter.ALL || filter == ChartFilter.HEAD) addAll(records.mapNotNull { it.headCircumference?.toFloat() })
         addAll(whoRef.values.map { it.first.toFloat() })
         addAll(whoRef.values.map { it.third.toFloat() })
     }
@@ -532,13 +574,10 @@ private fun GrowthChartCanvas(
                 text = v.toInt().toString(),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(0.45f),
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .fillMaxWidth()
-                    .padding(
-                        top = (topFraction * (chartHeight.value * 0.85f)).dp,
-                        end = dimensions.spacingXSmall
-                    ),
+                modifier = Modifier.align(Alignment.TopStart).fillMaxWidth().padding(
+                    top = (topFraction * (chartHeight.value * 0.85f)).dp,
+                    end = dimensions.spacingXSmall
+                ),
                 textAlign = TextAlign.End
             )
         }
@@ -547,7 +586,7 @@ private fun GrowthChartCanvas(
             val w = size.width;
             val h = size.height
             val cL = 44f;
-            val cR = w - 8f;
+            val cR = w - 8f
             val cT = 8f;
             val cB = h - 28f
             val cW = cR - cL;
@@ -556,6 +595,7 @@ private fun GrowthChartCanvas(
             fun xOf(mo: Int) = cL + (mo.toFloat() / maxMonths) * cW
             fun yOf(v: Float) = cB - ((v - yMin) / (yMax - yMin)) * cH
 
+            // Grid lines
             val gc = Color.Gray.copy(0.1f)
             for (i in 0..5) {
                 val y = cT + cH / 5f * i; drawLine(gc, Offset(cL, y), Offset(cR, y), 1f)
@@ -568,7 +608,6 @@ private fun GrowthChartCanvas(
                     1f
                 )
             }
-
             val ac = Color.Gray.copy(0.3f)
             drawLine(ac, Offset(cL, cT), Offset(cL, cB), 1.5f)
             drawLine(ac, Offset(cL, cB), Offset(cR, cB), 1.5f)
@@ -577,6 +616,7 @@ private fun GrowthChartCanvas(
             val dataDash = PathEffect.dashPathEffect(floatArrayOf(10f, 5f))
             val whoSorted = whoRef.keys.sorted()
 
+            // WHO reference curves
             if (filter == ChartFilter.ALL) {
                 val path50 = Path()
                 whoSorted.forEachIndexed { i, mo ->
@@ -589,12 +629,11 @@ private fun GrowthChartCanvas(
                     style = Stroke(1f, pathEffect = stdDash)
                 )
             } else {
-                val curves: List<Pair<Color, (Triple<Double, Double, Double>) -> Float>> = listOf(
+                listOf(
                     WHO_97_COLOR to { t: Triple<Double, Double, Double> -> t.third.toFloat() },
                     WHO_50_COLOR to { t: Triple<Double, Double, Double> -> t.second.toFloat() },
                     WHO_3_COLOR to { t: Triple<Double, Double, Double> -> t.first.toFloat() }
-                )
-                curves.forEach { (col, get) ->
+                ).forEach { (col, get) ->
                     val path = Path()
                     whoSorted.forEachIndexed { i, mo ->
                         val v = get(whoRef[mo]!!)
@@ -604,13 +643,53 @@ private fun GrowthChartCanvas(
                 }
             }
 
-            fun drawDataLine(
+            // ── FIX 3: clip drawn path to animProgress fraction ───────────────
+            fun animatedPath(full: Path): Path {
+                if (animProgress >= 1f) return full
+                val pm = PathMeasure()
+                pm.setPath(full, false)
+                val total = pm.length
+                if (total == 0f) return full
+                val clipped = Path()
+                pm.getSegment(0f, total * animProgress.coerceIn(0f, 1f), clipped, true)
+                return clipped
+            }
+
+            fun buildPath(
+                recs: List<GrowthRecordResponse>,
+                get: (GrowthRecordResponse) -> Double?
+            ): Path {
+                val pts = recs.filter { get(it) != null }
+                    .sortedBy { it.ageInMonths }
+                    .map {
+                        Offset(
+                            xOf(it.ageInMonths.coerceIn(0, maxMonths)),
+                            yOf(get(it)!!.toFloat())
+                        )
+                    }
+                val path = Path()
+                if (pts.size >= 2) {
+                    path.moveTo(pts.first().x, pts.first().y); pts.drop(1)
+                        .forEach { path.lineTo(it.x, it.y) }
+                }
+                return path
+            }
+
+            // ── FIX 1 + 2: correct colors per source + per metric ─────────────
+            fun drawLine(
                 recs: List<GrowthRecordResponse>,
                 get: (GrowthRecordResponse) -> Double?,
                 color: Color,
-                dashed: Boolean = false,
+                dashed: Boolean,
                 stroke: Float = 2.5f
             ) {
+                val full = buildPath(recs, get)
+                if (!full.isEmpty) drawPath(
+                    animatedPath(full),
+                    color,
+                    style = Stroke(stroke, pathEffect = if (dashed) dataDash else null)
+                )
+
                 val pts = recs.filter { get(it) != null }.sortedBy { it.ageInMonths }
                     .map {
                         Offset(
@@ -618,71 +697,49 @@ private fun GrowthChartCanvas(
                             yOf(get(it)!!.toFloat())
                         )
                     }
-                if (pts.size >= 2) {
-                    val path = Path().apply {
-                        moveTo(pts.first().x, pts.first().y); pts.drop(1)
-                        .forEach { lineTo(it.x, it.y) }
-                    }
-                    drawPath(
-                        path,
-                        color,
-                        style = Stroke(stroke, pathEffect = if (dashed) dataDash else null)
-                    )
-                }
-                val dotRadius = if (dashed) 4f else 5f;
-                val innerRadius = if (dashed) 2.5f else 3f
-                pts.forEach {
-                    drawCircle(color, dotRadius, it); drawCircle(
-                    Color.White,
-                    innerRadius,
-                    it
-                )
-                }
+                val visible = (pts.size * animProgress.coerceIn(0f, 1f)).toInt()
+                    .coerceAtLeast(if (pts.isNotEmpty()) 1 else 0)
+                val dotR = if (dashed) 4f else 5f;
+                val innerR = if (dashed) 2.5f else 3f
+                pts.take(visible)
+                    .forEach { drawCircle(color, dotR, it); drawCircle(Color.White, innerR, it) }
             }
 
             when (filter) {
                 ChartFilter.ALL -> {
-                    drawDataLine(parentRecords, { it.weight }, accentStart)
-                    drawDataLine(parentRecords, { it.height }, accentEnd)
-                    drawDataLine(parentRecords, { it.headCircumference }, HEAD_COLOR)
-                    drawDataLine(teamRecords, { it.weight }, accentStart, dashed = true)
-                    drawDataLine(teamRecords, { it.height }, accentEnd, dashed = true)
-                    drawDataLine(teamRecords, { it.headCircumference }, HEAD_COLOR, dashed = true)
+                    // Parent — solid lines, gender-themed accent colors
+                    drawLine(parentRecords, { it.weight }, accentStart, dashed = false)
+                    drawLine(parentRecords, { it.height }, accentEnd, dashed = false)
+                    drawLine(parentRecords, { it.headCircumference }, HEAD_COLOR, dashed = false)
+                    // Team — dashed lines, fixed TEAM_* colors (distinct per metric)
+                    drawLine(teamRecords, { it.weight }, TEAM_WEIGHT_COLOR, dashed = true)
+                    drawLine(teamRecords, { it.height }, TEAM_HEIGHT_COLOR, dashed = true)
+                    drawLine(teamRecords, { it.headCircumference }, TEAM_HEAD_COLOR, dashed = true)
                 }
 
                 ChartFilter.WEIGHT -> {
-                    drawDataLine(parentRecords, { it.weight }, accentStart); drawDataLine(
-                        teamRecords,
-                        { it.weight },
-                        TEAM_COLOR
-                    )
+                    drawLine(parentRecords, { it.weight }, accentStart, dashed = false)
+                    drawLine(teamRecords, { it.weight }, TEAM_WEIGHT_COLOR, dashed = true)
                 }
 
                 ChartFilter.HEIGHT -> {
-                    drawDataLine(parentRecords, { it.height }, accentStart); drawDataLine(
-                        teamRecords,
-                        { it.height },
-                        TEAM_COLOR
-                    )
+                    drawLine(parentRecords, { it.height }, accentEnd, dashed = false)
+                    drawLine(teamRecords, { it.height }, TEAM_HEIGHT_COLOR, dashed = true)
                 }
 
                 ChartFilter.HEAD -> {
-                    drawDataLine(
-                        parentRecords,
-                        { it.headCircumference },
-                        accentStart
-                    ); drawDataLine(teamRecords, { it.headCircumference }, TEAM_COLOR)
+                    drawLine(parentRecords, { it.headCircumference }, HEAD_COLOR, dashed = false)
+                    drawLine(teamRecords, { it.headCircumference }, TEAM_HEAD_COLOR, dashed = true)
                 }
             }
         }
 
         Row(
-            modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth()
-                .padding(
-                    start = dimensions.iconLarge + dimensions.spacingXSmall,
-                    bottom = dimensions.spacingXSmall,
-                    end = dimensions.spacingXSmall + dimensions.spacingXSmall
-                ),
+            modifier = Modifier.align(Alignment.BottomStart).fillMaxWidth().padding(
+                start = dimensions.iconLarge + dimensions.spacingXSmall,
+                bottom = dimensions.spacingXSmall,
+                end = dimensions.spacingXSmall * 2
+            ),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             listOf("0", "4", "8", "12", "16", "20", "24").forEach { label ->
@@ -706,8 +763,7 @@ private fun GrowthChartCanvas(
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LEGEND
-// WAS: 0.8.sp letterSpacing → dimensions.chartLetterSpacing
-// WAS: inline "Parent" / "Team" prefixes → use stringResource already in Res
+// FIX 4: Exactly mirrors canvas colors in every tab and every theme.
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -718,7 +774,6 @@ private fun ChartLegend(
     accentEnd: Color
 ) {
     val dimensions = LocalDimensions.current
-
     val legendParentAdded = stringResource(Res.string.chart_legend_parent_added)
     val legendTeamAdded = stringResource(Res.string.chart_legend_team_added)
     val legendWhoRef = stringResource(Res.string.chart_legend_who_ref_weight)
@@ -730,13 +785,11 @@ private fun ChartLegend(
     val headCm = stringResource(Res.string.chart_legend_head_cm)
     val unitKg = stringResource(Res.string.add_baby_unit_kg)
     val unitCm = stringResource(Res.string.add_baby_unit_cm)
-    // CHANGED: inline "Parent" / "Team" → stringResource
     val parentPrefix = stringResource(Res.string.chart_legend_parent_prefix)
     val teamPrefix = stringResource(Res.string.chart_legend_team_prefix)
 
     Column(
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = Modifier.fillMaxWidth()
             .background(accentStart.copy(0.04f), RoundedCornerShape(dimensions.cardCornerRadius))
             .border(
                 dimensions.borderWidthThin,
@@ -755,16 +808,22 @@ private fun ChartLegend(
 
         when (filter) {
             ChartFilter.ALL -> {
+                // Parent Added — solid lines, gender-themed colors
                 LegendSectionHeader(legendParentAdded)
-                LegendRow(accentStart, weightKg, dashed = false, showDot = true)
-                LegendRow(accentEnd, heightCm, dashed = false, showDot = true)
-                LegendRow(HEAD_COLOR, headCm, dashed = false, showDot = true)
+                LegendRow(accentStart, weightKg, dashed = false, showDot = true)  // parent weight
+                LegendRow(accentEnd, heightCm, dashed = false, showDot = true)  // parent height
+                LegendRow(HEAD_COLOR, headCm, dashed = false, showDot = true)  // parent head
+
                 Spacer(Modifier.height(dimensions.spacingXSmall))
+
+                // Team Added — dashed, distinct TEAM_* colors
                 LegendSectionHeader(legendTeamAdded)
-                LegendRow(accentStart, weightKg, dashed = true, showDot = true)
-                LegendRow(accentEnd, heightCm, dashed = true, showDot = true)
-                LegendRow(HEAD_COLOR, headCm, dashed = true, showDot = true)
+                LegendRow(TEAM_WEIGHT_COLOR, weightKg, dashed = true, showDot = true)
+                LegendRow(TEAM_HEIGHT_COLOR, heightCm, dashed = true, showDot = true)
+                LegendRow(TEAM_HEAD_COLOR, headCm, dashed = true, showDot = true)
+
                 Spacer(Modifier.height(dimensions.spacingXSmall))
+
                 LegendSectionHeader(legendWhoRef)
                 LegendRow(
                     WHO_50_COLOR.copy(alpha = 0.5f),
@@ -775,27 +834,51 @@ private fun ChartLegend(
             }
 
             ChartFilter.WEIGHT, ChartFilter.HEIGHT, ChartFilter.HEAD -> {
-                val (metricLabel, metricUnit) = when (filter) {
-                    ChartFilter.WEIGHT -> stringResource(Res.string.chart_filter_weight) to unitKg
-                    ChartFilter.HEIGHT -> stringResource(Res.string.chart_filter_height) to unitCm
-                    ChartFilter.HEAD -> stringResource(Res.string.chart_filter_head) to unitCm
-                    else -> "" to ""
+                // Per-tab: parent color vs team color vs WHO bands
+                val parentColor: Color
+                val teamColor: Color
+                val metricLabel: String
+                val metricUnit: String
+                when (filter) {
+                    ChartFilter.WEIGHT -> {
+                        parentColor = accentStart; teamColor = TEAM_WEIGHT_COLOR; metricLabel =
+                            stringResource(Res.string.chart_filter_weight); metricUnit = unitKg
+                    }
+
+                    ChartFilter.HEIGHT -> {
+                        parentColor = accentEnd; teamColor = TEAM_HEIGHT_COLOR; metricLabel =
+                            stringResource(Res.string.chart_filter_height); metricUnit = unitCm
+                    }
+
+                    ChartFilter.HEAD -> {
+                        parentColor = HEAD_COLOR; teamColor = TEAM_HEAD_COLOR; metricLabel =
+                            stringResource(Res.string.chart_filter_head); metricUnit = unitCm
+                    }
+
+                    else -> {
+                        parentColor = accentStart; teamColor = TEAM_WEIGHT_COLOR; metricLabel =
+                            ""; metricUnit = unitKg
+                    }
                 }
+
                 LegendSectionHeader(legendBabyMeasure)
-                // CHANGED: "Parent" / "Team" inline → parentPrefix / teamPrefix tokens
+                // Parent row — solid, gender-themed color
                 LegendRow(
-                    accentStart,
+                    parentColor,
                     "👪  $parentPrefix — $metricLabel ($metricUnit)",
                     dashed = false,
                     showDot = true
                 )
+                // Team row — dashed, TEAM_* color
                 LegendRow(
-                    TEAM_COLOR,
+                    teamColor,
                     "🏥  $teamPrefix — $metricLabel ($metricUnit)",
-                    dashed = false,
+                    dashed = true,
                     showDot = true
                 )
+
                 Spacer(Modifier.height(dimensions.spacingXSmall))
+
                 LegendSectionHeader(legendWhoStandards)
                 LegendRow(
                     WHO_97_COLOR,
@@ -822,13 +905,11 @@ private fun ChartLegend(
 
 @Composable
 private fun LegendSectionHeader(text: String) {
-    val dimensions = LocalDimensions.current
     Text(
-        text, style = MaterialTheme.typography.labelSmall,
+        text,
+        style = MaterialTheme.typography.labelSmall,
         fontWeight = FontWeight.Bold,
         color = MaterialTheme.colorScheme.onSurface.copy(0.6f),
-        // WAS: letterSpacing = 0.3.sp → dimensions.chartLetterSpacing is 0.8sp for title
-        // but legend section header uses 0.3sp — introduce a smaller constant
         letterSpacing = 0.3.sp
     )
 }
@@ -863,19 +944,16 @@ private fun LegendRow(color: Color, label: String, dashed: Boolean, showDot: Boo
             color = MaterialTheme.colorScheme.onSurface.copy(0.75f),
             modifier = Modifier.weight(1f)
         )
-        if (showDot) {
-            Box(
-                Modifier.size(dimensions.spacingSmall + dimensions.spacingXSmall)
-                    .background(color, CircleShape)
-            )
-        }
+        if (showDot) Box(
+            Modifier.size(dimensions.spacingSmall + dimensions.spacingXSmall)
+                .background(color, CircleShape)
+        )
     }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LATEST MEASUREMENT CARD
-// WAS: 0.8.sp letterSpacing → dimensions.chartLetterSpacing
-// WAS: 0.5.dp divider → dimensions.chartDividerThickness
+// FIX: badge uses addedByTeam + TEAM_WEIGHT_COLOR for team badge
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -887,8 +965,6 @@ private fun LatestMeasurementCard(
     onAddMeasure: () -> Unit
 ) {
     val dimensions = LocalDimensions.current
-    val customColors = MaterialTheme.customColors
-
     val unitKg = stringResource(Res.string.add_baby_unit_kg)
     val unitCm = stringResource(Res.string.add_baby_unit_cm)
     val percentileSuffix = stringResource(Res.string.chart_percentile_suffix)
@@ -918,7 +994,6 @@ private fun LatestMeasurementCard(
                     style = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.Bold,
                     color = accentStart,
-                    // WAS: letterSpacing = 0.8.sp → dimensions.chartLetterSpacing
                     letterSpacing = dimensions.chartLetterSpacing
                 )
                 if (latestGrowth != null) {
@@ -970,22 +1045,21 @@ private fun LatestMeasurementCard(
                 }
             } else {
                 Column(verticalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)) {
-                    val measurer = latestGrowth.measuredByName
-                    if (!measurer.isNullOrBlank()) {
+                    // FIX: use addedByTeam instead of measuredByName check
+                    if (latestGrowth.addedByTeam) {
+                        val measurer = latestGrowth.measuredByName ?: "Team"
                         Row(
                             modifier = Modifier.background(
-                                TEAM_COLOR.copy(0.12f),
+                                TEAM_WEIGHT_COLOR.copy(0.12f),
                                 RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
-                            )
-                                .border(
-                                    dimensions.borderWidthThin,
-                                    TEAM_COLOR.copy(0.25f),
-                                    RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
-                                )
-                                .padding(
-                                    horizontal = dimensions.spacingXSmall * 2,
-                                    vertical = dimensions.spacingXSmall / 2
-                                ),
+                            ).border(
+                                dimensions.borderWidthThin,
+                                TEAM_WEIGHT_COLOR.copy(0.25f),
+                                RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
+                            ).padding(
+                                horizontal = dimensions.spacingXSmall * 2,
+                                vertical = dimensions.spacingXSmall / 2
+                            ),
                             horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
@@ -993,7 +1067,7 @@ private fun LatestMeasurementCard(
                             Text(
                                 measurer,
                                 style = MaterialTheme.typography.labelSmall,
-                                color = TEAM_COLOR,
+                                color = TEAM_WEIGHT_COLOR,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -1003,21 +1077,18 @@ private fun LatestMeasurementCard(
                             modifier = Modifier.background(
                                 accentStart.copy(0.10f),
                                 RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
-                            )
-                                .border(
-                                    dimensions.borderWidthThin,
-                                    accentStart.copy(0.25f),
-                                    RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
-                                )
-                                .padding(
-                                    horizontal = dimensions.spacingXSmall * 2,
-                                    vertical = dimensions.spacingXSmall / 2
-                                ),
+                            ).border(
+                                dimensions.borderWidthThin,
+                                accentStart.copy(0.25f),
+                                RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
+                            ).padding(
+                                horizontal = dimensions.spacingXSmall * 2,
+                                vertical = dimensions.spacingXSmall / 2
+                            ),
                             horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text("👪", style = MaterialTheme.typography.labelSmall)
-                            // CHANGED: inline "Parent" → parentPrefix token
                             Text(
                                 parentPrefix,
                                 style = MaterialTheme.typography.labelSmall,
@@ -1108,8 +1179,8 @@ private fun MeasureRow(icon: String, text: String) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MEASUREMENT HISTORY LIST
-// WAS: 0.5.dp divider (in MeasurementCard dividers) → dimensions.chartDividerThickness
+// MEASUREMENT HISTORY LIST + CARD
+// FIX: uses addedByTeam + correct TEAM_WEIGHT_COLOR for team badge
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -1179,7 +1250,6 @@ private fun MeasurementCard(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(dimensions.cardCornerRadius),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        // WAS: dimensions.spacingXSmall / 2 → dimensions.chartDividerThickness
         elevation = CardDefaults.cardElevation(dimensions.chartDividerThickness)
     ) {
         Row(
@@ -1192,13 +1262,11 @@ private fun MeasurementCard(
                     .background(
                         accentStart.copy(0.12f),
                         RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
-                    )
-                    .border(
-                        dimensions.borderWidthThin,
-                        accentStart.copy(0.3f),
-                        RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
-                    ),
-                contentAlignment = Alignment.Center
+                    ).border(
+                    dimensions.borderWidthThin,
+                    accentStart.copy(0.3f),
+                    RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
+                ), contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
@@ -1219,17 +1287,17 @@ private fun MeasurementCard(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall - dimensions.borderWidthThin)
             ) {
-                val measurer = record.measuredByName
-                if (!measurer.isNullOrBlank()) {
+                // FIX: use addedByTeam
+                if (record.addedByTeam) {
+                    val measurer = record.measuredByName ?: "Team"
                     Row(
                         modifier = Modifier.background(
-                            TEAM_COLOR.copy(0.12f),
+                            TEAM_WEIGHT_COLOR.copy(0.12f),
                             RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
-                        )
-                            .padding(
-                                horizontal = dimensions.spacingXSmall * 2,
-                                vertical = dimensions.spacingXSmall / 2
-                            ),
+                        ).padding(
+                            horizontal = dimensions.spacingXSmall * 2,
+                            vertical = dimensions.spacingXSmall / 2
+                        ),
                         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -1237,7 +1305,7 @@ private fun MeasurementCard(
                         Text(
                             measurer,
                             style = MaterialTheme.typography.labelSmall,
-                            color = TEAM_COLOR,
+                            color = TEAM_WEIGHT_COLOR,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
                         )
@@ -1247,18 +1315,15 @@ private fun MeasurementCard(
                         modifier = Modifier.background(
                             accentStart.copy(0.10f),
                             RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
+                        ).border(
+                            dimensions.borderWidthThin,
+                            accentStart.copy(0.25f),
+                            RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
+                        ).padding(
+                            horizontal = dimensions.spacingXSmall * 2,
+                            vertical = dimensions.spacingXSmall / 2
                         )
-                            .border(
-                                dimensions.borderWidthThin,
-                                accentStart.copy(0.25f),
-                                RoundedCornerShape(dimensions.buttonCornerRadius - dimensions.spacingXSmall)
-                            )
-                            .padding(
-                                horizontal = dimensions.spacingXSmall * 2,
-                                vertical = dimensions.spacingXSmall / 2
-                            )
                     ) {
-                        // CHANGED: "Parent" inline → parentPrefix token
                         Text(
                             "👪 $parentPrefix",
                             style = MaterialTheme.typography.labelSmall,
@@ -1302,8 +1367,7 @@ private fun EmptyChartBox(accentStart: Color, title: String, subtitle: String, e
                 dimensions.borderWidthThin,
                 accentStart.copy(0.15f),
                 RoundedCornerShape(dimensions.cardCornerRadius)
-            ),
-        contentAlignment = Alignment.Center
+            ), contentAlignment = Alignment.Center
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -1428,5 +1492,4 @@ private fun formatChartDate(dateStr: String, monthNames: List<String>): String {
     return "${monthNames.getOrElse(m) { parts[1] }} ${parts[2]}, ${parts[0]}"
 }
 
-private fun monthAbbrev(m: Int, monthNames: List<String>): String =
-    monthNames.getOrElse(m) { "--" }
+private fun monthAbbrev(m: Int, monthNames: List<String>): String = monthNames.getOrElse(m) { "--" }

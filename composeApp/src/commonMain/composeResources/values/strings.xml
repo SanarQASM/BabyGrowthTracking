@@ -959,5 +959,177 @@ Last updated: 2025.</string>
     <string name="relative_time_hours">%1$dh ago</string>
     <string name="relative_time_days">%1$dd ago</string>
 
-    
+    __________________________________________________________________________________-
+    <string name="phone_error_required">Phone number is required</string>
+    <string name="phone_error_local_11_digits">Iraqi phone starting with 0 must be 11 digits (e.g. 07501234567)</string>
+    <string name="phone_error_intl_13_digits">Iraqi phone starting with 964 must be 13 digits (e.g. 9647501234567)</string>
+    <string name="phone_error_invalid_prefix">Phone must start with 0 or 964</string>
+    <string name="phone_error_invalid_operator">Not a recognised Iraqi operator (Zain: 078x, Asiacell: 077x, Korek: 075x)</string>
+    <string name="phone_error_invalid_format">Enter a valid Iraqi mobile number (e.g. 07507669716 or 9647507669716)</string>
+    <string name="signup_error_full_name_required">Please enter your full name</string>
+    <string name="signup_error_email_required">Please enter your email</string>
+    <string name="signup_error_email_invalid">Please enter a valid email address</string>
+    <string name="signup_error_password_required">Please enter a password</string>
+    <string name="signup_error_password_too_short">Password must be at least 6 characters</string>
+    <string name="signup_error_confirm_required">Please confirm your password</string>
+    <string name="signup_error_passwords_no_match">Passwords do not match</string>
+
+    <string name="a11y_scroll_to_field">Scroll to show input field</string>
+
+    <!-- Reschedule breakdown in banner -->
+    <string name="schedule_reschedule_breakdown">✅ %1$d can reschedule  •  ❌ %2$d too late (past %3$dmo window)</string>
+
+    <!-- Cannot reschedule banner -->
+    <string name="schedule_cannot_reschedule_title">%1$d vaccination(s) cannot be rescheduled</string>
+    <string name="schedule_cannot_reschedule_body">These vaccinations are more than %1$d months overdue and cannot be automatically rescheduled. Please consult a doctor about whether they can still be administered.</string>
+    <string name="schedule_upcoming_unaffected">💉 Upcoming vaccinations are unaffected and continue normally.</string>
+
+    <!-- Vaccination card -->
+    <string name="schedule_was_due_prefix">Was due: %1$s</string>
+    <string name="schedule_past_window_hint">Past %1$dmo window — consult doctor</string>
+
+    <!-- Detail screen -->
+    <string name="vax_detail_was_due">Was due</string>
+    <string name="schedule_cannot_reschedule_title_short">Cannot Reschedule</string>
+    <string name="schedule_cannot_reschedule_detail">This vaccination is more than %1$d months past its ideal date. Please consult a doctor.</string>
+
+    <!-- ── SignupScreen strings ───────────────────────────────────────── -->
+    <string name="signup_otp_title">Verify Your Email</string>
+    <string name="signup_otp_enter_code">Enter Verification Code</string>
+    <!-- %1$s = masked email address e.g. j***@gmail.com -->
+    <string name="signup_otp_sent_to">A 6-digit code was sent to %1$s</string>
+    <string name="signup_otp_verify_button">Verify &amp; Create Account</string>
+
+
+    <!-- ═══════════════════════════════════════════════════════════════════════
+     ADMIN PANEL STRINGS — add these inside <resources>…</resources>
+     in composeApp/src/commonMain/composeResources/values/strings.xml
+     ═══════════════════════════════════════════════════════════════════════ -->
+
+    <!-- ── Admin Shell ─────────────────────────────────────────────────────── -->
+    <string name="admin_panel_title">Admin Panel</string>
+    <string name="admin_panel_subtitle">Secure administrator access</string>
+    <string name="admin_sign_in">Sign in to continue</string>
+    <string name="admin_sign_in_button">Sign In as Admin</string>
+    <string name="admin_back_to_login">← Back to regular login</string>
+    <string name="admin_access_denied">Access denied. This portal is for administrators only.</string>
+    <string name="admin_role_label">Administrator</string>
+    <string name="admin_shield_emoji">🛡️</string>
+
+    <!-- ── Admin Login ──────────────────────────────────────────────────────── -->
+    <string name="admin_email_label">Email</string>
+    <string name="admin_password_label">Password</string>
+    <string name="admin_password_show">Show password</string>
+    <string name="admin_password_hide">Hide password</string>
+    <string name="admin_login_email_error">Please enter your email address</string>
+    <string name="admin_login_email_invalid">Please enter a valid email address</string>
+    <string name="admin_login_password_error">Please enter your password (min 6 characters)</string>
+
+    <!-- ── Admin Navigation Tabs ───────────────────────────────────────────── -->
+    <string name="admin_tab_dashboard">Dashboard</string>
+    <string name="admin_tab_users">Users</string>
+    <string name="admin_tab_babies">Babies</string>
+    <string name="admin_tab_vaccinations">Vaccinations</string>
+    <string name="admin_tab_settings">Settings</string>
+
+    <!-- ── Admin Dashboard ─────────────────────────────────────────────────── -->
+    <string name="admin_dashboard_overview">Overview</string>
+    <string name="admin_dashboard_quick_summary">Quick Summary</string>
+    <string name="admin_stat_total_users">Total Users</string>
+    <string name="admin_stat_total_babies">Total Babies</string>
+    <string name="admin_stat_parents">Parents</string>
+    <string name="admin_stat_verified">Verified</string>
+    <string name="admin_stat_active_babies">Active Babies</string>
+    <string name="admin_stat_archived_babies">Archived</string>
+    <string name="admin_stat_total_admins">Admins</string>
+    <string name="admin_stat_today_appointments">Today's Appointments</string>
+    <string name="admin_stat_overdue_vaccinations">Overdue Vaccines</string>
+    <string name="admin_stat_pending_schedules">Pending Schedules</string>
+    <string name="admin_summary_total_users">Total registered users</string>
+    <string name="admin_summary_parents">Parent accounts</string>
+    <string name="admin_summary_total_babies">Total baby profiles</string>
+    <string name="admin_summary_active_babies">Active baby profiles</string>
+    <string name="admin_summary_archived_babies">Archived baby profiles</string>
+
+    <!-- ── Admin User Management ───────────────────────────────────────────── -->
+    <string name="admin_users_title">Users</string>
+    <string name="admin_users_search_hint">Search users…</string>
+    <string name="admin_users_count">%1$d user(s)</string>
+    <string name="admin_user_tab_all">All</string>
+    <string name="admin_user_tab_parents">Parents</string>
+    <string name="admin_user_tab_admins">Admins</string>
+    <string name="admin_user_verified_badge">Verified</string>
+    <string name="admin_user_unverified_badge">Unverified</string>
+    <string name="admin_user_no_results">No users found</string>
+    <string name="admin_user_delete_title">Delete User</string>
+    <string name="admin_user_delete_message">Permanently delete %1$s? This cannot be undone.</string>
+    <string name="admin_user_deleted_success">User deleted successfully</string>
+    <string name="admin_user_role_parent">Parent</string>
+    <string name="admin_user_role_admin">Admin</string>
+    <string name="admin_user_joined">Joined: %1$s</string>
+    <string name="admin_user_phone_label">Phone: %1$s</string>
+    <string name="admin_user_city_label">City: %1$s</string>
+
+    <!-- ── Admin Baby Management ───────────────────────────────────────────── -->
+    <string name="admin_babies_title">Babies</string>
+    <string name="admin_babies_search_hint">Search babies…</string>
+    <string name="admin_babies_count">%1$d profile(s)</string>
+    <string name="admin_baby_tab_all">All</string>
+    <string name="admin_baby_tab_active">Active</string>
+    <string name="admin_baby_tab_archived">Archived</string>
+    <string name="admin_baby_no_results">No baby profiles found</string>
+    <string name="admin_baby_delete_title">Delete Baby</string>
+    <string name="admin_baby_delete_message">Permanently delete %1$s's profile? This cannot be undone.</string>
+    <string name="admin_baby_deleted_success">Baby deleted successfully</string>
+    <string name="admin_baby_parent_label">Parent: %1$s</string>
+    <string name="admin_baby_age_label">%1$d months old</string>
+    <string name="admin_baby_status_active">Active</string>
+    <string name="admin_baby_status_archived">Archived</string>
+    <string name="admin_baby_gender_boy">Boy</string>
+    <string name="admin_baby_gender_girl">Girl</string>
+    <string name="admin_baby_dob_label">DOB: %1$s</string>
+
+    <!-- ── Admin Vaccination Management ────────────────────────────────────── -->
+    <string name="admin_vax_title">Vaccinations</string>
+    <string name="admin_vax_tab_all">All</string>
+    <string name="admin_vax_tab_overdue">Overdue</string>
+    <string name="admin_vax_tab_upcoming">Upcoming</string>
+    <string name="admin_vax_tab_completed">Completed</string>
+    <string name="admin_vax_search_hint">Search vaccinations…</string>
+    <string name="admin_vax_count">%1$d record(s)</string>
+    <string name="admin_vax_no_results">No vaccination records found</string>
+    <string name="admin_vax_baby_label">Baby: %1$s</string>
+    <string name="admin_vax_dose_label">Dose %1$d</string>
+    <string name="admin_vax_scheduled_label">Scheduled: %1$s</string>
+    <string name="admin_vax_bench_label">Center: %1$s</string>
+    <string name="admin_vax_overdue_count">%1$d overdue vaccination(s)</string>
+    <string name="admin_vax_status_upcoming">Upcoming</string>
+    <string name="admin_vax_status_completed">Completed</string>
+    <string name="admin_vax_status_overdue">Overdue</string>
+    <string name="admin_vax_status_missed">Missed</string>
+    <string name="admin_vax_status_due_soon">Due Soon</string>
+
+    <!-- ── Admin Settings Tab ───────────────────────────────────────────────── -->
+    <string name="admin_settings_profile_card_title">Admin Profile</string>
+    <string name="admin_settings_role_label">Role</string>
+    <string name="admin_settings_email_label">Email</string>
+    <string name="admin_settings_logout_title">Log Out</string>
+    <string name="admin_settings_logout_message">Are you sure you want to log out of the admin panel?</string>
+    <string name="admin_settings_logout_confirm">Log Out</string>
+    <string name="admin_settings_app_version">App Version</string>
+    <string name="admin_settings_about_title">About</string>
+
+    <!-- ── Admin Common Actions ─────────────────────────────────────────────── -->
+    <string name="admin_action_delete">Delete</string>
+    <string name="admin_action_refresh">Refresh</string>
+    <string name="admin_action_logout">Log Out</string>
+    <string name="admin_confirm_cancel">Cancel</string>
+    <string name="admin_loading_data">Loading admin data…</string>
+    <string name="admin_error_generic">Something went wrong. Please try again.</string>
+    <string name="admin_refresh_cd">Refresh data</string>
+    <string name="admin_logout_cd">Log out</string>
+    <string name="admin_delete_cd">Delete record</string>
+    <string name="admin_search_clear_cd">Clear search</string>
+
+
 </resources>

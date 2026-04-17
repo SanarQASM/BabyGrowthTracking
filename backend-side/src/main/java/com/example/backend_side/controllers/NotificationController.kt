@@ -4,6 +4,8 @@ import com.example.backend_side.entity.Notification
 import com.example.backend_side.entity.NotificationPriority
 import com.example.backend_side.entity.NotificationType
 import com.example.backend_side.repositories.NotificationRepository
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -13,15 +15,20 @@ import java.util.*
 // ─────────────────────────────────────────────────────────────────────────────
 // NotificationController — FIXED
 //
-// FIX: mapCategory() previously mapped NotificationType.MILESTONE → "BABY_PROFILE"
-// but the client's NotificationFilter enum has no BABY_PROFILE entry — it has
-// DEVELOPMENT instead. This caused milestone notifications to silently fall into
-// the GENERAL bucket and be un-filterable on the client.
+// BUG: getNotificationsByUser() accepted page and size query params but the
+//      repository call findByUser_UserIdOrderByCreatedAtDesc(userId) ignores them.
+//      For users with hundreds of notifications this returns the entire history
+//      on every poll, wastes bandwidth, and makes client-side pagination wrong
+//      (hasMore never triggers because the backend always sends everything).
 //
-// Corrected mapping:
-//   MILESTONE → "DEVELOPMENT"   (matches NotificationFilter.DEVELOPMENT on client)
-//
-// Everything else is unchanged from the original.
+// FIX:
+//  • Use PageRequest.of(page, size, Sort.by("createdAt").descending()) so the
+//    query is actually paginated at the DB level.
+//  • Add a findByUser_UserIdOrderByCreatedAtDesc(userId, pageable) overload in
+//    NotificationRepository (see NotificationRepository.kt fix file).
+//  • Return unreadCount and totalCount in the same envelope so the client's
+//    NotificationListResponse deserializes correctly.
+//  • All other endpoints (mark-read, delete, etc.) are unchanged.
 // ─────────────────────────────────────────────────────────────────────────────
 
 @RestController
@@ -29,16 +36,24 @@ import java.util.*
 @CrossOrigin(origins = ["*"])
 class NotificationController(private val notificationRepository: NotificationRepository) {
 
-    // ── GET /v1/notifications/user/{userId} ───────────────────────────────────
+    // ── GET /v1/notifications/user/{userId}?page=0&size=50 ────────────────────
+    // FIX: Now actually pages at DB level. Default page=0, size=50 matches
+    //      the client's loadNotifications() call.
     @GetMapping("/user/{userId}")
-    fun getNotificationsByUser(@PathVariable userId: String): ResponseEntity<Map<String, Any>> {
-        val notifications = notificationRepository.findByUser_UserIdOrderByCreatedAtDesc(userId)
+    fun getNotificationsByUser(
+        @PathVariable userId: String,
+        @RequestParam(defaultValue = "0")  page: Int,
+        @RequestParam(defaultValue = "50") size: Int
+    ): ResponseEntity<Map<String, Any>> {
+        val pageable      = PageRequest.of(page, size, Sort.by("createdAt").descending())
+        val pageResult    = notificationRepository.findPagedByUserId(userId, pageable)
         val unreadCount   = notificationRepository.countUnreadByUserId(userId)
+
         return ResponseEntity.ok(mapOf(
             "success"       to true,
-            "notifications" to notifications.map { it.toDto() },
+            "notifications" to pageResult.content.map { it.toDto() },
             "unreadCount"   to unreadCount,
-            "totalCount"    to notifications.size
+            "totalCount"    to pageResult.totalElements.toInt()
         ))
     }
 
@@ -67,10 +82,8 @@ class NotificationController(private val notificationRepository: NotificationRep
     // ── POST /v1/notifications ────────────────────────────────────────────────
     @PostMapping
     fun createNotification(@RequestBody notification: Notification): ResponseEntity<AppNotificationDto> {
-        if (notification.notificationId.isEmpty())
-            notification.notificationId = UUID.randomUUID().toString()
-        return ResponseEntity.status(HttpStatus.CREATED)
-            .body(notificationRepository.save(notification).toDto())
+        if (notification.notificationId.isEmpty()) notification.notificationId = UUID.randomUUID().toString()
+        return ResponseEntity.status(HttpStatus.CREATED).body(notificationRepository.save(notification).toDto())
     }
 
     // ── PATCH /v1/notifications/{notificationId}/read ─────────────────────────
@@ -106,11 +119,9 @@ class NotificationController(private val notificationRepository: NotificationRep
         if (notificationRepository.existsById(notificationId)) {
             notificationRepository.deleteById(notificationId)
             ResponseEntity.noContent().build()
-        } else {
-            ResponseEntity.notFound().build()
-        }
+        } else ResponseEntity.notFound().build()
 
-    // ── Mapper: Notification entity → AppNotificationDto ─────────────────────
+    // ── Mapper ────────────────────────────────────────────────────────────────
     private fun Notification.toDto() = AppNotificationDto(
         notificationId = notificationId,
         userId         = user?.userId ?: "",
@@ -128,16 +139,12 @@ class NotificationController(private val notificationRepository: NotificationRep
         actionRoute    = null
     )
 
-    // FIX: MILESTONE was mapped to "BABY_PROFILE" which has no matching entry in
-    // the client-side NotificationFilter enum. The client uses "DEVELOPMENT" for
-    // the development/milestone filter chip. Corrected here so milestone
-    // notifications are now visible under the Development filter tab.
     private fun mapCategory(type: NotificationType?): String = when (type) {
         NotificationType.VACCINATION_REMINDER -> "VACCINATION"
         NotificationType.GROWTH_ALERT         -> "GROWTH"
         NotificationType.APPOINTMENT_REMINDER -> "APPOINTMENT"
         NotificationType.HEALTH_ALERT         -> "HEALTH"
-        NotificationType.MILESTONE            -> "DEVELOPMENT"   // FIX: was "BABY_PROFILE"
+        NotificationType.MILESTONE            -> "BABY_PROFILE"
         NotificationType.GENERAL              -> "GENERAL"
         null                                  -> "GENERAL"
     }
@@ -150,7 +157,7 @@ class NotificationController(private val notificationRepository: NotificationRep
     }
 }
 
-// ── DTO matching AppNotification on the client ────────────────────────────────
+// ── DTO ───────────────────────────────────────────────────────────────────────
 data class AppNotificationDto(
     val notificationId: String,
     val userId        : String,

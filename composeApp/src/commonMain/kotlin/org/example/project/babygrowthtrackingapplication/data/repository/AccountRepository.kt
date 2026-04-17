@@ -1,9 +1,11 @@
 // File: composeApp/src/commonMain/kotlin/org/example/project/babygrowthtrackingapplication/data/repository/AccountRepository.kt
-// UPDATED: saveUserSession() now also saves the user's role to preferences.
-//          This enables Navigation.kt to route admin users to AdminHomeScreen.
 //
-// DIFF from original — only saveUserSession() is updated:
-//   Added: preferencesManager.putString("user_role", user.role)
+// CHANGELOG:
+//  v2 — Added 3-step signup flow to support SignupViewModel:
+//       preRegister(), verifySignupCode(), resendSignupCode(), completeRegistration()
+//       The original register() is kept for backward compatibility but is no longer
+//       the primary signup path.
+//  v1 — saveUserSession() saves user_role for admin routing in Navigation.kt
 
 package org.example.project.babygrowthtrackingapplication.data.repository
 
@@ -15,12 +17,124 @@ class AccountRepository(
     private val preferencesManager : PreferencesManager
 ) {
 
-    // ─── Register ─────────────────────────────────────────────────────────────
+    // ─── 3-Step Signup Flow ───────────────────────────────────────────────────
 
+    /**
+     * STEP 1 — Pre-register.
+     * Sends an OTP to [email]. No database row is created yet.
+     * On success, the backend stores registration data in RAM until step 3.
+     */
+    suspend fun preRegister(
+        fullName: String,
+        email   : String,
+        password: String,
+        phone   : String? = null,
+        city    : String? = null,
+        address : String? = null
+    ): ApiResult<Unit> {
+        if (!validateRegistration(fullName, email, password))
+            return ApiResult.Error("Please fill all required fields correctly")
+
+        return try {
+            val result = apiService.preRegister(
+                PreRegisterRequest(fullName, email, password, phone, city, address)
+            )
+            when (result) {
+                is ApiResult.Success -> {
+                    preferencesManager.putString("pending_signup_email", email)
+                    ApiResult.Success(Unit)   // ← caller only needs Unit
+                }
+                is ApiResult.Error   -> ApiResult.Error(result.message)
+                is ApiResult.Loading -> ApiResult.Loading
+            }
+        } catch (e: Exception) {
+            ApiResult.Error("Failed to initiate registration: ${e.message}")
+        }
+    }
+
+    /**
+     * STEP 2 — Verify the OTP the user entered.
+     * Still no database row. Returns success if the code is valid.
+     */
+    suspend fun verifySignupCode(
+        email: String,
+        code : String
+    ): ApiResult<Unit> {
+        if (email.isBlank()) return ApiResult.Error("Email is required")
+        if (code.length != 6) return ApiResult.Error("Please enter the complete 6-digit code")
+
+        return try {
+            val result = apiService.verifySignupCode(VerifySignupCodeRequest(email, code))
+            when (result) {
+                is ApiResult.Success -> ApiResult.Success(Unit)
+                is ApiResult.Error   -> ApiResult.Error(result.message)
+                is ApiResult.Loading -> ApiResult.Loading
+            }
+        } catch (e: Exception) {
+            ApiResult.Error("Failed to verify code: ${e.message}")
+        }
+    }
+
+    /**
+     * STEP 3 — Complete registration.
+     * Only called after OTP verification succeeds.
+     * This is the call that creates the user row in the database (isActive = true).
+     * Also persists the session so the user is immediately logged in.
+     */
+    suspend fun completeRegistration(email: String): ApiResult<UserResponse> {
+        if (email.isBlank()) return ApiResult.Error("Email is required")
+
+        return try {
+            val result = apiService.completeRegistration(CompleteRegistrationRequest(email))
+            if (result is ApiResult.Success) {
+                saveToken(result.data.token)
+                preferencesManager.putString("auth_provider", "email")
+                preferencesManager.putBoolean("account_verified", true)
+                preferencesManager.remove("pending_signup_email")
+                saveUserSession(result.data.user, rememberMe = false, needsVerification = false)
+            }
+            when (result) {
+                is ApiResult.Success -> ApiResult.Success(result.data.user)
+                is ApiResult.Error   -> ApiResult.Error(result.message)
+                is ApiResult.Loading -> ApiResult.Loading
+            }
+        } catch (e: Exception) {
+            ApiResult.Error("Failed to complete registration: ${e.message}")
+        }
+    }
+
+    /**
+     * Resend signup OTP — can be called from the OTP screen if the timer expires.
+     */
+    suspend fun resendSignupCode(email: String): ApiResult<Unit> {
+        if (email.isBlank()) return ApiResult.Error("Email is required")
+
+        return try {
+            val result = apiService.resendSignupCode(ResendSignupCodeRequest(email))
+            when (result) {
+                is ApiResult.Success -> ApiResult.Success(Unit)
+                is ApiResult.Error   -> ApiResult.Error(result.message)
+                is ApiResult.Loading -> ApiResult.Loading
+            }
+        } catch (e: Exception) {
+            ApiResult.Error("Failed to resend code: ${e.message}")
+        }
+    }
+
+    // ─── Legacy Register (kept for backward compatibility) ────────────────────
+
+    /**
+     * Original single-step register. No longer the primary signup path.
+     * Use preRegister() → verifySignupCode() → completeRegistration() instead.
+     */
     suspend fun register(
-        fullName: String, email: String, password: String,
-        phone: String? = null, city: String? = null,
-        address: String? = null, profileImageUrl: String? = null
+        fullName       : String,
+        email          : String,
+        password       : String,
+        phone          : String? = null,
+        city           : String? = null,
+        address        : String? = null,
+        profileImageUrl: String? = null
     ): ApiResult<UserResponse> {
         if (!validateRegistration(fullName, email, password))
             return ApiResult.Error("Please fill all required fields correctly")
@@ -104,7 +218,7 @@ class AccountRepository(
         }
     }
 
-    // ─── Account Verification ─────────────────────────────────────────────────
+    // ─── Account Verification (post-legacy-register) ──────────────────────────
 
     suspend fun sendVerificationCode(
         recipient: String,
@@ -176,8 +290,8 @@ class AccountRepository(
     }
 
     /**
-     * UPDATED: Now also saves user.role to preferences so Navigation.kt can
-     * route admin users to AdminHomeScreen on next launch / login.
+     * Persists user data to preferences after any successful login or registration.
+     * Also saves user.role so Navigation.kt can route admins to AdminHomeScreen.
      */
     private fun saveUserSession(
         user             : UserResponse,
@@ -193,8 +307,7 @@ class AccountRepository(
         user.phone?.let           { preferencesManager.saveUserPhone(it) }
         user.profileImageUrl?.let { preferencesManager.putString("user_profile_image", it) }
 
-        // ── UPDATED: Save role for admin routing ────────────────────────────
-        // user.role is the String role name from the backend (e.g. "parent", "admin")
+        // Save role for admin routing in Navigation.kt
         preferencesManager.putString("user_role", user.role.uppercase())
     }
 
@@ -219,6 +332,7 @@ class AccountRepository(
     fun getSavedEmail()              = preferencesManager.getString("saved_email")
     fun getAuthProvider()            = preferencesManager.getString("auth_provider")
     fun getAuthToken()               = preferencesManager.getAuthToken()
+    fun getPendingSignupEmail()      = preferencesManager.getString("pending_signup_email")
 
     fun getSavedEmailOrPhone()  = preferencesManager.getSavedEmailOrPhone()
     fun getSavedPassword()      = preferencesManager.getSavedPassword()
@@ -226,7 +340,6 @@ class AccountRepository(
 
     fun isEmailLogin() = preferencesManager.getString("auth_provider") == "email"
 
-    // ── NEW: check if currently logged in as admin ─────────────────────────────
     fun isAdminUser(): Boolean {
         val role = preferencesManager.getString("user_role", "")
         return role.equals("ADMIN", ignoreCase = true)
@@ -238,7 +351,8 @@ class AccountRepository(
         preferencesManager.putBoolean("account_verified", false)
         preferencesManager.clearAuthToken()
         preferencesManager.remove("auth_provider")
-        preferencesManager.remove("user_role")  // ← UPDATED: clear role on logout
+        preferencesManager.remove("user_role")
+        preferencesManager.remove("pending_signup_email")
     }
 
     fun logoutAndClearCredentials() {
@@ -255,6 +369,7 @@ class AccountRepository(
     private fun validateLogin(email: String, password: String) =
         email.isNotBlank() && password.isNotBlank() && password.length >= 6
 }
+
 
 data class PasswordResetResponse(val message: String, val success: Boolean)
 data class CodeVerificationResponse(val message: String, val success: Boolean, val token: String? = null)

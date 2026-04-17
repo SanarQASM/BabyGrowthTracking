@@ -1,3 +1,4 @@
+// File: backend-side/src/main/java/com/example/backend_side/controllers/GrowthRecordController.kt
 package com.example.backend_side.controllers
 
 import com.example.backend_side.ApiResponse
@@ -21,71 +22,72 @@ class GrowthRecordController(
     private val growthRecordService: GrowthRecordService
 ) {
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // POST /v1/growth-records
+    //
+    // The X-User-Id header carries the userId of whoever is making the request.
+    // GrowthRecordService compares this against baby.parent.userId to decide
+    // whether measuredByName should be null (parent) or a name (team/external).
+    // ─────────────────────────────────────────────────────────────────────────
+
     @PostMapping
     @Operation(summary = "Create a new growth record")
     fun createGrowthRecord(
         @RequestHeader("X-User-Id") measuredBy: String,
         @Valid @RequestBody request: GrowthRecordCreateRequest
     ): ResponseEntity<ApiResponse<GrowthRecordResponse>> {
-        logger.info { "Creating growth record for baby: ${request.babyId}" }
+        logger.info { "Creating growth record for baby: ${request.babyId}, measuredBy: $measuredBy" }
         val record = growthRecordService.createGrowthRecord(measuredBy, request)
         return ResponseEntity.status(HttpStatus.CREATED).body(
             ApiResponse(
                 success = true,
                 message = "Growth record created successfully",
-                data = record
+                data    = record
             )
         )
     }
 
     @GetMapping("/{recordId}")
     @Operation(summary = "Get growth record by ID")
-    fun getGrowthRecordById(@PathVariable recordId: String): ResponseEntity<ApiResponse<GrowthRecordResponse>> {
+    fun getGrowthRecordById(
+        @PathVariable recordId: String
+    ): ResponseEntity<ApiResponse<GrowthRecordResponse>> {
         val record = growthRecordService.getGrowthRecordById(recordId)
         return ResponseEntity.ok(
-            ApiResponse(
-                success = true,
-                message = "Growth record retrieved successfully",
-                data = record
-            )
+            ApiResponse(success = true, message = "Growth record retrieved successfully", data = record)
         )
     }
 
     @GetMapping("/baby/{babyId}")
     @Operation(summary = "Get all growth records for a baby")
-    fun getGrowthRecordsByBaby(@PathVariable babyId: String): ResponseEntity<ApiResponse<List<GrowthRecordResponse>>> {
+    fun getGrowthRecordsByBaby(
+        @PathVariable babyId: String
+    ): ResponseEntity<ApiResponse<List<GrowthRecordResponse>>> {
         val records = growthRecordService.getGrowthRecordsByBaby(babyId)
         return ResponseEntity.ok(
-            ApiResponse(
-                success = true,
-                message = "Growth records retrieved successfully",
-                data = records
-            )
+            ApiResponse(success = true, message = "Growth records retrieved successfully", data = records)
         )
     }
 
     @GetMapping("/baby/{babyId}/latest")
     @Operation(summary = "Get latest growth record for a baby")
-    fun getLatestGrowthRecord(@PathVariable babyId: String): ResponseEntity<ApiResponse<GrowthRecordResponse?>> {
+    fun getLatestGrowthRecord(
+        @PathVariable babyId: String
+    ): ResponseEntity<ApiResponse<GrowthRecordResponse?>> {
         val record = growthRecordService.getLatestGrowthRecord(babyId)
         return ResponseEntity.ok(
-            ApiResponse(
-                success = true,
-                message = "Latest growth record retrieved successfully",
-                data = record
-            )
+            ApiResponse(success = true, message = "Latest growth record retrieved successfully", data = record)
         )
     }
 
     @DeleteMapping("/{recordId}")
     @Operation(summary = "Delete growth record")
-    fun deleteGrowthRecord(@PathVariable recordId: String): ResponseEntity<ApiResponse<Nothing>> {
+    fun deleteGrowthRecord(
+        @PathVariable recordId: String
+    ): ResponseEntity<ApiResponse<Nothing>> {
         growthRecordService.deleteGrowthRecord(recordId)
         return ResponseEntity.ok(
-            ApiResponse(
-                success = true,
-                message = "Growth record deleted successfully"
-            )
+            ApiResponse(success = true, message = "Growth record deleted successfully")
         )
     }
 }

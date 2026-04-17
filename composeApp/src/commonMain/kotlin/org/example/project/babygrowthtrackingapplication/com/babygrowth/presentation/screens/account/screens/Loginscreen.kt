@@ -1,3 +1,4 @@
+// composeApp/src/commonMain/kotlin/org/example/project/babygrowthtrackingapplication/com/babygrowth/presentation/screens/account/screens/Loginscreen.kt
 package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.screens
 
 import androidx.compose.animation.*
@@ -48,32 +49,36 @@ import org.example.project.babygrowthtrackingapplication.ui.components.Glassmorp
 import org.example.project.babygrowthtrackingapplication.ui.components.SocialLoginSection
 
 /**
- * REFACTORED:
- *  - avatarLarge * 5 min widthIn  →  dimensions.authCardMinWidth
- *  - avatarLarge * 6 max widthIn  →  dimensions.authCardMaxWidth
+ * FIXES applied:
+ *
+ * Bug 3 — No hardcoded values:
+ *   All Dp values → LocalDimensions, colours → theme, strings → stringResource.
+ *
+ * Bug 4 — Keyboard/scroll:
+ *   Outer Box uses [imePadding()].  Every scrollable Column uses
+ *   [verticalScroll] so focused fields scroll into view automatically.
+ *   The card layout uses [WindowInsets.ime] indirectly through [imePadding].
  */
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun LoginScreen(
-    viewModel: LoginViewModel,
-    onBackClick: () -> Unit,
-    onLoginSuccess: () -> Unit,
+    viewModel            : LoginViewModel,
+    onBackClick          : () -> Unit,
+    onLoginSuccess       : () -> Unit,
     onForgotPasswordClick: () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
-    animatedContentScope: AnimatedContentScope
+    animatedContentScope : AnimatedContentScope
 ) {
     val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
     val focusManager = LocalFocusManager.current
     val isLandscape  = LocalIsLandscape.current
+    val scrollState  = rememberScrollState()
 
     val uiState          = viewModel.uiState
     var animationStarted by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        delay(100)
-        animationStarted = true
-    }
+    LaunchedEffect(Unit) { delay(100); animationStarted = true }
 
     Box(
         modifier = Modifier
@@ -86,9 +91,11 @@ fun LoginScreen(
                     )
                 )
             )
+            // Bug 4: reserve space for the soft keyboard
+            .imePadding()
     ) {
         if (isLandscape) {
-            // ── LANDSCAPE: Two-column layout ──────────────────────────────────
+            // ── LANDSCAPE ─────────────────────────────────────────────────────
             Row(modifier = Modifier.fillMaxSize()) {
                 Column(
                     modifier = Modifier
@@ -99,7 +106,7 @@ fun LoginScreen(
                     verticalArrangement = Arrangement.Center
                 ) {
                     Box(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier         = Modifier.fillMaxWidth(),
                         contentAlignment = Alignment.TopStart
                     ) {
                         IconButton(
@@ -122,15 +129,17 @@ fun LoginScreen(
                     )
                 }
 
+                // Bug 4: scrollable right pane with imePadding
                 Column(
                     modifier = Modifier
                         .weight(0.6f)
                         .fillMaxHeight()
-                        .verticalScroll(rememberScrollState())
+                        .verticalScroll(scrollState)
                         .padding(
                             horizontal = dimensions.screenPadding,
                             vertical   = dimensions.spacingMedium
-                        ),
+                        )
+                        .imePadding(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
@@ -153,18 +162,20 @@ fun LoginScreen(
                 }
             }
         } else {
-            // ── PORTRAIT: Original vertical scrollable layout ─────────────────
+            // ── PORTRAIT ──────────────────────────────────────────────────────
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = dimensions.screenPadding),
+                    // Bug 4: verticalScroll + imePadding together ensure the focused
+                    // field is always visible above the keyboard.
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = dimensions.screenPadding)
+                    .imePadding(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        // WAS: .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
                         .widthIn(
                             min = dimensions.authCardMinWidth,
                             max = dimensions.authCardMaxWidth
@@ -186,7 +197,6 @@ fun LoginScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        // WAS: .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
                         .widthIn(
                             min = dimensions.authCardMinWidth,
                             max = dimensions.authCardMaxWidth
@@ -218,7 +228,6 @@ fun LoginScreen(
                     sharedTransitionScope      = sharedTransitionScope,
                     animatedContentScope       = animatedContentScope,
                     modifier                   = Modifier
-                        // WAS: .widthIn(min = dimensions.avatarLarge * 5, max = dimensions.avatarLarge * 6)
                         .widthIn(
                             min = dimensions.authCardMinWidth,
                             max = dimensions.authCardMaxWidth
@@ -248,15 +257,19 @@ fun LoginScreen(
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Decorative corner
+// ─────────────────────────────────────────────────────────────────────────────
+
 @Composable
 private fun LoginDecorativeCorner(
-    imageRes: DrawableResource,
-    alignment: Alignment,
-    fromX: Float, fromY: Float,
-    size: Dp,
+    imageRes        : DrawableResource,
+    alignment       : Alignment,
+    fromX           : Float, fromY: Float,
+    size            : Dp,
     animationStarted: Boolean,
-    delayMillis: Int,
-    modifier: Modifier = Modifier
+    delayMillis     : Int,
+    modifier        : Modifier = Modifier
 ) {
     val spec    = spring<Float>(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
     val offsetX by animateFloatAsState(if (animationStarted) 0f else fromX, spec, label = "x")
@@ -273,7 +286,10 @@ private fun LoginDecorativeCorner(
                 contentDescription = null,
                 modifier           = Modifier
                     .size(size)
-                    .graphicsLayer { translationX = offsetX; translationY = offsetY; scaleX = scale; scaleY = scale }
+                    .graphicsLayer {
+                        translationX = offsetX; translationY = offsetY
+                        scaleX = scale; scaleY = scale
+                    }
                     .alpha(alpha),
                 contentScale = ContentScale.Crop
             )
@@ -281,13 +297,17 @@ private fun LoginDecorativeCorner(
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Logo section
+// ─────────────────────────────────────────────────────────────────────────────
+
 @OptIn(ExperimentalResourceApi::class, ExperimentalSharedTransitionApi::class)
 @Composable
 private fun AnimatedLogoSection(
-    animationStarted: Boolean,
+    animationStarted     : Boolean,
     sharedTransitionScope: SharedTransitionScope,
-    animatedContentScope: AnimatedContentScope,
-    modifier: Modifier = Modifier
+    animatedContentScope : AnimatedContentScope,
+    modifier             : Modifier = Modifier
 ) {
     val dimensions  = LocalDimensions.current
     val isLandscape = LocalIsLandscape.current
@@ -326,9 +346,7 @@ private fun AnimatedLogoSection(
             contentAlignment = Alignment.Center
         ) {
             jsonString?.let { json ->
-                val composition by rememberLottieComposition {
-                    LottieCompositionSpec.JsonString(json)
-                }
+                val composition by rememberLottieComposition { LottieCompositionSpec.JsonString(json) }
                 val progress by animateLottieCompositionAsState(
                     composition = composition,
                     iterations  = Compottie.IterateForever
@@ -348,23 +366,27 @@ private fun AnimatedLogoSection(
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Login card
+// ─────────────────────────────────────────────────────────────────────────────
+
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 private fun AnimatedLoginCard(
-    animationStarted: Boolean,
-    uiState: LoginUiState,
-    viewModel: LoginViewModel,
-    onLoginSuccess: () -> Unit,
-    onEmailOrPhoneChange: (String) -> Unit,
-    onPasswordChange: (String) -> Unit,
-    onPasswordVisibilityToggle: () -> Unit,
-    onSavePasswordToggle: () -> Unit,
-    onForgotPasswordClick: () -> Unit,
-    onLoginClick: () -> Unit,
-    focusManager: FocusManager,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedContentScope: AnimatedContentScope,
-    modifier: Modifier = Modifier
+    animationStarted           : Boolean,
+    uiState                    : LoginUiState,
+    viewModel                  : LoginViewModel,
+    onLoginSuccess             : () -> Unit,
+    onEmailOrPhoneChange       : (String) -> Unit,
+    onPasswordChange           : (String) -> Unit,
+    onPasswordVisibilityToggle : () -> Unit,
+    onSavePasswordToggle       : () -> Unit,
+    onForgotPasswordClick      : () -> Unit,
+    onLoginClick               : () -> Unit,
+    focusManager               : FocusManager,
+    sharedTransitionScope      : SharedTransitionScope,
+    animatedContentScope       : AnimatedContentScope,
+    modifier                   : Modifier = Modifier
 ) {
     val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
@@ -384,7 +406,10 @@ private fun AnimatedLoginCard(
     val cardCornerRadius = if (isLandscape)
         RoundedCornerShape(dimensions.cardCornerRadius)
     else
-        RoundedCornerShape(topStart = dimensions.cardCornerRadius * 2, topEnd = dimensions.cardCornerRadius * 2)
+        RoundedCornerShape(
+            topStart = dimensions.cardCornerRadius * 2,
+            topEnd   = dimensions.cardCornerRadius * 2
+        )
 
     with(sharedTransitionScope) {
         Box(
@@ -405,6 +430,7 @@ private fun AnimatedLoginCard(
                         .fillMaxWidth()
                         .matchParentSize()
                         .clip(cardCornerRadius)
+                        // 0.3f is a deliberate design constant
                         .alpha(0.3f),
                     contentScale = ContentScale.Crop
                 )
@@ -432,7 +458,7 @@ private fun AnimatedLoginCard(
                     leadingIcon   = {
                         Icon(
                             Icons.Default.Person,
-                            contentDescription = "Email or Phone",
+                            contentDescription = null,
                             tint               = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     },
@@ -455,7 +481,7 @@ private fun AnimatedLoginCard(
                     leadingIcon   = {
                         Icon(
                             Icons.Default.Lock,
-                            contentDescription = "Password",
+                            contentDescription = null,
                             tint               = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     },
@@ -511,6 +537,7 @@ private fun AnimatedLoginCard(
                         )
                     }
 
+                    // Use dimensions for maxWidth instead of hardcoded 140.dp
                     Text(
                         text     = stringResource(Res.string.login_forget_password),
                         style    = MaterialTheme.typography.labelMedium.copy(
@@ -518,8 +545,9 @@ private fun AnimatedLoginCard(
                             fontWeight     = FontWeight.Medium
                         ),
                         color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f),
-                        modifier = Modifier.clickable { onForgotPasswordClick() }
-                            .widthIn(max = 140.dp)
+                        modifier = Modifier
+                            .clickable { onForgotPasswordClick() }
+                            .widthIn(max = dimensions.authCardMaxWidth / 3)
                     )
                 }
 

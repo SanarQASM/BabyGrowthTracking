@@ -111,7 +111,7 @@ object AppConstants {
     object Email {
         const val SENDER_NAME            = "BabyGrowth"
         const val SENDER_NO_REPLY        = "Do not reply to this email."
-        const val COPYRIGHT              = "© 2025 BabyGrowth"
+        const val COPYRIGHT              = "© 2026 BabyGrowth"
         const val SUPPORT_EMAIL          = "support@babygrowth.com"
         const val VERIFICATION_SUBJECT   = "Verify your BabyGrowth account"
         const val RESET_SUBJECT          = "Reset your BabyGrowth password"

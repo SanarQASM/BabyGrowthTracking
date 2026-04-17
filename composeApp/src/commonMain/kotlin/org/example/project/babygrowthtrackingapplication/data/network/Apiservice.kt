@@ -9,6 +9,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.*
@@ -34,22 +35,26 @@ class ApiService(
     companion object {
         //        private const val BASE_URL = "http://10.0.2.2:8080/api"
 //          private const val BASE_URL = "http://localhost:8080/api"
-        internal const val BASE_URL = "http://172.20.10.3:8080/api"
+        internal const val BASE_URL = "http://172.20.10.2:8080/api"
 
         object Endpoints {
 
             // Auth
-            const val AUTH_REGISTER         = "/v1/auth/register"
-            const val AUTH_LOGIN            = "/v1/auth/login"
-            const val AUTH_GOOGLE           = "/v1/auth/google"
-            const val AUTH_FACEBOOK         = "/v1/auth/facebook"
+            const val AUTH_REGISTER              = "/v1/auth/register"
+            const val AUTH_PRE_REGISTER          = "/v1/auth/pre-register"
+            const val AUTH_VERIFY_SIGNUP_CODE    = "/v1/auth/verify-signup-code"
+            const val AUTH_RESEND_SIGNUP_CODE    = "/v1/auth/resend-signup-code"
+            const val AUTH_COMPLETE_REGISTRATION = "/v1/auth/complete-registration"
+            const val AUTH_LOGIN                 = "/v1/auth/login"
+            const val AUTH_GOOGLE                = "/v1/auth/google"
+            const val AUTH_FACEBOOK              = "/v1/auth/facebook"
             // Account verification (signup flow)
-            const val AUTH_SEND_VERIFY_CODE = "/v1/auth/send-verification"
-            const val AUTH_VERIFY_ACCOUNT   = "/v1/auth/verify-account"
+            const val AUTH_SEND_VERIFY_CODE      = "/v1/auth/send-verification"
+            const val AUTH_VERIFY_ACCOUNT        = "/v1/auth/verify-account"
             // Forgot password flow (3 steps)
-            const val AUTH_FORGOT_PASSWORD  = "/v1/auth/forgot-password"
-            const val AUTH_VERIFY_RESET     = "/v1/auth/verify-reset-code"
-            const val AUTH_RESET_PASSWORD   = "/v1/auth/reset-password"
+            const val AUTH_FORGOT_PASSWORD       = "/v1/auth/forgot-password"
+            const val AUTH_VERIFY_RESET          = "/v1/auth/verify-reset-code"
+            const val AUTH_RESET_PASSWORD        = "/v1/auth/reset-password"
 
             const val USERS = "/v1/users"
             fun user(id: String) = "$USERS/$id"
@@ -140,6 +145,18 @@ class ApiService(
 
     suspend fun register(request: RegisterRequest): ApiResult<AuthResponse> =
         makeRequest { client.post("$BASE_URL${Endpoints.AUTH_REGISTER}") { setBody(request) } }
+
+    suspend fun preRegister(request: PreRegisterRequest): ApiResult<PreRegisterResponse> =
+        makeRequest { client.post("$BASE_URL${Endpoints.AUTH_PRE_REGISTER}") { setBody(request) } }
+
+    suspend fun verifySignupCode(request: VerifySignupCodeRequest): ApiResult<VerificationResponse> =
+        makeRequest { client.post("$BASE_URL${Endpoints.AUTH_VERIFY_SIGNUP_CODE}") { setBody(request) } }
+
+    suspend fun resendSignupCode(request: ResendSignupCodeRequest): ApiResult<AuthResponse> =
+        makeRequest { client.post("$BASE_URL${Endpoints.AUTH_RESEND_SIGNUP_CODE}") { setBody(request) } }
+
+    suspend fun completeRegistration(request: CompleteRegistrationRequest): ApiResult<AuthResponse> =
+        makeRequest { client.post("$BASE_URL${Endpoints.AUTH_COMPLETE_REGISTRATION}") { setBody(request) } }
 
     suspend fun login(request: LoginRequest): ApiResult<AuthResponse> =
         makeRequest { client.post("$BASE_URL${Endpoints.AUTH_LOGIN}") { setBody(request) } }
@@ -537,6 +554,17 @@ data class ApiSingleResponse<T>(
     val address: String? = null, val profileImageUrl: String? = null
 )
 
+@Serializable data class PreRegisterRequest(
+    val fullName: String, val email: String, val password: String,
+    val phone: String? = null, val city: String? = null, val address: String? = null
+)
+
+@Serializable data class VerifySignupCodeRequest(val email: String, val code: String)
+
+@Serializable data class ResendSignupCodeRequest(val email: String)
+
+@Serializable data class CompleteRegistrationRequest(val email: String)
+
 @Serializable data class LoginRequest(
     val emailOrPhone: String,
     val password: String
@@ -606,6 +634,12 @@ data class ApiSingleResponse<T>(
     val createdAt: String? = null, val updatedAt: String? = null
 )
 
+@Serializable
+data class PreRegisterResponse(
+    val email   : String,
+    val codeSent: Boolean
+)
+
 // ── Babies ────────────────────────────────────────────────────────────────────
 
 @Serializable data class CreateBabyRequest(
@@ -637,24 +671,32 @@ data class ApiSingleResponse<T>(
     val heightPercentile: Int? = null, val headCircumferencePercentile: Int? = null
 )
 
-@Serializable data class GrowthRecordResponse(
-    val recordId: String,
-    val babyId: String,
-    val babyName: String,
-    val measurementDate: String,
-    val ageInMonths: Int,
-    val ageInDays: Int?    = null,
-    val weight: Double?    = null,
-    val height: Double?    = null,
-    val headCircumference: Double? = null,
-    val weightPercentile: Int?     = null,
-    val heightPercentile: Int?     = null,
-    val headCircumferencePercentile: Int? = null,
-    val measuredByName: String? = null,
-    val notes: String?     = null,
-    val createdAt: String? = null,
-    val updatedAt: String? = null
-)
+@Serializable
+data class GrowthRecordResponse(
+    val recordId                   : String,
+    val babyId                     : String,
+    val babyName                   : String,
+    val measurementDate            : String,   // ISO "yyyy-MM-dd" as String on client
+    val ageInMonths                : Int,
+    val ageInDays                  : Int?      = null,
+    val weight                     : Double?   = null,
+    val height                     : Double?   = null,
+    val headCircumference          : Double?   = null,
+    val weightPercentile           : Int?      = null,
+    val heightPercentile           : Int?      = null,
+    val headCircumferencePercentile: Int?      = null,
+
+    val measuredByName             : String?   = null,
+
+    @SerialName("isTeamMeasurement")
+    val isTeamMeasurement          : Boolean   = false,
+
+    val createdAt                  : String?   = null,
+    val updatedAt                  : String?   = null
+) {
+    val addedByTeam: Boolean
+        get() = isTeamMeasurement || !measuredByName.isNullOrBlank()
+}
 
 // ── Vaccinations ──────────────────────────────────────────────────────────────
 

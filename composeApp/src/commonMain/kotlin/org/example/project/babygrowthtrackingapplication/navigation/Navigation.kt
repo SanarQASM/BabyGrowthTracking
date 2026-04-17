@@ -540,23 +540,22 @@ fun AppNavigation(
                 // ── Signup ────────────────────────────────────────────────────
                 Screen.Signup -> {
                     SignupScreen(
-                        viewModel = signupViewModel,
-                        onBackClick = { currentScreen = Screen.Welcome },
-                        onSignupSuccess = {
-                            verifyAccountViewModel.refreshContactInfo(
-                                email = signupViewModel.uiState.email,
-                                phone = signupViewModel.uiState.phone
-                            )
-                            currentScreen = Screen.VerifyAccount
-                        },
-                        onSocialSignupSuccess = {
+                        viewModel              = signupViewModel,
+                        onBackClick            = { currentScreen = Screen.Welcome },
+                        onRegistrationComplete = {
                             homeViewModel.loadHomeData()
                             settingsViewModel.refreshProfile()
                             notificationViewModel.startUnreadPolling()
                             currentScreen = Screen.Home
                         },
-                        sharedTransitionScope = this@SharedTransitionLayout,
-                        animatedContentScope = this@AnimatedContent
+                        onSocialSignupSuccess  = {
+                            homeViewModel.loadHomeData()
+                            settingsViewModel.refreshProfile()
+                            notificationViewModel.startUnreadPolling()
+                            currentScreen = Screen.Home
+                        },
+                        sharedTransitionScope  = this@SharedTransitionLayout,
+                        animatedContentScope   = this@AnimatedContent
                     )
                 }
 

@@ -3,11 +3,26 @@ package com.example.backend_side.repositories
 import com.example.backend_side.entity.Notification
 import com.example.backend_side.entity.NotificationPriority
 import com.example.backend_side.entity.NotificationType
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NotificationRepository — FIXED
+//
+// BUG: There was no paginated query method. NotificationController called
+//      findByUser_UserIdOrderByCreatedAtDesc(userId) which returns the full
+//      history. For active users this grows unboundedly and makes every
+//      polling call expensive.
+//
+// FIX: Added findPagedByUserId(userId, pageable) — a @Query method that
+//      accepts a Pageable, enabling DB-level LIMIT/OFFSET pagination.
+//      NotificationController now calls this with PageRequest.of(page, size).
+// ─────────────────────────────────────────────────────────────────────────────
 
 @Repository
 interface NotificationRepository : JpaRepository<Notification, String> {
@@ -15,6 +30,17 @@ interface NotificationRepository : JpaRepository<Notification, String> {
     fun findByUser_UserId(userId: String): List<Notification>
 
     fun findByUser_UserIdOrderByCreatedAtDesc(userId: String): List<Notification>
+
+    // ── FIX: paginated version ─────────────────────────────────────────────────
+    @Query("""
+        SELECT n FROM Notification n
+        WHERE n.user.userId = :userId
+        ORDER BY n.createdAt DESC
+    """)
+    fun findPagedByUserId(
+        @Param("userId") userId  : String,
+        pageable                  : Pageable
+    ): Page<Notification>
 
     fun findByUser_UserIdAndIsRead(userId: String, isRead: Boolean): List<Notification>
 
@@ -46,8 +72,6 @@ interface NotificationRepository : JpaRepository<Notification, String> {
         @Param("type")   type  : NotificationType
     ): List<Notification>
 
-    // NEW: stable deduplication — checks the dedupeKey field instead of fragile title substring matching.
-    // The dedupeKey column must be added to the Notification entity (see entity update below).
     @Query("""
         SELECT CASE WHEN COUNT(n) > 0 THEN true ELSE false END
         FROM Notification n

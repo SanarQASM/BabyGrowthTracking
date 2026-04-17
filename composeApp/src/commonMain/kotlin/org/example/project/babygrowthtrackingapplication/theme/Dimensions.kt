@@ -48,6 +48,7 @@ data class Dimensions(
 
     // ── Cards ─────────────────────────────────────────────────────────────────
     val cardElevation    : Dp,
+    val cardElevationSmall : Dp,
     val cardCornerRadius : Dp,
 
     // ── Avatars ───────────────────────────────────────────────────────────────
@@ -283,6 +284,7 @@ data class Dimensions(
             buttonCornerRadius = 16.dp,
 
             cardElevation    = 4.dp,
+            cardElevationSmall = 2.dp,
             cardCornerRadius = 16.dp,
 
             avatarSmall  = 32.dp,
@@ -486,6 +488,7 @@ data class Dimensions(
             buttonCornerRadius = 18.dp,
 
             cardElevation    = 6.dp,
+            cardElevationSmall = 3.dp,
             cardCornerRadius = 18.dp,
 
             avatarSmall  = 40.dp,
@@ -677,6 +680,7 @@ data class Dimensions(
             buttonCornerRadius = 20.dp,
 
             cardElevation    = 8.dp,
+            cardElevationSmall = 4.dp,
             cardCornerRadius = 20.dp,
 
             avatarSmall  = 48.dp,

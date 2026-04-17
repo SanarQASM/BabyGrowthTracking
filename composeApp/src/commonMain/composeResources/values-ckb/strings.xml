@@ -907,4 +907,155 @@
     <string name="relative_time_minutes">بەری %1$d خۆلەکان</string>
     <string name="relative_time_hours">بەری %1$d دەمژمێران</string>
     <string name="relative_time_days">بەری %1$d ڕۆژان</string>
+
+    <string name="phone_error_required">ژمارا مۆبایلێ یا پێدڤیە</string>
+    <string name="phone_error_local_11_digits">ژمارا عێراقی یا ب ٠ دەستپێدکەت دڤێت ١١ ژمارە بن (نموونە: 07501234567)</string>
+    <string name="phone_error_intl_13_digits">ژمارا عێراقی یا ب 964 دەستپێدکەت دڤێت ١٣ ژمارە بن (نموونە: 9647501234567)</string>
+    <string name="phone_error_invalid_prefix">دڤێت ژمارە ب ٠ یان 964 دەستپێبکەت</string>
+    <string name="phone_error_invalid_operator">کۆمپانیەکا نەناسراوا عێراقی یە (زەین: 078x، ئاسیاسێڵ: 077x، کۆڕەک: 075x)</string>
+    <string name="phone_error_invalid_format">ژمارەکا دروستا مۆبایلا عێراقی بنڤیسە (نموونە: 07507669716 یان 9647507669716)</string>
+    <string name="signup_error_full_name_required">تکایە ناڤێ خۆ یێ تەمام بنڤیسە</string>
+    <string name="signup_error_email_required">تکایە ئیمەیڵێ خۆ بنڤیسە</string>
+    <string name="signup_error_email_invalid">تکایە ناڤنیشانەکێ دروست یێ ئیمەیڵێ بنڤیسە</string>
+    <string name="signup_error_password_required">تکایە تێپەڕەوشەیێ (پاسۆردی) بنڤیسە</string>
+    <string name="signup_error_password_too_short">تێپەڕەوشە نابیت ژ ٦ پیتان کێمتر بیت</string>
+    <string name="signup_error_confirm_required">تکایە تێپەڕەوشەیێ دوپات بکە</string>
+    <string name="signup_error_passwords_no_match">تێپەڕەوشە وەک ئێک نینن</string>
+    <string name="a11y_scroll_to_field">بچە خوارێ بۆ دیتنا خانا نڤیسینێ</string>
+
+    <string name="schedule_reschedule_breakdown">✅ %1$d دشێت بهێتە پاشخستن  •  ❌ %2$d گەلەک درەنگە (پتری %3$d هەیڤا دەربازبوویە)</string>
+
+    <string name="schedule_cannot_reschedule_title">%1$d قوتان ناهێنە پاشخستن</string>
+    <string name="schedule_cannot_reschedule_body">ئەڤ قوتانە پتری %1$d هەیڤا ل سەر دەمێ وان دەربازبوویە و ب شێوەیەکێ ئۆتۆماتیکی ناهێنە پاشخستن. هیڤیە سەرەدانا نۆژداری بکە کا دێ شێی هێشتا وەرگری یان نە.</string>
+    <string name="schedule_upcoming_unaffected">💉 قوتانێن بهێت چ گوهۆڕین ب سەردا ناهێن و دێ ب شێوەیەکێ ئاسایی بەردەوام بن.</string>
+
+    <string name="schedule_was_due_prefix">دەمێ وێ بوو: %1$s</string>
+    <string name="schedule_past_window_hint">پتری %1$d هەیڤا دەربازبوویە — پرسیار ل نۆژداری بکە</string>
+
+    <string name="vax_detail_was_due">دەمێ وێ بوو</string>
+    <string name="schedule_cannot_reschedule_title_short">ناهێتە پاشخستن</string>
+    <string name="schedule_cannot_reschedule_detail">ئەڤ قوتانە پتری %1$d هەیڤا ل سەر دەمێ وێ یێ گونجای دەربازبوویە. هیڤیە سەرەدانا نۆژداری بکە.</string>
+
+    <string name="signup_otp_title">ئیمەیڵێ خۆ پشتڕاست بکە</string>
+    <string name="signup_otp_enter_code">کۆدێ پشتڕاستکرنێ بنڤیسە</string>
+    <string name="signup_otp_sent_to">کۆدەکێ ٦ نمرەیی هاتە هنارتن بۆ %1$s</string>
+    <string name="signup_otp_verify_button">پشتڕاستکرن و چێکرنا هەژمارێ</string>
+
+    <string name="admin_panel_title">پەنەلا ڕێڤەبەری</string>
+    <string name="admin_panel_subtitle">چوونەژوورا پاراستی یا ڕێڤەبەری</string>
+    <string name="admin_sign_in">بۆ بەردەوامبوون بچە دناڤدا</string>
+    <string name="admin_sign_in_button">وەک ڕێڤەبەر بچە دناڤدا</string>
+    <string name="admin_back_to_login">← زڤڕین بۆ چوونەژوورا ئاسایی</string>
+    <string name="admin_access_denied">دەستویر نینە. ئەڤ بەشە بتنێ بۆ ڕێڤەبەرایە.</string>
+    <string name="admin_role_label">ڕێڤەبەر</string>
+    <string name="admin_shield_emoji">🛡️</string>
+
+    <string name="admin_email_label">ئیمەیڵ</string>
+    <string name="admin_password_label">پەیڤا نهێنی</string>
+    <string name="admin_password_show">پەیڤا نهێنی نیشان بدە</string>
+    <string name="admin_password_hide">پەیڤا نهێنی ڤەشێرە</string>
+    <string name="admin_login_email_error">هیڤیە ئیمەیڵا خۆ بنڤیسە</string>
+    <string name="admin_login_email_invalid">هیڤیە ئیمەیڵەکا دروست بنڤیسە</string>
+    <string name="admin_login_password_error">هیڤیە پەیڤا نهێنی بنڤیسە (کێمتر نەبیت ژ ٦ پیتان)</string>
+
+    <string name="admin_tab_dashboard">سەرەکی</string>
+    <string name="admin_tab_users">بەکارهێنەر</string>
+    <string name="admin_tab_babies">زەروک</string>
+    <string name="admin_tab_vaccinations">قوتان</string>
+    <string name="admin_tab_settings">رێکخستن</string>
+
+    <string name="admin_dashboard_overview">پێداچوونەوە</string>
+    <string name="admin_dashboard_quick_summary">کورتیا ب لەز</string>
+    <string name="admin_stat_total_users">کۆیا بەکارهێنەران</string>
+    <string name="admin_stat_total_babies">کۆیا زەروکان</string>
+    <string name="admin_stat_parents">دایک و باب</string>
+    <string name="admin_stat_verified">پشتڕاستکری</string>
+    <string name="admin_stat_active_babies">زەروکێن چالاک</string>
+    <string name="admin_stat_archived_babies">ئەرشیفکری</string>
+    <string name="admin_stat_total_admins">ڕێڤەبەر</string>
+    <string name="admin_stat_today_appointments">ژڤانێن ئەڤرۆ</string>
+    <string name="admin_stat_overdue_vaccinations">قوتانێن پاشکەفتی</string>
+    <string name="admin_stat_pending_schedules">خشتەیێن چاڤەڕێ</string>
+    <string name="admin_summary_total_users">کۆیا بەکارهێنەرێن تۆمارکری</string>
+    <string name="admin_summary_parents">هەژمارێن دایک و بابان</string>
+    <string name="admin_summary_total_babies">کۆیا پرۆفایلێن زەروکان</string>
+    <string name="admin_summary_active_babies">پرۆفایلێن زەروکێن چالاک</string>
+    <string name="admin_summary_archived_babies">پرۆفایلێن زەروکێن ئەرشیفکری</string>
+
+    <string name="admin_users_title">بەکارهێنەر</string>
+    <string name="admin_users_search_hint">ل بەکارهێنەری بگەڕی...</string>
+    <string name="admin_users_count">%1$d بەکارهێنەر</string>
+    <string name="admin_user_tab_all">همی</string>
+    <string name="admin_user_tab_parents">دایک و باب</string>
+    <string name="admin_user_tab_admins">ڕێڤەبەر</string>
+    <string name="admin_user_verified_badge">پشتڕاستکری</string>
+    <string name="admin_user_unverified_badge">پشتڕاستنەکری</string>
+    <string name="admin_user_no_results">چ بەکارهێنەر نەهاتنە دیتن</string>
+    <string name="admin_user_delete_title">ژێبرنا بەکارهێنەری</string>
+    <string name="admin_user_delete_message">دێ %1$s ب ئێکجاری ژێبەی؟ ئەڤ کارە ناھێتە زڤڕاندن.</string>
+    <string name="admin_user_deleted_success">بەکارهێنەر ب سەرکەفتی هاتە ژێبرن</string>
+    <string name="admin_user_role_parent">دایک/باب</string>
+    <string name="admin_user_role_admin">ڕێڤەبەر</string>
+    <string name="admin_user_joined">بەشداری کریە: %1$s</string>
+    <string name="admin_user_phone_label">تەلەفۆن: %1$s</string>
+    <string name="admin_user_city_label">باژێر: %1$s</string>
+
+    <string name="admin_babies_title">زەروک</string>
+    <string name="admin_babies_search_hint">ل زەروکی بگەڕی...</string>
+    <string name="admin_babies_count">%1$d پرۆفایل</string>
+    <string name="admin_baby_tab_all">همی</string>
+    <string name="admin_baby_tab_active">چالاک</string>
+    <string name="admin_baby_tab_archived">ئەرشیفکری</string>
+    <string name="admin_baby_no_results">چ پرۆفایلێن زەروکان نەهاتنە دیتن</string>
+    <string name="admin_baby_delete_title">ژێبرنا زەروکی</string>
+    <string name="admin_baby_delete_message">دێ پرۆفایلا %1$s ب ئێکجاری ژێبەی؟ ئەڤ کارە ناھێتە زڤڕاندن.</string>
+    <string name="admin_baby_deleted_success">زەروک ب سەرکەفتی هاتە ژێبرن</string>
+    <string name="admin_baby_parent_label">دایک/باب: %1$s</string>
+    <string name="admin_baby_age_label">تەمەن %1$d هەیڤ</string>
+    <string name="admin_baby_status_active">چالاک</string>
+    <string name="admin_baby_status_archived">ئەرشیفکری</string>
+    <string name="admin_baby_gender_boy">کور</string>
+    <string name="admin_baby_gender_girl">کچ</string>
+    <string name="admin_baby_dob_label">رێکەوتا ژدایکبوونێ: %1$s</string>
+
+    <string name="admin_vax_title">قوتان</string>
+    <string name="admin_vax_tab_all">همی</string>
+    <string name="admin_vax_tab_overdue">پاشکەفتی</string>
+    <string name="admin_vax_tab_upcoming">بهێت</string>
+    <string name="admin_vax_tab_completed">تەمامکری</string>
+    <string name="admin_vax_search_hint">ل قوتانێ بگەڕی...</string>
+    <string name="admin_vax_count">%1$d تۆمار</string>
+    <string name="admin_vax_no_results">چ تۆمارێن قوتانێ نەهاتنە دیتن</string>
+    <string name="admin_vax_baby_label">زەروک: %1$s</string>
+    <string name="admin_vax_dose_label">قۆناغا %1$d</string>
+    <string name="admin_vax_scheduled_label">دیارکری: %1$s</string>
+    <string name="admin_vax_bench_label">سەنتەر: %1$s</string>
+    <string name="admin_vax_overdue_count">%1$d قوتانێن پاشکەفتی</string>
+    <string name="admin_vax_status_upcoming">بهێت</string>
+    <string name="admin_vax_status_completed">تەمامکری</string>
+    <string name="admin_vax_status_overdue">پاشکەفتی</string>
+    <string name="admin_vax_status_missed">چوو</string>
+    <string name="admin_vax_status_due_soon">نێزیکە بۆ قوتانێ</string>
+
+    <string name="admin_settings_profile_card_title">پرۆفایلا ڕێڤەبەری</string>
+    <string name="admin_settings_role_label">پلە</string>
+    <string name="admin_settings_email_label">ئیمەیڵ</string>
+    <string name="admin_settings_logout_title">دەرکەفتن</string>
+    <string name="admin_settings_logout_message">تۆ یێ پشتڕاستی دێ ژ پەنەلا ڕێڤەبەری دەرکەفی؟</string>
+    <string name="admin_settings_logout_confirm">دەرکەفتن</string>
+    <string name="admin_settings_app_version">وەشانێ ئەپی</string>
+    <string name="admin_settings_about_title">دەربارە</string>
+
+    <string name="admin_action_delete">ژێبرن</string>
+    <string name="admin_action_refresh">نووکرن</string>
+    <string name="admin_action_logout">دەرکەفتن</string>
+    <string name="admin_confirm_cancel">پاشگەزبوون</string>
+    <string name="admin_loading_data">بارکرنا پێزانینێن ڕێڤەبەری...</string>
+    <string name="admin_error_generic">خەلەتیەک چێبوو. هیڤیە دووبارە هەول بدە.</string>
+    <string name="admin_refresh_cd">نووکرنا پێزانینان</string>
+    <string name="admin_logout_cd">دەرکەفتن</string>
+    <string name="admin_delete_cd">ژێبرنا تۆمارێ</string>
+    <string name="admin_search_clear_cd">پاککرنا گەڕیانێ</string>
+
+
 </resources>

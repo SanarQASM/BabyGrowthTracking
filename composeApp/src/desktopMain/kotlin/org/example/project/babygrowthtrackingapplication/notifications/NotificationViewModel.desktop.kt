@@ -1,15 +1,20 @@
 package org.example.project.babygrowthtrackingapplication.notifications
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Desktop (JVM) actual implementation of FcmTokenService
+// FcmTokenService.desktop.kt — NO CHANGE REQUIRED, documented
 //
-// FCM does not support a native desktop push channel, so we return null.
-// The NotificationViewModel handles null gracefully — it simply skips
-// registration. In-app polling (every 60s) still works for the notification
-// bell badge on desktop.
+// Desktop (JVM/Compose Desktop) correctly returns null, causing the VM to skip
+// FCM registration. Desktop users receive notifications exclusively via the
+// 60-second in-app polling loop (NotificationViewModel.startUnreadPolling()).
 //
-// If you later add Web Push or another desktop notification channel,
-// replace getToken() with the appropriate SDK call.
+// This is the correct and intended behaviour for a desktop app:
+//  • macOS does not use FCM — it uses APNS via the Mac App Store.
+//  • Windows 10+ uses WNS (Windows Notification Service).
+//  • Linux has no standard push channel.
+//
+// If you later add OS-level toast notifications on desktop, implement them
+// here using java.awt.SystemTray or a platform notification library.
+// The polling loop will still trigger in-app badge updates regardless.
 // ─────────────────────────────────────────────────────────────────────────────
 
 actual class FcmTokenService actual constructor() {

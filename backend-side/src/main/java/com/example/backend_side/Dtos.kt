@@ -126,31 +126,31 @@ data class BabyResponse(
 // GROWTH RECORD DTOs
 // ============================================================
 
-data class GrowthRecordCreateRequest @JsonCreator constructor(
-    @JsonProperty("babyId")
-    @field:NotBlank(message = "Baby ID is required")
+data class GrowthRecordCreateRequest @com.fasterxml.jackson.annotation.JsonCreator constructor(
+    @com.fasterxml.jackson.annotation.JsonProperty("babyId")
+    @field:jakarta.validation.constraints.NotBlank(message = "Baby ID is required")
     val babyId: String,
 
-    @JsonProperty("measurementDate")
-    @field:NotNull(message = "Measurement date is required")
-    val measurementDate: LocalDate,
+    @com.fasterxml.jackson.annotation.JsonProperty("measurementDate")
+    @field:jakarta.validation.constraints.NotNull(message = "Measurement date is required")
+    val measurementDate: java.time.LocalDate,
 
-    @JsonProperty("weight")
-    @field:DecimalMin(value = "0.5", message = "Weight must be at least 0.5 kg")
-    val weight: BigDecimal? = null,
+    @com.fasterxml.jackson.annotation.JsonProperty("weight")
+    @field:jakarta.validation.constraints.DecimalMin(value = "0.5", message = "Weight must be at least 0.5 kg")
+    val weight: java.math.BigDecimal? = null,
 
-    @JsonProperty("height")
-    @field:DecimalMin(value = "30.0", message = "Height must be at least 30 cm")
-    val height: BigDecimal? = null,
+    @com.fasterxml.jackson.annotation.JsonProperty("height")
+    @field:jakarta.validation.constraints.DecimalMin(value = "30.0", message = "Height must be at least 30 cm")
+    val height: java.math.BigDecimal? = null,
 
-    @JsonProperty("headCircumference")
-    @field:DecimalMin(value = "20.0", message = "Head circumference must be at least 20 cm")
-    val headCircumference: BigDecimal? = null,
+    @com.fasterxml.jackson.annotation.JsonProperty("headCircumference")
+    @field:jakarta.validation.constraints.DecimalMin(value = "20.0", message = "Head circumference must be at least 20 cm")
+    val headCircumference: java.math.BigDecimal? = null,
 
-    @JsonProperty("weightPercentile")            val weightPercentile           : Byte?   = null,
-    @JsonProperty("heightPercentile")            val heightPercentile           : Byte?   = null,
-    @JsonProperty("headCircumferencePercentile") val headCircumferencePercentile: Byte?   = null,
-    @JsonProperty("notes")                       val notes                      : String? = null
+    @com.fasterxml.jackson.annotation.JsonProperty("weightPercentile")            val weightPercentile           : Byte?   = null,
+    @com.fasterxml.jackson.annotation.JsonProperty("heightPercentile")            val heightPercentile           : Byte?   = null,
+    @com.fasterxml.jackson.annotation.JsonProperty("headCircumferencePercentile") val headCircumferencePercentile: Byte?   = null,
+    @com.fasterxml.jackson.annotation.JsonProperty("notes")                       val notes                      : String? = null
 )
 
 // Response DTO — no @JsonCreator needed
@@ -158,19 +158,23 @@ data class GrowthRecordResponse(
     val recordId                   : String,
     val babyId                     : String,
     val babyName                   : String,
-    val measurementDate            : LocalDate,
+    val measurementDate            : java.time.LocalDate,
     val ageInMonths                : Int,
-    val ageInDays                  : Int?       = null,
-    val weight                     : BigDecimal? = null,
-    val height                     : BigDecimal? = null,
-    val headCircumference          : BigDecimal? = null,
-    val weightPercentile           : Byte?       = null,
-    val heightPercentile           : Byte?       = null,
-    val headCircumferencePercentile: Byte?       = null,
-    val measuredByName             : String?     = null,
-    val notes                      : String?     = null,
-    val createdAt                  : String?     = null,
-    val updatedAt                  : String?     = null
+    val ageInDays                  : Int?                = null,
+    val weight                     : java.math.BigDecimal? = null,
+    val height                     : java.math.BigDecimal? = null,
+    val headCircumference          : java.math.BigDecimal? = null,
+    val weightPercentile           : Byte?               = null,
+    val heightPercentile           : Byte?               = null,
+    val headCircumferencePercentile: Byte?               = null,
+
+    val measuredByName             : String?             = null,
+
+    val isTeamMeasurement          : Boolean             = false,
+
+    val notes                      : String?             = null,
+    val createdAt                  : String?             = null,
+    val updatedAt                  : String?             = null
 )
 
 // ============================================================

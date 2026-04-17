@@ -26,15 +26,17 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextAlign
+import babygrowthtrackingapplication.composeapp.generated.resources.Res
+import babygrowthtrackingapplication.composeapp.generated.resources.*
 import org.example.project.babygrowthtrackingapplication.theme.*
+import org.jetbrains.compose.resources.stringResource
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Admin Login Screen
+// AdminLoginScreen
 //
-// Purpose: A dedicated secure login screen for administrators.
-// - Email + password only (no phone, city, address, etc.)
-// - Shows a shield/admin badge to distinguish from parent login
-// - On success, navigates to AdminHomeScreen
+// All strings come from Res.string.*
+// All sizes come from LocalDimensions.current
+// All colours come from MaterialTheme.colorScheme / MaterialTheme.customColors
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -49,18 +51,31 @@ fun AdminLoginScreen(
     val focusManager = LocalFocusManager.current
     val scrollState  = rememberScrollState()
 
+    // ── Resolve sentinel error keys to localised strings ──────────────────
+    val errorMessage: String? = when (state.errorKey) {
+        null                 -> null
+        "ERR_EMAIL_EMPTY"    -> stringResource(Res.string.admin_login_email_error)
+        "ERR_EMAIL_INVALID"  -> stringResource(Res.string.admin_login_email_invalid)
+        "ERR_PASSWORD_SHORT" -> stringResource(Res.string.admin_login_password_error)
+        "ERR_ACCESS_DENIED"  -> stringResource(Res.string.admin_access_denied)
+        else                 -> state.errorKey // server message passed verbatim
+    }
+
+    // ── Entrance animation ────────────────────────────────────────────────
     var animStarted by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         kotlinx.coroutines.delay(100)
         animStarted = true
     }
-
     val cardOffsetY by animateFloatAsState(
         targetValue   = if (animStarted) 0f else 300f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
-        label         = "cardY"
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness    = Spring.StiffnessLow
+        ),
+        label = "cardY"
     )
-    val alpha by animateFloatAsState(
+    val contentAlpha by animateFloatAsState(
         targetValue   = if (animStarted) 1f else 0f,
         animationSpec = tween(800, easing = FastOutSlowInEasing),
         label         = "alpha"
@@ -71,25 +86,14 @@ fun AdminLoginScreen(
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    listOf(
-                        Color(0xFF1A1A2E),
-                        Color(0xFF16213E),
-                        Color(0xFF0F3460)
+                    colors = listOf(
+                        MaterialTheme.colorScheme.background,
+                        MaterialTheme.colorScheme.surfaceVariant,
+                        MaterialTheme.colorScheme.background
                     )
                 )
             )
     ) {
-        // Decorative shield background
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(dimensions.logoSize * 0.8f)
-                .alpha(0.08f)
-                .background(
-                    Brush.radialGradient(listOf(Color.White, Color.Transparent))
-                )
-        )
-
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -99,46 +103,51 @@ fun AdminLoginScreen(
         ) {
             Spacer(Modifier.height(dimensions.spacingXLarge + dimensions.spacingLarge))
 
-            // Shield icon / logo
+            // ── Shield icon ───────────────────────────────────────────────
             Box(
                 modifier = Modifier
                     .size(dimensions.avatarLarge + dimensions.spacingXLarge)
                     .clip(RoundedCornerShape(dimensions.cardCornerRadius))
-                    .background(Color.White.copy(0.12f))
-                    .alpha(alpha),
+                    .background(customColors.accentGradientStart.copy(alpha = 0.15f))
+                    .alpha(contentAlpha),
                 contentAlignment = Alignment.Center
             ) {
-                Text("🛡️", style = MaterialTheme.typography.displaySmall)
+                Text(
+                    text  = stringResource(Res.string.admin_shield_emoji),
+                    style = MaterialTheme.typography.displaySmall
+                )
             }
 
             Spacer(Modifier.height(dimensions.spacingMedium))
 
             Text(
-                "Admin Panel",
+                text       = stringResource(Res.string.admin_panel_title),
                 style      = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
-                color      = Color.White,
-                modifier   = Modifier.alpha(alpha)
+                color      = MaterialTheme.colorScheme.onBackground,
+                modifier   = Modifier.alpha(contentAlpha)
             )
             Text(
-                "Secure administrator access",
-                style    = MaterialTheme.typography.bodyMedium,
-                color    = Color.White.copy(0.6f),
+                text      = stringResource(Res.string.admin_panel_subtitle),
+                style     = MaterialTheme.typography.bodyMedium,
+                color     = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center,
-                modifier  = Modifier.alpha(alpha)
+                modifier  = Modifier.alpha(contentAlpha)
             )
 
             Spacer(Modifier.height(dimensions.spacingXLarge))
 
-            // ── Login Card ───────────────────────────────────────────────────
+            // ── Login card ────────────────────────────────────────────────
             Card(
                 modifier = Modifier
                     .widthIn(max = dimensions.authCardMaxWidth)
                     .fillMaxWidth()
                     .graphicsLayer { translationY = cardOffsetY }
-                    .alpha(alpha),
-                shape  = RoundedCornerShape(dimensions.cardCornerRadius * 2),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFF1E2A3A)),
+                    .alpha(contentAlpha),
+                shape     = RoundedCornerShape(dimensions.cardCornerRadius * 2),
+                colors    = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
                 elevation = CardDefaults.cardElevation(defaultElevation = dimensions.cardElevation)
             ) {
                 Column(
@@ -149,108 +158,175 @@ fun AdminLoginScreen(
                     verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
                 ) {
                     Text(
-                        "Sign in to continue",
-                        style    = MaterialTheme.typography.titleMedium,
-                        color    = Color.White.copy(0.9f),
-                        fontWeight = FontWeight.SemiBold
+                        text       = stringResource(Res.string.admin_sign_in),
+                        style      = MaterialTheme.typography.titleMedium,
+                        color      = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
+                        fontWeight = FontWeight.Medium
                     )
 
                     Spacer(Modifier.height(dimensions.spacingXSmall))
 
-                    // Email field
+                    // ── Email field ───────────────────────────────────────
                     OutlinedTextField(
                         value         = state.email,
                         onValueChange = viewModel::onEmailChanged,
-                        label         = { Text("Email", color = Color.White.copy(0.6f)) },
-                        leadingIcon   = {
-                            Icon(Icons.Default.Email, null, tint = Color.White.copy(0.6f))
+                        label         = {
+                            Text(
+                                stringResource(Res.string.admin_email_label),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Email,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
                         },
                         singleLine      = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
-                        keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                        isError         = state.errorKey == "ERR_EMAIL_EMPTY" || state.errorKey == "ERR_EMAIL_INVALID",
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction    = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                        ),
                         modifier = Modifier.fillMaxWidth(),
                         shape    = RoundedCornerShape(dimensions.buttonCornerRadius),
                         colors   = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor      = Color.White,
-                            unfocusedTextColor    = Color.White.copy(0.8f),
-                            focusedBorderColor    = Color(0xFF3E90F0),
-                            unfocusedBorderColor  = Color.White.copy(0.2f),
-                            focusedContainerColor = Color.White.copy(0.05f),
-                            unfocusedContainerColor = Color.White.copy(0.03f),
-                            cursorColor           = Color(0xFF3E90F0)
+                            focusedBorderColor    = customColors.accentGradientStart,
+                            unfocusedBorderColor  = MaterialTheme.colorScheme.outline,
+                            focusedTextColor      = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor    = MaterialTheme.colorScheme.onSurface,
+                            cursorColor           = customColors.accentGradientStart
                         )
                     )
 
-                    // Password field
+                    // ── Password field ────────────────────────────────────
                     OutlinedTextField(
                         value         = state.password,
                         onValueChange = viewModel::onPasswordChanged,
-                        label         = { Text("Password", color = Color.White.copy(0.6f)) },
-                        leadingIcon   = { Icon(Icons.Default.Lock, null, tint = Color.White.copy(0.6f)) },
-                        trailingIcon  = {
+                        label         = {
+                            Text(
+                                stringResource(Res.string.admin_password_label),
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Lock,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            )
+                        },
+                        trailingIcon = {
                             IconButton(onClick = viewModel::onPasswordVisibilityToggled) {
                                 Icon(
-                                    imageVector        = if (state.passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                                    contentDescription = null,
-                                    tint               = Color.White.copy(0.6f)
+                                    imageVector = if (state.passwordVisible)
+                                        Icons.Default.VisibilityOff
+                                    else
+                                        Icons.Default.Visibility,
+                                    contentDescription = if (state.passwordVisible)
+                                        stringResource(Res.string.admin_password_hide)
+                                    else
+                                        stringResource(Res.string.admin_password_show),
+                                    tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                 )
                             }
                         },
-                        visualTransformation = if (state.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        visualTransformation = if (state.passwordVisible)
+                            VisualTransformation.None
+                        else
+                            PasswordVisualTransformation(),
                         singleLine      = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus(); viewModel.login(onLoginSuccess) }),
+                        isError         = state.errorKey == "ERR_PASSWORD_SHORT",
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction    = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                focusManager.clearFocus()
+                                viewModel.login(onLoginSuccess)
+                            }
+                        ),
                         modifier = Modifier.fillMaxWidth(),
                         shape    = RoundedCornerShape(dimensions.buttonCornerRadius),
                         colors   = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor      = Color.White,
-                            unfocusedTextColor    = Color.White.copy(0.8f),
-                            focusedBorderColor    = Color(0xFF3E90F0),
-                            unfocusedBorderColor  = Color.White.copy(0.2f),
-                            focusedContainerColor = Color.White.copy(0.05f),
-                            unfocusedContainerColor = Color.White.copy(0.03f),
-                            cursorColor           = Color(0xFF3E90F0)
+                            focusedBorderColor   = customColors.accentGradientStart,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline,
+                            focusedTextColor     = MaterialTheme.colorScheme.onSurface,
+                            unfocusedTextColor   = MaterialTheme.colorScheme.onSurface,
+                            cursorColor          = customColors.accentGradientStart
                         )
                     )
 
-                    // Error message
-                    state.errorMessage?.let { error ->
+                    // ── Error message ─────────────────────────────────────
+                    errorMessage?.let { error ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(RoundedCornerShape(dimensions.spacingSmall))
-                                .background(MaterialTheme.colorScheme.error.copy(0.15f))
+                                .background(MaterialTheme.colorScheme.errorContainer)
                                 .padding(dimensions.spacingSmall),
-                            verticalAlignment = Alignment.CenterVertically,
+                            verticalAlignment     = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
                         ) {
-                            Icon(Icons.Default.Error, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(dimensions.iconSmall))
-                            Text(error, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                            Icon(
+                                Icons.Default.Error,
+                                contentDescription = null,
+                                tint     = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.size(dimensions.iconSmall)
+                            )
+                            Text(
+                                text  = error,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer
+                            )
                         }
                     }
 
                     Spacer(Modifier.height(dimensions.spacingXSmall))
 
-                    // Login button
+                    // ── Login button ──────────────────────────────────────
                     Button(
-                        onClick  = { focusManager.clearFocus(); viewModel.login(onLoginSuccess) },
+                        onClick  = {
+                            focusManager.clearFocus()
+                            viewModel.login(onLoginSuccess)
+                        },
                         enabled  = !state.isLoading,
-                        modifier = Modifier.fillMaxWidth().height(dimensions.buttonHeight),
-                        shape    = RoundedCornerShape(dimensions.buttonCornerRadius),
-                        colors   = ButtonDefaults.buttonColors(
-                            containerColor = Color(0xFF3E90F0),
-                            disabledContainerColor = Color(0xFF3E90F0).copy(0.5f)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(dimensions.buttonHeight),
+                        shape  = RoundedCornerShape(dimensions.buttonCornerRadius),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor         = customColors.accentGradientStart,
+                            disabledContainerColor = customColors.accentGradientStart.copy(alpha = 0.5f)
                         )
                     ) {
                         if (state.isLoading) {
-                            CircularProgressIndicator(Modifier.size(dimensions.iconMedium), color = Color.White, strokeWidth = dimensions.borderWidthMedium)
+                            CircularProgressIndicator(
+                                modifier    = Modifier.size(dimensions.iconMedium),
+                                color       = MaterialTheme.colorScheme.onPrimary,
+                                strokeWidth = dimensions.borderWidthMedium
+                            )
                         } else {
                             Row(
                                 verticalAlignment     = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
                             ) {
-                                Icon(Icons.Default.AdminPanelSettings, null, tint = Color.White, modifier = Modifier.size(dimensions.iconMedium))
-                                Text("Sign In as Admin", fontWeight = FontWeight.Bold, color = Color.White)
+                                Icon(
+                                    Icons.Default.AdminPanelSettings,
+                                    contentDescription = null,
+                                    tint     = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.size(dimensions.iconMedium)
+                                )
+                                Text(
+                                    text       = stringResource(Res.string.admin_sign_in_button),
+                                    fontWeight = FontWeight.Bold,
+                                    color      = MaterialTheme.colorScheme.onPrimary
+                                )
                             }
                         }
                     }
@@ -259,12 +335,12 @@ fun AdminLoginScreen(
 
             Spacer(Modifier.height(dimensions.spacingLarge))
 
-            // Back to regular login
+            // ── Back to regular login ─────────────────────────────────────
             TextButton(onClick = onBackToLogin) {
                 Text(
-                    "← Back to regular login",
-                    color  = Color.White.copy(0.6f),
-                    style  = MaterialTheme.typography.bodyMedium
+                    text  = stringResource(Res.string.admin_back_to_login),
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
 

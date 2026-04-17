@@ -1,3 +1,4 @@
+// composeApp/src/commonMain/kotlin/org/example/project/babygrowthtrackingapplication/com/babygrowth/presentation/screens/account/screens/Forgotpasswordscreen.kt
 package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.screens
 
 import androidx.compose.animation.core.*
@@ -51,28 +52,24 @@ import org.example.project.babygrowthtrackingapplication.ui.components.PrimaryBu
 import org.example.project.babygrowthtrackingapplication.ui.components.GlassmorphicTextField
 import org.jetbrains.compose.resources.DrawableResource
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Auth screens share a large pill-shaped card corner.
-// Backed by spacingXXLarge so it scales with the responsive breakpoint system.
-// ─────────────────────────────────────────────────────────────────────────────
+/**
+ * FIXES applied:
+ * Bug 3 — No hardcoded values: dimensions → LocalDimensions, colours → theme.
+ * Bug 4 — Keyboard scroll: imePadding + verticalScroll.
+ */
 private val AuthCardCornerRadius @Composable get() = LocalDimensions.current.spacingXXLarge
 
-/**
- * REFACTORED:
- *  - 320.dp min-width  →  dimensions.authCardMinWidth
- *  - 420.dp max-width  →  dimensions.authCardMaxWidth
- */
 @Composable
 fun ForgotPasswordScreen(
-    viewModel     : ForgotPasswordViewModel,
-    onBackClick   : () -> Unit,
+    viewModel: ForgotPasswordViewModel,
+    onBackClick: () -> Unit,
     onResetSuccess: (email: String) -> Unit
 ) {
-    val dimensions   = LocalDimensions.current
+    val dimensions = LocalDimensions.current
     val customColors = MaterialTheme.customColors
     val focusManager = LocalFocusManager.current
-    val scrollState  = rememberScrollState()
-    val uiState      = viewModel.uiState
+    val scrollState = rememberScrollState()
+    val uiState = viewModel.uiState
 
     var animationStarted by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { delay(100); animationStarted = true }
@@ -81,186 +78,169 @@ fun ForgotPasswordScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(
-                Brush.verticalGradient(listOf(
-                    customColors.accentGradientStart.copy(alpha = 0.1f),
-                    MaterialTheme.colorScheme.background
-                ))
+                Brush.verticalGradient(
+                    listOf(
+                        customColors.accentGradientStart.copy(alpha = 0.1f),
+                        MaterialTheme.colorScheme.background
+                    )
+                )
             )
+            // Bug 4: push content above soft keyboard
+            .imePadding()
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                // Bug 4: scrollable + imePadding keeps the email field visible
                 .verticalScroll(scrollState)
-                .imePadding()
-                .padding(horizontal = dimensions.screenPadding),
+                .padding(horizontal = dimensions.screenPadding)
+                .imePadding(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ── Back button row ──────────────────────────────────────────────
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    // WAS: .widthIn(min = 320.dp, max = 420.dp)
-                    .widthIn(
-                        min = dimensions.authCardMinWidth,
-                        max = dimensions.authCardMaxWidth
-                    )
+                    .widthIn(min = dimensions.authCardMinWidth, max = dimensions.authCardMaxWidth)
                     .padding(top = dimensions.spacingMedium),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBackClick) {
                     Icon(
-                        imageVector        = Icons.AutoMirrored.Filled.ArrowBack,
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = stringResource(Res.string.common_back),
-                        tint               = customColors.accentGradientStart
+                        tint = customColors.accentGradientStart
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(dimensions.spacingMedium))
 
-            // ── Logo ─────────────────────────────────────────────────────────
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    // WAS: .widthIn(min = 320.dp, max = 420.dp)
-                    .widthIn(
-                        min = dimensions.authCardMinWidth,
-                        max = dimensions.authCardMaxWidth
-                    ),
+                    .widthIn(min = dimensions.authCardMinWidth, max = dimensions.authCardMaxWidth),
                 contentAlignment = Alignment.Center
             ) {
                 AnimatedForgotPasswordLogoSection(
                     animationStarted = animationStarted,
-                    modifier         = Modifier.wrapContentHeight()
+                    modifier = Modifier.wrapContentHeight()
                 )
             }
 
             Spacer(modifier = Modifier.height(dimensions.spacingLarge))
 
-            // ── Card ─────────────────────────────────────────────────────────
             AnimatedForgotPasswordCard(
                 animationStarted = animationStarted,
-                uiState          = uiState,
-                onEmailChange    = viewModel::onEmailChanged,
-                onSendClick      = { viewModel.sendResetCode(onResetSuccess) },
-                focusManager     = focusManager,
-                modifier         = Modifier
-                    // WAS: .widthIn(min = 320.dp, max = 420.dp)
-                    .widthIn(
-                        min = dimensions.authCardMinWidth,
-                        max = dimensions.authCardMaxWidth
-                    )
+                uiState = uiState,
+                onEmailChange = viewModel::onEmailChanged,
+                onSendClick = { viewModel.sendResetCode(onResetSuccess) },
+                focusManager = focusManager,
+                modifier = Modifier
+                    .widthIn(min = dimensions.authCardMinWidth, max = dimensions.authCardMaxWidth)
                     .fillMaxWidth()
                     .padding(bottom = dimensions.spacingXXLarge + dimensions.spacingLarge)
             )
         }
 
-        // ── Decorative corners ───────────────────────────────────────────────
         ForgotPasswordDecorativeCorner(
-            imageRes         = Res.drawable.bottom_left_background,
-            alignment        = Alignment.BottomStart,
-            fromX            = -100f, fromY = 100f,
-            size             = dimensions.cornerImageSize,
+            imageRes = Res.drawable.bottom_left_background,
+            alignment = Alignment.BottomStart,
+            fromX = -100f, fromY = 100f,
+            size = dimensions.cornerImageSize,
             animationStarted = animationStarted,
-            delayMillis      = 200
+            delayMillis = 200
         )
         ForgotPasswordDecorativeCorner(
-            imageRes         = Res.drawable.bottom_right_background,
-            alignment        = Alignment.BottomEnd,
-            fromX            = 100f, fromY = 100f,
-            size             = dimensions.cornerImageSize,
+            imageRes = Res.drawable.bottom_right_background,
+            alignment = Alignment.BottomEnd,
+            fromX = 100f, fromY = 100f,
+            size = dimensions.cornerImageSize,
             animationStarted = animationStarted,
-            delayMillis      = 300
+            delayMillis = 300
         )
     }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Logo section
-// ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 private fun AnimatedForgotPasswordLogoSection(
     animationStarted: Boolean,
-    modifier        : Modifier = Modifier
+    modifier: Modifier = Modifier
 ) {
     val dimensions = LocalDimensions.current
     var jsonString by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         jsonString = withContext(Dispatchers.Default) {
-            try { Res.readBytes("files/login.json").decodeToString() }
-            catch (e: Exception) { null }
+            try {
+                Res.readBytes("files/login.json").decodeToString()
+            } catch (e: Exception) {
+                null
+            }
         }
     }
 
     val offsetY by animateFloatAsState(
-        targetValue   = if (animationStarted) 0f else 200f,
+        targetValue = if (animationStarted) 0f else 200f,
         animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
-        label         = "logoY"
+        label = "logoY"
     )
     val alpha by animateFloatAsState(
-        targetValue   = if (animationStarted) 1f else 0f,
+        targetValue = if (animationStarted) 1f else 0f,
         animationSpec = tween(800, easing = FastOutSlowInEasing),
-        label         = "logoAlpha"
+        label = "logoAlpha"
     )
 
     Column(
-        modifier            = modifier
-            .graphicsLayer { translationY = offsetY }
-            .alpha(alpha),
+        modifier = modifier.graphicsLayer { translationY = offsetY }.alpha(alpha),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         jsonString?.let { json ->
             val composition by rememberLottieComposition { LottieCompositionSpec.JsonString(json) }
-            val progress    by animateLottieCompositionAsState(
+            val progress by animateLottieCompositionAsState(
                 composition, iterations = Compottie.IterateForever
             )
             Image(
-                painter            = rememberLottiePainter(composition, { progress }),
+                painter = rememberLottiePainter(composition, { progress }),
                 contentDescription = stringResource(Res.string.app_logo_description),
-                modifier           = Modifier.size(dimensions.logoSize * 0.8f),
-                contentScale       = ContentScale.Fit
+                modifier = Modifier.size(dimensions.logoSize * 0.8f),
+                contentScale = ContentScale.Fit
             )
         }
         Spacer(Modifier.height(dimensions.spacingSmall))
         Text(
-            text       = stringResource(Res.string.app_name),
-            style      = MaterialTheme.typography.headlineSmall,
-            color      = MaterialTheme.colorScheme.primary,
+            text = stringResource(Res.string.app_name),
+            style = MaterialTheme.typography.headlineSmall,
+            color = MaterialTheme.colorScheme.primary,
             fontWeight = FontWeight.Bold,
-            textAlign  = TextAlign.Center
+            textAlign = TextAlign.Center
         )
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Animated card
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun AnimatedForgotPasswordCard(
     animationStarted: Boolean,
-    uiState         : ForgotPasswordUiState,
-    onEmailChange   : (String) -> Unit,
-    onSendClick     : () -> Unit,
-    focusManager    : FocusManager,
-    modifier        : Modifier = Modifier
+    uiState: ForgotPasswordUiState,
+    onEmailChange: (String) -> Unit,
+    onSendClick: () -> Unit,
+    focusManager: FocusManager,
+    modifier: Modifier = Modifier
 ) {
-    val dimensions       = LocalDimensions.current
+    val dimensions = LocalDimensions.current
+    val customColors = MaterialTheme.customColors
     val cardCornerRadius = AuthCardCornerRadius
-    val cardShape        = RoundedCornerShape(cardCornerRadius)
+    val cardShape = RoundedCornerShape(cardCornerRadius)
 
     val offsetY by animateFloatAsState(
-        targetValue   = if (animationStarted) 0f else 400f,
+        targetValue = if (animationStarted) 0f else 400f,
         animationSpec = spring(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow),
-        label         = "cardY"
+        label = "cardY"
     )
     val alpha by animateFloatAsState(
-        targetValue   = if (animationStarted) 1f else 0f,
+        targetValue = if (animationStarted) 1f else 0f,
         animationSpec = tween(800, 400, FastOutSlowInEasing),
-        label         = "cardAlpha"
+        label = "cardAlpha"
     )
 
     Box(
@@ -270,12 +250,13 @@ private fun AnimatedForgotPasswordCard(
             .wrapContentHeight()
     ) {
         Image(
-            painter            = painterResource(Res.drawable.baby_background),
+            painter = painterResource(Res.drawable.baby_background),
             contentDescription = null,
-            modifier           = Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .matchParentSize()
                 .clip(cardShape)
+                // 0.3f is a deliberate design constant
                 .alpha(0.3f),
             contentScale = ContentScale.Crop
         )
@@ -285,39 +266,40 @@ private fun AnimatedForgotPasswordCard(
                 .fillMaxWidth()
                 .wrapContentHeight()
                 .clip(cardShape)
-                .background(Color.White.copy(alpha = 0.05f))
+                // Use theme glass overlay instead of hardcoded Color.White.copy(0.05f)
+                .background(customColors.glassBackground)
                 .padding(dimensions.spacingLarge),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text     = stringResource(Res.string.forgot_password_title),
-                style    = MaterialTheme.typography.titleLarge,
-                color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
+                text = stringResource(Res.string.forgot_password_title),
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
                 modifier = Modifier.padding(bottom = dimensions.spacingSmall)
             )
 
             Text(
-                text      = stringResource(Res.string.forgot_password_description),
-                style     = MaterialTheme.typography.bodySmall,
-                color     = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                text = stringResource(Res.string.forgot_password_description),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                 textAlign = TextAlign.Center,
-                modifier  = Modifier.padding(bottom = dimensions.spacingLarge)
+                modifier = Modifier.padding(bottom = dimensions.spacingLarge)
             )
 
             GlassmorphicTextField(
-                value         = uiState.email,
+                value = uiState.email,
                 onValueChange = onEmailChange,
-                placeholder   = stringResource(Res.string.forgot_password_email_placeholder),
-                leadingIcon   = {
+                placeholder = stringResource(Res.string.forgot_password_email_placeholder),
+                leadingIcon = {
                     Icon(
-                        imageVector        = Icons.Default.Email,
+                        imageVector = Icons.Default.Email,
                         contentDescription = stringResource(Res.string.forgot_password_email_icon_description),
-                        tint               = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                     )
                 },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
-                    imeAction    = ImeAction.Done
+                    imeAction = ImeAction.Done
                 ),
                 keyboardActions = KeyboardActions(
                     onDone = { focusManager.clearFocus(); onSendClick() }
@@ -328,9 +310,9 @@ private fun AnimatedForgotPasswordCard(
             if (uiState.successMessage != null) {
                 Spacer(Modifier.height(dimensions.spacingSmall))
                 Text(
-                    text     = uiState.successMessage,
-                    style    = MaterialTheme.typography.bodySmall,
-                    color    = MaterialTheme.colorScheme.primary,
+                    text = uiState.successMessage,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -338,9 +320,9 @@ private fun AnimatedForgotPasswordCard(
             if (uiState.errorMessage != null) {
                 Spacer(Modifier.height(dimensions.spacingSmall))
                 Text(
-                    text     = uiState.errorMessage,
-                    style    = MaterialTheme.typography.bodySmall,
-                    color    = MaterialTheme.colorScheme.error,
+                    text = uiState.errorMessage,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
@@ -348,10 +330,10 @@ private fun AnimatedForgotPasswordCard(
             Spacer(Modifier.height(dimensions.spacingLarge))
 
             PrimaryButton(
-                text     = stringResource(Res.string.forgot_password_send_code),
-                onClick  = onSendClick,
-                loading  = uiState.isLoading,
-                enabled  = !uiState.isLoading,
+                text = stringResource(Res.string.forgot_password_send_code),
+                onClick = onSendClick,
+                loading = uiState.isLoading,
+                enabled = !uiState.isLoading,
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -360,40 +342,34 @@ private fun AnimatedForgotPasswordCard(
     }
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Decorative corner
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 private fun ForgotPasswordDecorativeCorner(
-    imageRes        : DrawableResource,
-    alignment       : Alignment,
-    fromX           : Float,
-    fromY           : Float,
-    size            : Dp,
+    imageRes: DrawableResource,
+    alignment: Alignment,
+    fromX: Float, fromY: Float,
+    size: Dp,
     animationStarted: Boolean,
-    delayMillis     : Int,
-    modifier        : Modifier = Modifier
+    delayMillis: Int,
+    modifier: Modifier = Modifier
 ) {
-    val spec    = spring<Float>(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow)
+    val spec = spring<Float>(Spring.DampingRatioMediumBouncy, Spring.StiffnessLow)
     val offsetX by animateFloatAsState(if (animationStarted) 0f else fromX, spec, label = "x")
     val offsetY by animateFloatAsState(if (animationStarted) 0f else fromY, spec, label = "y")
-    val scale   by animateFloatAsState(if (animationStarted) 1f else 0f,    spec, label = "scale")
-    val alpha   by animateFloatAsState(
+    val scale by animateFloatAsState(if (animationStarted) 1f else 0f, spec, label = "scale")
+    val alpha by animateFloatAsState(
         if (animationStarted) 1f else 0f,
-        tween(800, delayMillis, FastOutSlowInEasing),
-        label = "alpha"
+        tween(800, delayMillis, FastOutSlowInEasing), label = "alpha"
     )
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
         Box(modifier.fillMaxSize(), contentAlignment = alignment) {
             Image(
-                painter            = painterResource(imageRes),
+                painter = painterResource(imageRes),
                 contentDescription = stringResource(Res.string.decorative_corner_description),
-                modifier           = Modifier
+                modifier = Modifier
                     .size(size)
                     .graphicsLayer {
                         translationX = offsetX; translationY = offsetY
-                        scaleX = scale;         scaleY = scale
+                        scaleX = scale; scaleY = scale
                     }
                     .alpha(alpha),
                 contentScale = ContentScale.Crop

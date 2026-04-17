@@ -225,94 +225,158 @@ interface GrowthRecordService {
     fun getLatestGrowthRecord(babyId: String): GrowthRecordResponse?
     fun deleteGrowthRecord(recordId: String)
 }
-
 @Service
 @Transactional
 class GrowthRecordServiceImpl(
     private val growthRecordRepository: GrowthRecordRepository,
-    private val babyRepository: BabyRepository,
-    private val userRepository: UserRepository
+    private val babyRepository        : BabyRepository,
+    private val userRepository        : UserRepository
 ) : GrowthRecordService {
 
-    override fun createGrowthRecord(measuredBy: String, request: GrowthRecordCreateRequest): GrowthRecordResponse {
-        logger.info { "Creating growth record for baby: ${request.babyId}" }
+    // ─────────────────────────────────────────────────────────────────────────
+    // CREATE
+    //
+    // FIX: Two changes to fix the parent/team color mix-up in the chart:
+    //
+    //  1. measuredByName = null   when the measurer IS the baby's parent.
+    //     measuredByName = name   when the measurer is an external/team member.
+    //
+    //  2. isTeamMeasurement = false  when parent adds the record.
+    //     isTeamMeasurement = true   when a team/external member adds the record.
+    //
+    // The client (ChartsTabContent.kt) uses GrowthRecordResponse.addedByTeam
+    // which checks isTeamMeasurement first, then falls back to measuredByName.
+    // ─────────────────────────────────────────────────────────────────────────
 
+    override fun createGrowthRecord(
+        measuredBy: String,
+        request: GrowthRecordCreateRequest
+    ): GrowthRecordResponse {
         val baby = babyRepository.findById(request.babyId)
-            .orElseThrow { ResourceNotFoundException("Baby not found with ID: ${request.babyId}") }
+            .orElseThrow { ResourceNotFoundException("Baby not found: ${request.babyId}") }
 
-        val measurer = userRepository.findById(measuredBy)
-            .orElseThrow { ResourceNotFoundException("User not found with ID: $measuredBy") }
+        val measurer = userRepository.findById(measuredBy).orElse(null)
 
-        val ageInMonths = Period.between(baby.dateOfBirth, request.measurementDate).toTotalMonths().toInt()
-        val ageInDays = ChronoUnit.DAYS.between(baby.dateOfBirth, request.measurementDate).toInt()
+        // FIX: Is the person adding this record the baby's own parent?
+        val isParentMeasurement = (baby.parentUser?.userId == measuredBy)
 
-        val growthRecord = GrowthRecord(
-            recordId = UUID.randomUUID().toString(),
-            baby = baby,
-            measurementDate = request.measurementDate,
-            ageInMonths = ageInMonths,
-            ageInDays = ageInDays,
-            weight = request.weight,
-            height = request.height,
-            headCircumference = request.headCircumference,
-            // ✅ percentile fields are Byte? in entity — convert directly from request
-            weightPercentile = request.weightPercentile,
-            heightPercentile = request.heightPercentile,
+        val record = GrowthRecord(
+            recordId                    = UUID.randomUUID().toString(),
+            baby                        = baby,
+            measurementDate             = request.measurementDate,
+            ageInMonths                 = calculateAgeInMonths(baby.dateOfBirth, request.measurementDate),
+            ageInDays                   = calculateAgeInDays(baby.dateOfBirth, request.measurementDate),
+            weight                      = request.weight,
+            height                      = request.height,
+            headCircumference           = request.headCircumference,
+            weightPercentile            = request.weightPercentile,
+            heightPercentile            = request.heightPercentile,
             headCircumferencePercentile = request.headCircumferencePercentile,
-            measuredBy = measurer
+            measuredBy                  = measurer
         )
 
-        val savedRecord = growthRecordRepository.save(growthRecord)
-        logger.info { "Growth record created successfully with ID: ${savedRecord.recordId}" }
+        val saved = growthRecordRepository.save(record)
+        logger.info { "Growth record saved: ${saved.recordId} | parent=$isParentMeasurement | measurer=$measuredBy" }
 
-        return savedRecord.toResponse()
+        return saved.toResponse(isParentMeasurement = isParentMeasurement)
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // READ — single record
+    // ─────────────────────────────────────────────────────────────────────────
 
     override fun getGrowthRecordById(recordId: String): GrowthRecordResponse {
         val record = growthRecordRepository.findById(recordId)
-            .orElseThrow { ResourceNotFoundException("Growth record not found with ID: $recordId") }
-        return record.toResponse()
+            .orElseThrow { ResourceNotFoundException("Growth record not found: $recordId") }
+        val isParent =record.baby?.parentUser?.userId != null &&
+                record.baby?.parentUser?.userId == record.measuredBy?.userId
+        return record.toResponse(isParentMeasurement = isParent)
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // READ — all records for a baby
+    // Each record's measuredBy is compared to baby.parent.userId individually.
+    // ─────────────────────────────────────────────────────────────────────────
 
     override fun getGrowthRecordsByBaby(babyId: String): List<GrowthRecordResponse> {
-        return growthRecordRepository.findByBaby_BabyIdOrderByMeasurementDateDesc(babyId)
-            .map { it.toResponse() }
+        val records = growthRecordRepository.findByBaby_BabyIdOrderByMeasurementDateDesc(babyId)
+        return records.map { record ->
+            val isParent = record.baby?.parentUser?.userId != null &&
+                    record.baby?.parentUser?.userId == record.measuredBy?.userId
+            record.toResponse(isParentMeasurement = isParent)
+        }
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // READ — latest record for a baby
+    // ─────────────────────────────────────────────────────────────────────────
+
     override fun getLatestGrowthRecord(babyId: String): GrowthRecordResponse? {
-        return growthRecordRepository.findLatestByBabyId(babyId)
-            .map { it.toResponse() }
-            .orElse(null)
+        val record = growthRecordRepository
+            .findTopByBabyBabyIdOrderByMeasurementDateDesc(babyId)
+            .orElse(null) ?: return null
+        val isParent = record.baby?.parentUser?.userId != null &&
+                record.baby?.parentUser?.userId == record.measuredBy?.userId
+        return record.toResponse(isParentMeasurement = isParent)
     }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // DELETE
+    // ─────────────────────────────────────────────────────────────────────────
 
     override fun deleteGrowthRecord(recordId: String) {
         if (!growthRecordRepository.existsById(recordId)) {
-            throw ResourceNotFoundException("Growth record not found with ID: $recordId")
+            throw ResourceNotFoundException("Growth record not found: $recordId")
         }
         growthRecordRepository.deleteById(recordId)
         logger.info { "Growth record deleted: $recordId" }
     }
 
-    private fun GrowthRecord.toResponse() = GrowthRecordResponse(
-        recordId = recordId,
-        babyId = baby?.babyId ?: "",
-        babyName = baby?.fullName ?: "",
-        measurementDate = measurementDate,
-        ageInMonths = ageInMonths,
-        ageInDays = ageInDays,
-        weight = weight,
-        height = height,
-        headCircumference = headCircumference,
-        // ✅ already Byte? — no conversion needed
-        weightPercentile = weightPercentile,
-        heightPercentile = heightPercentile,
-        headCircumferencePercentile = headCircumferencePercentile,
-        measuredByName = measuredBy?.fullName,
-        notes = null,
-        createdAt = createdAt.toString()                   // ← LocalDateTime? → String?
-    )
-}
+    // ─────────────────────────────────────────────────────────────────────────
+    // MAPPER — entity → response DTO
+    //
+    // isParentMeasurement controls two fields:
+    //   measuredByName    : null  if parent | measurer's full name if team
+    //   isTeamMeasurement : false if parent | true if team
+    // ─────────────────────────────────────────────────────────────────────────
 
+    private fun GrowthRecord.toResponse(isParentMeasurement: Boolean): GrowthRecordResponse {
+        return GrowthRecordResponse(
+            recordId                    = recordId,
+            babyId                      = baby?.babyId ?: "",
+            babyName                    = baby?.fullName ?: "",
+            measurementDate             = measurementDate,
+            ageInMonths                 = ageInMonths,
+            ageInDays                   = ageInDays,
+            weight                      = weight,
+            height                      = height,
+            headCircumference           = headCircumference,
+            weightPercentile            = weightPercentile,
+            heightPercentile            = heightPercentile,
+            headCircumferencePercentile = headCircumferencePercentile,
+            // FIX: null name + false flag for parent, name + true flag for team
+            measuredByName              = if (isParentMeasurement) null else measuredBy?.fullName,
+            isTeamMeasurement           = !isParentMeasurement,
+            createdAt                   = createdAt?.toString(),
+            updatedAt                   = updatedAt?.toString()
+        )
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // DATE HELPERS
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private fun calculateAgeInMonths(dateOfBirth: LocalDate, measurementDate: LocalDate): Int {
+        var months = (measurementDate.year - dateOfBirth.year) * 12 +
+                (measurementDate.monthValue - dateOfBirth.monthValue)
+        if (measurementDate.dayOfMonth < dateOfBirth.dayOfMonth) months--
+        return months.coerceAtLeast(0)
+    }
+
+    private fun calculateAgeInDays(dateOfBirth: LocalDate, measurementDate: LocalDate): Int {
+        return (measurementDate.toEpochDay() - dateOfBirth.toEpochDay()).toInt().coerceAtLeast(0)
+    }
+}
 // ============================================================
 // VACCINATION SERVICE
 // ============================================================

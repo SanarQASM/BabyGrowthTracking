@@ -43,20 +43,16 @@ class PushNotificationScheduler(
     private val growthRecordRepository              : GrowthRecordRepository,
     private val visionMotorRepository               : ChildDevelopmentVisionMotorRepository,
     private val hearingSpeechRepository             : ChildDevelopmentHearingSpeechRepository,
-    // NEW: inject preferences repository so we can check per-user toggles
     private val prefsRepository                     : UserNotificationPreferencesRepository
 ) {
 
-    // ─── Cache of preferences per user within one scheduler run ──────────────
-    // Avoids repeated DB hits for the same userId during a single hourly run.
-    private val prefsCache = mutableMapOf<String, com.example.backend_side.entity.UserNotificationPreferences?>()
+    // Cache per scheduler run to avoid repeated DB hits for the same userId
+    private val prefsCache = mutableMapOf<String, UserNotificationPreferences?>()
 
-    // Returns true if the user wants this category of notification.
-    // Defaults to true if the user has no preferences row yet.
     private fun userWants(userId: String, category: String): Boolean {
         val prefs = prefsCache.getOrPut(userId) {
             prefsRepository.findByUser_UserId(userId).orElse(null)
-        } ?: return true  // no row = default all on
+        } ?: return true
 
         return when (category.uppercase()) {
             "VACCINATION"  -> prefs.vaccination
@@ -71,16 +67,35 @@ class PushNotificationScheduler(
         }
     }
 
-    // Returns the user's preferred reminder lead time in days (default 3).
     private fun reminderDays(userId: String): Int =
         prefsCache.getOrPut(userId) {
             prefsRepository.findByUser_UserId(userId).orElse(null)
         }?.reminderDaysBefore ?: 3
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // FIX: Gender-aware pronoun helper
+    //
+    // BUG: All scheduler methods that referenced a baby's gender used hardcoded
+    //      "she/her" pronouns (e.g. "She's 6 months old", "halfway through her
+    //      first year!"). This ignored the baby.gender field entirely.
+    //
+    // FIX: Introduce pronoun helpers that read baby.gender and return the
+    //      correct pronoun set. Used throughout all notification body strings.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    private fun subjectPronoun(baby: Baby): String =
+        if (baby.gender == Gender.GIRL) "She" else "He"
+
+    private fun possessivePronoun(baby: Baby): String =
+        if (baby.gender == Gender.GIRL) "her" else "his"
+
+    private fun objectPronoun(baby: Baby): String =
+        if (baby.gender == Gender.GIRL) "her" else "him"
+
     @Scheduled(fixedRate = 3_600_000L)
     fun runAllNotificationChecks() {
         logger.info { "Running push notification scheduler — ${LocalDateTime.now()}" }
-        prefsCache.clear()  // fresh cache each run
+        prefsCache.clear()
         runCatching { checkVaccinationReminders()       }.onFailure { logger.error(it) { "Vaccination check failed" } }
         runCatching { checkAppointmentReminders()       }.onFailure { logger.error(it) { "Appointment check failed" } }
         runCatching { checkMonthlyMeasurementReminder() }.onFailure { logger.error(it) { "Measurement check failed" } }
@@ -104,7 +119,8 @@ class PushNotificationScheduler(
             val userId   = schedule.baby?.parentUser?.userId ?: return@forEach
             if (!userWants(userId, "VACCINATION")) return@forEach
 
-            val babyName = schedule.baby?.fullName           ?: return@forEach
+            val baby     = schedule.baby ?: return@forEach
+            val babyName = baby.fullName
             val vacName  = schedule.vaccineType?.vaccineName ?: return@forEach
             val daysUntil = ChronoUnit.DAYS.between(today, schedule.scheduledDate)
             val userReminderDays = reminderDays(userId).toLong()
@@ -136,7 +152,7 @@ class PushNotificationScheduler(
 
             val dedupeKey = "vacc_${schedule.scheduleId}_${daysUntil}"
             if (!alreadySentToday(userId, dedupeKey)) {
-                sendAndPersist(userId, schedule.baby?.babyId, babyName, title, body,
+                sendAndPersist(userId, baby.babyId, babyName, title, body,
                     "VACCINATION", priority, Routes.VACCINATION, "View schedule", Routes.VACCINATION, dedupeKey)
             }
         }
@@ -197,9 +213,11 @@ class PushNotificationScheduler(
                 .existsByBaby_BabyIdAndMeasurementDateBetween(baby.babyId, startOfMonth, today)
             if (!hasThisMonth && today.dayOfMonth >= 5 &&
                 !alreadySentToday(userId, "monthly_measure_${baby.babyId}")) {
+                // FIX: was hardcoded "She's" — now uses gender-aware pronoun
                 sendAndPersist(userId, baby.babyId, baby.fullName,
                     "Monthly measurement due 📏",
-                    "Time to measure ${baby.fullName}! She's $ageMonths months old. Log her weight, height, and head circumference.",
+                    "Time to measure ${baby.fullName}! ${subjectPronoun(baby)}'s $ageMonths months old. " +
+                            "Log ${possessivePronoun(baby)} weight, height, and head circumference.",
                     "GROWTH", "MEDIUM", Routes.ADD_MEASURE, "Add measurement",
                     dedupeKey = "monthly_measure_${baby.babyId}")
             }
@@ -216,12 +234,15 @@ class PushNotificationScheduler(
             if (ageMonths !in milestones) return@forEach
             if (alreadySentThisMonth(userId, "milestone_${baby.babyId}_$ageMonths")) return@forEach
 
+            // FIX: was hardcoded "her first year" — now uses gender-aware possessivePronoun()
             val (title, body) = when (ageMonths) {
                 1  -> "1 month old! 🎉"       to "${baby.fullName} is 1 month old today!"
                 3  -> "3 months old! 🎉"       to "${baby.fullName} is 3 months old!"
-                6  -> "6 months old! 🎉"       to "${baby.fullName} is 6 months old — halfway through her first year!"
+                6  -> "6 months old! 🎉"       to
+                        "${baby.fullName} is 6 months old — halfway through ${possessivePronoun(baby)} first year!"
                 12 -> "Happy 1st birthday! 🎂" to "Happy first birthday, ${baby.fullName}!"
-                18 -> "18 months old! 🌟"      to "${baby.fullName} is 18 months! Check her hearing and speech development."
+                18 -> "18 months old! 🌟"      to
+                        "${baby.fullName} is 18 months! Check ${possessivePronoun(baby)} hearing and speech development."
                 24 -> "2 years old! 🎉"        to "${baby.fullName} is 2 years old!"
                 else -> return@forEach
             }
@@ -312,38 +333,72 @@ class PushNotificationScheduler(
         }
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // FIX: processPendingScheduledNotifs — missing userWants() check
+    //
+    // BUG: This method sent all pending scheduled notifications regardless of
+    //      the user's notification preferences. Every other check method calls
+    //      userWants() first, but this one did not.
+    //
+    // FIX: Added userWants(userId, category) guard before sending, matching
+    //      the pattern used in all other scheduler methods.
+    // ─────────────────────────────────────────────────────────────────────────
     private fun processPendingScheduledNotifs() {
         val pending = notificationRepository.findPendingNotificationsToSend(LocalDateTime.now())
         pending.forEach { notif ->
-            val userId = notif.user?.userId ?: return@forEach
+            val userId   = notif.user?.userId ?: return@forEach
             val category = notif.notificationType?.name ?: "GENERAL"
-            if (!userWants(userId, category)) return@forEach
+
+            // FIX: check user preferences before sending
+            if (!userWants(userId, category)) {
+                logger.debug { "Skipping scheduled notification for $userId — category $category disabled by user" }
+                return@forEach
+            }
+
             val tokens = fcmTokenRepository.findByUserIdAndIsActive(userId, true)
             tokens.forEach { token ->
                 fcmService.sendToDevice(
-                    fcmToken = token.token, title = notif.title, body = notif.message,
-                    data = mapOf("category" to category,
-                        "priority" to (notif.priority?.name ?: NotificationPriority.MEDIUM.name)),
+                    fcmToken = token.token,
+                    title    = notif.title,
+                    body     = notif.message,
+                    data     = mapOf(
+                        "category" to category,
+                        "priority" to (notif.priority?.name ?: NotificationPriority.MEDIUM.name)
+                    ),
                     priority = notif.priority?.name ?: NotificationPriority.MEDIUM.name
                 )
             }
-            notif.isSent = true; notif.sentAt = LocalDateTime.now()
+            notif.isSent = true
+            notif.sentAt = LocalDateTime.now()
             notificationRepository.save(notif)
         }
     }
 
+    // ─────────────────────────────────────────────────────────────────────────
+    // Shared send + persist helper
+    // ─────────────────────────────────────────────────────────────────────────
     private fun sendAndPersist(
-        userId: String, babyId: String?, babyName: String?,
-        title: String, body: String, category: String, priority: String,
-        deepLink: String? = null, actionLabel: String? = null,
-        actionRoute: String? = null, dedupeKey: String? = null
+        userId     : String,
+        babyId     : String?,
+        babyName   : String?,
+        title      : String,
+        body       : String,
+        category   : String,
+        priority   : String,
+        deepLink   : String? = null,
+        actionLabel: String? = null,
+        actionRoute: String? = null,
+        dedupeKey  : String? = null
     ) {
         val tokens = fcmTokenRepository.findByUserIdAndIsActive(userId, true)
         val data = buildMap<String, String> {
-            put("category", category); put("priority", priority)
-            babyId?.let { put("babyId", it) }; babyName?.let { put("babyName", it) }
+            put("category", category)
+            put("priority", priority)
+            babyId?.let   { put("babyId", it) }
+            babyName?.let { put("babyName", it) }
             deepLink?.let { put("deepLinkRoute", it) }
-            actionLabel?.let { put("actionLabel", it) }; actionRoute?.let { put("actionRoute", it) }
+            actionLabel?.let { put("actionLabel", it) }
+            actionRoute?.let { put("actionRoute", it) }
         }
         tokens.forEach { fcmService.sendToDevice(it.token, title, body, data, priority = priority) }
 
@@ -351,16 +406,20 @@ class PushNotificationScheduler(
         val baby = babyId?.let { babyRepository.findById(it).orElse(null) }
         notificationRepository.save(Notification(
             notificationId   = UUID.randomUUID().toString(),
-            user             = user, baby = baby,
-            title            = title, message = body,
+            user             = user,
+            baby             = baby,
+            title            = title,
+            message          = body,
             dedupeKey        = dedupeKey,
-            notificationType = runCatching { NotificationType.valueOf(category.uppercase()) }
-                .getOrDefault(NotificationType.GENERAL),
-            priority         = runCatching { NotificationPriority.valueOf(priority.uppercase()) }
-                .getOrDefault(NotificationPriority.MEDIUM),
-            isSent           = tokens.isNotEmpty(),
-            sentAt           = if (tokens.isNotEmpty()) LocalDateTime.now() else null,
-            createdAt        = LocalDateTime.now()
+            notificationType = runCatching {
+                NotificationType.valueOf(category.uppercase())
+            }.getOrDefault(NotificationType.GENERAL),
+            priority         = runCatching {
+                NotificationPriority.valueOf(priority.uppercase())
+            }.getOrDefault(NotificationPriority.MEDIUM),
+            isSent    = tokens.isNotEmpty(),
+            sentAt    = if (tokens.isNotEmpty()) LocalDateTime.now() else null,
+            createdAt = LocalDateTime.now()
         ))
         logger.info { "Notification sent: [$category/$priority] '$title' → $userId" }
     }

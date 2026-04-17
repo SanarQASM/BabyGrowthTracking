@@ -2,8 +2,9 @@ package com.example.backend_side.controllers
 
 import com.example.backend_side.*
 import com.example.backend_side.entity.User
-import com.example.backend_side.entity.UserRole
 import com.example.backend_side.repositories.UserRepository
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
@@ -13,12 +14,31 @@ import org.springframework.web.bind.annotation.*
 class UserController(private val userRepository: UserRepository) {
 
     @GetMapping
-    fun getAllUsers(): ResponseEntity<ApiResponse<List<UserResponse>>> =
-        ResponseEntity.ok(ApiResponse(
-            success = true,
-            message = "Users retrieved",
-            data    = userRepository.findAll().map { it.toResponse() }
-        ))
+    fun getAllUsers(
+        @RequestParam(defaultValue = "0")   page: Int,
+        @RequestParam(defaultValue = "200") size: Int
+    ): ResponseEntity<ApiResponse<PageResponse<UserResponse>>> {
+
+        val pageable   = PageRequest.of(page, size, Sort.by("fullName").ascending())
+        val resultPage = userRepository.findAll(pageable)
+
+        val pageResponse = PageResponse(
+            content       = resultPage.content.map { it.toResponse() },
+            pageNumber    = resultPage.number,
+            pageSize      = resultPage.size,
+            totalElements = resultPage.totalElements,
+            totalPages    = resultPage.totalPages,
+            isLast        = resultPage.isLast
+        )
+
+        return ResponseEntity.ok(
+            ApiResponse(
+                success = true,
+                message = "Users retrieved",
+                data    = pageResponse
+            )
+        )
+    }
 
     @GetMapping("/{userId}")
     fun getUserById(@PathVariable userId: String): ResponseEntity<ApiResponse<UserResponse>> =
@@ -37,15 +57,15 @@ class UserController(private val userRepository: UserRepository) {
         @PathVariable userId: String,
         @RequestBody request: UserUpdateRequest
     ): ResponseEntity<ApiResponse<UserResponse>> {
-        val user = userRepository.findById(userId).orElse(null) 
+        val user = userRepository.findById(userId).orElse(null)
             ?: return ResponseEntity.notFound().build()
-        
+
         request.fullName?.let        { user.fullName        = it }
         request.phone?.let           { user.phone           = it }
         request.address?.let         { user.address         = it }
         request.city?.let            { user.city            = it }
         request.profileImageUrl?.let { user.profileImageUrl = it }
-        
+
         val saved = userRepository.save(user)
         return ResponseEntity.ok(ApiResponse(true, "User updated", saved.toResponse()))
     }
@@ -59,7 +79,7 @@ class UserController(private val userRepository: UserRepository) {
             ResponseEntity.notFound().build()
         }
 
-    // ── Mappers ──────────────────────────────────────────────────────────────
+    // ── Mapper ───────────────────────────────────────────────────────────────
 
     private fun User.toResponse() = UserResponse(
         userId          = userId,
