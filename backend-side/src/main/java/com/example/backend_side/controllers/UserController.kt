@@ -2,18 +2,25 @@ package com.example.backend_side.controllers
 
 import com.example.backend_side.*
 import com.example.backend_side.entity.User
+import com.example.backend_side.entity.UserNotificationPreferences
+import com.example.backend_side.entity.UserRole
 import com.example.backend_side.repositories.UserRepository
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.transaction.Transactional
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
+import java.util.UUID
 
 @RestController
 @RequestMapping("/v1/users")
 @CrossOrigin(origins = ["*"])
-class UserController(private val userRepository: UserRepository) {
+class UserController(
+    private val userRepository : UserRepository,
+    private val passwordEncoder: org.springframework.security.crypto.password.PasswordEncoder,
+    private val prefsRepository: com.example.backend_side.repositories.UserNotificationPreferencesRepository
+) {
 
     /**
      * FIX: PageResponse deserialization error on the client side.
@@ -116,4 +123,38 @@ class UserController(private val userRepository: UserRepository) {
         createdAt       = createdAt,
         updatedAt       = updatedAt
     )
+    @PostMapping
+    @Transactional
+    fun createUser(
+        @RequestBody request: UserCreateRequest
+    ): ResponseEntity<ApiResponse<UserResponse>> {
+        if (userRepository.existsByEmail(request.email)) {
+            throw ResourceAlreadyExistsException("Email already registered: ${request.email}")
+        }
+
+        val role = runCatching {
+            UserRole.valueOf(request.role.name.uppercase())
+        }.getOrElse { request.role }
+
+        val user = User(
+            userId   = UUID.randomUUID().toString(),
+            fullName = request.fullName,
+            email    = request.email,
+            password = passwordEncoder.encode(request.password ?: UUID.randomUUID().toString()),
+            phone    = request.phone,
+            city     = request.city,
+            profileImageUrl = request.profileImageUrl,
+            role     = role,
+            isActive = true
+        )
+        val saved = userRepository.save(user)
+
+        // Always create preferences row together with the user
+        if (!prefsRepository.existsByUserId(saved.userId)) {
+            prefsRepository.save(UserNotificationPreferences(userId = saved.userId))
+        }
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(ApiResponse(true, "User created successfully", saved.toResponse()))
+    }
 }

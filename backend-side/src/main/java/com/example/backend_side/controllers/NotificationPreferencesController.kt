@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.ResponseEntity
+import org.springframework.orm.ObjectOptimisticLockingFailureException
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.*
 
@@ -46,9 +47,30 @@ class NotificationPreferencesController(
     private val userRepo : UserRepository
 ) {
 
+
+private fun findOrCreate(userId: String): UserNotificationPreferences {
+    // userId is the PK now — use findById directly
+    val existing = prefsRepo.findById(userId).orElse(null)
+    if (existing != null) return existing
+
+    // Verify user exists
+    if (!userRepo.existsById(userId)) {
+        throw ResourceNotFoundException("User not found: $userId")
+    }
+
+    return try {
+        val prefs = UserNotificationPreferences(userId = userId)
+        prefsRepo.saveAndFlush(prefs)
+    } catch (ex: org.springframework.dao.DataIntegrityViolationException) {
+        prefsRepo.findById(userId)
+            .orElseThrow { ResourceNotFoundException("Prefs missing after conflict: $userId") }
+    } catch (ex: jakarta.persistence.EntityExistsException) {
+        prefsRepo.findById(userId)
+            .orElseThrow { ResourceNotFoundException("Prefs missing after conflict: $userId") }
+    }
+}
     @GetMapping("/{userId}")
-    @Transactional                   // ← FIX: single session for find + optional save
-    @Operation(summary = "Get notification preferences for a user — creates defaults if not set")
+    @Transactional
     fun getPreferences(
         @PathVariable userId: String
     ): ResponseEntity<ApiResponse<NotificationPreferencesResponse>> {
@@ -57,14 +79,12 @@ class NotificationPreferencesController(
     }
 
     @PutMapping("/{userId}")
-    @Transactional                   // ← FIX: single session for find + save
-    @Operation(summary = "Update notification preferences — called by SettingsViewModel on toggle")
+    @Transactional
     fun updatePreferences(
         @PathVariable userId: String,
         @RequestBody request: NotificationPreferencesRequest
     ): ResponseEntity<ApiResponse<NotificationPreferencesResponse>> {
         val prefs = findOrCreate(userId)
-
         request.vaccination?.let        { prefs.vaccination        = it }
         request.growth?.let             { prefs.growth             = it }
         request.appointment?.let        { prefs.appointment        = it }
@@ -73,21 +93,8 @@ class NotificationPreferencesController(
         request.milestones?.let         { prefs.milestones         = it }
         request.general?.let            { prefs.general            = it }
         request.reminderDaysBefore?.let { prefs.reminderDaysBefore = it.coerceIn(1, 14) }
-
-        // No explicit save() needed — @Transactional + dirty-checking handles it.
-        // But we call save() explicitly to be safe with the @MapsId entity.
         val saved = prefsRepo.save(prefs)
         return ResponseEntity.ok(ApiResponse(true, "Preferences updated", saved.toResponse()))
-    }
-
-    // ── Private helper — single findOrCreate, always inside a transaction ──────
-    private fun findOrCreate(userId: String): UserNotificationPreferences {
-        return prefsRepo.findByUser_UserId(userId).orElseGet {
-            val user = userRepo.findById(userId)
-                .orElseThrow { ResourceNotFoundException("User not found: $userId") }
-            // FIX: Use factory method that pre-populates userId before save
-            prefsRepo.save(UserNotificationPreferences.defaultsFor(user))
-        }
     }
 
     private fun UserNotificationPreferences.toResponse() = NotificationPreferencesResponse(

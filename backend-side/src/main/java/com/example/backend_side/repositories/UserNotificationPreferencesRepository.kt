@@ -10,12 +10,12 @@ import java.util.Optional
 @Repository
 interface UserNotificationPreferencesRepository : JpaRepository<UserNotificationPreferences, String> {
 
-    fun findByUser_UserId(userId: String): Optional<UserNotificationPreferences>
+    // userId IS the primary key now, so findById() works directly
+    // These are kept for API compatibility with existing service calls
+    fun findByUserId(userId: String): Optional<UserNotificationPreferences>
 
-    // ── Existence check avoids loading the full entity just to test presence ──
-    fun existsByUser_UserId(userId: String): Boolean
+    fun existsByUserId(userId: String): Boolean
 
-    // ── Used by scheduler to load prefs for multiple users efficiently ─────────
-    @Query("SELECT p FROM UserNotificationPreferences p WHERE p.user.userId IN :userIds")
+    @Query("SELECT p FROM UserNotificationPreferences p WHERE p.userId IN :userIds")
     fun findAllByUserIds(@Param("userIds") userIds: List<String>): List<UserNotificationPreferences>
 }

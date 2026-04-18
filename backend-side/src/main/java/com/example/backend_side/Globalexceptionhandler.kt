@@ -177,4 +177,19 @@ class GlobalExceptionHandler {
         )
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response)
     }
+
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException::class)
+    fun handleMethodNotSupported(
+        ex: org.springframework.web.HttpRequestMethodNotSupportedException,
+        request: WebRequest
+    ): ResponseEntity<ApiResponse<Nothing>> {
+        logger.error { "Method not supported: ${ex.method} — supported: ${ex.supportedMethods?.toList()} — path: ${(request as? org.springframework.web.context.request.ServletWebRequest)?.request?.requestURI}" }
+        val response = ApiResponse<Nothing>(
+            success = false,
+            message = "Method ${ex.method} not supported for this endpoint",
+            errors  = listOf("Supported methods: ${ex.supportedMethods?.toList()}"),
+            timestamp = java.time.LocalDateTime.now()
+        )
+        return ResponseEntity.status(org.springframework.http.HttpStatus.METHOD_NOT_ALLOWED).body(response)
+    }
 }
