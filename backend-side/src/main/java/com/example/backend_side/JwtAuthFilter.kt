@@ -29,7 +29,8 @@ class JwtAuthFilter(
         "/api/actuator/",
         "/api/api-docs",
         "/api/swagger-ui",
-        "/api/v3/api-docs"
+        "/api/v3/api-docs",
+        "/api/v1/admin-setup/"
     )
 
     override fun shouldNotFilter(request: HttpServletRequest): Boolean {

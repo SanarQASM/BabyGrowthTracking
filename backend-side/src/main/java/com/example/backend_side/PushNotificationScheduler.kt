@@ -5,6 +5,7 @@ import com.example.backend_side.repositories.*
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.Period
@@ -46,14 +47,49 @@ class PushNotificationScheduler(
     private val prefsRepository                     : UserNotificationPreferencesRepository
 ) {
 
-    // Cache per scheduler run to avoid repeated DB hits for the same userId
-    private val prefsCache = mutableMapOf<String, UserNotificationPreferences?>()
+    // ── FIX: prefsCache is now a local variable per scheduler run ─────────────
+    // PREVIOUS: prefsCache was a class-level mutableMapOf() that was never
+    // thread-safe and persisted stale data between runs. On the next run,
+    // cached prefs were detached from the Hibernate session, causing
+    // LazyInitializationException when Hibernate tried to re-attach them.
+    // FIX: Build a fresh Map at the start of each run and pass it to helpers.
+    // This is safe because @Scheduled runs on a single scheduler thread.
 
-    private fun userWants(userId: String, category: String): Boolean {
-        val prefs = prefsCache.getOrPut(userId) {
-            prefsRepository.findByUser_UserId(userId).orElse(null)
-        } ?: return true
+    // ── FIX: @Transactional on the top-level run method ───────────────────────
+    // PREVIOUS: No @Transactional on the scheduler entry point. Every lazy
+    // relationship access (baby.parentUser, schedule.vaccineType, etc.) outside
+    // a transaction caused LazyInitializationException.
+    // FIX: @Transactional(readOnly = true) on the dispatcher keeps a session
+    // open for the entire scheduler run. Individual write operations (sendAndPersist)
+    // use REQUIRES_NEW so they commit independently.
 
+    @Scheduled(fixedRate = 3_600_000L)
+    @Transactional(readOnly = true)
+    fun runAllNotificationChecks() {
+        logger.info { "Running push notification scheduler — ${LocalDateTime.now()}" }
+
+        // Build fresh prefs cache for this run from DB — no detached entities
+        val allUserIds  = babyRepository.findByIsActive(true)
+            .mapNotNull { it.parentUser?.userId }
+            .distinct()
+        val prefsCache  = prefsRepository.findAllByUserIds(allUserIds)
+            .associateBy { it.userId }
+
+        runCatching { checkVaccinationReminders(prefsCache)       }.onFailure { logger.error(it) { "Vaccination check failed" } }
+        runCatching { checkAppointmentReminders(prefsCache)       }.onFailure { logger.error(it) { "Appointment check failed" } }
+        runCatching { checkMonthlyMeasurementReminder(prefsCache) }.onFailure { logger.error(it) { "Measurement check failed" } }
+        runCatching { checkBabyMilestones(prefsCache)             }.onFailure { logger.error(it) { "Milestone check failed" } }
+        runCatching { checkHealthIssueFollowUps(prefsCache)       }.onFailure { logger.error(it) { "Health issue check failed" } }
+        runCatching { checkMissingFamilyHistory(prefsCache)       }.onFailure { logger.error(it) { "Family history check failed" } }
+        runCatching { checkDevelopmentAssessments(prefsCache)     }.onFailure { logger.error(it) { "Development check failed" } }
+        runCatching { checkAutoArchiveWarning(prefsCache)         }.onFailure { logger.error(it) { "Archive check failed" } }
+        runCatching { processPendingScheduledNotifs(prefsCache)   }.onFailure { logger.error(it) { "Pending notifs failed" } }
+    }
+
+    // ── Prefs helpers ─────────────────────────────────────────────────────────
+
+    private fun userWants(userId: String, category: String, prefsCache: Map<String, UserNotificationPreferences>): Boolean {
+        val prefs = prefsCache[userId] ?: return true  // default = allow if no prefs row yet
         return when (category.uppercase()) {
             "VACCINATION"  -> prefs.vaccination
             "GROWTH"       -> prefs.growth
@@ -67,21 +103,10 @@ class PushNotificationScheduler(
         }
     }
 
-    private fun reminderDays(userId: String): Int =
-        prefsCache.getOrPut(userId) {
-            prefsRepository.findByUser_UserId(userId).orElse(null)
-        }?.reminderDaysBefore ?: 3
+    private fun reminderDays(userId: String, prefsCache: Map<String, UserNotificationPreferences>): Int =
+        prefsCache[userId]?.reminderDaysBefore ?: 3
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // FIX: Gender-aware pronoun helper
-    //
-    // BUG: All scheduler methods that referenced a baby's gender used hardcoded
-    //      "she/her" pronouns (e.g. "She's 6 months old", "halfway through her
-    //      first year!"). This ignored the baby.gender field entirely.
-    //
-    // FIX: Introduce pronoun helpers that read baby.gender and return the
-    //      correct pronoun set. Used throughout all notification body strings.
-    // ─────────────────────────────────────────────────────────────────────────
+    // ── Gender pronouns ───────────────────────────────────────────────────────
 
     private fun subjectPronoun(baby: Baby): String =
         if (baby.gender == Gender.GIRL) "She" else "He"
@@ -92,22 +117,9 @@ class PushNotificationScheduler(
     private fun objectPronoun(baby: Baby): String =
         if (baby.gender == Gender.GIRL) "her" else "him"
 
-    @Scheduled(fixedRate = 3_600_000L)
-    fun runAllNotificationChecks() {
-        logger.info { "Running push notification scheduler — ${LocalDateTime.now()}" }
-        prefsCache.clear()
-        runCatching { checkVaccinationReminders()       }.onFailure { logger.error(it) { "Vaccination check failed" } }
-        runCatching { checkAppointmentReminders()       }.onFailure { logger.error(it) { "Appointment check failed" } }
-        runCatching { checkMonthlyMeasurementReminder() }.onFailure { logger.error(it) { "Measurement check failed" } }
-        runCatching { checkBabyMilestones()             }.onFailure { logger.error(it) { "Milestone check failed" } }
-        runCatching { checkHealthIssueFollowUps()       }.onFailure { logger.error(it) { "Health issue check failed" } }
-        runCatching { checkMissingFamilyHistory()       }.onFailure { logger.error(it) { "Family history check failed" } }
-        runCatching { checkDevelopmentAssessments()     }.onFailure { logger.error(it) { "Development check failed" } }
-        runCatching { checkAutoArchiveWarning()         }.onFailure { logger.error(it) { "Archive check failed" } }
-        runCatching { processPendingScheduledNotifs()   }.onFailure { logger.error(it) { "Pending notifs failed" } }
-    }
+    // ── Vaccination reminders ─────────────────────────────────────────────────
 
-    private fun checkVaccinationReminders() {
+    private fun checkVaccinationReminders(prefsCache: Map<String, UserNotificationPreferences>) {
         val today = LocalDate.now()
         val allUpcoming = vaccinationScheduleRepo.findAllByStatusIn(
             listOf(ScheduleStatus.UPCOMING, ScheduleStatus.DUE_SOON),
@@ -116,14 +128,15 @@ class PushNotificationScheduler(
         val allOverdue = vaccinationScheduleRepo.findAllByStatus(ScheduleStatus.OVERDUE)
 
         (allUpcoming + allOverdue).forEach { schedule ->
-            val userId   = schedule.baby?.parentUser?.userId ?: return@forEach
-            if (!userWants(userId, "VACCINATION")) return@forEach
-
+            // FIX: Access lazy relations inside the @Transactional session — safe here
             val baby     = schedule.baby ?: return@forEach
+            val userId   = baby.parentUser?.userId ?: return@forEach
+            if (!userWants(userId, "VACCINATION", prefsCache)) return@forEach
+
             val babyName = baby.fullName
             val vacName  = schedule.vaccineType?.vaccineName ?: return@forEach
             val daysUntil = ChronoUnit.DAYS.between(today, schedule.scheduledDate)
-            val userReminderDays = reminderDays(userId).toLong()
+            val userReminderDays = reminderDays(userId, prefsCache).toLong()
 
             val (title, body, priority, _) = when {
                 schedule.status == ScheduleStatus.OVERDUE -> {
@@ -158,7 +171,9 @@ class PushNotificationScheduler(
         }
     }
 
-    private fun checkAppointmentReminders() {
+    // ── Appointment reminders ─────────────────────────────────────────────────
+
+    private fun checkAppointmentReminders(prefsCache: Map<String, UserNotificationPreferences>) {
         val now   = LocalDateTime.now()
         val today = LocalDate.now()
 
@@ -166,10 +181,11 @@ class PushNotificationScheduler(
             .findByScheduledDateBetween(today, today.plusDays(8))
             .filter { it.status == AppointmentStatus.SCHEDULED || it.status == AppointmentStatus.CONFIRMED }
             .forEach { appointment ->
-                val userId   = appointment.baby?.parentUser?.userId ?: return@forEach
-                if (!userWants(userId, "APPOINTMENT")) return@forEach
+                val baby   = appointment.baby ?: return@forEach
+                val userId = baby.parentUser?.userId ?: return@forEach
+                if (!userWants(userId, "APPOINTMENT", prefsCache)) return@forEach
 
-                val babyName = appointment.baby?.fullName ?: return@forEach
+                val babyName = baby.fullName
                 val typeName = appointment.appointmentType?.name
                     ?.replace("_", " ")?.lowercase()?.replaceFirstChar { it.uppercase() } ?: "Appointment"
 
@@ -177,23 +193,23 @@ class PushNotificationScheduler(
                 val apptDateTime = appointment.scheduledDate.atTime(
                     appointment.scheduledTime ?: java.time.LocalTime.of(9, 0))
                 val hoursUntil   = ChronoUnit.HOURS.between(now, apptDateTime)
-                val userReminder = reminderDays(userId).toLong()
+                val userReminder = reminderDays(userId, prefsCache).toLong()
 
                 when {
                     daysUntil == userReminder && !alreadySentToday(userId, "appt_rd_${appointment.appointmentId}") ->
-                        sendAndPersist(userId, appointment.baby?.babyId, babyName,
+                        sendAndPersist(userId, baby.babyId, babyName,
                             "Appointment in $daysUntil days 📅",
                             "$babyName has a $typeName in $daysUntil days${appointment.doctorName?.let { " with $it" } ?: ""}.",
                             "APPOINTMENT", "MEDIUM", Routes.APPOINTMENTS, "View appointment",
                             dedupeKey = "appt_rd_${appointment.appointmentId}")
                     daysUntil == 1L && !alreadySentToday(userId, "appt_1d_${appointment.appointmentId}") ->
-                        sendAndPersist(userId, appointment.baby?.babyId, babyName,
+                        sendAndPersist(userId, baby.babyId, babyName,
                             "Appointment tomorrow 📅",
                             "$babyName's $typeName is tomorrow${appointment.scheduledTime?.let { " at $it" } ?: ""}.",
                             "APPOINTMENT", "HIGH", Routes.APPOINTMENTS, "View details",
                             dedupeKey = "appt_1d_${appointment.appointmentId}")
                     hoursUntil in 1..2 && !alreadySentToday(userId, "appt_2h_${appointment.appointmentId}") ->
-                        sendAndPersist(userId, appointment.baby?.babyId, babyName,
+                        sendAndPersist(userId, baby.babyId, babyName,
                             "Appointment in 2 hours ⏰",
                             "$babyName's $typeName starts in 2 hours.",
                             "APPOINTMENT", "HIGH", Routes.APPOINTMENTS, "Get directions",
@@ -202,18 +218,19 @@ class PushNotificationScheduler(
             }
     }
 
-    private fun checkMonthlyMeasurementReminder() {
-        val today = LocalDate.now()
+    // ── Monthly measurement reminder ──────────────────────────────────────────
+
+    private fun checkMonthlyMeasurementReminder(prefsCache: Map<String, UserNotificationPreferences>) {
+        val today        = LocalDate.now()
         val startOfMonth = today.withDayOfMonth(1)
         babyRepository.findByIsActive(true).forEach { baby ->
             val userId = baby.parentUser?.userId ?: return@forEach
-            if (!userWants(userId, "GROWTH")) return@forEach
+            if (!userWants(userId, "GROWTH", prefsCache)) return@forEach
             val ageMonths = Period.between(baby.dateOfBirth, today).toTotalMonths().toInt()
             val hasThisMonth = growthRecordRepository
                 .existsByBaby_BabyIdAndMeasurementDateBetween(baby.babyId, startOfMonth, today)
             if (!hasThisMonth && today.dayOfMonth >= 5 &&
                 !alreadySentToday(userId, "monthly_measure_${baby.babyId}")) {
-                // FIX: was hardcoded "She's" — now uses gender-aware pronoun
                 sendAndPersist(userId, baby.babyId, baby.fullName,
                     "Monthly measurement due 📏",
                     "Time to measure ${baby.fullName}! ${subjectPronoun(baby)}'s $ageMonths months old. " +
@@ -224,17 +241,18 @@ class PushNotificationScheduler(
         }
     }
 
-    private fun checkBabyMilestones() {
-        val today = LocalDate.now()
+    // ── Baby milestones ───────────────────────────────────────────────────────
+
+    private fun checkBabyMilestones(prefsCache: Map<String, UserNotificationPreferences>) {
+        val today      = LocalDate.now()
         val milestones = listOf(1, 3, 6, 12, 18, 24)
         babyRepository.findByIsActive(true).forEach { baby ->
             val userId = baby.parentUser?.userId ?: return@forEach
-            if (!userWants(userId, "BABY_PROFILE")) return@forEach
+            if (!userWants(userId, "BABY_PROFILE", prefsCache)) return@forEach
             val ageMonths = Period.between(baby.dateOfBirth, today).toTotalMonths().toInt()
             if (ageMonths !in milestones) return@forEach
             if (alreadySentThisMonth(userId, "milestone_${baby.babyId}_$ageMonths")) return@forEach
 
-            // FIX: was hardcoded "her first year" — now uses gender-aware possessivePronoun()
             val (title, body) = when (ageMonths) {
                 1  -> "1 month old! 🎉"       to "${baby.fullName} is 1 month old today!"
                 3  -> "3 months old! 🎉"       to "${baby.fullName} is 3 months old!"
@@ -253,17 +271,20 @@ class PushNotificationScheduler(
         }
     }
 
-    private fun checkHealthIssueFollowUps() {
-        val today = LocalDate.now()
+    // ── Health issue follow-ups ───────────────────────────────────────────────
+
+    private fun checkHealthIssueFollowUps(prefsCache: Map<String, UserNotificationPreferences>) {
+        val today  = LocalDate.now()
         val cutoff = today.minusDays(14)
         healthIssueRepository.findOngoingBefore(isResolved = false, before = cutoff)
             .forEach { issue ->
-                val userId = issue.baby?.parentUser?.userId ?: return@forEach
-                if (!userWants(userId, "HEALTH")) return@forEach
-                val babyName = issue.baby?.fullName ?: return@forEach
+                val baby   = issue.baby ?: return@forEach
+                val userId = baby.parentUser?.userId ?: return@forEach
+                if (!userWants(userId, "HEALTH", prefsCache)) return@forEach
+                val babyName = baby.fullName
                 val key = "health_followup_${issue.issueId}"
                 if (!alreadySentToday(userId, key)) {
-                    sendAndPersist(userId, issue.baby?.babyId, babyName,
+                    sendAndPersist(userId, baby.babyId, babyName,
                         "Health issue ongoing ❤️",
                         "$babyName's ${issue.title} has been ongoing for 14+ days.",
                         "HEALTH", "HIGH", Routes.HEALTH, "Book appointment", Routes.ADD_APPT, key)
@@ -271,11 +292,13 @@ class PushNotificationScheduler(
             }
     }
 
-    private fun checkMissingFamilyHistory() {
+    // ── Missing family history ────────────────────────────────────────────────
+
+    private fun checkMissingFamilyHistory(prefsCache: Map<String, UserNotificationPreferences>) {
         val today = LocalDate.now()
         babyRepository.findByIsActive(true).forEach { baby ->
             val userId = baby.parentUser?.userId ?: return@forEach
-            if (!userWants(userId, "HEALTH")) return@forEach
+            if (!userWants(userId, "HEALTH", prefsCache)) return@forEach
             val ageDays = ChronoUnit.DAYS.between(baby.dateOfBirth, today)
             if (ageDays < 30) return@forEach
             val hasHistory = familyHistoryRepository.existsByBaby_BabyId(baby.babyId)
@@ -289,12 +312,14 @@ class PushNotificationScheduler(
         }
     }
 
-    private fun checkDevelopmentAssessments() {
-        val today = LocalDate.now()
+    // ── Development assessments ───────────────────────────────────────────────
+
+    private fun checkDevelopmentAssessments(prefsCache: Map<String, UserNotificationPreferences>) {
+        val today      = LocalDate.now()
         val milestones = listOf(1, 3, 6, 9, 12)
         babyRepository.findByIsActive(true).forEach { baby ->
             val userId = baby.parentUser?.userId ?: return@forEach
-            if (!userWants(userId, "DEVELOPMENT")) return@forEach
+            if (!userWants(userId, "DEVELOPMENT", prefsCache)) return@forEach
             val ageMonths = Period.between(baby.dateOfBirth, today).toTotalMonths().toInt()
             if (ageMonths !in milestones) return@forEach
 
@@ -318,7 +343,9 @@ class PushNotificationScheduler(
         }
     }
 
-    private fun checkAutoArchiveWarning() {
+    // ── Auto-archive warning ──────────────────────────────────────────────────
+
+    private fun checkAutoArchiveWarning(prefsCache: Map<String, UserNotificationPreferences>) {
         val today = LocalDate.now()
         babyRepository.findByIsActive(true).forEach { baby ->
             val userId = baby.parentUser?.userId ?: return@forEach
@@ -333,24 +360,15 @@ class PushNotificationScheduler(
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // FIX: processPendingScheduledNotifs — missing userWants() check
-    //
-    // BUG: This method sent all pending scheduled notifications regardless of
-    //      the user's notification preferences. Every other check method calls
-    //      userWants() first, but this one did not.
-    //
-    // FIX: Added userWants(userId, category) guard before sending, matching
-    //      the pattern used in all other scheduler methods.
-    // ─────────────────────────────────────────────────────────────────────────
-    private fun processPendingScheduledNotifs() {
+    // ── Process pending scheduled notifications ───────────────────────────────
+
+    private fun processPendingScheduledNotifs(prefsCache: Map<String, UserNotificationPreferences>) {
         val pending = notificationRepository.findPendingNotificationsToSend(LocalDateTime.now())
         pending.forEach { notif ->
             val userId   = notif.user?.userId ?: return@forEach
             val category = notif.notificationType?.name ?: "GENERAL"
 
-            // FIX: check user preferences before sending
-            if (!userWants(userId, category)) {
+            if (!userWants(userId, category, prefsCache)) {
                 logger.debug { "Skipping scheduled notification for $userId — category $category disabled by user" }
                 return@forEach
             }
@@ -374,10 +392,11 @@ class PushNotificationScheduler(
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // Shared send + persist helper
-    // ─────────────────────────────────────────────────────────────────────────
-    private fun sendAndPersist(
+    // ── Shared send + persist helper ──────────────────────────────────────────
+    // FIX: @Transactional(propagation = REQUIRES_NEW) — each notification is
+    // committed independently so a failure on one does not roll back others.
+    @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
+    fun sendAndPersist(
         userId     : String,
         babyId     : String?,
         babyName   : String?,
@@ -394,9 +413,9 @@ class PushNotificationScheduler(
         val data = buildMap<String, String> {
             put("category", category)
             put("priority", priority)
-            babyId?.let   { put("babyId", it) }
-            babyName?.let { put("babyName", it) }
-            deepLink?.let { put("deepLinkRoute", it) }
+            babyId?.let    { put("babyId", it) }
+            babyName?.let  { put("babyName", it) }
+            deepLink?.let  { put("deepLinkRoute", it) }
             actionLabel?.let { put("actionLabel", it) }
             actionRoute?.let { put("actionRoute", it) }
         }
@@ -423,6 +442,8 @@ class PushNotificationScheduler(
         ))
         logger.info { "Notification sent: [$category/$priority] '$title' → $userId" }
     }
+
+    // ── Dedupe helpers ────────────────────────────────────────────────────────
 
     private fun alreadySentToday(userId: String, key: String) =
         notificationRepository.existsSentNotificationAfter(userId, key, LocalDate.now().atStartOfDay())

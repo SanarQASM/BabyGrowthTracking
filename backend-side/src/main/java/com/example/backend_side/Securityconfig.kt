@@ -41,6 +41,7 @@ class SecurityConfig(
                         "/swagger-resources/**",
                         "/webjars/**"
                     ).permitAll()
+                    .requestMatchers("/v1/admin-setup/**").permitAll()
 
                     // ── Protected endpoints ───────────────────────────────
                     .requestMatchers("/v1/**").authenticated()
