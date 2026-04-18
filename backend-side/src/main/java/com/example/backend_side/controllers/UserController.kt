@@ -3,6 +3,8 @@ package com.example.backend_side.controllers
 import com.example.backend_side.*
 import com.example.backend_side.entity.User
 import com.example.backend_side.repositories.UserRepository
+import com.fasterxml.jackson.annotation.JsonCreator
+import com.fasterxml.jackson.annotation.JsonProperty
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.http.ResponseEntity
@@ -13,6 +15,24 @@ import org.springframework.web.bind.annotation.*
 @CrossOrigin(origins = ["*"])
 class UserController(private val userRepository: UserRepository) {
 
+    /**
+     * FIX: PageResponse deserialization error on the client side.
+     *
+     * BUG: The client's PageResponse data class uses Jackson to deserialize the
+     * response. Spring's Page<T>.map{} produces a JSON object whose pagination
+     * fields are named "number" and "size" (Spring defaults), but the client DTO
+     * has fields named "pageNumber" and "pageSize". This mismatch caused:
+     *
+     *   "Illegal input: Fields [size, number] are required for type with serial name
+     *    'org.example.project...PageResponse', but they were missing at path: $.data"
+     *
+     * FIX: Build the PageResponse manually using the backend's own PageResponse DTO
+     * (which already has pageNumber / pageSize field names) so the serialised JSON
+     * always contains those exact field names. This keeps backend ↔ client in sync.
+     *
+     * Default page size raised to 200 to match AdminViewModel.loadDashboardData()
+     * which calls getAllUsers(page=0, size=200).
+     */
     @GetMapping
     fun getAllUsers(
         @RequestParam(defaultValue = "0")   page: Int,
@@ -22,10 +42,12 @@ class UserController(private val userRepository: UserRepository) {
         val pageable   = PageRequest.of(page, size, Sort.by("fullName").ascending())
         val resultPage = userRepository.findAll(pageable)
 
+        // Build the DTO explicitly so field names match what the Kotlin client expects:
+        //   pageNumber, pageSize, totalElements, totalPages, isLast, content
         val pageResponse = PageResponse(
             content       = resultPage.content.map { it.toResponse() },
-            pageNumber    = resultPage.number,
-            pageSize      = resultPage.size,
+            pageNumber    = resultPage.number,          // "pageNumber" in JSON ✓
+            pageSize      = resultPage.size,            // "pageSize"   in JSON ✓
             totalElements = resultPage.totalElements,
             totalPages    = resultPage.totalPages,
             isLast        = resultPage.isLast

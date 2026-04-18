@@ -9,6 +9,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextOverflow
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 import babygrowthtrackingapplication.composeapp.generated.resources.*
 import org.example.project.babygrowthtrackingapplication.data.network.ApiService
@@ -53,13 +54,13 @@ private fun adminNavItems(): List<AdminNavItem> = listOf(
 @Composable
 fun AdminHomeScreen(
     viewModel         : AdminViewModel,
-    apiService        : ApiService,          // ← needed by AdminCreateTeamMemberScreen
+    apiService        : ApiService,
     onNavigateToLogin : () -> Unit,
     isWideLayout      : Boolean = false,
 ) {
-    val state      = viewModel.uiState
-    val dimensions = LocalDimensions.current
-    val navItems   = adminNavItems()
+    val state        = viewModel.uiState
+    val dimensions   = LocalDimensions.current
+    val navItems     = adminNavItems()
     val customColors = MaterialTheme.customColors
 
     // ── Sub-screen state for the Team tab ──────────────────────────────────
@@ -125,7 +126,14 @@ fun AdminHomeScreen(
                                 contentDescription = item.labelRes()
                             )
                         },
-                        label  = { Text(item.labelRes(), style = MaterialTheme.typography.labelSmall) },
+                        label  = {
+                            Text(
+                                text     = item.labelRes(),
+                                style    = MaterialTheme.typography.labelSmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        },
                         colors = NavigationRailItemDefaults.colors(
                             selectedIconColor   = customColors.accentGradientStart,
                             selectedTextColor   = customColors.accentGradientStart,
@@ -137,17 +145,19 @@ fun AdminHomeScreen(
                 }
             }
             Scaffold(
-                modifier       = Modifier.fillMaxSize().weight(1f),
+                modifier       = Modifier
+                    .fillMaxSize()
+                    .weight(1f),
                 snackbarHost   = { SnackbarHost(snackbarHostState) },
                 containerColor = MaterialTheme.colorScheme.background
             ) { padding ->
                 AdminTabContent(
-                    activeTab     = activeTab,
-                    viewModel     = viewModel,
-                    apiService    = apiService,
-                    teamSubScreen = teamSubScreen,
+                    activeTab            = activeTab,
+                    viewModel            = viewModel,
+                    apiService           = apiService,
+                    teamSubScreen        = teamSubScreen,
                     onTeamSubScreenChange = { teamSubScreen = it },
-                    modifier      = Modifier.padding(padding)
+                    modifier             = Modifier.padding(padding)
                 )
             }
         }
@@ -173,7 +183,20 @@ fun AdminHomeScreen(
                                     contentDescription = item.labelRes()
                                 )
                             },
-                            label  = { Text(item.labelRes(), style = MaterialTheme.typography.labelSmall) },
+                            // FIX: maxLines = 1 + Ellipsis prevents the label from
+                            // wrapping onto a second line when the text is long
+                            // (e.g. "Vaccinations", "Dashboard").
+                            // alwaysShowLabel = false hides the label for unselected
+                            // items, giving each item more horizontal room.
+                            label = {
+                                Text(
+                                    text     = item.labelRes(),
+                                    style    = MaterialTheme.typography.labelSmall,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            },
+                            alwaysShowLabel = false,   // FIX: only show label for selected item
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor   = customColors.accentGradientStart,
                                 selectedTextColor   = customColors.accentGradientStart,
@@ -230,7 +253,6 @@ private fun AdminTabContent(
                 apiService  = apiService,
                 onBackClick = { onTeamSubScreenChange(TeamSubScreen.List) },
                 onCreated   = {
-                    // Refresh the team list then pop back
                     viewModel.loadTeamMembers()
                     onTeamSubScreenChange(TeamSubScreen.List)
                 },

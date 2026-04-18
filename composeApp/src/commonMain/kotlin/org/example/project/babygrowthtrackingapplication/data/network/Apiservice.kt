@@ -897,12 +897,14 @@ data class ApiSingleResponse<T>(
     val version   : String? = null
 )
 
-@Serializable data class PageResponse<T>(
-    val content       : List<T>,
-    val totalElements : Long,
-    val totalPages    : Int,
-    val size          : Int,
-    val number        : Int
+@Serializable
+data class PageResponse<T>(
+    @SerialName("content")       val content       : List<T>,
+    @SerialName("totalElements") val totalElements : Long,
+    @SerialName("totalPages")    val totalPages    : Int,
+    @SerialName("pageSize")      val pageSize      : Int,      // was: size
+    @SerialName("pageNumber")    val pageNumber    : Int,      // was: number
+    @SerialName("isLast")        val isLast        : Boolean = false
 )
 
 // ── Users ─────────────────────────────────────────────────────────────────────
