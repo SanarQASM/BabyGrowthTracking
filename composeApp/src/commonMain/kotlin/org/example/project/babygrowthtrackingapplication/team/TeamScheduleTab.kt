@@ -15,7 +15,10 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.*
 import androidx.compose.ui.unit.dp
+import babygrowthtrackingapplication.composeapp.generated.resources.Res
+import babygrowthtrackingapplication.composeapp.generated.resources.*
 import org.example.project.babygrowthtrackingapplication.theme.*
+import org.jetbrains.compose.resources.stringResource
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Schedule Tab — Daily vaccination schedule view
@@ -37,16 +40,18 @@ fun TeamScheduleTab(viewModel: TeamVaccinationViewModel) {
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { ms ->
-                        val days  = (ms / 86_400_000L).toInt()
-                        val d     = kotlinx.datetime.LocalDate.fromEpochDays(days)
-                        val iso   = "${d.year}-${d.monthNumber.toString().padStart(2,'0')}-${d.dayOfMonth.toString().padStart(2,'0')}"
+                        val days = (ms / 86_400_000L).toInt()
+                        val d    = kotlinx.datetime.LocalDate.fromEpochDays(days)
+                        val iso  = "${d.year}-${d.monthNumber.toString().padStart(2, '0')}-${d.dayOfMonth.toString().padStart(2, '0')}"
                         viewModel.onDateSelected(iso)
                     }
                     showDatePicker = false
-                }) { Text("OK") }
+                }) { Text(stringResource(Res.string.add_baby_date_ok)) }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = false }) { Text("Cancel") }
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text(stringResource(Res.string.add_baby_date_cancel))
+                }
             }
         ) {
             DatePicker(state = datePickerState)
@@ -54,16 +59,17 @@ fun TeamScheduleTab(viewModel: TeamVaccinationViewModel) {
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
+
         // ── Date selector ─────────────────────────────────────────────────────
         Surface(
-            color = MaterialTheme.colorScheme.surface,
+            color           = MaterialTheme.colorScheme.surface,
             shadowElevation = dimensions.cardElevationSmall
         ) {
             Row(
-                modifier          = Modifier
+                modifier              = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingSmall),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment     = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
             ) {
                 Icon(
@@ -73,36 +79,33 @@ fun TeamScheduleTab(viewModel: TeamVaccinationViewModel) {
                     modifier = Modifier.size(dimensions.iconMedium)
                 )
                 Text(
-                    text       = state.selectedDate.ifBlank { "Select a date" },
+                    text       = state.selectedDate.ifBlank { stringResource(Res.string.team_select_date_hint) },
                     style      = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     color      = MaterialTheme.colorScheme.onSurface,
                     modifier   = Modifier.weight(1f)
                 )
                 OutlinedButton(
-                    onClick = { showDatePicker = true },
-                    shape   = RoundedCornerShape(dimensions.buttonCornerRadius),
-                    border  = BorderStroke(dimensions.borderWidthThin, customColors.accentGradientStart.copy(0.5f)),
-                    colors  = ButtonDefaults.outlinedButtonColors(contentColor = customColors.accentGradientStart),
+                    onClick        = { showDatePicker = true },
+                    shape          = RoundedCornerShape(dimensions.buttonCornerRadius),
+                    border         = BorderStroke(dimensions.borderWidthThin, customColors.accentGradientStart.copy(alpha = 0.5f)),
+                    colors         = ButtonDefaults.outlinedButtonColors(contentColor = customColors.accentGradientStart),
                     contentPadding = PaddingValues(
                         horizontal = dimensions.spacingSmall,
                         vertical   = dimensions.spacingXSmall
                     )
                 ) {
-                    Icon(
-                        Icons.Default.EditCalendar, null,
-                        modifier = Modifier.size(dimensions.iconSmall)
-                    )
+                    Icon(Icons.Default.EditCalendar, null, modifier = Modifier.size(dimensions.iconSmall))
                     Spacer(Modifier.width(dimensions.spacingXSmall))
-                    Text("Change", style = MaterialTheme.typography.labelSmall)
+                    Text(stringResource(Res.string.team_change_date), style = MaterialTheme.typography.labelSmall)
                 }
             }
         }
 
-        // ── Summary card ──────────────────────────────────────────────────────
-        val total      = state.scheduleItems.size
-        val completed  = state.scheduleItems.count { it.status == "COMPLETED" }
-        val remaining  = total - completed
+        // ── Summary chips ─────────────────────────────────────────────────────
+        val total     = state.scheduleItems.size
+        val completed = state.scheduleItems.count { it.status == "COMPLETED" }
+        val remaining = total - completed
 
         if (!state.scheduleLoading && total > 0) {
             Row(
@@ -112,25 +115,25 @@ fun TeamScheduleTab(viewModel: TeamVaccinationViewModel) {
                 horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
             ) {
                 ScheduleSummaryChip(
-                    label      = "Scheduled",
+                    label      = stringResource(Res.string.team_schedule_stat_scheduled),
                     value      = total.toString(),
-                    emoji      = "💉",
+                    emoji      = stringResource(Res.string.team_emoji_vaccine),
                     color      = customColors.accentGradientStart,
                     dimensions = dimensions,
                     modifier   = Modifier.weight(1f)
                 )
                 ScheduleSummaryChip(
-                    label      = "Done",
+                    label      = stringResource(Res.string.team_schedule_stat_done),
                     value      = completed.toString(),
-                    emoji      = "✅",
+                    emoji      = stringResource(Res.string.team_emoji_completed),
                     color      = customColors.success,
                     dimensions = dimensions,
                     modifier   = Modifier.weight(1f)
                 )
                 ScheduleSummaryChip(
-                    label      = "Remaining",
+                    label      = stringResource(Res.string.team_schedule_stat_remaining),
                     value      = remaining.toString(),
-                    emoji      = "⏳",
+                    emoji      = stringResource(Res.string.team_emoji_remaining),
                     color      = customColors.warning,
                     dimensions = dimensions,
                     modifier   = Modifier.weight(1f)
@@ -138,7 +141,7 @@ fun TeamScheduleTab(viewModel: TeamVaccinationViewModel) {
             }
         }
 
-        // ── Schedule List ─────────────────────────────────────────────────────
+        // ── Schedule list ─────────────────────────────────────────────────────
         when {
             state.scheduleLoading -> {
                 Box(Modifier.fillMaxSize(), Alignment.Center) {
@@ -147,9 +150,9 @@ fun TeamScheduleTab(viewModel: TeamVaccinationViewModel) {
             }
             state.scheduleItems.isEmpty() -> {
                 TeamEmptyState(
-                    emoji      = "📅",
-                    title      = "No vaccinations scheduled",
-                    subtitle   = "No babies are scheduled for this date at your bench",
+                    emoji      = stringResource(Res.string.team_emoji_scheduled),
+                    title      = stringResource(Res.string.team_empty_schedule_title),
+                    subtitle   = stringResource(Res.string.team_empty_schedule_subtitle),
                     dimensions = dimensions
                 )
             }
@@ -180,18 +183,18 @@ fun TeamScheduleTab(viewModel: TeamVaccinationViewModel) {
     // ── Complete dialog ───────────────────────────────────────────────────────
     state.completeForm?.let { form ->
         CompleteVaccinationDialog(
-            form       = form,
-            onDismiss  = viewModel::dismissCompleteDialog,
-            onChange   = viewModel::updateCompleteForm,
-            onSubmit   = viewModel::submitCompleteVaccination,
-            dimensions = dimensions,
+            form         = form,
+            onDismiss    = viewModel::dismissCompleteDialog,
+            onChange     = viewModel::updateCompleteForm,
+            onSubmit     = viewModel::submitCompleteVaccination,
+            dimensions   = dimensions,
             customColors = customColors
         )
     }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Schedule Summary Chip
+// Summary Chip
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -206,25 +209,16 @@ private fun ScheduleSummaryChip(
     Surface(
         modifier = modifier,
         shape    = RoundedCornerShape(dimensions.cardCornerRadius),
-        color    = color.copy(0.08f),
-        border   = BorderStroke(dimensions.borderWidthThin, color.copy(0.2f))
+        color    = color.copy(alpha = 0.08f),
+        border   = BorderStroke(dimensions.borderWidthThin, color.copy(alpha = 0.2f))
     ) {
         Column(
             modifier            = Modifier.padding(dimensions.spacingSmall),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(emoji, style = MaterialTheme.typography.bodyMedium)
-            Text(
-                text       = value,
-                style      = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color      = color
-            )
-            Text(
-                text  = label,
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(0.55f)
-            )
+            Text(text = value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = color)
+            Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f))
         }
     }
 }
@@ -242,36 +236,35 @@ private fun ScheduleItemCard(
     dimensions  : Dimensions
 ) {
     val isFemale    = item.gender.equals("GIRL", ignoreCase = true)
-    val genderEmoji = if (isFemale) "👧" else "👦"
+    val genderEmoji = if (isFemale) stringResource(Res.string.team_emoji_girl) else stringResource(Res.string.team_emoji_boy)
     val isCompleted = item.status == "COMPLETED"
     val isMissed    = item.status == "MISSED"
     val isDone      = isCompleted || isMissed
 
     val statusColor = when (item.status) {
-        "COMPLETED"  -> customColors.success
-        "MISSED"     -> MaterialTheme.colorScheme.error
-        "OVERDUE"    -> customColors.warning
-        "DUE_SOON"   -> customColors.warning
-        else         -> customColors.accentGradientStart
+        "COMPLETED" -> customColors.success
+        "MISSED"    -> MaterialTheme.colorScheme.error
+        "OVERDUE"   -> customColors.warning
+        "DUE_SOON"  -> customColors.warning
+        else        -> customColors.accentGradientStart
     }
     val statusLabel = when (item.status) {
-        "COMPLETED"  -> "✅ Completed"
-        "MISSED"     -> "❌ Missed"
-        "OVERDUE"    -> "⚠️ Overdue"
-        "DUE_SOON"   -> "⏰ Due Soon"
-        else         -> "📅 Scheduled"
+        "COMPLETED" -> stringResource(Res.string.team_status_completed_label)
+        "MISSED"    -> stringResource(Res.string.team_status_missed_label)
+        "OVERDUE"   -> stringResource(Res.string.team_status_overdue_label)
+        "DUE_SOON"  -> stringResource(Res.string.team_status_due_soon_label)
+        else        -> stringResource(Res.string.team_status_scheduled_label)
     }
 
     Card(
         modifier  = Modifier.fillMaxWidth(),
         shape     = RoundedCornerShape(dimensions.cardCornerRadius),
         colors    = CardDefaults.cardColors(
-            containerColor = if (isDone)
-                MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)
+            containerColor = if (isDone) MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)
             else MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isDone) 0.dp else dimensions.cardElevationSmall
+            defaultElevation = if (isDone) dimensions.cardElevationSmall * 0f else dimensions.cardElevationSmall
         )
     ) {
         Column(
@@ -283,11 +276,10 @@ private fun ScheduleItemCard(
                 modifier          = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Baby avatar
                 Box(
                     modifier         = Modifier
                         .size(dimensions.avatarSmall + dimensions.spacingXSmall)
-                        .background(customColors.accentGradientStart.copy(0.12f), CircleShape),
+                        .background(customColors.accentGradientStart.copy(alpha = 0.12f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(genderEmoji, style = MaterialTheme.typography.bodyMedium)
@@ -300,22 +292,21 @@ private fun ScheduleItemCard(
                         text       = item.babyName,
                         style      = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color      = if (isDone) MaterialTheme.colorScheme.onSurface.copy(0.5f)
+                        color      = if (isDone) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                         else MaterialTheme.colorScheme.onSurface,
                         maxLines   = 1,
                         overflow   = TextOverflow.Ellipsis
                     )
                     Text(
-                        text  = "${item.ageInMonths} months",
+                        text  = stringResource(Res.string.team_baby_age_card, item.ageInMonths),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     )
                 }
 
-                // Status badge
                 Surface(
                     shape = RoundedCornerShape(dimensions.filterTabCorner),
-                    color = statusColor.copy(0.1f)
+                    color = statusColor.copy(alpha = 0.1f)
                 ) {
                     Text(
                         text       = statusLabel,
@@ -324,7 +315,7 @@ private fun ScheduleItemCard(
                         fontWeight = FontWeight.SemiBold,
                         modifier   = Modifier.padding(
                             horizontal = dimensions.spacingXSmall * 2,
-                            vertical   = 2.dp
+                            vertical   = dimensions.spacingXSmall / 2
                         )
                     )
                 }
@@ -332,31 +323,29 @@ private fun ScheduleItemCard(
 
             Spacer(Modifier.height(dimensions.spacingSmall))
             HorizontalDivider(
-                color     = MaterialTheme.colorScheme.outlineVariant.copy(0.4f),
+                color     = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f),
                 thickness = dimensions.hairlineDividerThickness
             )
             Spacer(Modifier.height(dimensions.spacingSmall))
 
-            // Vaccine info
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("💉", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(Res.string.team_emoji_vaccine), style = MaterialTheme.typography.bodySmall)
                 Spacer(Modifier.width(dimensions.spacingXSmall))
                 Text(
                     text       = item.vaccineName,
                     style      = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color      = if (isDone) MaterialTheme.colorScheme.onSurface.copy(0.5f)
+                    color      = if (isDone) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                     else MaterialTheme.colorScheme.onSurface,
                     modifier   = Modifier.weight(1f)
                 )
                 Text(
-                    text  = "Dose ${item.doseNumber}",
+                    text  = stringResource(Res.string.team_dose_label, item.doseNumber),
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(0.45f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
                 )
             }
 
-            // Action buttons
             if (!isDone) {
                 Spacer(Modifier.height(dimensions.spacingSmall))
                 Row(
@@ -364,38 +353,28 @@ private fun ScheduleItemCard(
                     horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
                 ) {
                     Button(
-                        onClick   = onMarkDone,
-                        modifier  = Modifier.weight(1f),
-                        colors    = ButtonDefaults.buttonColors(
-                            containerColor = customColors.success
-                        ),
-                        shape     = RoundedCornerShape(dimensions.buttonCornerRadius),
+                        onClick        = onMarkDone,
+                        modifier       = Modifier.weight(1f),
+                        colors         = ButtonDefaults.buttonColors(containerColor = customColors.success),
+                        shape          = RoundedCornerShape(dimensions.buttonCornerRadius),
                         contentPadding = PaddingValues(vertical = dimensions.spacingXSmall)
                     ) {
-                        Icon(
-                            Icons.Default.Check, null,
-                            modifier = Modifier.size(dimensions.iconSmall)
-                        )
+                        Icon(Icons.Default.Check, null, modifier = Modifier.size(dimensions.iconSmall))
                         Spacer(Modifier.width(dimensions.spacingXSmall))
-                        Text("Complete", style = MaterialTheme.typography.labelSmall)
+                        Text(stringResource(Res.string.team_action_complete), style = MaterialTheme.typography.labelSmall)
                     }
 
                     OutlinedButton(
-                        onClick   = onMarkMissed,
-                        modifier  = Modifier.weight(1f),
-                        colors    = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.error
-                        ),
-                        border    = BorderStroke(dimensions.borderWidthThin, MaterialTheme.colorScheme.error.copy(0.5f)),
-                        shape     = RoundedCornerShape(dimensions.buttonCornerRadius),
+                        onClick        = onMarkMissed,
+                        modifier       = Modifier.weight(1f),
+                        colors         = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                        border         = BorderStroke(dimensions.borderWidthThin, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)),
+                        shape          = RoundedCornerShape(dimensions.buttonCornerRadius),
                         contentPadding = PaddingValues(vertical = dimensions.spacingXSmall)
                     ) {
-                        Icon(
-                            Icons.Default.Close, null,
-                            modifier = Modifier.size(dimensions.iconSmall)
-                        )
+                        Icon(Icons.Default.Close, null, modifier = Modifier.size(dimensions.iconSmall))
                         Spacer(Modifier.width(dimensions.spacingXSmall))
-                        Text("Missed", style = MaterialTheme.typography.labelSmall)
+                        Text(stringResource(Res.string.team_action_missed), style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }
@@ -423,8 +402,8 @@ private fun CompleteVaccinationDialog(
                 verticalAlignment     = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
             ) {
-                Text("💉")
-                Text("Complete Vaccination", fontWeight = FontWeight.Bold)
+                Text(stringResource(Res.string.team_emoji_vaccine))
+                Text(stringResource(Res.string.team_dialog_complete_vac_title), fontWeight = FontWeight.Bold)
             }
         },
         text = {
@@ -432,43 +411,35 @@ private fun CompleteVaccinationDialog(
                 OutlinedTextField(
                     value         = form.administeredDate,
                     onValueChange = { onChange { it.copy(administeredDate = it.administeredDate) } },
-                    label         = { Text("Date (YYYY-MM-DD)") },
+                    label         = { Text(stringResource(Res.string.team_field_date_hint)) },
                     singleLine    = true,
                     modifier      = Modifier.fillMaxWidth(),
-                    colors        = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = customColors.accentGradientStart
-                    )
+                    colors        = OutlinedTextFieldDefaults.colors(focusedBorderColor = customColors.accentGradientStart)
                 )
                 OutlinedTextField(
                     value         = form.batchNumber,
                     onValueChange = { onChange { f -> f.copy(batchNumber = it) } },
-                    label         = { Text("Batch Number (optional)") },
+                    label         = { Text(stringResource(Res.string.team_field_batch)) },
                     singleLine    = true,
                     modifier      = Modifier.fillMaxWidth(),
-                    colors        = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = customColors.accentGradientStart
-                    )
+                    colors        = OutlinedTextFieldDefaults.colors(focusedBorderColor = customColors.accentGradientStart)
                 )
                 OutlinedTextField(
                     value         = form.location,
                     onValueChange = { onChange { f -> f.copy(location = it) } },
-                    label         = { Text("Location") },
+                    label         = { Text(stringResource(Res.string.team_field_location)) },
                     singleLine    = true,
                     modifier      = Modifier.fillMaxWidth(),
-                    colors        = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = customColors.accentGradientStart
-                    )
+                    colors        = OutlinedTextFieldDefaults.colors(focusedBorderColor = customColors.accentGradientStart)
                 )
                 OutlinedTextField(
                     value         = form.notes,
                     onValueChange = { onChange { f -> f.copy(notes = it) } },
-                    label         = { Text("Notes (optional)") },
+                    label         = { Text(stringResource(Res.string.team_field_notes)) },
                     singleLine    = false,
                     maxLines      = 3,
                     modifier      = Modifier.fillMaxWidth(),
-                    colors        = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = customColors.accentGradientStart
-                    )
+                    colors        = OutlinedTextFieldDefaults.colors(focusedBorderColor = customColors.accentGradientStart)
                 )
             }
         },
@@ -480,17 +451,17 @@ private fun CompleteVaccinationDialog(
             ) {
                 if (form.isLoading) {
                     CircularProgressIndicator(
-                        color    = Color.White,
-                        modifier = Modifier.size(dimensions.iconSmall),
-                        strokeWidth = 2.dp
+                        color       = MaterialTheme.colorScheme.onPrimary,
+                        modifier    = Modifier.size(dimensions.iconSmall),
+                        strokeWidth = dimensions.borderWidthMedium
                     )
                 } else {
-                    Text("Mark Completed ✅")
+                    Text(stringResource(Res.string.team_action_mark_completed))
                 }
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(stringResource(Res.string.btn_cancel)) }
         }
     )
 }

@@ -14,20 +14,22 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
-import androidx.compose.ui.draw.*
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.*
 import androidx.compose.ui.unit.dp
-import kotlinx.datetime.LocalDate
+import babygrowthtrackingapplication.composeapp.generated.resources.Res
+import babygrowthtrackingapplication.composeapp.generated.resources.*
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.VaccinationFilter
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.MeasurementHistoryList
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.VaccinationScheduleUi
 import org.example.project.babygrowthtrackingapplication.data.network.*
 import org.example.project.babygrowthtrackingapplication.theme.*
-import org.example.project.babygrowthtrackingapplication.ui.components.*
+import org.jetbrains.compose.resources.stringResource
+import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -48,11 +50,9 @@ fun TeamBabyDetailScreen(
     val customColors = MaterialTheme.customColors
     val snackbar     = remember { SnackbarHostState() }
 
-    var selectedTab  by remember { mutableStateOf(TeamDetailTab.PROFILE) }
+    var selectedTab by remember { mutableStateOf(TeamDetailTab.PROFILE) }
 
-    // Load detail on entry
     LaunchedEffect(baby.babyId) { viewModel.loadBabyDetail(baby) }
-
     LaunchedEffect(state.errorMessage) {
         state.errorMessage?.let { snackbar.showSnackbar(it); viewModel.clearError() }
     }
@@ -65,24 +65,8 @@ fun TeamBabyDetailScreen(
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
-
-            // ── Detail Header ─────────────────────────────────────────────────
-            TeamDetailHeader(
-                baby         = baby,
-                onBack       = onBack,
-                customColors = customColors,
-                dimensions   = dimensions
-            )
-
-            // ── Sub-tab Row ───────────────────────────────────────────────────
-            TeamDetailTabRow(
-                selectedTab  = selectedTab,
-                onSelect     = { selectedTab = it },
-                customColors = customColors,
-                dimensions   = dimensions
-            )
-
-            // ── Sub-tab Content ───────────────────────────────────────────────
+            TeamDetailHeader(baby = baby, onBack = onBack, customColors = customColors, dimensions = dimensions)
+            TeamDetailTabRow(selectedTab = selectedTab, onSelect = { selectedTab = it }, customColors = customColors, dimensions = dimensions)
             AnimatedContent(
                 targetState  = selectedTab,
                 transitionSpec = { fadeIn(tween(200)) togetherWith fadeOut(tween(200)) },
@@ -97,7 +81,6 @@ fun TeamBabyDetailScreen(
         }
     }
 
-    // Dialogs from detail view
     state.completeForm?.let { form ->
         TeamCompleteDialogForDetail(
             form         = form,
@@ -113,9 +96,7 @@ fun TeamBabyDetailScreen(
         TeamAddMeasurementDialog(
             babyId       = baby.babyId,
             onDismiss    = viewModel::dismissAddMeasurement,
-            onSave       = { babyId, w, h, hc, d ->
-                viewModel.addMeasurement(babyId, w, h, hc, d)
-            },
+            onSave       = { babyId, w, h, hc, d -> viewModel.addMeasurement(babyId, w, h, hc, d) },
             dimensions   = dimensions,
             customColors = customColors
         )
@@ -133,8 +114,8 @@ private fun TeamDetailHeader(
     customColors: CustomColors,
     dimensions  : Dimensions
 ) {
-    val isFemale    = baby.gender.equals("GIRL", ignoreCase = true)
-    val genderEmoji = if (isFemale) "👧" else "👦"
+    val isFemale      = baby.gender.equals("GIRL", ignoreCase = true)
+    val genderEmoji   = if (isFemale) stringResource(Res.string.team_emoji_girl) else stringResource(Res.string.team_emoji_boy)
     val gradientStart = if (isFemale) customColors.accentGradientStart else customColors.accentGradientEnd
     val gradientEnd   = if (isFemale) customColors.accentGradientEnd   else customColors.accentGradientStart
 
@@ -144,7 +125,6 @@ private fun TeamDetailHeader(
             .background(Brush.horizontalGradient(listOf(gradientStart, gradientEnd)))
     ) {
         Column {
-            // Back button row
             Row(
                 modifier          = Modifier
                     .fillMaxWidth()
@@ -152,30 +132,33 @@ private fun TeamDetailHeader(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBack) {
-                    Icon(Icons.AutoMirrored.Filled.ArrowBack, null, tint = Color.White)
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = stringResource(Res.string.common_back),
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
                 }
                 Text(
-                    text  = "Baby Profile",
+                    text  = stringResource(Res.string.team_baby_profile_title),
                     style = MaterialTheme.typography.titleSmall,
-                    color = Color.White.copy(0.85f)
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f)
                 )
             }
 
-            // Baby info row
             Row(
                 modifier          = Modifier
                     .fillMaxWidth()
                     .padding(
-                        start   = dimensions.screenPadding,
-                        end     = dimensions.screenPadding,
-                        bottom  = dimensions.spacingMedium
+                        start  = dimensions.screenPadding,
+                        end    = dimensions.screenPadding,
+                        bottom = dimensions.spacingMedium
                     ),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
                     modifier         = Modifier
                         .size(dimensions.avatarLarge)
-                        .background(Color.White.copy(0.25f), CircleShape),
+                        .background(customColors.glassOverlay, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(genderEmoji, style = MaterialTheme.typography.displaySmall)
@@ -188,18 +171,22 @@ private fun TeamDetailHeader(
                         text       = baby.fullName,
                         style      = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
-                        color      = Color.White
+                        color      = MaterialTheme.colorScheme.onPrimary
                     )
                     Text(
-                        text  = "${baby.ageInMonths} months old • ${if (isFemale) "Girl" else "Boy"}",
+                        text  = stringResource(
+                            Res.string.team_baby_age_gender,
+                            baby.ageInMonths,
+                            if (isFemale) stringResource(Res.string.gender_female) else stringResource(Res.string.gender_male)
+                        ),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(0.85f)
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f)
                     )
                     if (baby.parentName.isNotBlank()) {
                         Text(
-                            text  = "👤 ${baby.parentName}",
+                            text  = stringResource(Res.string.team_parent_prefix, baby.parentName),
                             style = MaterialTheme.typography.bodySmall,
-                            color = Color.White.copy(0.75f)
+                            color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.75f)
                         )
                     }
                 }
@@ -228,21 +215,23 @@ private fun TeamDetailTabRow(
                 .fillMaxWidth()
                 .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingXSmall)
         ) {
-            data class TabInfo(val tab: TeamDetailTab, val emoji: String, val label: String)
+            data class TabInfo(val tab: TeamDetailTab, val emojiRes: String, val labelRes: String)
+
             val tabs = listOf(
-                TabInfo(TeamDetailTab.PROFILE,      "👶", "Profile"),
-                TabInfo(TeamDetailTab.VACCINATIONS, "💉", "Vaccines"),
-                TabInfo(TeamDetailTab.GROWTH,       "📏", "Growth")
+                TabInfo(TeamDetailTab.PROFILE,      stringResource(Res.string.team_emoji_baby),       stringResource(Res.string.team_detail_tab_profile)),
+                TabInfo(TeamDetailTab.VACCINATIONS, stringResource(Res.string.team_emoji_vaccine),    stringResource(Res.string.team_detail_tab_vaccines)),
+                TabInfo(TeamDetailTab.GROWTH,       stringResource(Res.string.team_emoji_growth),     stringResource(Res.string.team_detail_tab_growth))
             )
+
             tabs.forEach { info ->
                 val selected = selectedTab == info.tab
                 val bgColor by animateColorAsState(
-                    if (selected) customColors.accentGradientStart.copy(0.12f) else Color.Transparent,
-                    label = "detail_tab_bg"
+                    targetValue   = if (selected) customColors.accentGradientStart.copy(alpha = 0.12f) else Color.Transparent,
+                    label         = "detail_tab_bg"
                 )
                 val fgColor by animateColorAsState(
-                    if (selected) customColors.accentGradientStart else MaterialTheme.colorScheme.onSurface.copy(0.5f),
-                    label = "detail_tab_fg"
+                    targetValue   = if (selected) customColors.accentGradientStart else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                    label         = "detail_tab_fg"
                 )
 
                 Box(
@@ -258,9 +247,9 @@ private fun TeamDetailTabRow(
                         verticalAlignment     = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
                     ) {
-                        Text(info.emoji, style = MaterialTheme.typography.bodySmall)
+                        Text(info.emojiRes, style = MaterialTheme.typography.bodySmall)
                         Text(
-                            text       = info.label,
+                            text       = info.labelRes,
                             style      = MaterialTheme.typography.labelMedium,
                             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal,
                             color      = fgColor
@@ -282,6 +271,9 @@ private fun TeamProfileTab(
     dimensions  : Dimensions,
     customColors: CustomColors
 ) {
+    val isFemale    = baby.gender.equals("GIRL", ignoreCase = true)
+    val genderLabel = if (isFemale) stringResource(Res.string.team_gender_girl) else stringResource(Res.string.team_gender_boy)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -291,73 +283,68 @@ private fun TeamProfileTab(
     ) {
         // Baby information section
         DetailSectionCard(
-            title      = "Baby Information",
-            emoji      = "👶",
-            dimensions = dimensions,
+            title        = stringResource(Res.string.team_section_baby_info),
+            emoji        = stringResource(Res.string.team_emoji_baby),
+            dimensions   = dimensions,
             customColors = customColors
         ) {
-            DetailRow("Full Name",   baby.fullName,   "📋", dimensions)
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(0.3f), thickness = dimensions.hairlineDividerThickness)
-            DetailRow("Date of Birth", baby.dateOfBirth, "🎂", dimensions)
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(0.3f), thickness = dimensions.hairlineDividerThickness)
-            DetailRow("Age",         "${baby.ageInMonths} months", "⏰", dimensions)
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(0.3f), thickness = dimensions.hairlineDividerThickness)
-            DetailRow(
-                "Gender",
-                if (baby.gender.equals("GIRL", ignoreCase = true)) "Girl 👧" else "Boy 👦",
-                "⚧️",
-                dimensions
-            )
+            DetailRow(stringResource(Res.string.team_field_full_name),   baby.fullName,                     stringResource(Res.string.team_emoji_clipboard), dimensions)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), thickness = dimensions.hairlineDividerThickness)
+            DetailRow(stringResource(Res.string.team_field_dob),         baby.dateOfBirth,                  stringResource(Res.string.team_emoji_birthday),  dimensions)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), thickness = dimensions.hairlineDividerThickness)
+            DetailRow(stringResource(Res.string.team_field_age),         stringResource(Res.string.team_age_months_value, baby.ageInMonths), stringResource(Res.string.team_emoji_clock), dimensions)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), thickness = dimensions.hairlineDividerThickness)
+            DetailRow(stringResource(Res.string.team_field_gender),      genderLabel,                       stringResource(Res.string.team_emoji_gender),    dimensions)
         }
 
         // Parent information section
         DetailSectionCard(
-            title      = "Parent Information",
-            emoji      = "👨‍👩‍👧",
-            dimensions = dimensions,
+            title        = stringResource(Res.string.team_section_parent_info),
+            emoji        = stringResource(Res.string.team_emoji_family),
+            dimensions   = dimensions,
             customColors = customColors
         ) {
-            DetailRow("Parent Name", baby.parentName.ifBlank { "—" }, "👤", dimensions)
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(0.3f), thickness = dimensions.hairlineDividerThickness)
-            DetailRow("Phone", baby.parentPhone.ifBlank { "—" }, "📞", dimensions)
+            DetailRow(stringResource(Res.string.team_field_parent_name), baby.parentName.ifBlank { stringResource(Res.string.team_value_dash) }, stringResource(Res.string.team_emoji_person), dimensions)
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f), thickness = dimensions.hairlineDividerThickness)
+            DetailRow(stringResource(Res.string.team_field_phone),       baby.parentPhone.ifBlank { stringResource(Res.string.team_value_dash) }, stringResource(Res.string.team_emoji_phone), dimensions)
         }
 
         // Bench information
         DetailSectionCard(
-            title      = "Assigned Health Center",
-            emoji      = "🏥",
-            dimensions = dimensions,
+            title        = stringResource(Res.string.team_section_health_center),
+            emoji        = stringResource(Res.string.team_hospital_emoji),
+            dimensions   = dimensions,
             customColors = customColors
         ) {
-            DetailRow("Bench", baby.benchName.ifBlank { "—" }, "📍", dimensions)
+            DetailRow(stringResource(Res.string.team_field_bench), baby.benchName.ifBlank { stringResource(Res.string.team_value_dash) }, stringResource(Res.string.team_emoji_pin), dimensions)
         }
 
-        // Vaccine status
+        // Vaccine status card
         val statusColor = when (baby.vaccineStatus) {
             TeamVaccineStatus.OVERDUE    -> MaterialTheme.colorScheme.error
             TeamVaccineStatus.DUE_SOON   -> customColors.warning
             TeamVaccineStatus.UP_TO_DATE -> customColors.success
-            TeamVaccineStatus.NO_SCHEDULE-> MaterialTheme.colorScheme.onSurface.copy(0.4f)
+            TeamVaccineStatus.NO_SCHEDULE-> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
         }
         val statusLabel = when (baby.vaccineStatus) {
-            TeamVaccineStatus.OVERDUE    -> "Has overdue vaccinations ⚠️"
-            TeamVaccineStatus.DUE_SOON   -> "Vaccination due soon ⏰"
-            TeamVaccineStatus.UP_TO_DATE -> "All vaccinations up to date ✅"
-            TeamVaccineStatus.NO_SCHEDULE-> "No vaccination schedule yet 📋"
+            TeamVaccineStatus.OVERDUE    -> stringResource(Res.string.team_status_overdue_desc)
+            TeamVaccineStatus.DUE_SOON   -> stringResource(Res.string.team_status_due_soon_desc)
+            TeamVaccineStatus.UP_TO_DATE -> stringResource(Res.string.team_status_up_to_date_desc)
+            TeamVaccineStatus.NO_SCHEDULE-> stringResource(Res.string.team_status_no_schedule_desc)
         }
 
         Surface(
-            shape = RoundedCornerShape(dimensions.cardCornerRadius),
-            color = statusColor.copy(0.08f),
-            border = BorderStroke(dimensions.borderWidthThin, statusColor.copy(0.3f)),
+            shape    = RoundedCornerShape(dimensions.cardCornerRadius),
+            color    = statusColor.copy(alpha = 0.08f),
+            border   = BorderStroke(dimensions.borderWidthThin, statusColor.copy(alpha = 0.3f)),
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text      = statusLabel,
-                style     = MaterialTheme.typography.bodyMedium,
+                text       = statusLabel,
+                style      = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
-                color     = statusColor,
-                modifier  = Modifier.padding(dimensions.spacingMedium)
+                color      = statusColor,
+                modifier   = Modifier.padding(dimensions.spacingMedium)
             )
         }
 
@@ -381,11 +368,11 @@ private fun DetailSectionCard(
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
-                modifier          = Modifier
+                modifier = Modifier
                     .fillMaxWidth()
-                    .background(customColors.accentGradientStart.copy(0.06f))
+                    .background(customColors.accentGradientStart.copy(alpha = 0.06f))
                     .padding(dimensions.spacingMedium),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment     = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
             ) {
                 Text(emoji, style = MaterialTheme.typography.bodyMedium)
@@ -400,7 +387,7 @@ private fun DetailSectionCard(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = dimensions.spacingXSmall),
-                content = content
+                content  = content
             )
         }
     }
@@ -421,9 +408,9 @@ private fun DetailRow(
     ) {
         Text(emoji, style = MaterialTheme.typography.bodySmall, modifier = Modifier.width(dimensions.profileInfoIconWidth))
         Text(
-            text  = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(0.55f),
+            text     = label,
+            style    = MaterialTheme.typography.bodySmall,
+            color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
             modifier = Modifier.weight(0.4f)
         )
         Text(
@@ -449,20 +436,22 @@ private fun TeamVaccinationsTab(
     val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
 
+    // ✅ Resolved here — safely inside @Composable scope
+    val filters = listOf(
+        VaccinationFilter.ALL       to stringResource(Res.string.admin_vax_tab_all),
+        VaccinationFilter.UPCOMING  to stringResource(Res.string.admin_vax_tab_upcoming),
+        VaccinationFilter.COMPLETED to stringResource(Res.string.admin_vax_tab_completed),
+        VaccinationFilter.OVERDUE   to stringResource(Res.string.admin_vax_tab_overdue)
+    )
+
     Column(modifier = Modifier.fillMaxSize()) {
-        // Filter chips
         LazyRow(
-            modifier            = Modifier
+            modifier              = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingSmall),
             horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
         ) {
-            val filters = listOf(
-                VaccinationFilter.ALL      to "All",
-                VaccinationFilter.UPCOMING to "Upcoming",
-                VaccinationFilter.COMPLETED to "Completed",
-                VaccinationFilter.OVERDUE  to "Overdue"
-            )
+            // ✅ filters is now a plain List<Pair<...>> — no @Composable calls here
             items(filters) { (filter, label) ->
                 FilterChip(
                     selected = state.detailVacFilter == filter,
@@ -470,8 +459,8 @@ private fun TeamVaccinationsTab(
                     label    = { Text(label, style = MaterialTheme.typography.labelSmall) },
                     colors   = FilterChipDefaults.filterChipColors(
                         selectedContainerColor = customColors.accentGradientStart,
-                        selectedLabelColor     = Color.White,
-                        containerColor         = customColors.accentGradientStart.copy(0.06f),
+                        selectedLabelColor     = MaterialTheme.colorScheme.onPrimary,
+                        containerColor         = customColors.accentGradientStart.copy(alpha = 0.06f),
                         labelColor             = customColors.accentGradientStart
                     )
                 )
@@ -496,9 +485,9 @@ private fun TeamVaccinationsTab(
 
                 if (filtered.isEmpty()) {
                     TeamEmptyState(
-                        emoji      = "💉",
-                        title      = "No vaccinations in this category",
-                        subtitle   = "Change the filter to see others",
+                        emoji      = stringResource(Res.string.team_emoji_vaccine),
+                        title      = stringResource(Res.string.team_empty_vac_title),
+                        subtitle   = stringResource(Res.string.team_empty_vac_subtitle),
                         dimensions = dimensions
                     )
                 } else {
@@ -515,7 +504,7 @@ private fun TeamVaccinationsTab(
                                 schedule     = schedule,
                                 onComplete   = { viewModel.openCompleteDialog(schedule.scheduleId) },
                                 onMissed     = { viewModel.markAsMissed(schedule.scheduleId) },
-                                onReschedule = { /* TODO: reschedule flow */ },
+                                onReschedule = { },
                                 customColors = customColors,
                                 dimensions   = dimensions
                             )
@@ -530,7 +519,7 @@ private fun TeamVaccinationsTab(
 
 @Composable
 private fun TeamVaccineCard(
-    schedule    : org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.VaccinationScheduleUi,
+    schedule    : VaccinationScheduleUi,
     onComplete  : () -> Unit,
     onMissed    : () -> Unit,
     onReschedule: () -> Unit,
@@ -543,48 +532,47 @@ private fun TeamVaccineCard(
     val isDone      = isCompleted || isMissed
 
     val statusColor = when (schedule.status) {
-        "COMPLETED"  -> customColors.success
-        "MISSED"     -> MaterialTheme.colorScheme.error
-        "OVERDUE"    -> customColors.warning
-        "DUE_SOON"   -> customColors.info
-        "RESCHEDULED"-> MaterialTheme.colorScheme.tertiary
-        else         -> customColors.accentGradientStart
+        "COMPLETED"   -> customColors.success
+        "MISSED"      -> MaterialTheme.colorScheme.error
+        "OVERDUE"     -> customColors.warning
+        "DUE_SOON"    -> customColors.info
+        "RESCHEDULED" -> MaterialTheme.colorScheme.tertiary
+        else          -> customColors.accentGradientStart
     }
     val statusEmoji = when (schedule.status) {
-        "COMPLETED"  -> "✅"
-        "MISSED"     -> "❌"
-        "OVERDUE"    -> "⚠️"
-        "DUE_SOON"   -> "⏰"
-        "RESCHEDULED"-> "🔄"
-        else         -> "📅"
+        "COMPLETED"   -> stringResource(Res.string.team_emoji_completed)
+        "MISSED"      -> stringResource(Res.string.team_emoji_missed)
+        "OVERDUE"     -> stringResource(Res.string.team_emoji_overdue)
+        "DUE_SOON"    -> stringResource(Res.string.team_emoji_due_soon)
+        "RESCHEDULED" -> stringResource(Res.string.team_emoji_rescheduled)
+        else          -> stringResource(Res.string.team_emoji_scheduled)
     }
 
     Card(
         modifier  = Modifier.fillMaxWidth(),
         shape     = RoundedCornerShape(dimensions.cardCornerRadius),
         colors    = CardDefaults.cardColors(
-            containerColor = if (isDone) MaterialTheme.colorScheme.surface.copy(0.7f)
+            containerColor = if (isDone) MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
             else MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(if (isDone) 0.dp else dimensions.cardElevationSmall)
+        elevation = CardDefaults.cardElevation(if (isDone) dimensions.cardElevationSmall * 0f else dimensions.cardElevationSmall)
     ) {
         Column(modifier = Modifier.fillMaxWidth().padding(dimensions.spacingMedium)) {
             Row(
                 modifier          = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Dose circle
                 Box(
                     modifier         = Modifier
                         .size(dimensions.vaccinationCardIconSize)
-                        .background(statusColor.copy(0.12f), CircleShape)
-                        .border(dimensions.borderWidthThin, statusColor.copy(0.3f), CircleShape),
+                        .background(statusColor.copy(alpha = 0.12f), CircleShape)
+                        .border(dimensions.borderWidthThin, statusColor.copy(alpha = 0.3f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(statusEmoji, style = MaterialTheme.typography.bodySmall)
                         Text(
-                            text       = "D${schedule.doseNumber}",
+                            text       = stringResource(Res.string.team_dose_label, schedule.doseNumber),
                             style      = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color      = statusColor
@@ -599,51 +587,51 @@ private fun TeamVaccineCard(
                         text       = schedule.vaccineName,
                         style      = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color      = if (isDone) MaterialTheme.colorScheme.onSurface.copy(0.55f)
-                        else MaterialTheme.colorScheme.onSurface,
+                        color      = if (isDone) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f) else MaterialTheme.colorScheme.onSurface,
                         maxLines   = 1,
                         overflow   = TextOverflow.Ellipsis
                     )
                     Text(
-                        text  = "Age ${schedule.recommendedAgeMonths} months",
+                        text  = stringResource(Res.string.team_age_recommended_months, schedule.recommendedAgeMonths),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(0.45f)
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
                     )
                 }
 
                 Surface(
                     shape = RoundedCornerShape(dimensions.filterTabCorner),
-                    color = statusColor.copy(0.1f)
+                    color = statusColor.copy(alpha = 0.1f)
                 ) {
                     Text(
                         text      = schedule.status.replace("_", " "),
                         style     = MaterialTheme.typography.labelSmall,
                         color     = statusColor,
                         fontWeight = FontWeight.SemiBold,
-                        modifier  = Modifier.padding(horizontal = dimensions.spacingXSmall * 2, vertical = 2.dp)
+                        modifier  = Modifier.padding(
+                            horizontal = dimensions.spacingXSmall * 2,
+                            vertical   = dimensions.spacingXSmall / 2
+                        )
                     )
                 }
             }
 
             Spacer(Modifier.height(dimensions.spacingXSmall))
 
-            // Date info
             Row(horizontalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)) {
                 Text(
-                    text  = "📅 Scheduled: ${schedule.scheduledDate}",
+                    text  = stringResource(Res.string.team_scheduled_date_prefix, schedule.scheduledDate),
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                 )
                 schedule.completedDate?.let {
                     Text(
-                        text  = "✅ Done: $it",
+                        text  = stringResource(Res.string.team_completed_date_prefix, it),
                         style = MaterialTheme.typography.labelSmall,
                         color = customColors.success
                     )
                 }
             }
 
-            // Action buttons — only for non-completed/missed
             if (!isDone) {
                 Spacer(Modifier.height(dimensions.spacingSmall))
                 Row(
@@ -659,28 +647,28 @@ private fun TeamVaccineCard(
                     ) {
                         Icon(Icons.Default.Check, null, modifier = Modifier.size(dimensions.iconSmall))
                         Spacer(Modifier.width(dimensions.spacingXSmall))
-                        Text("Complete", style = MaterialTheme.typography.labelSmall)
+                        Text(stringResource(Res.string.team_action_complete), style = MaterialTheme.typography.labelSmall)
                     }
 
                     OutlinedButton(
                         onClick        = onMissed,
                         modifier       = Modifier.weight(1f),
                         shape          = RoundedCornerShape(dimensions.buttonCornerRadius),
-                        border         = BorderStroke(dimensions.borderWidthThin, MaterialTheme.colorScheme.error.copy(0.5f)),
+                        border         = BorderStroke(dimensions.borderWidthThin, MaterialTheme.colorScheme.error.copy(alpha = 0.5f)),
                         colors         = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
                         contentPadding = PaddingValues(vertical = dimensions.spacingXSmall)
                     ) {
                         Icon(Icons.Default.Close, null, modifier = Modifier.size(dimensions.iconSmall))
                         Spacer(Modifier.width(dimensions.spacingXSmall))
-                        Text("Missed", style = MaterialTheme.typography.labelSmall)
+                        Text(stringResource(Res.string.team_action_missed), style = MaterialTheme.typography.labelSmall)
                     }
 
                     if (isOverdue) {
                         IconButton(
-                            onClick   = onReschedule,
-                            modifier  = Modifier
+                            onClick  = onReschedule,
+                            modifier = Modifier
                                 .size(dimensions.addButtonSize + dimensions.spacingXSmall)
-                                .background(customColors.accentGradientStart.copy(0.1f), RoundedCornerShape(dimensions.buttonCornerRadius))
+                                .background(customColors.accentGradientStart.copy(alpha = 0.1f), RoundedCornerShape(dimensions.buttonCornerRadius))
                         ) {
                             Icon(
                                 Icons.Default.Refresh, null,
@@ -709,9 +697,8 @@ private fun TeamGrowthTab(
     val customColors = MaterialTheme.customColors
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // Add measurement button
         Row(
-            modifier          = Modifier
+            modifier              = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingSmall),
             horizontalArrangement = Arrangement.End
@@ -727,7 +714,7 @@ private fun TeamGrowthTab(
             ) {
                 Icon(Icons.Default.Add, null, modifier = Modifier.size(dimensions.iconSmall))
                 Spacer(Modifier.width(dimensions.spacingXSmall))
-                Text("Add Measurement", style = MaterialTheme.typography.labelMedium)
+                Text(stringResource(Res.string.team_add_measurement), style = MaterialTheme.typography.labelMedium)
             }
         }
 
@@ -739,32 +726,31 @@ private fun TeamGrowthTab(
             }
             state.detailGrowthRecords.isEmpty() -> {
                 TeamEmptyState(
-                    emoji      = "📏",
-                    title      = "No measurements yet",
-                    subtitle   = "Tap 'Add Measurement' to record the first one",
+                    emoji      = stringResource(Res.string.team_emoji_growth),
+                    title      = stringResource(Res.string.team_empty_growth_title),
+                    subtitle   = stringResource(Res.string.team_empty_growth_subtitle),
                     dimensions = dimensions
                 )
             }
             else -> {
-                // Latest measurement summary
                 state.detailGrowthRecords.firstOrNull()?.let { latest ->
                     Card(
                         modifier  = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = dimensions.screenPadding),
                         shape     = RoundedCornerShape(dimensions.cardCornerRadius),
-                        colors    = CardDefaults.cardColors(containerColor = customColors.accentGradientStart.copy(0.06f)),
-                        border    = BorderStroke(dimensions.borderWidthThin, customColors.accentGradientStart.copy(0.2f))
+                        colors    = CardDefaults.cardColors(containerColor = customColors.accentGradientStart.copy(alpha = 0.06f)),
+                        border    = BorderStroke(dimensions.borderWidthThin, customColors.accentGradientStart.copy(alpha = 0.2f))
                     ) {
                         Column(modifier = Modifier.padding(dimensions.spacingMedium)) {
                             Row(
                                 modifier          = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("📊", style = MaterialTheme.typography.titleMedium)
+                                Text(stringResource(Res.string.team_emoji_chart), style = MaterialTheme.typography.titleMedium)
                                 Spacer(Modifier.width(dimensions.spacingXSmall))
                                 Text(
-                                    text       = "Latest Measurement",
+                                    text       = stringResource(Res.string.team_latest_measurement),
                                     style      = MaterialTheme.typography.labelMedium,
                                     fontWeight = FontWeight.Bold,
                                     color      = customColors.accentGradientStart
@@ -773,7 +759,7 @@ private fun TeamGrowthTab(
                                 Text(
                                     text  = latest.measurementDate,
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                                 )
                             }
                             Spacer(Modifier.height(dimensions.spacingSmall))
@@ -782,27 +768,26 @@ private fun TeamGrowthTab(
                                 horizontalArrangement = Arrangement.SpaceEvenly
                             ) {
                                 latest.weight?.let {
-                                    GrowthMetric("⚖️", "Weight", "$it kg", customColors.accentGradientStart)
+                                    GrowthMetric(stringResource(Res.string.team_emoji_weight), stringResource(Res.string.team_metric_weight), stringResource(Res.string.team_weight_value, it), customColors.accentGradientStart)
                                 }
                                 latest.height?.let {
-                                    GrowthMetric("📏", "Height", "$it cm", customColors.accentGradientEnd)
+                                    GrowthMetric(stringResource(Res.string.team_emoji_height), stringResource(Res.string.team_metric_height), stringResource(Res.string.team_height_value, it), customColors.accentGradientEnd)
                                 }
                                 latest.headCircumference?.let {
-                                    GrowthMetric("🔵", "Head", "$it cm", customColors.info)
+                                    GrowthMetric(stringResource(Res.string.team_emoji_head), stringResource(Res.string.team_metric_head), stringResource(Res.string.team_head_value, it), customColors.info)
                                 }
                             }
-                            // Team badge
                             if (latest.addedByTeam) {
                                 Spacer(Modifier.height(dimensions.spacingXSmall))
                                 Surface(
                                     shape = RoundedCornerShape(dimensions.filterTabCorner),
-                                    color = customColors.info.copy(0.1f)
+                                    color = customColors.info.copy(alpha = 0.1f)
                                 ) {
                                     Text(
-                                        text  = "🏥 Recorded by team",
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = customColors.info,
-                                        modifier = Modifier.padding(horizontal = dimensions.spacingSmall, vertical = 2.dp)
+                                        text     = stringResource(Res.string.team_recorded_by_team),
+                                        style    = MaterialTheme.typography.labelSmall,
+                                        color    = customColors.info,
+                                        modifier = Modifier.padding(horizontal = dimensions.spacingSmall, vertical = dimensions.spacingXSmall / 2)
                                     )
                                 }
                             }
@@ -812,7 +797,6 @@ private fun TeamGrowthTab(
 
                 Spacer(Modifier.height(dimensions.spacingSmall))
 
-                // History list
                 LazyColumn(
                     modifier            = Modifier.fillMaxSize(),
                     contentPadding      = PaddingValues(
@@ -836,17 +820,8 @@ private fun GrowthMetric(emoji: String, label: String, value: String, color: Col
     val dimensions = LocalDimensions.current
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(emoji, style = MaterialTheme.typography.bodyMedium)
-        Text(
-            text       = value,
-            style      = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold,
-            color      = color
-        )
-        Text(
-            text  = label,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
-        )
+        Text(text = value, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = color)
+        Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
     }
 }
 
@@ -861,7 +836,7 @@ private fun GrowthRecordRow(
         shape     = RoundedCornerShape(dimensions.cardCornerRadius),
         colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(0.dp),
-        border    = BorderStroke(dimensions.borderWidthThin, MaterialTheme.colorScheme.outlineVariant.copy(0.4f))
+        border    = BorderStroke(dimensions.borderWidthThin, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.4f))
     ) {
         Row(
             modifier          = Modifier
@@ -869,24 +844,23 @@ private fun GrowthRecordRow(
                 .padding(dimensions.spacingSmall),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Date badge
+            val parts = record.measurementDate.split("-")
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
-                    .background(customColors.accentGradientStart.copy(0.08f), RoundedCornerShape(dimensions.buttonCornerRadius - 4.dp))
+                    .background(customColors.accentGradientStart.copy(alpha = 0.08f), RoundedCornerShape(dimensions.buttonCornerRadius - 4.dp))
                     .padding(horizontal = dimensions.spacingSmall, vertical = dimensions.spacingXSmall)
             ) {
-                val parts = record.measurementDate.split("-")
                 Text(
-                    text  = parts.getOrElse(2) { "--" },
-                    style = MaterialTheme.typography.titleSmall,
+                    text       = parts.getOrElse(2) { "--" },
+                    style      = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = customColors.accentGradientStart
+                    color      = customColors.accentGradientStart
                 )
                 Text(
                     text  = parts.getOrElse(1) { "--" } + "/" + parts.getOrElse(0) { "--" }.takeLast(2),
                     style = MaterialTheme.typography.labelSmall,
-                    color = customColors.accentGradientStart.copy(0.7f)
+                    color = customColors.accentGradientStart.copy(alpha = 0.7f)
                 )
             }
 
@@ -897,18 +871,18 @@ private fun GrowthRecordRow(
                 horizontalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
             ) {
                 record.weight?.let {
-                    Text("⚖️ $it kg", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(0.8f))
+                    Text(stringResource(Res.string.team_record_weight, it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
                 }
                 record.height?.let {
-                    Text("📏 $it cm", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(0.8f))
+                    Text(stringResource(Res.string.team_record_height, it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
                 }
                 record.headCircumference?.let {
-                    Text("🔵 $it cm", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(0.8f))
+                    Text(stringResource(Res.string.team_record_head, it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f))
                 }
             }
 
             if (record.addedByTeam) {
-                Text("🏥", style = MaterialTheme.typography.bodySmall)
+                Text(stringResource(Res.string.team_hospital_emoji), style = MaterialTheme.typography.bodySmall)
             }
         }
     }
@@ -934,8 +908,8 @@ private fun TeamCompleteDialogForDetail(
                 verticalAlignment     = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
             ) {
-                Text("💉")
-                Text("Mark as Completed", fontWeight = FontWeight.Bold)
+                Text(stringResource(Res.string.team_emoji_vaccine))
+                Text(stringResource(Res.string.team_dialog_complete_title), fontWeight = FontWeight.Bold)
             }
         },
         text = {
@@ -943,7 +917,7 @@ private fun TeamCompleteDialogForDetail(
                 OutlinedTextField(
                     value         = form.administeredDate,
                     onValueChange = { v -> onChange { it.copy(administeredDate = v) } },
-                    label         = { Text("Date (YYYY-MM-DD)") },
+                    label         = { Text(stringResource(Res.string.team_field_date_hint)) },
                     singleLine    = true,
                     modifier      = Modifier.fillMaxWidth(),
                     colors        = OutlinedTextFieldDefaults.colors(focusedBorderColor = customColors.accentGradientStart)
@@ -951,7 +925,7 @@ private fun TeamCompleteDialogForDetail(
                 OutlinedTextField(
                     value         = form.batchNumber,
                     onValueChange = { v -> onChange { f -> f.copy(batchNumber = v) } },
-                    label         = { Text("Batch Number (optional)") },
+                    label         = { Text(stringResource(Res.string.team_field_batch)) },
                     singleLine    = true,
                     modifier      = Modifier.fillMaxWidth(),
                     colors        = OutlinedTextFieldDefaults.colors(focusedBorderColor = customColors.accentGradientStart)
@@ -959,7 +933,7 @@ private fun TeamCompleteDialogForDetail(
                 OutlinedTextField(
                     value         = form.location,
                     onValueChange = { v -> onChange { f -> f.copy(location = v) } },
-                    label         = { Text("Location") },
+                    label         = { Text(stringResource(Res.string.team_field_location)) },
                     singleLine    = true,
                     modifier      = Modifier.fillMaxWidth(),
                     colors        = OutlinedTextFieldDefaults.colors(focusedBorderColor = customColors.accentGradientStart)
@@ -967,7 +941,7 @@ private fun TeamCompleteDialogForDetail(
                 OutlinedTextField(
                     value         = form.notes,
                     onValueChange = { v -> onChange { f -> f.copy(notes = v) } },
-                    label         = { Text("Notes (optional)") },
+                    label         = { Text(stringResource(Res.string.team_field_notes)) },
                     singleLine    = false,
                     maxLines      = 3,
                     modifier      = Modifier.fillMaxWidth(),
@@ -983,17 +957,17 @@ private fun TeamCompleteDialogForDetail(
             ) {
                 if (form.isLoading) {
                     CircularProgressIndicator(
-                        color = Color.White,
-                        modifier = Modifier.size(dimensions.iconSmall),
-                        strokeWidth = 2.dp
+                        color        = MaterialTheme.colorScheme.onPrimary,
+                        modifier     = Modifier.size(dimensions.iconSmall),
+                        strokeWidth  = dimensions.borderWidthMedium
                     )
                 } else {
-                    Text("Complete ✅")
+                    Text(stringResource(Res.string.team_action_complete_confirm))
                 }
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(stringResource(Res.string.btn_cancel)) }
         }
     )
 }
@@ -1007,12 +981,12 @@ private fun TeamAddMeasurementDialog(
     dimensions  : Dimensions,
     customColors: CustomColors
 ) {
-    var weight by remember { mutableStateOf("") }
-    var height by remember { mutableStateOf("") }
+    var weight   by remember { mutableStateOf("") }
+    var height   by remember { mutableStateOf("") }
     var headCirc by remember { mutableStateOf("") }
-    var date by remember {
-        val now = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-        mutableStateOf("${now.year}-${now.month.number.toString().padStart(2,'0')}-${now.day.toString().padStart(2,'0')}")
+    var date     by remember {
+        val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
+        mutableStateOf("${now.year}-${now.month.number.toString().padStart(2, '0')}-${now.day.toString().padStart(2, '0')}")
     }
 
     AlertDialog(
@@ -1022,8 +996,8 @@ private fun TeamAddMeasurementDialog(
                 verticalAlignment     = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
             ) {
-                Text("📏")
-                Text("Add Measurement", fontWeight = FontWeight.Bold)
+                Text(stringResource(Res.string.team_emoji_growth))
+                Text(stringResource(Res.string.team_add_measurement), fontWeight = FontWeight.Bold)
             }
         },
         text = {
@@ -1031,7 +1005,7 @@ private fun TeamAddMeasurementDialog(
                 OutlinedTextField(
                     value         = date,
                     onValueChange = { date = it },
-                    label         = { Text("Date (YYYY-MM-DD)") },
+                    label         = { Text(stringResource(Res.string.team_field_date_hint)) },
                     singleLine    = true,
                     modifier      = Modifier.fillMaxWidth(),
                     colors        = OutlinedTextFieldDefaults.colors(focusedBorderColor = customColors.accentGradientStart)
@@ -1039,7 +1013,7 @@ private fun TeamAddMeasurementDialog(
                 OutlinedTextField(
                     value         = weight,
                     onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d{0,3}(\\.\\d{0,2})?\$"))) weight = it },
-                    label         = { Text("Weight (kg)") },
+                    label         = { Text(stringResource(Res.string.team_field_weight)) },
                     singleLine    = true,
                     modifier      = Modifier.fillMaxWidth(),
                     colors        = OutlinedTextFieldDefaults.colors(focusedBorderColor = customColors.accentGradientStart)
@@ -1047,7 +1021,7 @@ private fun TeamAddMeasurementDialog(
                 OutlinedTextField(
                     value         = height,
                     onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d{0,3}(\\.\\d{0,2})?\$"))) height = it },
-                    label         = { Text("Height (cm)") },
+                    label         = { Text(stringResource(Res.string.team_field_height)) },
                     singleLine    = true,
                     modifier      = Modifier.fillMaxWidth(),
                     colors        = OutlinedTextFieldDefaults.colors(focusedBorderColor = customColors.accentGradientStart)
@@ -1055,7 +1029,7 @@ private fun TeamAddMeasurementDialog(
                 OutlinedTextField(
                     value         = headCirc,
                     onValueChange = { if (it.isEmpty() || it.matches(Regex("^\\d{0,3}(\\.\\d{0,2})?\$"))) headCirc = it },
-                    label         = { Text("Head Circumference (cm)") },
+                    label         = { Text(stringResource(Res.string.team_field_head)) },
                     singleLine    = true,
                     modifier      = Modifier.fillMaxWidth(),
                     colors        = OutlinedTextFieldDefaults.colors(focusedBorderColor = customColors.accentGradientStart)
@@ -1064,17 +1038,15 @@ private fun TeamAddMeasurementDialog(
         },
         confirmButton = {
             Button(
-                onClick = {
-                    onSave(babyId, weight.toDoubleOrNull(), height.toDoubleOrNull(), headCirc.toDoubleOrNull(), date)
-                },
-                enabled = (weight.isNotBlank() || height.isNotBlank() || headCirc.isNotBlank()) && date.isNotBlank(),
-                colors  = ButtonDefaults.buttonColors(containerColor = customColors.accentGradientStart)
+                onClick  = { onSave(babyId, weight.toDoubleOrNull(), height.toDoubleOrNull(), headCirc.toDoubleOrNull(), date) },
+                enabled  = (weight.isNotBlank() || height.isNotBlank() || headCirc.isNotBlank()) && date.isNotBlank(),
+                colors   = ButtonDefaults.buttonColors(containerColor = customColors.accentGradientStart)
             ) {
-                Text("Save 💾")
+                Text(stringResource(Res.string.team_save_measurement))
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(stringResource(Res.string.btn_cancel)) }
         }
     )
 }

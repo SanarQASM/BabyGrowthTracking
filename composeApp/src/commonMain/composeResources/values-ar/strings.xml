@@ -1159,4 +1159,110 @@
 
     <string name="admin_stat_team_members">أعضاء الفريق</string>
 
+    <string name="team_hospital_emoji">🏥</string>
+    <string name="team_bench_fallback">منصة التلقيح</string>
+    <string name="team_member_fallback">عضو الفريق</string>
+
+    <string name="team_tab_babies">الأطفال</string>
+    <string name="team_tab_schedule">الجدول</string>
+
+    <string name="team_detail_tab_profile">الملف الشخصي</string>
+    <string name="team_detail_tab_vaccines">اللقاحات</string>
+    <string name="team_detail_tab_growth">النمو</string>
+
+    <string name="team_baby_profile_title">ملف الطفل</string>
+    <string name="team_baby_age_gender">عمره %1$d أشهر • %2$s</string>
+    <string name="team_parent_prefix">👤 %1$s</string>
+
+    <string name="team_section_baby_info">معلومات الطفل</string>
+    <string name="team_section_parent_info">معلومات ولي الأمر</string>
+    <string name="team_section_health_center">المركز الصحي المحدد</string>
+
+    <string name="team_field_full_name">الاسم الكامل</string>
+    <string name="team_field_dob">تاريخ الميلاد</string>
+    <string name="team_field_age">العمر</string>
+    <string name="team_field_gender">الجنس</string>
+    <string name="team_field_parent_name">اسم ولي الأمر</string>
+    <string name="team_field_phone">الهاتف</string>
+    <string name="team_field_bench">المنصة</string>
+    <string name="team_age_months_value">%1$d أشهر</string>
+    <string name="team_value_dash">—</string>
+    <string name="team_gender_girl">بنت 👧</string>
+    <string name="team_gender_boy">ولد 👦</string>
+
+    <string name="team_status_overdue_desc">لديه لقاحات متأخرة ⚠️</string>
+    <string name="team_status_due_soon_desc">موعد اللقاح قريب ⏰</string>
+    <string name="team_status_up_to_date_desc">جميع اللقاحات محدثة ✅</string>
+    <string name="team_status_no_schedule_desc">لا يوجد جدول لقاحات بعد 📋</string>
+
+    <string name="team_badge_overdue">متأخر</string>
+    <string name="team_badge_due_soon">قريب جداً</string>
+    <string name="team_badge_up_to_date">مكتمل</string>
+    <string name="team_badge_no_schedule">لا يوجد جدول</string>
+
+    <string name="team_status_completed_label">✅ مكتمل</string>
+    <string name="team_status_missed_label">❌ فائت</string>
+    <string name="team_status_overdue_label">⚠️ متأخر</string>
+    <string name="team_status_due_soon_label">⏰ قريب جداً</string>
+    <string name="team_status_scheduled_label">📅 مُجدول</string>
+
+    <string name="team_dose_label">جرعة %1$d</string>
+    <string name="team_age_recommended_months">العمر %1$d أشهر</string>
+    <string name="team_scheduled_date_prefix">📅 الموعد: %1$s</string>
+    <string name="team_completed_date_prefix">✅ تم في: %1$s</string>
+
+    <string name="team_action_complete">إكمال</string>
+    <string name="team_action_missed">فائت</string>
+    <string name="team_action_complete_confirm">اكتمل ✅</string>
+    <string name="team_action_mark_completed">تحديد كمكتمل ✅</string>
+
+    <string name="team_add_measurement">إضافة قياس</string>
+    <string name="team_save_measurement">حفظ 💾</string>
+    <string name="team_latest_measurement">آخر قياس</string>
+    <string name="team_recorded_by_team">🏥 مسجل بواسطة الفريق</string>
+    <string name="team_weight_value">%1$s كجم</string>
+    <string name="team_height_value">%1$s سم</string>
+    <string name="team_head_value">%1$s سم</string>
+    <string name="team_metric_weight">الوزن</string>
+    <string name="team_metric_height">الطول</string>
+    <string name="team_metric_head">الرأس</string>
+    <string name="team_record_weight">⚖️ %1$s كجم</string>
+    <string name="team_record_height">📏 %1$s سم</string>
+    <string name="team_record_head">🔵 %1$s سم</string>
+
+    <string name="team_dialog_complete_title">تحديد كمكتمل</string>
+    <string name="team_dialog_complete_vac_title">إكمال اللقاح</string>
+    <string name="team_field_date_hint">التاريخ (YYYY-MM-DD)</string>
+    <string name="team_field_batch">رقم التشغيلة (اختياري)</string>
+    <string name="team_field_location">الموقع</string>
+    <string name="team_field_notes">ملاحظات (اختياري)</string>
+    <string name="team_field_weight">الوزن (كجم)</string>
+    <string name="team_field_height">الطول (سم)</string>
+    <string name="team_field_head">محيط الرأس (سم)</string>
+
+    <string name="team_search_babies_hint">البحث عن الأطفال...</string>
+    <string name="team_stat_total">المجموع</string>
+    <string name="team_stat_overdue">متأخر</string>
+    <string name="team_stat_due_soon">قريب جداً</string>
+
+    <string name="team_baby_age_card">%1$d أشهر</string>
+    <string name="team_next_vaccine_date">القادم: %1$s</string>
+
+    <string name="team_empty_babies_title">لا يوجد أطفال مسجلون</string>
+    <string name="team_empty_babies_subtitle">الأطفال المسجلون في منصتك سيظهرون هنا</string>
+    <string name="team_empty_search_title">لا يوجد أطفال يطابقون بحثك</string>
+    <string name="team_empty_search_subtitle">جرب اسماً آخر</string>
+    <string name="team_empty_vac_title">لا توجد لقاحات في هذه الفئة</string>
+    <string name="team_empty_vac_subtitle">قم بتغيير الفلتر لرؤية اللقاحات الأخرى</string>
+    <string name="team_empty_growth_title">لا توجد قياسات بعد</string>
+    <string name="team_empty_growth_subtitle">اضغط على "إضافة قياس" لتسجيل القياس الأول</string>
+    <string name="team_empty_schedule_title">لا توجد لقاحات مجدولة</string>
+    <string name="team_empty_schedule_subtitle">لا يوجد أطفال مجدولون لهذا التاريخ في منصتك</string>
+
+    <string name="team_select_date_hint">اختر تاريخاً</string>
+    <string name="team_change_date">تغيير</string>
+    <string name="team_schedule_stat_scheduled">مجدول</string>
+    <string name="team_schedule_stat_done">تم</string>
+    <string name="team_schedule_stat_remaining">متبقي</string>
+
 </resources>

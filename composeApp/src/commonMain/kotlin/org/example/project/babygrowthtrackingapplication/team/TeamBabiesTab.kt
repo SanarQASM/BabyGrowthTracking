@@ -12,13 +12,14 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
-import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.*
+import babygrowthtrackingapplication.composeapp.generated.resources.Res
+import babygrowthtrackingapplication.composeapp.generated.resources.*
 import org.example.project.babygrowthtrackingapplication.theme.*
 import org.example.project.babygrowthtrackingapplication.ui.components.*
+import org.jetbrains.compose.resources.stringResource
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Babies Tab — list of all babies at the bench
@@ -26,19 +27,20 @@ import org.example.project.babygrowthtrackingapplication.ui.components.*
 
 @Composable
 fun TeamBabiesTab(
-    viewModel   : TeamVaccinationViewModel,
-    onBabyClick : (TeamBabyItem) -> Unit
+    viewModel  : TeamVaccinationViewModel,
+    onBabyClick: (TeamBabyItem) -> Unit
 ) {
     val state        = viewModel.uiState
     val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
 
     Column(modifier = Modifier.fillMaxSize()) {
+
         // ── Stats header ──────────────────────────────────────────────────────
         TeamBabiesStatsRow(
-            total     = state.babies.size,
-            overdue   = state.babies.count { it.vaccineStatus == TeamVaccineStatus.OVERDUE },
-            dueSoon   = state.babies.count { it.vaccineStatus == TeamVaccineStatus.DUE_SOON },
+            total        = state.babies.size,
+            overdue      = state.babies.count { it.vaccineStatus == TeamVaccineStatus.OVERDUE },
+            dueSoon      = state.babies.count { it.vaccineStatus == TeamVaccineStatus.DUE_SOON },
             customColors = customColors,
             dimensions   = dimensions
         )
@@ -54,13 +56,13 @@ fun TeamBabiesTab(
             SearchTextField(
                 value         = state.searchQuery,
                 onValueChange = viewModel::onSearchQueryChange,
-                placeholder   = "Search babies…",
+                placeholder   = stringResource(Res.string.team_search_babies_hint),
                 modifier      = Modifier.weight(1f),
                 leadingIcon   = {
                     Icon(
                         Icons.Default.Search,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface.copy(0.5f),
+                        tint     = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                         modifier = Modifier.size(dimensions.iconMedium)
                     )
                 },
@@ -69,7 +71,7 @@ fun TeamBabiesTab(
                         IconButton(onClick = { viewModel.onSearchQueryChange("") }) {
                             Icon(
                                 Icons.Default.Clear, null,
-                                tint     = MaterialTheme.colorScheme.onSurface.copy(0.5f),
+                                tint     = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                                 modifier = Modifier.size(dimensions.iconMedium)
                             )
                         }
@@ -87,9 +89,13 @@ fun TeamBabiesTab(
             }
             state.filteredBabies.isEmpty() -> {
                 TeamEmptyState(
-                    emoji    = "👶",
-                    title    = if (state.searchQuery.isNotEmpty()) "No babies match your search" else "No babies assigned",
-                    subtitle = if (state.searchQuery.isNotEmpty()) "Try a different name" else "Babies registered at your bench will appear here",
+                    emoji      = stringResource(Res.string.team_emoji_baby),
+                    title      = if (state.searchQuery.isNotEmpty())
+                        stringResource(Res.string.team_empty_search_title)
+                    else stringResource(Res.string.team_empty_babies_title),
+                    subtitle   = if (state.searchQuery.isNotEmpty())
+                        stringResource(Res.string.team_empty_search_subtitle)
+                    else stringResource(Res.string.team_empty_babies_subtitle),
                     dimensions = dimensions
                 )
             }
@@ -104,10 +110,10 @@ fun TeamBabiesTab(
                 ) {
                     items(state.filteredBabies, key = { it.babyId }) { baby ->
                         TeamBabyCard(
-                            baby        = baby,
-                            onClick     = { onBabyClick(baby) },
+                            baby         = baby,
+                            onClick      = { onBabyClick(baby) },
                             customColors = customColors,
-                            dimensions  = dimensions
+                            dimensions   = dimensions
                         )
                     }
                     item { Spacer(Modifier.height(dimensions.spacingXXLarge)) }
@@ -137,28 +143,28 @@ private fun TeamBabiesStatsRow(
         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
     ) {
         StatChip(
-            label       = "Total",
-            value       = total.toString(),
-            color       = customColors.accentGradientStart,
-            emoji       = "👶",
-            dimensions  = dimensions,
-            modifier    = Modifier.weight(1f)
+            label      = stringResource(Res.string.team_stat_total),
+            value      = total.toString(),
+            color      = customColors.accentGradientStart,
+            emoji      = stringResource(Res.string.team_emoji_baby),
+            dimensions = dimensions,
+            modifier   = Modifier.weight(1f)
         )
         StatChip(
-            label       = "Overdue",
-            value       = overdue.toString(),
-            color       = MaterialTheme.colorScheme.error,
-            emoji       = "⚠️",
-            dimensions  = dimensions,
-            modifier    = Modifier.weight(1f)
+            label      = stringResource(Res.string.team_stat_overdue),
+            value      = overdue.toString(),
+            color      = MaterialTheme.colorScheme.error,
+            emoji      = stringResource(Res.string.team_emoji_overdue),
+            dimensions = dimensions,
+            modifier   = Modifier.weight(1f)
         )
         StatChip(
-            label       = "Due Soon",
-            value       = dueSoon.toString(),
-            color       = customColors.warning,
-            emoji       = "⏰",
-            dimensions  = dimensions,
-            modifier    = Modifier.weight(1f)
+            label      = stringResource(Res.string.team_stat_due_soon),
+            value      = dueSoon.toString(),
+            color      = customColors.warning,
+            emoji      = stringResource(Res.string.team_emoji_due_soon),
+            dimensions = dimensions,
+            modifier   = Modifier.weight(1f)
         )
     }
 }
@@ -179,7 +185,7 @@ private fun StatChip(
         border   = BorderStroke(dimensions.borderWidthThin, color.copy(alpha = 0.25f))
     ) {
         Column(
-            modifier           = Modifier.padding(dimensions.spacingSmall),
+            modifier            = Modifier.padding(dimensions.spacingSmall),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(emoji, style = MaterialTheme.typography.bodyMedium)
@@ -192,7 +198,7 @@ private fun StatChip(
             Text(
                 text  = label,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(0.6f)
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
         }
     }
@@ -209,25 +215,26 @@ private fun TeamBabyCard(
     customColors: CustomColors,
     dimensions  : Dimensions
 ) {
-    val isFemale     = baby.gender.equals("GIRL", ignoreCase = true) || baby.gender.equals("FEMALE", ignoreCase = true)
-    val genderEmoji  = if (isFemale) "👧" else "👦"
-    val statusColor  = when (baby.vaccineStatus) {
+    val isFemale    = baby.gender.equals("GIRL", ignoreCase = true) || baby.gender.equals("FEMALE", ignoreCase = true)
+    val genderEmoji = if (isFemale) stringResource(Res.string.team_emoji_girl) else stringResource(Res.string.team_emoji_boy)
+
+    val statusColor = when (baby.vaccineStatus) {
         TeamVaccineStatus.OVERDUE    -> MaterialTheme.colorScheme.error
         TeamVaccineStatus.DUE_SOON   -> customColors.warning
         TeamVaccineStatus.UP_TO_DATE -> customColors.success
-        TeamVaccineStatus.NO_SCHEDULE-> MaterialTheme.colorScheme.onSurface.copy(0.4f)
+        TeamVaccineStatus.NO_SCHEDULE-> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
     }
-    val statusLabel  = when (baby.vaccineStatus) {
-        TeamVaccineStatus.OVERDUE    -> "Overdue"
-        TeamVaccineStatus.DUE_SOON   -> "Due Soon"
-        TeamVaccineStatus.UP_TO_DATE -> "Up to Date"
-        TeamVaccineStatus.NO_SCHEDULE-> "No Schedule"
+    val statusLabel = when (baby.vaccineStatus) {
+        TeamVaccineStatus.OVERDUE    -> stringResource(Res.string.team_badge_overdue)
+        TeamVaccineStatus.DUE_SOON   -> stringResource(Res.string.team_badge_due_soon)
+        TeamVaccineStatus.UP_TO_DATE -> stringResource(Res.string.team_badge_up_to_date)
+        TeamVaccineStatus.NO_SCHEDULE-> stringResource(Res.string.team_badge_no_schedule)
     }
-    val statusEmoji  = when (baby.vaccineStatus) {
-        TeamVaccineStatus.OVERDUE    -> "⚠️"
-        TeamVaccineStatus.DUE_SOON   -> "⏰"
-        TeamVaccineStatus.UP_TO_DATE -> "✅"
-        TeamVaccineStatus.NO_SCHEDULE-> "📋"
+    val statusEmoji = when (baby.vaccineStatus) {
+        TeamVaccineStatus.OVERDUE    -> stringResource(Res.string.team_emoji_overdue)
+        TeamVaccineStatus.DUE_SOON   -> stringResource(Res.string.team_emoji_due_soon)
+        TeamVaccineStatus.UP_TO_DATE -> stringResource(Res.string.team_emoji_completed)
+        TeamVaccineStatus.NO_SCHEDULE-> stringResource(Res.string.team_emoji_scheduled)
     }
 
     Card(
@@ -243,13 +250,12 @@ private fun TeamBabyCard(
                 .padding(dimensions.spacingMedium),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar
             Box(
-                modifier         = Modifier
+                modifier = Modifier
                     .size(dimensions.avatarMedium)
                     .background(
-                        if (isFemale) customColors.accentGradientStart.copy(0.15f)
-                        else customColors.accentGradientEnd.copy(0.15f),
+                        if (isFemale) customColors.accentGradientStart.copy(alpha = 0.15f)
+                        else customColors.accentGradientEnd.copy(alpha = 0.15f),
                         CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -260,11 +266,10 @@ private fun TeamBabyCard(
             Spacer(Modifier.width(dimensions.spacingMedium))
 
             Column(modifier = Modifier.weight(1f)) {
-                // Name + status
                 Row(
-                    modifier          = Modifier.fillMaxWidth(),
+                    modifier              = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment     = Alignment.CenterVertically
                 ) {
                     Text(
                         text       = baby.fullName,
@@ -281,15 +286,15 @@ private fun TeamBabyCard(
                         color = statusColor.copy(alpha = 0.1f)
                     ) {
                         Row(
-                            modifier           = Modifier.padding(horizontal = dimensions.spacingXSmall * 2, vertical = 2.dp),
-                            verticalAlignment  = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(2.dp)
+                            modifier              = Modifier.padding(horizontal = dimensions.spacingXSmall * 2, vertical = dimensions.spacingXSmall / 2),
+                            verticalAlignment     = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall / 2)
                         ) {
                             Text(statusEmoji, style = MaterialTheme.typography.labelSmall)
                             Text(
-                                text  = statusLabel,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = statusColor,
+                                text       = statusLabel,
+                                style      = MaterialTheme.typography.labelSmall,
+                                color      = statusColor,
                                 fontWeight = FontWeight.SemiBold
                             )
                         }
@@ -298,29 +303,28 @@ private fun TeamBabyCard(
 
                 Spacer(Modifier.height(dimensions.spacingXSmall))
 
-                // Age + parent
                 Row(horizontalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalAlignment     = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall / 2)
                     ) {
-                        Text("🎂", style = MaterialTheme.typography.labelSmall)
+                        Text(stringResource(Res.string.team_emoji_birthday), style = MaterialTheme.typography.labelSmall)
                         Text(
-                            text  = "${baby.ageInMonths} months",
+                            text  = stringResource(Res.string.team_baby_age_card, baby.ageInMonths),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(0.65f)
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f)
                         )
                     }
                     if (baby.parentName.isNotBlank()) {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically,
+                            verticalAlignment     = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall / 2)
                         ) {
-                            Text("👤", style = MaterialTheme.typography.labelSmall)
+                            Text(stringResource(Res.string.team_emoji_person), style = MaterialTheme.typography.labelSmall)
                             Text(
                                 text     = baby.parentName,
                                 style    = MaterialTheme.typography.bodySmall,
-                                color    = MaterialTheme.colorScheme.onSurface.copy(0.65f),
+                                color    = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -328,18 +332,17 @@ private fun TeamBabyCard(
                     }
                 }
 
-                // Next vaccine
                 baby.nextVacDate?.let { date ->
                     Spacer(Modifier.height(dimensions.spacingXSmall))
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalAlignment     = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall / 2)
                     ) {
-                        Text("💉", style = MaterialTheme.typography.labelSmall)
+                        Text(stringResource(Res.string.team_emoji_vaccine), style = MaterialTheme.typography.labelSmall)
                         Text(
-                            text  = "Next: $date",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = customColors.accentGradientStart,
+                            text       = stringResource(Res.string.team_next_vaccine_date, date),
+                            style      = MaterialTheme.typography.labelSmall,
+                            color      = customColors.accentGradientStart,
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -349,7 +352,7 @@ private fun TeamBabyCard(
             Icon(
                 Icons.Default.ChevronRight,
                 contentDescription = null,
-                tint     = MaterialTheme.colorScheme.onSurface.copy(0.3f),
+                tint     = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f),
                 modifier = Modifier.size(dimensions.iconMedium)
             )
         }
@@ -357,7 +360,7 @@ private fun TeamBabyCard(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Empty state helper
+// Empty state helper (shared across team tabs)
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -371,7 +374,7 @@ fun TeamEmptyState(
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall),
-            modifier = Modifier.padding(dimensions.spacingXLarge)
+            modifier            = Modifier.padding(dimensions.spacingXLarge)
         ) {
             Text(emoji, style = MaterialTheme.typography.displaySmall)
             Text(
@@ -383,7 +386,7 @@ fun TeamEmptyState(
             Text(
                 text  = subtitle,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(0.5f)
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
             )
         }
     }

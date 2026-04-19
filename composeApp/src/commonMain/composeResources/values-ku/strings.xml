@@ -1157,6 +1157,139 @@
 
     <string name="admin_stat_team_members">ئەندامانی تیم</string>
 
+    <string name="team_hospital_emoji">🏥</string>
+    <string name="team_emoji_baby">👶</string>
+    <string name="team_emoji_girl">👧</string>
+    <string name="team_emoji_boy">👦</string>
+    <string name="team_emoji_vaccine">💉</string>
+    <string name="team_emoji_growth">📏</string>
+    <string name="team_emoji_scheduled">📅</string>
+    <string name="team_emoji_completed">✅</string>
+    <string name="team_emoji_missed">❌</string>
+    <string name="team_emoji_overdue">⚠️</string>
+    <string name="team_emoji_due_soon">⏰</string>
+    <string name="team_emoji_rescheduled">🔄</string>
+    <string name="team_emoji_chart">📊</string>
+    <string name="team_emoji_weight">⚖️</string>
+    <string name="team_emoji_height">📏</string>
+    <string name="team_emoji_head">🔵</string>
+    <string name="team_emoji_birthday">🎂</string>
+    <string name="team_emoji_clock">⏰</string>
+    <string name="team_emoji_gender">⚧️</string>
+    <string name="team_emoji_family">👨‍👩‍👧</string>
+    <string name="team_emoji_person">👤</string>
+    <string name="team_emoji_phone">📞</string>
+    <string name="team_emoji_clipboard">📋</string>
+    <string name="team_emoji_pin">📍</string>
+    <string name="team_emoji_remaining">⏳</string>
+
+    <string name="team_bench_fallback">مێزی کوتان</string>
+    <string name="team_member_fallback">ئەندامی تیم</string>
+
+    <string name="team_tab_babies_emoji">👶</string>
+    <string name="team_tab_babies">کۆرپەکان</string>
+    <string name="team_tab_schedule_emoji">📅</string>
+    <string name="team_tab_schedule">خشتە</string>
+
+    <string name="team_detail_tab_profile">پرۆفایل</string>
+    <string name="team_detail_tab_vaccines">کوتانەکان</string>
+    <string name="team_detail_tab_growth">گەشە</string>
+
+    <string name="team_baby_profile_title">پرۆفایلی کۆرپە</string>
+    <string name="team_baby_age_gender">%1$d مانگ • %2$s</string>
+    <string name="team_parent_prefix">👤 %1$s</string>
+
+    <string name="team_section_baby_info">زانیاری کۆرپە</string>
+    <string name="team_section_parent_info">زانیاری دایک و باوک</string>
+    <string name="team_section_health_center">بنکەی تەندروستی دیاریکراو</string>
+
+    <string name="team_field_full_name">ناوی تەواو</string>
+    <string name="team_field_dob">بەرواری لەدایکبوون</string>
+    <string name="team_field_age">تەمەن</string>
+    <string name="team_field_gender">ڕەگەز</string>
+    <string name="team_field_parent_name">ناوی باوان</string>
+    <string name="team_field_phone">مۆبایل</string>
+    <string name="team_field_bench">مێز</string>
+    <string name="team_age_months_value">%1$d مانگ</string>
+    <string name="team_value_dash">—</string>
+    <string name="team_gender_girl">کچ 👧</string>
+    <string name="team_gender_boy">کوڕ 👦</string>
+
+    <string name="team_status_overdue_desc">کوتانی دواکەوتووی هەیە ⚠️</string>
+    <string name="team_status_due_soon_desc">کاتی کوتانی نزیکە ⏰</string>
+    <string name="team_status_up_to_date_desc">هەموو کوتانەکان لە کاتی خۆیاندایە ✅</string>
+    <string name="team_status_no_schedule_desc">تا ئێستا خشتەی کوتانی نییە 📋</string>
+
+    <string name="team_badge_overdue">دواکەوتوو</string>
+    <string name="team_badge_due_soon">کاتی نزیکە</string>
+    <string name="team_badge_up_to_date">تەواوکراو</string>
+    <string name="team_badge_no_schedule">بێ خشتە</string>
+
+    <string name="team_status_completed_label">✅ تەواوکرا</string>
+    <string name="team_status_missed_label">❌ نەهاتووە</string>
+    <string name="team_status_overdue_label">⚠️ دواکەوتوو</string>
+    <string name="team_status_due_soon_label">⏰ نزیکە</string>
+    <string name="team_status_scheduled_label">📅 کاتی بۆ دانراوە</string>
+
+    <string name="team_dose_label">قورچی %1$d</string>
+    <string name="team_age_recommended_months">تەمەنی %1$d مانگی</string>
+    <string name="team_scheduled_date_prefix">📅 دیاریکراو: %1$s</string>
+    <string name="team_completed_date_prefix">✅ ئەنجامدرا: %1$s</string>
+
+    <string name="team_action_complete">تەواوکردن</string>
+    <string name="team_action_missed">نەهاتوو</string>
+    <string name="team_action_complete_confirm">تەواوکرا ✅</string>
+    <string name="team_action_mark_completed">نیشانەکردن وەک تەواوکراو ✅</string>
+
+    <string name="team_add_measurement">زیادکردنی پێوانە</string>
+    <string name="team_save_measurement">پاراستن 💾</string>
+    <string name="team_latest_measurement">دوایین پێوانە</string>
+    <string name="team_recorded_by_team">🏥 لەلایەن تیمەوە تۆمارکراوە</string>
+    <string name="team_weight_value">%1$s کگم</string>
+    <string name="team_height_value">%1$s سم</string>
+    <string name="team_head_value">%1$s سم</string>
+    <string name="team_metric_weight">کێش</string>
+    <string name="team_metric_height">باڵا</string>
+    <string name="team_metric_head">سەر</string>
+    <string name="team_record_weight">⚖️ %1$s کگم</string>
+    <string name="team_record_height">📏 %1$s سم</string>
+    <string name="team_record_head">🔵 %1$s سم</string>
+
+    <string name="team_dialog_complete_title">نیشانەکردن وەک تەواوکراو</string>
+    <string name="team_dialog_complete_vac_title">تەواوکردنی کوتان</string>
+    <string name="team_field_date_hint">بەروار (ساڵ-مانگ-ڕۆژ)</string>
+    <string name="team_field_batch">ژمارەی وەجبە (ئارەزوومەندانە)</string>
+    <string name="team_field_location">شوێن</string>
+    <string name="team_field_notes">تێبینی (ئارەزوومەندانە)</string>
+    <string name="team_field_weight">کێش (کگم)</string>
+    <string name="team_field_height">باڵا (سم)</string>
+    <string name="team_field_head">دەوری سەر (سم)</string>
+
+    <string name="team_search_babies_hint">گەڕان بۆ کۆرپەکان...</string>
+    <string name="team_stat_total">کۆی گشتی</string>
+    <string name="team_stat_overdue">دواکەوتوو</string>
+    <string name="team_stat_due_soon">کاتی نزیکە</string>
+
+    <string name="team_baby_age_card">%1$d مانگ</string>
+    <string name="team_next_vaccine_date">دواتر: %1$s</string>
+
+    <string name="team_empty_babies_title">هیچ کۆرپەیەک نییە</string>
+    <string name="team_empty_babies_subtitle">ئەو کۆرپانەی لە مێزەکەی تۆدا تۆمارکراون لێرە دەردەکەون</string>
+    <string name="team_empty_search_title">هیچ کۆرپەیەک نەدۆزرایەوە</string>
+    <string name="team_empty_search_subtitle">ناوێکی تر تاقی بکەرەوە</string>
+    <string name="team_empty_vac_title">هیچ کوتانێک لەم بەشەدا نییە</string>
+    <string name="team_empty_vac_subtitle">فلتەرەکە بگۆڕە بۆ بینینی ئەوانی تر</string>
+    <string name="team_empty_growth_title">هیچ پێوانەیەک نییە</string>
+    <string name="team_empty_growth_subtitle">کلیک لەسەر 'زیادکردنی پێوانە' بکە بۆ تۆمارکردن</string>
+    <string name="team_empty_schedule_title">هیچ کوتانێک دیاری نەکراوە</string>
+    <string name="team_empty_schedule_subtitle">هیچ کۆرپەیەک بۆ ئەم بەروارە لە مێزەکەت خشتەی بۆ نەکراوە</string>
+
+    <string name="team_select_date_hint">بەروارێک هەڵبژێرە</string>
+    <string name="team_change_date">گۆڕین</string>
+    <string name="team_schedule_stat_scheduled">خشتە بۆ دانراو</string>
+    <string name="team_schedule_stat_done">تەواوکراو</string>
+    <string name="team_schedule_stat_remaining">ماوە</string>
+
 
 
 </resources>

@@ -59,6 +59,8 @@ import org.example.project.babygrowthtrackingapplication.notifications.FcmTokenS
 import org.example.project.babygrowthtrackingapplication.notifications.NotificationRepository
 import org.example.project.babygrowthtrackingapplication.notifications.NotificationScreen
 import org.example.project.babygrowthtrackingapplication.notifications.NotificationViewModel
+import org.example.project.babygrowthtrackingapplication.team.TeamVaccinationScreen
+import org.example.project.babygrowthtrackingapplication.team.TeamVaccinationViewModel
 import org.example.project.babygrowthtrackingapplication.theme.GenderTheme
 import org.example.project.babygrowthtrackingapplication.ui.components.NavigationTab
 
@@ -77,6 +79,7 @@ private val RESTORABLE_SCREENS = setOf(
     Screen.PreCheckInvestigation,
     Screen.AllMeasurements,
     Screen.AdminHome,
+    Screen.TeamHome,    // ← team screen is restorable
 )
 
 enum class Screen {
@@ -108,6 +111,9 @@ enum class Screen {
     // ── Admin screens ─────────────────────────────────────────────────────────
     AdminLogin,
     AdminHome,
+
+    // ── Team screens ──────────────────────────────────────────────────────────
+    TeamHome,
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -135,6 +141,14 @@ private fun resolveTab(name: String): NavigationTab {
 private fun isAdminSession(preferencesManager: PreferencesManager): Boolean {
     val role = preferencesManager.getString("user_role", "")
     return role.equals("ADMIN", ignoreCase = true)
+}
+
+/**
+ * Returns true when the logged-in user has the VACCINATION_TEAM role.
+ */
+private fun isTeamSession(preferencesManager: PreferencesManager): Boolean {
+    val role = preferencesManager.getString("user_role", "")
+    return role.equals("VACCINATION_TEAM", ignoreCase = true)
 }
 
 private fun deepLinkRouteToScreen(route: String): Screen? = when (route) {
@@ -231,8 +245,8 @@ fun AppNavigation(
     val fcmTokenService = remember { FcmTokenService() }
     val notificationViewModel = remember {
         NotificationViewModel(
-            repository  = notificationRepository,
-            getUserId   = { preferencesManager.getUserId() },
+            repository      = notificationRepository,
+            getUserId       = { preferencesManager.getUserId() },
             fcmTokenService = fcmTokenService
         )
     }
@@ -251,6 +265,14 @@ fun AppNavigation(
     }
     val adminViewModel = remember {
         AdminViewModel(apiService = apiService, preferencesManager = preferencesManager)
+    }
+
+    // ── Team ViewModel (created once, shared for the session) ─────────────────
+    val teamViewModel = remember {
+        TeamVaccinationViewModel(
+            apiService         = apiService,
+            preferencesManager = preferencesManager
+        )
     }
 
     val signupViewModel = remember {
@@ -368,13 +390,14 @@ fun AppNavigation(
             memoryViewModel.onDestroy()
             notificationViewModel.onDestroy()
             adminViewModel.onDestroy()
+            teamViewModel.onDestroy()          // ← dispose team ViewModel
             cleanupSocialAuth(socialAuthManager)
         }
     }
 
     SharedTransitionLayout {
         AnimatedContent(
-            targetState  = currentScreen,
+            targetState = currentScreen,
             transitionSpec = {
                 when (targetState) {
                     Screen.Login,
@@ -391,8 +414,16 @@ fun AppNavigation(
                         fadeIn(tween(500, easing = FastOutSlowInEasing)) togetherWith
                                 fadeOut(tween(300, easing = FastOutSlowInEasing))
 
+                    Screen.TeamHome ->
+                        fadeIn(tween(500, easing = FastOutSlowInEasing)) togetherWith
+                                fadeOut(tween(300, easing = FastOutSlowInEasing))
+
                     Screen.Welcome -> when (initialState) {
-                        Screen.Login, Screen.Signup, Screen.VerifyAccount, Screen.AdminLogin ->
+                        Screen.Login,
+                        Screen.Signup,
+                        Screen.VerifyAccount,
+                        Screen.AdminLogin,
+                        Screen.TeamHome ->
                             fadeIn(tween(500)) togetherWith fadeOut(tween(300))
                         else ->
                             slideInHorizontally(
@@ -443,22 +474,28 @@ fun AppNavigation(
                                 currentScreen = if (!preferencesManager.isOnboardingComplete())
                                     Screen.Onboarding else Screen.Welcome
                             } else {
-                                if (isAdminSession(preferencesManager)) {
-                                    currentScreen = Screen.AdminHome
-                                    return@CompleteSplashScreen
-                                }
-                                val restoredScreen = resolveScreen(preferencesManager.getLastScreen())
-                                val restoredTab    = resolveTab(preferencesManager.getLastTab())
-                                if (restoredScreen != null) {
-                                    selectedTab = restoredTab
-                                    originTab   = restoredTab
-                                    homeViewModel.loadHomeData()
-                                    settingsViewModel.refreshProfile()
-                                    currentScreen = restoredScreen
-                                } else {
-                                    homeViewModel.loadHomeData()
-                                    settingsViewModel.refreshProfile()
-                                    currentScreen = Screen.Home
+                                when {
+                                    isAdminSession(preferencesManager) -> {
+                                        currentScreen = Screen.AdminHome
+                                    }
+                                    isTeamSession(preferencesManager) -> {
+                                        currentScreen = Screen.TeamHome
+                                    }
+                                    else -> {
+                                        val restoredScreen = resolveScreen(preferencesManager.getLastScreen())
+                                        val restoredTab    = resolveTab(preferencesManager.getLastTab())
+                                        if (restoredScreen != null) {
+                                            selectedTab = restoredTab
+                                            originTab   = restoredTab
+                                            homeViewModel.loadHomeData()
+                                            settingsViewModel.refreshProfile()
+                                            currentScreen = restoredScreen
+                                        } else {
+                                            homeViewModel.loadHomeData()
+                                            settingsViewModel.refreshProfile()
+                                            currentScreen = Screen.Home
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -470,8 +507,8 @@ fun AppNavigation(
                     WelcomeScreen(
                         onLoginClick  = { currentScreen = Screen.Login },
                         onSignUpClick = { currentScreen = Screen.Signup },
-                        sharedTransitionScope  = this@SharedTransitionLayout,
-                        animatedContentScope   = this@AnimatedContent
+                        sharedTransitionScope = this@SharedTransitionLayout,
+                        animatedContentScope  = this@AnimatedContent
                     )
                 }
 
@@ -489,13 +526,19 @@ fun AppNavigation(
                         onBackClick           = { currentScreen = Screen.Welcome },
                         onLoginSuccess        = {
                             val role = preferencesManager.getString("user_role", "")
-                            if (role.equals("ADMIN", ignoreCase = true)) {
-                                currentScreen = Screen.AdminHome
-                            } else {
-                                homeViewModel.loadHomeData()
-                                settingsViewModel.refreshProfile()
-                                notificationViewModel.startUnreadPolling()
-                                currentScreen = Screen.Home
+                            when {
+                                role.equals("ADMIN", ignoreCase = true) -> {
+                                    currentScreen = Screen.AdminHome
+                                }
+                                role.equals("VACCINATION_TEAM", ignoreCase = true) -> {
+                                    currentScreen = Screen.TeamHome
+                                }
+                                else -> {
+                                    homeViewModel.loadHomeData()
+                                    settingsViewModel.refreshProfile()
+                                    notificationViewModel.startUnreadPolling()
+                                    currentScreen = Screen.Home
+                                }
                             }
                         },
                         onForgotPasswordClick = { currentScreen = Screen.ForgotPassword },
@@ -519,9 +562,22 @@ fun AppNavigation(
                 // ── Admin Home ────────────────────────────────────────────────
                 Screen.AdminHome -> {
                     AdminHomeScreen(
-                        viewModel          = adminViewModel,
-                        apiService         = apiService,   // ← pass your ApiService instance here
-                        onNavigateToLogin  = {
+                        viewModel         = adminViewModel,
+                        apiService        = apiService,
+                        onNavigateToLogin = {
+                            preferencesManager.remove("user_role")
+                            preferencesManager.clearLastScreen()
+                            notificationViewModel.stopPolling()
+                            currentScreen = Screen.Welcome
+                        }
+                    )
+                }
+
+                // ── Team Home ─────────────────────────────────────────────────
+                Screen.TeamHome -> {
+                    TeamVaccinationScreen(
+                        viewModel           = teamViewModel,
+                        onNavigateToWelcome = {
                             preferencesManager.remove("user_role")
                             preferencesManager.clearLastScreen()
                             notificationViewModel.stopPolling()
@@ -582,10 +638,10 @@ fun AppNavigation(
                 // ── Enter New Password ────────────────────────────────────────
                 Screen.EnterNewPassword -> {
                     EnterNewPasswordScreen(
-                        viewModel            = enterNewPasswordViewModel,
-                        emailOrPhone         = resetEmail,
-                        verificationCode     = resetCode,
-                        onBackClick          = { currentScreen = Screen.EnterCode },
+                        viewModel              = enterNewPasswordViewModel,
+                        emailOrPhone           = resetEmail,
+                        verificationCode       = resetCode,
+                        onBackClick            = { currentScreen = Screen.EnterCode },
                         onPasswordResetSuccess = {
                             resetEmail = ""
                             resetCode  = ""
@@ -788,19 +844,19 @@ fun AppNavigation(
                         currentScreen = Screen.Home
                     } else {
                         BabyProfileScreen(
-                            baby            = baby,
-                            vaccinations    = homeViewModel.uiState.upcomingVaccinations[baby.babyId] ?: emptyList(),
-                            latestGrowth    = homeViewModel.uiState.latestGrowthRecords[baby.babyId],
-                            onBack          = {
+                            baby             = baby,
+                            vaccinations     = homeViewModel.uiState.upcomingVaccinations[baby.babyId] ?: emptyList(),
+                            latestGrowth     = homeViewModel.uiState.latestGrowthRecords[baby.babyId],
+                            onBack           = {
                                 selectedBaby  = null
                                 selectedTab   = originTab
                                 currentScreen = Screen.Home
                             },
-                            onEditDetails   = {
+                            onEditDetails    = {
                                 addBabyViewModel.prefillFromBaby(baby)
                                 currentScreen = Screen.EditBaby
                             },
-                            onDeleteBaby    = {
+                            onDeleteBaby     = {
                                 homeViewModel.loadHomeData()
                                 selectedBaby  = null
                                 selectedTab   = originTab
@@ -854,11 +910,11 @@ fun AppNavigation(
                         val isFemale = baby.gender.equals("FEMALE", ignoreCase = true)
                                 || baby.gender.equals("GIRL", ignoreCase = true)
                         AllMeasurementsScreen(
-                            babyId   = baby.babyId,
-                            babyName = baby.fullName,
-                            isFemale = isFemale,
+                            babyId    = baby.babyId,
+                            babyName  = baby.fullName,
+                            isFemale  = isFemale,
                             viewModel = homeViewModel,
-                            onBack   = {
+                            onBack    = {
                                 allMeasurementsBaby = null
                                 if (selectedBaby != null) currentScreen = Screen.BabyProfile
                                 else { selectedTab = originTab; currentScreen = Screen.Home }

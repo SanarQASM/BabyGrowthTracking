@@ -1253,4 +1253,169 @@ Last updated: 2025.</string>
     <!-- ── Dashboard stat ──────────────────────────────────────────────────────── -->
     <string name="admin_stat_team_members">Team Members</string>
 
+    
+    <!-- ── Shared emojis (used across multiple team screens) ───────────────────── -->
+    <string name="team_hospital_emoji">🏥</string>
+    <string name="team_emoji_baby">👶</string>
+    <string name="team_emoji_girl">👧</string>
+    <string name="team_emoji_boy">👦</string>
+    <string name="team_emoji_vaccine">💉</string>
+    <string name="team_emoji_growth">📏</string>
+    <string name="team_emoji_scheduled">📅</string>
+    <string name="team_emoji_completed">✅</string>
+    <string name="team_emoji_missed">❌</string>
+    <string name="team_emoji_overdue">⚠️</string>
+    <string name="team_emoji_due_soon">⏰</string>
+    <string name="team_emoji_rescheduled">🔄</string>
+    <string name="team_emoji_chart">📊</string>
+    <string name="team_emoji_weight">⚖️</string>
+    <string name="team_emoji_height">📏</string>
+    <string name="team_emoji_head">🔵</string>
+    <string name="team_emoji_birthday">🎂</string>
+    <string name="team_emoji_clock">⏰</string>
+    <string name="team_emoji_gender">⚧️</string>
+    <string name="team_emoji_family">👨‍👩‍👧</string>
+    <string name="team_emoji_person">👤</string>
+    <string name="team_emoji_phone">📞</string>
+    <string name="team_emoji_clipboard">📋</string>
+    <string name="team_emoji_pin">📍</string>
+    <string name="team_emoji_remaining">⏳</string>
+
+    <!-- ── Top bar ──────────────────────────────────────────────────────────────── -->
+    <string name="team_bench_fallback">Vaccination Bench</string>
+    <string name="team_member_fallback">Team Member</string>
+
+    <!-- ── Tab labels ───────────────────────────────────────────────────────────── -->
+    <string name="team_tab_babies_emoji">👶</string>
+    <string name="team_tab_babies">Babies</string>
+    <string name="team_tab_schedule_emoji">📅</string>
+    <string name="team_tab_schedule">Schedule</string>
+
+    <!-- ── Detail tabs ──────────────────────────────────────────────────────────── -->
+    <string name="team_detail_tab_profile">Profile</string>
+    <string name="team_detail_tab_vaccines">Vaccines</string>
+    <string name="team_detail_tab_growth">Growth</string>
+
+    <!-- ── Baby profile detail header ───────────────────────────────────────────── -->
+    <string name="team_baby_profile_title">Baby Profile</string>
+    <!-- %1$d = age in months, %2$s = gender label -->
+    <string name="team_baby_age_gender">%1$d months old • %2$s</string>
+    <!-- %1$s = parent name -->
+    <string name="team_parent_prefix">👤 %1$s</string>
+
+    <!-- ── Profile tab section titles ───────────────────────────────────────────── -->
+    <string name="team_section_baby_info">Baby Information</string>
+    <string name="team_section_parent_info">Parent Information</string>
+    <string name="team_section_health_center">Assigned Health Center</string>
+
+    <!-- ── Profile tab field labels ─────────────────────────────────────────────── -->
+    <string name="team_field_full_name">Full Name</string>
+    <string name="team_field_dob">Date of Birth</string>
+    <string name="team_field_age">Age</string>
+    <string name="team_field_gender">Gender</string>
+    <string name="team_field_parent_name">Parent Name</string>
+    <string name="team_field_phone">Phone</string>
+    <string name="team_field_bench">Bench</string>
+    <!-- %1$d = months -->
+    <string name="team_age_months_value">%1$d months</string>
+    <string name="team_value_dash">—</string>
+    <string name="team_gender_girl">Girl 👧</string>
+    <string name="team_gender_boy">Boy 👦</string>
+
+    <!-- ── Vaccine status descriptions (profile tab card) ───────────────────────── -->
+    <string name="team_status_overdue_desc">Has overdue vaccinations ⚠️</string>
+    <string name="team_status_due_soon_desc">Vaccination due soon ⏰</string>
+    <string name="team_status_up_to_date_desc">All vaccinations up to date ✅</string>
+    <string name="team_status_no_schedule_desc">No vaccination schedule yet 📋</string>
+
+    <!-- ── Vaccine status badge labels (card chip) ──────────────────────────────── -->
+    <string name="team_badge_overdue">Overdue</string>
+    <string name="team_badge_due_soon">Due Soon</string>
+    <string name="team_badge_up_to_date">Up to Date</string>
+    <string name="team_badge_no_schedule">No Schedule</string>
+
+    <!-- ── Schedule status labels (card chip + schedule tab) ───────────────────── -->
+    <string name="team_status_completed_label">✅ Completed</string>
+    <string name="team_status_missed_label">❌ Missed</string>
+    <string name="team_status_overdue_label">⚠️ Overdue</string>
+    <string name="team_status_due_soon_label">⏰ Due Soon</string>
+    <string name="team_status_scheduled_label">📅 Scheduled</string>
+
+    <!-- ── Vaccine card inline labels ───────────────────────────────────────────── -->
+    <!-- %1$d = dose number -->
+    <string name="team_dose_label">D%1$d</string>
+    <!-- %1$d = recommended age in months -->
+    <string name="team_age_recommended_months">Age %1$d months</string>
+    <!-- %1$s = date string -->
+    <string name="team_scheduled_date_prefix">📅 Scheduled: %1$s</string>
+    <!-- %1$s = date string -->
+    <string name="team_completed_date_prefix">✅ Done: %1$s</string>
+
+    <!-- ── Action buttons ────────────────────────────────────────────────────────── -->
+    <string name="team_action_complete">Complete</string>
+    <string name="team_action_missed">Missed</string>
+    <string name="team_action_complete_confirm">Complete ✅</string>
+    <string name="team_action_mark_completed">Mark Completed ✅</string>
+
+    <!-- ── Growth tab ────────────────────────────────────────────────────────────── -->
+    <string name="team_add_measurement">Add Measurement</string>
+    <string name="team_save_measurement">Save 💾</string>
+    <string name="team_latest_measurement">Latest Measurement</string>
+    <string name="team_recorded_by_team">🏥 Recorded by team</string>
+    <!-- %1$s = value -->
+    <string name="team_weight_value">%1$s kg</string>
+    <string name="team_height_value">%1$s cm</string>
+    <string name="team_head_value">%1$s cm</string>
+    <string name="team_metric_weight">Weight</string>
+    <string name="team_metric_height">Height</string>
+    <string name="team_metric_head">Head</string>
+    <!-- %1$s = weight kg -->
+    <string name="team_record_weight">⚖️ %1$s kg</string>
+    <!-- %1$s = height cm -->
+    <string name="team_record_height">📏 %1$s cm</string>
+    <!-- %1$s = head cm -->
+    <string name="team_record_head">🔵 %1$s cm</string>
+
+    <!-- ── Complete / add-measurement dialog field labels ──────────────────────── -->
+    <string name="team_dialog_complete_title">Mark as Completed</string>
+    <string name="team_dialog_complete_vac_title">Complete Vaccination</string>
+    <string name="team_field_date_hint">Date (YYYY-MM-DD)</string>
+    <string name="team_field_batch">Batch Number (optional)</string>
+    <string name="team_field_location">Location</string>
+    <string name="team_field_notes">Notes (optional)</string>
+    <string name="team_field_weight">Weight (kg)</string>
+    <string name="team_field_height">Height (cm)</string>
+    <string name="team_field_head">Head Circumference (cm)</string>
+
+    <!-- ── Babies tab search & stats ─────────────────────────────────────────────── -->
+    <string name="team_search_babies_hint">Search babies…</string>
+    <string name="team_stat_total">Total</string>
+    <string name="team_stat_overdue">Overdue</string>
+    <string name="team_stat_due_soon">Due Soon</string>
+
+    <!-- ── Baby card ─────────────────────────────────────────────────────────────── -->
+    <!-- %1$d = months -->
+    <string name="team_baby_age_card">%1$d months</string>
+    <!-- %1$s = date string -->
+    <string name="team_next_vaccine_date">Next: %1$s</string>
+
+    <!-- ── Empty states ──────────────────────────────────────────────────────────── -->
+    <string name="team_empty_babies_title">No babies assigned</string>
+    <string name="team_empty_babies_subtitle">Babies registered at your bench will appear here</string>
+    <string name="team_empty_search_title">No babies match your search</string>
+    <string name="team_empty_search_subtitle">Try a different name</string>
+    <string name="team_empty_vac_title">No vaccinations in this category</string>
+    <string name="team_empty_vac_subtitle">Change the filter to see others</string>
+    <string name="team_empty_growth_title">No measurements yet</string>
+    <string name="team_empty_growth_subtitle">Tap \'Add Measurement\' to record the first one</string>
+    <string name="team_empty_schedule_title">No vaccinations scheduled</string>
+    <string name="team_empty_schedule_subtitle">No babies are scheduled for this date at your bench</string>
+
+    <!-- ── Schedule tab ──────────────────────────────────────────────────────────── -->
+    <string name="team_select_date_hint">Select a date</string>
+    <string name="team_change_date">Change</string>
+    <string name="team_schedule_stat_scheduled">Scheduled</string>
+    <string name="team_schedule_stat_done">Done</string>
+    <string name="team_schedule_stat_remaining">Remaining</string>
+
 </resources>
