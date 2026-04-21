@@ -134,6 +134,39 @@ class TeamVaccinationViewModel(
         uiState = uiState.copy(selectedDate = today)
     }
 
+    // ── Public load entry-points ──────────────────────────────────────────────
+
+    /**
+     * Public entry-point for Navigation.kt to call immediately after a
+     * successful VACCINATION_TEAM login.
+     *
+     * Pre-loading here prevents the blank flash that occurred when
+     * TeamVaccinationScreen had to trigger its own load on first composition.
+     *
+     * Also re-reads the team member's identity from prefs so the name/id are
+     * always fresh (e.g. after a different user logs in on the same device).
+     */
+    fun loadTeamData() {
+        // Re-read identity in case this is being called after a fresh login
+        val userId = preferencesManager.getUserId() ?: ""
+        val name   = preferencesManager.getUserName() ?: ""
+        uiState    = uiState.copy(teamMemberId = userId, teamMemberName = name)
+        initTodayDate()
+        loadBenchAndBabies()
+    }
+
+    /**
+     * Called from the Splash screen when the app resumes with a persisted
+     * VACCINATION_TEAM session (token still valid).
+     *
+     * Kept as a separate method so future restore-specific logic (e.g. a
+     * lighter refresh that skips re-fetching bench info when nothing has
+     * changed) can be added here without touching the login path.
+     */
+    fun onSessionRestored() {
+        loadTeamData()
+    }
+
     // ── Load bench + babies ───────────────────────────────────────────────────
 
     private fun loadBenchAndBabies() {

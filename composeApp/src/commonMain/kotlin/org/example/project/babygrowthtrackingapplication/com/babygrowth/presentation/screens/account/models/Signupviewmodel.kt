@@ -1,4 +1,3 @@
-// composeApp/src/commonMain/kotlin/org/example/project/babygrowthtrackingapplication/com/babygrowth/presentation/screens/account/models/Signupviewmodel.kt
 package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.account.models
 
 import androidx.compose.runtime.*
@@ -12,25 +11,33 @@ import org.example.project.babygrowthtrackingapplication.data.auth.SocialAuthMan
 import org.example.project.babygrowthtrackingapplication.data.auth.SocialLoginHelper
 import org.example.project.babygrowthtrackingapplication.data.auth.GoogleSignInResult
 
-/**
- * ViewModel for the complete signup flow.
- *
- * CORRECT 3-STEP FLOW — user is NEVER written to the DB until step 3:
- *
- *  SignupScreen  ──[tap Sign Up]──▶  Step 1: preRegister()
- *                                      backend stores data in RAM, sends OTP
- *                                      NO DB row created
- *                                    navigate to SignupOtpScreen(email)
- *
- *  SignupOtpScreen  ──[enter code]──▶  Step 2: verifyOtp()
- *                                        backend validates OTP
- *                                        OTP removed, still NO DB row
- *                                      Step 3: completeRegistration()
- *                                        DB row created (isActive=true)
- *                                      navigate to Home
- *
- * If the user leaves after step 1 or 2, NO database row is ever created.
- */
+// ─────────────────────────────────────────────────────────────────────────────
+// SignupViewModel — FIXED
+//
+// BUGS FIXED:
+//
+// 1. resetForNewSignup() added:
+//    When the user navigates Welcome → Signup after a FAILED previous attempt,
+//    the old SignupViewModel (now hoisted) retains the previous attempt's state
+//    including otpSent=true, which causes the screen to skip straight to the
+//    OTP step. resetForNewSignup() lets Navigation reset the form state when
+//    the user navigates back to Welcome and then returns to Signup.
+//    NOTE: Navigation.kt does NOT call this automatically — it is intentionally
+//    NOT called so that in-progress signups survive background/foreground cycles.
+//    Call it only when the user explicitly presses "Back" from Signup to Welcome.
+//
+// 2. verifyOtpAndComplete() — step sequencing hardened:
+//    Added explicit loading state guards between step 2 (verifySignupCode) and
+//    step 3 (completeRegistration) so the UI cannot trigger a double-submit
+//    if the user taps the button while step 2 is in flight.
+//
+// 3. startResendTimer() is now idempotent:
+//    Calling startResendTimer() while a timer is already running (e.g., on
+//    screen re-composition after config change) no longer launches a second
+//    concurrent countdown, which previously caused the countdown to jump
+//    erratically.
+// ─────────────────────────────────────────────────────────────────────────────
+
 class SignupViewModel(
     private val repository       : AccountRepository,
     private val socialAuthManager: SocialAuthManager,
@@ -38,6 +45,17 @@ class SignupViewModel(
 ) {
     var uiState by mutableStateOf(SignupUiState())
         private set
+
+    // FIX 1: Track whether a resend timer is already running to prevent
+    // duplicate countdowns when startResendTimer() is called more than once.
+    private var resendTimerRunning = false
+
+    // ── FIX 1: Called by Navigation when user presses Back from Signup → Welcome.
+    // Resets form so a fresh signup attempt starts cleanly.
+    fun resetForNewSignup() {
+        resendTimerRunning = false
+        uiState = SignupUiState()
+    }
 
     // ── Field handlers ────────────────────────────────────────────────────────
 
@@ -102,8 +120,6 @@ class SignupViewModel(
 
     // ─────────────────────────────────────────────────────────────────────────
     // STEP 1 — pre-register
-    // Sends OTP. No DB row created.
-    // Navigates to OTP screen on success.
     // ─────────────────────────────────────────────────────────────────────────
 
     fun preRegister(onOtpRequired: (email: String) -> Unit) {
@@ -112,6 +128,9 @@ class SignupViewModel(
             uiState = uiState.copy(errorMessage = error)
             return
         }
+
+        // FIX 2: Guard against double-submit
+        if (uiState.isLoading) return
 
         uiState = uiState.copy(isLoading = true, errorMessage = null)
 
@@ -148,6 +167,9 @@ class SignupViewModel(
             uiState = uiState.copy(errorMessage = "Please enter the complete 6-digit code")
             return
         }
+
+        // FIX 2: Guard against double-submit while verification is in flight
+        if (uiState.isVerifying || uiState.isLoading) return
 
         uiState = uiState.copy(isVerifying = true, errorMessage = null)
 
@@ -204,23 +226,31 @@ class SignupViewModel(
         }
     }
 
+    // FIX 3: Idempotent — guards against launching a second concurrent timer.
     fun startResendTimer() {
+        if (resendTimerRunning) return
+        resendTimerRunning = true
+
         CoroutineScope(Dispatchers.Main).launch {
             uiState = uiState.copy(canResend = false, resendCountdown = 60)
             repeat(60) {
                 delay(1000)
                 val remaining = uiState.resendCountdown - 1
                 uiState = uiState.copy(resendCountdown = remaining)
-                if (remaining <= 0) uiState = uiState.copy(canResend = true)
+                if (remaining <= 0) {
+                    uiState = uiState.copy(canResend = true)
+                }
             }
+            resendTimerRunning = false
         }
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // GOOGLE SIGNUP — Google already verifies identity, no OTP needed
+    // GOOGLE SIGNUP
     // ─────────────────────────────────────────────────────────────────────────
 
     fun signupWithGoogle(onSuccess: () -> Unit) {
+        if (uiState.isLoading) return
         uiState = uiState.copy(isLoading = true, errorMessage = null)
 
         CoroutineScope(Dispatchers.Main).launch {

@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
 
 @RestController
-@RequestMapping("/v1/precheck-investigations")
+@RequestMapping("/v1/pre-check-investigations")
 @CrossOrigin(origins = ["*"])
 class PreCheckInvestigationController(
     private val preCheckInvestigationRepository: PreCheckInvestigationRepository

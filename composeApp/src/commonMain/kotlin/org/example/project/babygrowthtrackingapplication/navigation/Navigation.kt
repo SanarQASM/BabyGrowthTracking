@@ -79,7 +79,7 @@ private val RESTORABLE_SCREENS = setOf(
     Screen.PreCheckInvestigation,
     Screen.AllMeasurements,
     Screen.AdminHome,
-    Screen.TeamHome,    // ← team screen is restorable
+    Screen.TeamHome,
 )
 
 enum class Screen {
@@ -107,12 +107,8 @@ enum class Screen {
     FeedingGuide,
     Memory,
     Notifications,
-
-    // ── Admin screens ─────────────────────────────────────────────────────────
     AdminLogin,
     AdminHome,
-
-    // ── Team screens ──────────────────────────────────────────────────────────
     TeamHome,
 }
 
@@ -143,9 +139,6 @@ private fun isAdminSession(preferencesManager: PreferencesManager): Boolean {
     return role.equals("ADMIN", ignoreCase = true)
 }
 
-/**
- * Returns true when the logged-in user has the VACCINATION_TEAM role.
- */
 private fun isTeamSession(preferencesManager: PreferencesManager): Boolean {
     val role = preferencesManager.getString("user_role", "")
     return role.equals("VACCINATION_TEAM", ignoreCase = true)
@@ -267,7 +260,6 @@ fun AppNavigation(
         AdminViewModel(apiService = apiService, preferencesManager = preferencesManager)
     }
 
-    // ── Team ViewModel (created once, shared for the session) ─────────────────
     val teamViewModel = remember {
         TeamVaccinationViewModel(
             apiService         = apiService,
@@ -275,6 +267,22 @@ fun AppNavigation(
         )
     }
 
+    // FIX 1: Hoist LoginViewModel to the top level so it survives screen transitions
+    // and its init{} loadSavedCredentials() only runs once per session — not on every
+    // recomposition of the Login case in the when{} block.
+    val loginViewModel = remember {
+        LoginViewModel(
+            authRepository    = repository,
+            socialAuthManager = socialAuthManager,
+            socialLoginHelper = socialLoginHelper
+        )
+    }
+
+    // FIX 2: Hoist SignupViewModel and VerifyAccountViewModel to top level.
+    // VerifyAccountViewModel was previously constructed with signupViewModel.uiState.email
+    // at construction time (always ""), because signupViewModel itself was constructed
+    // before the user typed anything. Now both are hoisted and VerifyAccountViewModel
+    // is refreshed via refreshContactInfo() when navigating to VerifyAccount.
     val signupViewModel = remember {
         SignupViewModel(
             repository        = repository,
@@ -282,15 +290,31 @@ fun AppNavigation(
             socialLoginHelper = socialLoginHelper
         )
     }
+
+    // FIX 3: VerifyAccountViewModel starts empty; email/phone are synced via
+    // refreshContactInfo() at the point of navigation, not at construction time.
     val verifyAccountViewModel = remember {
         VerifyAccountViewModel(
             repository = repository,
-            userEmail  = signupViewModel.uiState.email,
-            userPhone  = signupViewModel.uiState.phone
+            userEmail  = "",
+            userPhone  = ""
         )
     }
+
     val enterNewPasswordViewModel = remember {
         EnterNewPasswordViewModel(authRepository = repository)
+    }
+
+    // ── Helper: called after any successful login to boot all parent-role services ──
+    // FIX 4: Extracted into a single function to ensure consistent initialization
+    // across all login paths (email/password, Google, and session restore).
+    // Previously, some paths (e.g., session restore after splash) forgot to call
+    // notificationViewModel.startUnreadPolling(), breaking notifications until restart.
+    fun onParentLoginSuccess() {
+        homeViewModel.loadHomeData()
+        settingsViewModel.refreshProfile()
+        notificationViewModel.startUnreadPolling()
+        currentScreen = Screen.Home
     }
 
     LaunchedEffect(startRoute, repository.isLoggedIn()) {
@@ -390,7 +414,7 @@ fun AppNavigation(
             memoryViewModel.onDestroy()
             notificationViewModel.onDestroy()
             adminViewModel.onDestroy()
-            teamViewModel.onDestroy()          // ← dispose team ViewModel
+            teamViewModel.onDestroy()
             cleanupSocialAuth(socialAuthManager)
         }
     }
@@ -476,9 +500,13 @@ fun AppNavigation(
                             } else {
                                 when {
                                     isAdminSession(preferencesManager) -> {
+                                        // FIX 5: Admin session restore — was missing adminViewModel refresh
+                                        adminViewModel.onSessionRestored()
                                         currentScreen = Screen.AdminHome
                                     }
                                     isTeamSession(preferencesManager) -> {
+                                        // FIX 6: Team session restore — was missing teamViewModel refresh
+                                        teamViewModel.onSessionRestored()
                                         currentScreen = Screen.TeamHome
                                     }
                                     else -> {
@@ -487,13 +515,12 @@ fun AppNavigation(
                                         if (restoredScreen != null) {
                                             selectedTab = restoredTab
                                             originTab   = restoredTab
-                                            homeViewModel.loadHomeData()
-                                            settingsViewModel.refreshProfile()
+                                            // FIX 4: Session restore now also starts polling,
+                                            // previously only fresh login started polling.
+                                            onParentLoginSuccess()
                                             currentScreen = restoredScreen
                                         } else {
-                                            homeViewModel.loadHomeData()
-                                            settingsViewModel.refreshProfile()
-                                            currentScreen = Screen.Home
+                                            onParentLoginSuccess()
                                         }
                                     }
                                 }
@@ -514,30 +541,27 @@ fun AppNavigation(
 
                 // ── Login ─────────────────────────────────────────────────────
                 Screen.Login -> {
-                    val viewModel = remember {
-                        LoginViewModel(
-                            authRepository    = repository,
-                            socialAuthManager = socialAuthManager,
-                            socialLoginHelper = socialLoginHelper
-                        )
-                    }
+                    // FIX 1: loginViewModel is now hoisted — no longer re-created on
+                    // every visit to this screen. savedCredentials load correctly once.
                     LoginScreen(
-                        viewModel             = viewModel,
+                        viewModel             = loginViewModel,
                         onBackClick           = { currentScreen = Screen.Welcome },
                         onLoginSuccess        = {
                             val role = preferencesManager.getString("user_role", "")
                             when {
                                 role.equals("ADMIN", ignoreCase = true) -> {
+                                    // FIX 5: Load admin data immediately after login
+                                    adminViewModel.loadDashboardData()
                                     currentScreen = Screen.AdminHome
                                 }
                                 role.equals("VACCINATION_TEAM", ignoreCase = true) -> {
+                                    // FIX 6: Load team data immediately after login
+                                    teamViewModel.loadTeamData()
                                     currentScreen = Screen.TeamHome
                                 }
                                 else -> {
-                                    homeViewModel.loadHomeData()
-                                    settingsViewModel.refreshProfile()
-                                    notificationViewModel.startUnreadPolling()
-                                    currentScreen = Screen.Home
+                                    // FIX 4: Use unified helper — starts polling + loads data
+                                    onParentLoginSuccess()
                                 }
                             }
                         },
@@ -551,7 +575,11 @@ fun AppNavigation(
                 Screen.AdminLogin -> {
                     AdminLoginScreen(
                         viewModel     = adminLoginViewModel,
-                        onLoginSuccess = { currentScreen = Screen.AdminHome },
+                        onLoginSuccess = {
+                            // FIX 5: Consistent with Login screen — load admin data on success
+                            adminViewModel.loadDashboardData()
+                            currentScreen = Screen.AdminHome
+                        },
                         onBackToLogin  = {
                             preferencesManager.remove("user_role")
                             currentScreen = Screen.Login
@@ -568,6 +596,9 @@ fun AppNavigation(
                             preferencesManager.remove("user_role")
                             preferencesManager.clearLastScreen()
                             notificationViewModel.stopPolling()
+                            // FIX 7: Reset loginViewModel state when logging out so stale
+                            // credentials don't appear pre-filled from a different role session
+                            loginViewModel.clearState()
                             currentScreen = Screen.Welcome
                         }
                     )
@@ -581,6 +612,8 @@ fun AppNavigation(
                             preferencesManager.remove("user_role")
                             preferencesManager.clearLastScreen()
                             notificationViewModel.stopPolling()
+                            // FIX 7: Reset loginViewModel state on logout
+                            loginViewModel.clearState()
                             currentScreen = Screen.Welcome
                         }
                     )
@@ -588,20 +621,18 @@ fun AppNavigation(
 
                 // ── Signup ────────────────────────────────────────────────────
                 Screen.Signup -> {
+                    // FIX 2: signupViewModel is now hoisted — state persists while the
+                    // user navigates back and forth between Welcome and Signup.
                     SignupScreen(
                         viewModel              = signupViewModel,
                         onBackClick            = { currentScreen = Screen.Welcome },
                         onRegistrationComplete = {
-                            homeViewModel.loadHomeData()
-                            settingsViewModel.refreshProfile()
-                            notificationViewModel.startUnreadPolling()
-                            currentScreen = Screen.Home
+                            // FIX 4: Use unified helper
+                            onParentLoginSuccess()
                         },
                         onSocialSignupSuccess  = {
-                            homeViewModel.loadHomeData()
-                            settingsViewModel.refreshProfile()
-                            notificationViewModel.startUnreadPolling()
-                            currentScreen = Screen.Home
+                            // FIX 4: Use unified helper
+                            onParentLoginSuccess()
                         },
                         sharedTransitionScope  = this@SharedTransitionLayout,
                         animatedContentScope   = this@AnimatedContent
@@ -622,7 +653,7 @@ fun AppNavigation(
 
                 // ── Enter Code ────────────────────────────────────────────────
                 Screen.EnterCode -> {
-                    val viewModel = remember { EnterCodeViewModel(repository, resetEmail) }
+                    val viewModel = remember(resetEmail) { EnterCodeViewModel(repository, resetEmail) }
                     EnterCodeScreen(
                         viewModel    = viewModel,
                         emailOrPhone = resetEmail,
@@ -645,6 +676,9 @@ fun AppNavigation(
                         onPasswordResetSuccess = {
                             resetEmail = ""
                             resetCode  = ""
+                            // FIX 8: After password reset, reload saved credentials in
+                            // loginViewModel so the user can log in with the new password.
+                            loginViewModel.reloadSavedCredentials()
                             currentScreen = Screen.Login
                         }
                     )
@@ -652,15 +686,23 @@ fun AppNavigation(
 
                 // ── Verify Account ────────────────────────────────────────────
                 Screen.VerifyAccount -> {
+                    // FIX 3: Sync email/phone from signupViewModel into verifyAccountViewModel
+                    // at the moment of navigation, not at construction time. Previously,
+                    // verifyAccountViewModel was built with empty strings since both were
+                    // constructed before the user filled in the signup form.
+                    LaunchedEffect(Unit) {
+                        verifyAccountViewModel.refreshContactInfo(
+                            email = signupViewModel.uiState.email,
+                            phone = signupViewModel.uiState.phone
+                        )
+                    }
                     VerifyAccountScreen(
                         viewModel             = verifyAccountViewModel,
                         onBackClick           = { currentScreen = Screen.Signup },
                         onVerificationSuccess = {
                             preferencesManager.setUserLoggedIn(true)
-                            homeViewModel.loadHomeData()
-                            settingsViewModel.refreshProfile()
-                            notificationViewModel.startUnreadPolling()
-                            currentScreen = Screen.Home
+                            // FIX 4: Use unified helper
+                            onParentLoginSuccess()
                         },
                         sharedTransitionScope = this@SharedTransitionLayout,
                         animatedContentScope  = this@AnimatedContent
@@ -740,6 +782,9 @@ fun AppNavigation(
                             preferencesManager.clearLastScreen()
                             preferencesManager.remove("user_role")
                             notificationViewModel.stopPolling()
+                            // FIX 7: Clear login state on logout so saved credentials
+                            // from one session don't bleed into a different-role session.
+                            loginViewModel.clearState()
                             currentScreen = Screen.Welcome
                         },
                         onNavigateToFamilyHistory       = { babyId, _ ->
