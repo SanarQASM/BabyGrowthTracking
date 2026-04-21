@@ -87,8 +87,8 @@ data class AdminUiState(
     val filteredTeamMembers: List<UserResponse>      = emptyList(),
     val teamSearchQuery    : String                  = "",
     val selectedTeamTab    : AdminTeamFilterTab      = AdminTeamFilterTab.ALL,
-    // Dedicated loading flag so the team list can show its own spinner
-    // without blanking out the entire dashboard.
+    // ← NEW: dedicated loading flag so the team list can show its own
+    //   spinner without blanking out the entire dashboard
     val isTeamLoading      : Boolean                 = false,
 
     // ── Messages ──────────────────────────────────────────────────────────
@@ -134,19 +134,6 @@ class AdminViewModel(
 
     // ── Dashboard data ────────────────────────────────────────────────────
 
-    /**
-     * Primary dashboard load entry-point.
-     *
-     * Called from:
-     *  • init block (on ViewModel creation)
-     *  • Navigation.kt after a successful admin login (AdminLoginScreen /
-     *    LoginScreen with role == ADMIN) — prevents the blank-flash that
-     *    occurred when the screen had to trigger its own load on first
-     *    composition.
-     *  • [onSessionRestored] — when the Splash screen detects a persisted
-     *    ADMIN session and resumes without a new login.
-     *  • [refresh] — pull-to-refresh initiated by the user.
-     */
     fun loadDashboardData(forceRefresh: Boolean = false) {
         scope.launch {
             uiState = uiState.copy(isLoading = true, errorMessageKey = null)
@@ -210,19 +197,6 @@ class AdminViewModel(
                 )
             }
         }
-    }
-
-    /**
-     * Called from the Splash screen when the app resumes with a persisted
-     * ADMIN session (token still valid).
-     *
-     * Kept as a separate method so future restore-specific logic (e.g., a
-     * lighter refresh that skips vaccination records) can be added here
-     * without touching the login paths.
-     */
-    fun onSessionRestored() {
-        loadAdminProfile()          // re-read name / email from prefs
-        loadDashboardData()         // full data refresh
     }
 
     private suspend fun buildVaxRecords(babies: List<BabyResponse>): List<AdminVaxRecord> {
@@ -299,13 +273,11 @@ class AdminViewModel(
         }
     }
 
-    /**
-     * Lightweight team-only reload called after AdminCreateTeamMemberScreen.
-     *
-     * Instead of re-fetching every user + baby + vaccination record (expensive),
-     * this only re-fetches the full user list and extracts the team subset.
-     * Dashboard stats are kept in sync via [recalcStats].
-     */
+    // ── NEW: lightweight team-only reload called after AdminCreateTeamMemberScreen ──
+    //
+    // Instead of re-fetching every user + baby + vaccination record (expensive),
+    // this only re-fetches the full user list and extracts the team subset.
+    // The dashboard stats are kept in sync via recalcStats().
     fun loadTeamMembers() {
         scope.launch {
             uiState = uiState.copy(isTeamLoading = true, errorMessageKey = null)
@@ -344,14 +316,12 @@ class AdminViewModel(
         }
     }
 
-    /**
-     * Optimistic / offline-first path.
-     *
-     * Called by AdminCreateTeamMemberScreen's onCreated callback when the
-     * API returns the newly created [UserResponse] directly. Appends the new
-     * member immediately so the list updates without a network round-trip,
-     * then emits the success snackbar sentinel.
-     */
+    // ── NEW: optimistic / offline-first path ─────────────────────────────
+    //
+    // Called by AdminCreateTeamMemberScreen's onCreated callback when the
+    // API returns the newly created UserResponse directly.  Appends the new
+    // member immediately so the list updates without any network round-trip,
+    // then emits the success snackbar sentinel.
     fun onTeamMemberCreated(newMember: UserResponse) {
         val updatedTeam  = uiState.allTeamMembers + newMember
         val updatedUsers = uiState.allUsers       + newMember
@@ -394,7 +364,7 @@ class AdminViewModel(
             when (val result = apiService.deleteUser(userId)) {
                 is ApiResult.Success -> {
                     val updatedUsers = uiState.allUsers.filter { it.userId != userId }
-                    // Keep team list in sync if the deleted user was also a team member
+                    // Keep team list in sync if the user was also a team member
                     val updatedTeam  = uiState.allTeamMembers.filter { it.userId != userId }
                     uiState = uiState.copy(
                         allUsers            = updatedUsers,
