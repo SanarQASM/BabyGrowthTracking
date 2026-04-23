@@ -1418,4 +1418,100 @@ Last updated: 2025.</string>
     <string name="team_schedule_stat_done">Done</string>
     <string name="team_schedule_stat_remaining">Remaining</string>
 
+    <!-- ── Bench Request — parent side ────────────────────────────────────── -->
+    <string name="bench_request_send_action">Send Join Request</string>
+    <string name="bench_request_cancel_action">Cancel Request</string>
+    <string name="bench_request_pick_other_action">Choose Another Health Center</string>
+
+    <!-- Pending status screen -->
+    <string name="bench_request_pending_title">Request Sent — Waiting for Approval</string>
+    <string name="bench_request_pending_body">Your request for %1$s to join %2$s has been sent. The vaccination team will review it shortly.</string>
+    <string name="bench_request_pending_hint">You will be notified once the team reviews your request. Only one request can be active at a time.</string>
+
+    <!-- Rejected status screen -->
+    <string name="bench_request_rejected_title">Request Rejected</string>
+    <string name="bench_request_rejected_body">Your request to join %1$s was not accepted.</string>
+    <string name="bench_request_reject_reason_label">Reason from the health center:</string>
+
+    <!-- Status labels -->
+    <string name="bench_request_status_pending">Pending</string>
+    <string name="bench_request_status_accepted">Accepted</string>
+    <string name="bench_request_status_rejected">Rejected</string>
+    <string name="bench_request_status_cancelled">Cancelled</string>
+
+    <!-- Map / bench select send request button -->
+    <string name="bench_send_request_action">Send Join Request</string>
+    <string name="bench_send_request_confirm_title">Send Request to This Center?</string>
+    <string name="bench_send_request_confirm_body">Send a join request for %1$s to %2$s? The team will review and accept or reject it.</string>
+    <string name="bench_send_request_confirm_ok">Send Request</string>
+
+    <!-- ── Bench Request — team vaccination side ───────────────────────────── -->
+    <string name="team_requests_title">Join Requests</string>
+    <string name="team_requests_empty_emoji">📋</string>
+    <string name="team_requests_empty_title">No Requests Yet</string>
+    <string name="team_requests_empty_subtitle">Parents will send requests to join your health center here.</string>
+    <string name="team_requests_section_pending">Pending Requests</string>
+    <string name="team_requests_section_history">Request History</string>
+
+    <!-- Request card actions -->
+    <string name="team_request_accept_action">Accept</string>
+    <string name="team_request_reject_action">Reject</string>
+    <string name="team_request_note_prefix">Note: %1$s</string>
+    <string name="team_request_reject_reason_label">Reject reason: %1$s</string>
+
+    <!-- Reject dialog -->
+    <string name="team_request_reject_title">Reject Request</string>
+    <string name="team_request_reject_body">You are about to reject the request from %1$s. Please provide a reason so the parent knows why.</string>
+    <string name="team_request_reject_reason_hint">Enter reject reason (required)…</string>
+    <string name="team_request_reject_confirm">Reject</string>
+
+    <!-- Requests tab label in team bottom navigation -->
+    <string name="team_tab_requests">Requests</string>
+    <string name="team_tab_requests_emoji">📋</string>
+
+    <!-- ── Vaccination schedule — rescheduled date display ─────────────────── -->
+    <string name="schedule_original_due_date">Originally due: %1$s</string>
+    <string name="schedule_rescheduled_to">Rescheduled to: %1$s</string>
+    <string name="schedule_overdue_again_warning">If missed again after %1$s, this vaccination will be marked overdue again.</string>
+    <string name="schedule_last_chance_hint">Last chance to complete before overdue: %1$s</string>
+
+    <!-- ── Admin — bench management ───────────────────────────────────────── -->
+    <string name="admin_bench_title">Health Centers</string>
+    <string name="admin_bench_add_title">Add Health Center</string>
+    <string name="admin_bench_search_hint">Search by name, district…</string>
+    <string name="admin_bench_count">%1$d centers</string>
+    <string name="admin_bench_no_results">No health centers found</string>
+    <string name="admin_bench_delete_title">Delete Health Center</string>
+    <string name="admin_bench_delete_message">Are you sure you want to delete %1$s? This cannot be undone.</string>
+    <string name="admin_bench_add_action">Add Center</string>
+    <string name="admin_bench_section_info">Center Information</string>
+    <string name="admin_bench_field_name_en">Name (English)</string>
+    <string name="admin_bench_field_name_ar">Name (Arabic)</string>
+    <string name="admin_bench_field_governorate">Governorate</string>
+    <string name="admin_bench_field_district">District</string>
+    <string name="admin_bench_field_address_en">Address (English)</string>
+    <string name="admin_bench_field_address_ar">Address (Arabic)</string>
+    <string name="admin_bench_field_latitude">Latitude</string>
+    <string name="admin_bench_field_longitude">Longitude</string>
+    <string name="admin_bench_field_phone">Phone</string>
+    <string name="admin_bench_field_working_days">Working Days (comma-separated)</string>
+    <string name="admin_bench_field_vac_days">Vaccination Days (comma-separated)</string>
+    <string name="admin_bench_field_hours_start">Working Hours Start</string>
+    <string name="admin_bench_field_hours_end">Working Hours End</string>
+    <string name="admin_bench_field_type">Type</string>
+    <string name="admin_bench_field_vaccines">Available Vaccines (comma-separated)</string>
+    <string name="admin_bench_created_success">Health center added successfully</string>
+    <string name="admin_bench_deleted_success">Health center deleted successfully</string>
+    <string name="admin_tab_benches">Centers</string>
+
+    <string name="success_request_sent">Join request sent successfully!</string>
+    <string name="success_request_cancelled">Request cancelled.</string>
+    <string name="success_request_accepted">Request accepted! Baby is now connected.</string>
+    <string name="success_request_rejected">Request rejected.</string>
+    <string name="success_issue_resolved">Issue marked as resolved.</string>
+    <string name="success_health_issue_added">Health issue added.</string>
+    <string name="success_appointment_added">Appointment added.</string>
+    <string name="success_appointment_cancelled">Appointment cancelled.</string>
+    <string name="error_reject_reason_required">Please enter a reason for rejection.</string>
+
 </resources>

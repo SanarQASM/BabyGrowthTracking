@@ -1,3 +1,6 @@
+// File: composeApp/src/commonMain/kotlin/org/example/project/babygrowthtrackingapplication/com/babygrowth/presentation/screens/home/model/HealthRecordViewModel.kt
+// UPDATED — replaces the existing file, adds bench request flow
+
 package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model
 
 import androidx.compose.runtime.*
@@ -5,9 +8,12 @@ import kotlinx.coroutines.*
 import org.example.project.babygrowthtrackingapplication.data.network.ApiResult
 import org.example.project.babygrowthtrackingapplication.data.network.ApiService
 import org.example.project.babygrowthtrackingapplication.data.network.BabyResponse
+import org.example.project.babygrowthtrackingapplication.data.network.BenchRequestNet
+import org.example.project.babygrowthtrackingapplication.data.network.BenchRequestUi
+import org.example.project.babygrowthtrackingapplication.data.network.toUi
 
 // ─────────────────────────────────────────────────────────────────────────────
-// UI State
+// UI State  (extends previous with bench-request fields)
 // ─────────────────────────────────────────────────────────────────────────────
 
 data class HealthRecordUiState(
@@ -19,15 +25,24 @@ data class HealthRecordUiState(
     val assignment        : BabyBenchAssignmentUi? = null,
     val assignmentLoading : Boolean               = false,
 
+    // ── BENCH REQUEST FLOW ───────────────────────────────────────────────────
+    /** Active pending or accepted request for the selected baby. */
+    val activeBenchRequest     : BenchRequestUi? = null,
+    val benchRequestLoading    : Boolean         = false,
+    /** True while sendRequest / cancel is in flight. */
+    val benchRequestSubmitting : Boolean         = false,
+    /** After team rejects: user sees the reason and can pick another bench. */
+    val showRejectionReason    : Boolean         = false,
+
     // Map screen
     val allBenches    : List<VaccinationBenchUi> = emptyList(),
     val benchesLoading: Boolean                  = false,
     val mapFilter     : BenchMapFilter           = BenchMapFilter.ALL,
     val selectedBench : VaccinationBenchUi?      = null,
 
-    // Parent location (city-level from profile — no lat/lng)
+    // Parent location
     val parentGovernorate: String = "",
-    val mapCenterLat     : Double = 36.19, // Nineveh default
+    val mapCenterLat     : Double = 36.19,
     val mapCenterLng     : Double = 43.99,
 
     // Vaccination schedule
@@ -52,23 +67,10 @@ data class HealthRecordUiState(
     val error         : String? = null,
     val successMessage: String? = null,
 
-    // ── RESCHEDULE ────────────────────────────────────────────────────────────
-    /**
-     * Step 1 — user taps "Reschedule" → show reason-picker dialog.
-     */
-    val showRescheduleReasonPicker: Boolean = false,
-
-    /**
-     * Step 2 — after the user picks a reason and confirms, we call the API.
-     * While the call is in flight this is true.
-     */
-    val rescheduleInProgress: Boolean = false,
-
-    /**
-     * Step 3 — API responded; show per-vaccine result summary dialog.
-     * Null when no result is available yet.
-     */
-    val rescheduleResult: RescheduleResultUi? = null,
+    // ── RESCHEDULE ─────────────────────────────────────────────────────────
+    val showRescheduleReasonPicker: Boolean          = false,
+    val rescheduleInProgress      : Boolean          = false,
+    val rescheduleResult          : RescheduleResultUi? = null,
 
     // Add dialogs
     val showAddHealthIssue: Boolean = false,
@@ -79,6 +81,18 @@ data class HealthRecordUiState(
     val selectedHealthIssue : HealthIssueUi?         = null,
     val selectedAppointment : AppointmentUi?         = null
 )
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper: does this state mean the baby is properly connected to a bench?
+// ─────────────────────────────────────────────────────────────────────────────
+val HealthRecordUiState.isConnectedToBench: Boolean
+    get() = assignment != null
+
+val HealthRecordUiState.hasPendingRequest: Boolean
+    get() = activeBenchRequest?.status == org.example.project.babygrowthtrackingapplication.data.network.BenchRequestStatusUi.PENDING
+
+val HealthRecordUiState.hasRejectedRequest: Boolean
+    get() = activeBenchRequest?.status == org.example.project.babygrowthtrackingapplication.data.network.BenchRequestStatusUi.REJECTED
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ViewModel
@@ -93,10 +107,9 @@ class HealthRecordViewModel(
     var uiState by mutableStateOf(HealthRecordUiState())
         private set
 
-    // Cancel-able schedule-load job — prevents stale responses overwriting fresh ones
     private var schedulesJob: Job? = null
 
-    // ── Initialise with babies list ──────────────────────────────────────────
+    // ── Initialise ────────────────────────────────────────────────────────────
 
     fun init(babies: List<BabyResponse>) {
         uiState = uiState.copy(babies = babies)
@@ -108,14 +121,15 @@ class HealthRecordViewModel(
     }
 
     fun selectBaby(babyId: String) {
-        uiState = uiState.copy(selectedBabyId = babyId, assignment = null)
+        uiState = uiState.copy(selectedBabyId = babyId, assignment = null, activeBenchRequest = null)
         loadAssignment(babyId)
+        loadActiveBenchRequest(babyId)
         loadSchedules(babyId)
         loadHealthIssues(babyId)
         loadAppointments(babyId)
     }
 
-    // ── Bench / Map ──────────────────────────────────────────────────────────
+    // ── Bench / Map ───────────────────────────────────────────────────────────
 
     fun loadBenches() {
         scope.launch {
@@ -133,36 +147,90 @@ class HealthRecordViewModel(
         }
     }
 
-    fun setMapFilter(filter: BenchMapFilter)         { uiState = uiState.copy(mapFilter = filter) }
-    fun selectBenchOnMap(bench: VaccinationBenchUi)  { uiState = uiState.copy(selectedBench = bench) }
-    fun clearSelectedBench()                          { uiState = uiState.copy(selectedBench = null) }
+    fun setMapFilter(filter: BenchMapFilter) { uiState = uiState.copy(mapFilter = filter) }
+    fun selectBenchOnMap(bench: VaccinationBenchUi) { uiState = uiState.copy(selectedBench = bench) }
+    fun clearSelectedBench() { uiState = uiState.copy(selectedBench = null) }
 
-    fun assignBench(babyId: String, benchId: String) {
+    // ── BENCH REQUEST FLOW ────────────────────────────────────────────────────
+
+    private fun loadActiveBenchRequest(babyId: String) {
         scope.launch {
-            uiState = uiState.copy(assignmentLoading = true)
+            uiState = uiState.copy(benchRequestLoading = true)
             try {
-                val result = apiService.assignBench(babyId, benchId)
-                when (result) {
-                    is ApiResult.Success -> {
-                        uiState = uiState.copy(
-                            assignment        = result.data,
-                            assignmentLoading = false,
-                            successMessage    = "Health center assigned!"
-                        )
-                        loadSchedules(babyId)
-                    }
-                    is ApiResult.Error -> uiState = uiState.copy(
-                        error = result.message, assignmentLoading = false
+                val result = apiService.getActiveBenchRequest(babyId)
+                uiState = when (result) {
+                    is ApiResult.Success -> uiState.copy(
+                        activeBenchRequest  = result.data?.toUi(),
+                        benchRequestLoading = false
                     )
-                    else -> uiState = uiState.copy(assignmentLoading = false)
+                    else -> uiState.copy(activeBenchRequest = null, benchRequestLoading = false)
                 }
             } catch (e: Exception) {
-                uiState = uiState.copy(assignmentLoading = false, error = e.message)
+                uiState = uiState.copy(benchRequestLoading = false)
             }
         }
     }
 
-    // ── Assignment ───────────────────────────────────────────────────────────
+    /**
+     * Parent taps "Send Request" for a bench on the map.
+     * Creates a PENDING request; UI shows a waiting screen until team accepts/rejects.
+     */
+    fun sendBenchRequest(babyId: String, benchId: String, notes: String? = null) {
+        scope.launch {
+            uiState = uiState.copy(benchRequestSubmitting = true)
+            try {
+                val result = apiService.sendBenchRequest(babyId, benchId, notes)
+                when (result) {
+                    is ApiResult.Success -> {
+                        uiState = uiState.copy(
+                            activeBenchRequest  = result.data.toUi(),
+                            benchRequestSubmitting = false,
+                            successMessage      = "request_sent"  // localised in UI
+                        )
+                    }
+                    is ApiResult.Error -> uiState = uiState.copy(
+                        benchRequestSubmitting = false,
+                        error = result.message
+                    )
+                    else -> uiState = uiState.copy(benchRequestSubmitting = false)
+                }
+            } catch (e: Exception) {
+                uiState = uiState.copy(benchRequestSubmitting = false, error = e.message)
+            }
+        }
+    }
+
+    /** Parent cancels a pending request (before team has reviewed it). */
+    fun cancelBenchRequest(requestId: String) {
+        scope.launch {
+            uiState = uiState.copy(benchRequestSubmitting = true)
+            try {
+                val result = apiService.cancelBenchRequest(requestId)
+                when (result) {
+                    is ApiResult.Success -> {
+                        uiState = uiState.copy(
+                            activeBenchRequest     = null,
+                            benchRequestSubmitting = false,
+                            successMessage         = "request_cancelled"
+                        )
+                    }
+                    is ApiResult.Error -> uiState = uiState.copy(
+                        benchRequestSubmitting = false,
+                        error = result.message
+                    )
+                    else -> uiState = uiState.copy(benchRequestSubmitting = false)
+                }
+            } catch (e: Exception) {
+                uiState = uiState.copy(benchRequestSubmitting = false, error = e.message)
+            }
+        }
+    }
+
+    fun dismissRejectionReason() {
+        uiState = uiState.copy(showRejectionReason = false, activeBenchRequest = null)
+    }
+
+    // ── Assignment ────────────────────────────────────────────────────────────
 
     private fun loadAssignment(babyId: String) {
         scope.launch {
@@ -182,7 +250,7 @@ class HealthRecordViewModel(
         }
     }
 
-    // ── Vaccination Schedules ────────────────────────────────────────────────
+    // ── Vaccination Schedules ─────────────────────────────────────────────────
 
     fun loadSchedules(babyId: String) {
         schedulesJob?.cancel()
@@ -215,29 +283,12 @@ class HealthRecordViewModel(
 
     // ── RESCHEDULE FLOW ───────────────────────────────────────────────────────
 
-    /**
-     * Step 1: user taps "Reschedule" banner or button.
-     * Opens the reason-picker dialog.
-     */
-    fun triggerReschedule() {
-        uiState = uiState.copy(showRescheduleReasonPicker = true)
-    }
+    fun triggerReschedule() { uiState = uiState.copy(showRescheduleReasonPicker = true) }
+    fun dismissReschedule()  { uiState = uiState.copy(showRescheduleReasonPicker = false) }
 
-    /** Dismiss the reason-picker without doing anything. */
-    fun dismissReschedule() {
-        uiState = uiState.copy(showRescheduleReasonPicker = false)
-    }
-
-    /**
-     * Step 2: user chose a reason and tapped "Reschedule".
-     * Calls the new `/baby/{babyId}/reschedule` endpoint.
-     */
     fun confirmReschedule(reason: RescheduleReason, notes: String? = null) {
         val babyId = uiState.selectedBabyId ?: return
-        uiState = uiState.copy(
-            showRescheduleReasonPicker = false,
-            rescheduleInProgress       = true
-        )
+        uiState = uiState.copy(showRescheduleReasonPicker = false, rescheduleInProgress = true)
         scope.launch {
             val result = apiService.rescheduleAllVaccinations(
                 babyId            = babyId,
@@ -247,31 +298,23 @@ class HealthRecordViewModel(
             )
             when (result) {
                 is ApiResult.Success -> {
-                    val resultUi = result.data
                     uiState = uiState.copy(
                         rescheduleInProgress = false,
-                        rescheduleResult     = resultUi,
-                        // Reload the schedule so the list reflects the new dates
+                        rescheduleResult     = result.data
                     )
                     loadSchedules(babyId)
                 }
                 is ApiResult.Error -> {
-                    uiState = uiState.copy(
-                        rescheduleInProgress = false,
-                        error                = result.message
-                    )
+                    uiState = uiState.copy(rescheduleInProgress = false, error = result.message)
                 }
                 else -> uiState = uiState.copy(rescheduleInProgress = false)
             }
         }
     }
 
-    /** Step 3: user dismisses the result summary dialog. */
-    fun dismissRescheduleResult() {
-        uiState = uiState.copy(rescheduleResult = null)
-    }
+    fun dismissRescheduleResult() { uiState = uiState.copy(rescheduleResult = null) }
 
-    // ── Health Issues ────────────────────────────────────────────────────────
+    // ── Health Issues ─────────────────────────────────────────────────────────
 
     fun loadHealthIssues(babyId: String) {
         scope.launch {
@@ -279,14 +322,8 @@ class HealthRecordViewModel(
             try {
                 val result = apiService.getHealthIssuesForBaby(babyId)
                 uiState = when (result) {
-                    is ApiResult.Success -> uiState.copy(
-                        healthIssues        = result.data,
-                        healthIssuesLoading = false
-                    )
-                    is ApiResult.Error   -> uiState.copy(
-                        error               = result.message,
-                        healthIssuesLoading = false
-                    )
+                    is ApiResult.Success -> uiState.copy(healthIssues = result.data, healthIssuesLoading = false)
+                    is ApiResult.Error   -> uiState.copy(error = result.message, healthIssuesLoading = false)
                     else -> uiState.copy(healthIssuesLoading = false)
                 }
             } catch (e: Exception) {
@@ -296,7 +333,7 @@ class HealthRecordViewModel(
     }
 
     fun setHealthIssueFilter(filter: HealthIssueFilter) { uiState = uiState.copy(healthIssueFilter = filter) }
-    fun selectHealthIssue(issue: HealthIssueUi)         { uiState = uiState.copy(selectedHealthIssue = issue) }
+    fun selectHealthIssue(issue: HealthIssueUi)          { uiState = uiState.copy(selectedHealthIssue = issue) }
 
     fun resolveHealthIssue(issueId: String) {
         val babyId = uiState.selectedBabyId ?: return
@@ -305,7 +342,7 @@ class HealthRecordViewModel(
                 val result = apiService.resolveHealthIssue(issueId)
                 if (result is ApiResult.Success) {
                     loadHealthIssues(babyId)
-                    uiState = uiState.copy(successMessage = "Issue marked as resolved.")
+                    uiState = uiState.copy(successMessage = "issue_resolved")
                 } else if (result is ApiResult.Error) {
                     uiState = uiState.copy(error = result.message)
                 }
@@ -318,15 +355,12 @@ class HealthRecordViewModel(
     fun showAddHealthIssue()    { uiState = uiState.copy(showAddHealthIssue = true) }
     fun dismissAddHealthIssue() { uiState = uiState.copy(showAddHealthIssue = false) }
 
-    fun addHealthIssue(
-        babyId     : String, title: String, description: String?,
-        severity   : String?, issueDate: String
-    ) {
+    fun addHealthIssue(babyId: String, title: String, description: String?, severity: String?, issueDate: String) {
         scope.launch {
             try {
                 val result = apiService.createHealthIssue(babyId, title, description, severity, issueDate)
                 if (result is ApiResult.Success) {
-                    uiState = uiState.copy(showAddHealthIssue = false, successMessage = "Health issue added.")
+                    uiState = uiState.copy(showAddHealthIssue = false, successMessage = "health_issue_added")
                     loadHealthIssues(babyId)
                 } else if (result is ApiResult.Error) {
                     uiState = uiState.copy(error = result.message)
@@ -337,7 +371,7 @@ class HealthRecordViewModel(
         }
     }
 
-    // ── Appointments ─────────────────────────────────────────────────────────
+    // ── Appointments ──────────────────────────────────────────────────────────
 
     fun loadAppointments(babyId: String) {
         scope.launch {
@@ -345,14 +379,8 @@ class HealthRecordViewModel(
             try {
                 val result = apiService.getAppointmentsForBaby(babyId)
                 uiState = when (result) {
-                    is ApiResult.Success -> uiState.copy(
-                        appointments        = result.data,
-                        appointmentsLoading = false
-                    )
-                    is ApiResult.Error   -> uiState.copy(
-                        error               = result.message,
-                        appointmentsLoading = false
-                    )
+                    is ApiResult.Success -> uiState.copy(appointments = result.data, appointmentsLoading = false)
+                    is ApiResult.Error   -> uiState.copy(error = result.message, appointmentsLoading = false)
                     else -> uiState.copy(appointmentsLoading = false)
                 }
             } catch (e: Exception) {
@@ -371,7 +399,7 @@ class HealthRecordViewModel(
                 val result = apiService.cancelAppointment(appointmentId)
                 if (result is ApiResult.Success) {
                     loadAppointments(babyId)
-                    uiState = uiState.copy(successMessage = "Appointment cancelled.")
+                    uiState = uiState.copy(successMessage = "appointment_cancelled")
                 } else if (result is ApiResult.Error) {
                     uiState = uiState.copy(error = result.message)
                 }
@@ -384,15 +412,12 @@ class HealthRecordViewModel(
     fun showAddAppointment()    { uiState = uiState.copy(showAddAppointment = true) }
     fun dismissAddAppointment() { uiState = uiState.copy(showAddAppointment = false) }
 
-    fun addAppointment(
-        babyId: String, type: String, date: String, time: String?,
-        doctorName: String?, location: String?, notes: String?
-    ) {
+    fun addAppointment(babyId: String, type: String, date: String, time: String?, doctorName: String?, location: String?, notes: String?) {
         scope.launch {
             try {
                 val result = apiService.createAppointment(babyId, type, date, time, doctorName, location, notes)
                 if (result is ApiResult.Success) {
-                    uiState = uiState.copy(showAddAppointment = false, successMessage = "Appointment added.")
+                    uiState = uiState.copy(showAddAppointment = false, successMessage = "appointment_added")
                     loadAppointments(babyId)
                 } else if (result is ApiResult.Error) {
                     uiState = uiState.copy(error = result.message)
@@ -403,11 +428,11 @@ class HealthRecordViewModel(
         }
     }
 
-    // ── Sub-tab ──────────────────────────────────────────────────────────────
+    // ── Sub-tab ───────────────────────────────────────────────────────────────
 
     fun setSubTab(tab: HealthRecordSubTab) { uiState = uiState.copy(subTab = tab) }
 
-    // ── Map center ───────────────────────────────────────────────────────────
+    // ── Map center ────────────────────────────────────────────────────────────
 
     private fun resolveMapCenter() {
         val governorateMap = mapOf(
@@ -424,10 +449,9 @@ class HealthRecordViewModel(
         uiState = uiState.copy(mapCenterLat = center.first, mapCenterLng = center.second)
     }
 
-    // ── Utilities ────────────────────────────────────────────────────────────
+    // ── Utilities ─────────────────────────────────────────────────────────────
 
     fun clearError()   { uiState = uiState.copy(error = null) }
     fun clearSuccess() { uiState = uiState.copy(successMessage = null) }
-
-    fun onDestroy() { scope.cancel() }
+    fun onDestroy()    { scope.cancel() }
 }
