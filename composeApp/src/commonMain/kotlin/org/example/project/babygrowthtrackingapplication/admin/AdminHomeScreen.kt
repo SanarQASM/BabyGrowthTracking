@@ -44,6 +44,7 @@ private fun adminNavItems(): List<AdminNavItem> = listOf(
     AdminNavItem(AdminTab.BABIES,       { stringResource(Res.string.admin_tab_babies)       }, Icons.Default.ChildCare),
     AdminNavItem(AdminTab.VACCINATIONS, { stringResource(Res.string.admin_tab_vaccinations) }, Icons.Default.Vaccines),
     AdminNavItem(AdminTab.TEAM,         { stringResource(Res.string.admin_tab_team)         }, Icons.Default.MedicalServices),
+    AdminNavItem(AdminTab.BENCHES,      { stringResource(Res.string.admin_tab_benches)      }, Icons.Default.LocalHospital),  // ← NEW
     AdminNavItem(AdminTab.SETTINGS,     { stringResource(Res.string.admin_tab_settings)     }, Icons.Default.Settings),
 )
 
@@ -152,12 +153,12 @@ fun AdminHomeScreen(
                 containerColor = MaterialTheme.colorScheme.background
             ) { padding ->
                 AdminTabContent(
-                    activeTab            = activeTab,
-                    viewModel            = viewModel,
-                    apiService           = apiService,
-                    teamSubScreen        = teamSubScreen,
+                    activeTab             = activeTab,
+                    viewModel             = viewModel,
+                    apiService            = apiService,
+                    teamSubScreen         = teamSubScreen,
                     onTeamSubScreenChange = { teamSubScreen = it },
-                    modifier             = Modifier.padding(padding)
+                    modifier              = Modifier.padding(padding)
                 )
             }
         }
@@ -183,11 +184,6 @@ fun AdminHomeScreen(
                                     contentDescription = item.labelRes()
                                 )
                             },
-                            // FIX: maxLines = 1 + Ellipsis prevents the label from
-                            // wrapping onto a second line when the text is long
-                            // (e.g. "Vaccinations", "Dashboard").
-                            // alwaysShowLabel = false hides the label for unselected
-                            // items, giving each item more horizontal room.
                             label = {
                                 Text(
                                     text     = item.labelRes(),
@@ -196,7 +192,7 @@ fun AdminHomeScreen(
                                     overflow = TextOverflow.Ellipsis,
                                 )
                             },
-                            alwaysShowLabel = false,   // FIX: only show label for selected item
+                            alwaysShowLabel = false,
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor   = customColors.accentGradientStart,
                                 selectedTextColor   = customColors.accentGradientStart,
@@ -210,12 +206,12 @@ fun AdminHomeScreen(
             }
         ) { padding ->
             AdminTabContent(
-                activeTab            = activeTab,
-                viewModel            = viewModel,
-                apiService           = apiService,
-                teamSubScreen        = teamSubScreen,
+                activeTab             = activeTab,
+                viewModel             = viewModel,
+                apiService            = apiService,
+                teamSubScreen         = teamSubScreen,
                 onTeamSubScreenChange = { teamSubScreen = it },
-                modifier             = Modifier.padding(padding)
+                modifier              = Modifier.padding(padding)
             )
         }
     }
@@ -227,12 +223,12 @@ fun AdminHomeScreen(
 
 @Composable
 private fun AdminTabContent(
-    activeTab            : AdminTab,
-    viewModel            : AdminViewModel,
-    apiService           : ApiService,
-    teamSubScreen        : TeamSubScreen,
-    onTeamSubScreenChange: (TeamSubScreen) -> Unit,
-    modifier             : Modifier = Modifier,
+    activeTab             : AdminTab,
+    viewModel             : AdminViewModel,
+    apiService            : ApiService,
+    teamSubScreen         : TeamSubScreen,
+    onTeamSubScreenChange : (TeamSubScreen) -> Unit,
+    modifier              : Modifier = Modifier,
 ) {
     when (activeTab) {
         AdminTab.DASHBOARD    -> AdminDashboardScreen(viewModel = viewModel, modifier = modifier)
@@ -240,6 +236,7 @@ private fun AdminTabContent(
         AdminTab.BABIES       -> AdminBabiesScreen(viewModel = viewModel, modifier = modifier)
         AdminTab.VACCINATIONS -> AdminVaccinationsScreen(viewModel = viewModel, modifier = modifier)
         AdminTab.SETTINGS     -> AdminSettingsScreen(viewModel = viewModel, modifier = modifier)
+        AdminTab.BENCHES      -> AdminBenchesScreen(apiService = apiService, modifier = modifier)
 
         AdminTab.TEAM -> when (teamSubScreen) {
             // ── Team member list ───────────────────────────────────────────

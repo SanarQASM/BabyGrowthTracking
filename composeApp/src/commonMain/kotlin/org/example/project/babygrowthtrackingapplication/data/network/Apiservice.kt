@@ -12,6 +12,7 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import org.example.project.babygrowthtrackingapplication.admin.CreateBenchFormRequest
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.*
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -32,9 +33,9 @@ class ApiService(
     private val getToken: () -> String? = { null }
 ) {
     companion object {
-                private const val BASE_URL = "http://10.0.2.2:8080/api"
-        //        private const val BASE_URL = "http://localhost:8080/api"
-//        internal const val BASE_URL = "http://172.20.10.7:8080/api"
+//        private const val BASE_URL = "http://10.0.2.2:8080/api"
+//      private const val BASE_URL = "http://localhost:8080/api"
+      internal const val BASE_URL = "http://172.20.10.7:8080/api"
 
         object Endpoints {
 
@@ -47,28 +48,26 @@ class ApiService(
             const val AUTH_LOGIN                 = "/v1/auth/login"
             const val AUTH_GOOGLE                = "/v1/auth/google"
             const val AUTH_FACEBOOK              = "/v1/auth/facebook"
-            // Account verification (signup flow)
             const val AUTH_SEND_VERIFY_CODE      = "/v1/auth/send-verification"
             const val AUTH_VERIFY_ACCOUNT        = "/v1/auth/verify-account"
-            // Forgot password flow (3 steps)
             const val AUTH_FORGOT_PASSWORD       = "/v1/auth/forgot-password"
             const val AUTH_VERIFY_RESET          = "/v1/auth/verify-reset-code"
             const val AUTH_RESET_PASSWORD        = "/v1/auth/reset-password"
 
             // ── Users ─────────────────────────────────────────────────────────
             const val USERS = "/v1/users"
-            fun user(id: String)            = "$USERS/$id"
-            fun userByRole(role: String)    = "$USERS/by-role/$role"
-            fun deactivateUser(id: String)  = "$USERS/$id/deactivate"
-            fun activateUser(id: String)    = "$USERS/$id/activate"
+            fun user(id: String)           = "$USERS/$id"
+            fun userByRole(role: String)   = "$USERS/by-role/$role"
+            fun deactivateUser(id: String) = "$USERS/$id/deactivate"
+            fun activateUser(id: String)   = "$USERS/$id/activate"
 
             // ── Babies ────────────────────────────────────────────────────────
-            const val BABIES = "/v1/babies"
+            const val BABIES     = "/v1/babies"
+            const val BABIES_ALL = "/v1/babies/all"
             fun baby(id: String)                 = "$BABIES/$id"
             fun babyStatus(id: String)           = "$BABIES/$id/status"
             fun babiesByParent(parentId: String) = "$BABIES/parent/$parentId"
             fun babiesByBench(benchId: String)   = "$BABIES/bench/$benchId"
-            const val BABIES_ALL                 = "/v1/babies/all"
 
             // ── Growth Records ────────────────────────────────────────────────
             const val GROWTH_RECORDS = "/v1/growth-records"
@@ -87,28 +86,43 @@ class ApiService(
 
             // ── Vaccination Schedules ─────────────────────────────────────────
             const val VACCINATION_SCHEDULES = "/v1/vaccination-schedules"
-            fun babyVaccinationSchedule(babyId: String)    = "$VACCINATION_SCHEDULES/baby/$babyId"
-            fun vaccinationSchedule(id: String)            = "$VACCINATION_SCHEDULES/$id"
-            fun updateScheduleStatus(id: String)           = "$VACCINATION_SCHEDULES/$id/status"
+            fun babyVaccinationSchedule(babyId: String) = "$VACCINATION_SCHEDULES/baby/$babyId"
+            fun vaccinationSchedule(id: String)         = "$VACCINATION_SCHEDULES/$id"
+            fun updateScheduleStatus(id: String)        = "$VACCINATION_SCHEDULES/$id/status"
 
             // ── Benches ───────────────────────────────────────────────────────
-            const val BENCHES            = "/v1/benches"
-            const val BENCH_ASSIGNMENTS  = "/v1/bench-assignments"
-            fun bench(id: String)                = "$BENCHES/$id"
-            fun activeAssignment(babyId: String) = "$BENCH_ASSIGNMENTS/baby/$babyId/active"
-            fun changeBench(babyId: String)      = "$BENCH_ASSIGNMENTS/baby/$babyId/change-bench"
-            fun assignmentsByBench(benchId: String) = "$BENCH_ASSIGNMENTS/bench/$benchId"
+            const val BENCHES           = "/v1/benches"
+            const val BENCH_ASSIGNMENTS = "/v1/bench-assignments"
+            fun bench(id: String)                      = "$BENCHES/$id"
+            fun deactivateBench(id: String)            = "$BENCHES/$id/deactivate"
+            fun activeAssignment(babyId: String)       = "$BENCH_ASSIGNMENTS/baby/$babyId/active"
+            fun changeBench(babyId: String)            = "$BENCH_ASSIGNMENTS/baby/$babyId/change-bench"
+            fun assignmentsByBench(benchId: String)    = "$BENCH_ASSIGNMENTS/bench/$benchId"
+
+            // ── Bench Requests ────────────────────────────────────────────────
+            // POST   /v1/bench-requests                      → send request (parent)
+            // GET    /v1/bench-requests/baby/{babyId}/active → active request for baby
+            // GET    /v1/bench-requests/bench/{benchId}/pending → pending list (team)
+            // GET    /v1/bench-requests/bench/{benchId}        → all requests (team)
+            // PATCH  /v1/bench-requests/{requestId}/review    → accept / reject (team)
+            // PATCH  /v1/bench-requests/{requestId}/cancel    → cancel (parent)
+            const val BENCH_REQUESTS = "/v1/bench-requests"
+            fun benchRequestActiveBaby(babyId: String)  = "$BENCH_REQUESTS/baby/$babyId/active"
+            fun benchRequestsPendingForBench(benchId: String) = "$BENCH_REQUESTS/bench/$benchId/pending"
+            fun benchRequestsAllForBench(benchId: String)     = "$BENCH_REQUESTS/bench/$benchId"
+            fun benchRequestReview(requestId: String)   = "$BENCH_REQUESTS/$requestId/review"
+            fun benchRequestCancel(requestId: String)   = "$BENCH_REQUESTS/$requestId/cancel"
 
             // ── Family History ────────────────────────────────────────────────
             const val FAMILY_HISTORY = "/v1/family-history"
-            fun familyHistoryByBaby(babyId: String)  = "$FAMILY_HISTORY/baby/$babyId"
+            fun familyHistoryByBaby(babyId: String)   = "$FAMILY_HISTORY/baby/$babyId"
             fun familyHistoryById(historyId: String)  = "$FAMILY_HISTORY/$historyId"
 
             // ── Child Illnesses ───────────────────────────────────────────────
             const val CHILD_ILLNESSES = "/v1/child-illnesses"
-            fun childIllnessesByBaby(babyId: String)      = "$CHILD_ILLNESSES/baby/$babyId"
-            fun childIllnessById(illnessId: String)       = "$CHILD_ILLNESSES/$illnessId"
-            fun childIllnessDeactivate(illnessId: String) = "$CHILD_ILLNESSES/$illnessId/deactivate"
+            fun childIllnessesByBaby(babyId: String)       = "$CHILD_ILLNESSES/baby/$babyId"
+            fun childIllnessById(illnessId: String)        = "$CHILD_ILLNESSES/$illnessId"
+            fun childIllnessDeactivate(illnessId: String)  = "$CHILD_ILLNESSES/$illnessId/deactivate"
 
             // ── Pre-Check Investigations ──────────────────────────────────────
             const val PRE_CHECK_INVESTIGATIONS = "/v1/pre-check-investigations"
@@ -146,8 +160,8 @@ class ApiService(
 
             // ── Notifications ─────────────────────────────────────────────────
             const val NOTIFICATIONS = "/v1/notifications"
-            fun notificationsByUser(userId: String) = "$NOTIFICATIONS/user/$userId"
-            fun markNotificationRead(id: String)    = "$NOTIFICATIONS/$id/read"
+            fun notificationsByUser(userId: String)      = "$NOTIFICATIONS/user/$userId"
+            fun markNotificationRead(id: String)         = "$NOTIFICATIONS/$id/read"
             fun markAllNotificationsRead(userId: String) = "$NOTIFICATIONS/user/$userId/read-all"
         }
     }
@@ -205,7 +219,7 @@ class ApiService(
     suspend fun verifyAccount(request: VerifyAccountRequest): ApiResult<VerificationResponse> =
         makeRequest { client.post("$BASE_URL${Endpoints.AUTH_VERIFY_ACCOUNT}") { setBody(request) } }
 
-    // ── Forgot Password (3 steps) ─────────────────────────────────────────────
+    // ── Forgot Password ───────────────────────────────────────────────────────
 
     suspend fun forgotPassword(request: ForgotPasswordRequest): ApiResult<VerificationResponse> =
         makeRequest { client.post("$BASE_URL${Endpoints.AUTH_FORGOT_PASSWORD}") { setBody(request) } }
@@ -243,9 +257,6 @@ class ApiService(
 
     suspend fun activateUser(userId: String): ApiResult<UserResponse> =
         makeRequest { client.patch("$BASE_URL${Endpoints.activateUser(userId)}") }
-
-    // ── Admin: Create Team Member ─────────────────────────────────────────────
-    // POST /v1/users  with role = VACCINATION_TEAM
 
     suspend fun createTeamMember(
         fullName : String,
@@ -353,9 +364,9 @@ class ApiService(
         makeRequest { client.get("$BASE_URL${Endpoints.upcomingVaccinations(babyId)}") }
 
     suspend fun markVaccinationDone(
-        vaccinationId  : String,
+        vaccinationId   : String,
         administeredDate: String,
-        notes          : String? = null
+        notes           : String? = null
     ): ApiResult<VaccinationResponse> =
         makeRequest {
             client.patch("$BASE_URL${Endpoints.markVaccinationDone(vaccinationId)}") {
@@ -417,6 +428,40 @@ class ApiService(
             resp.body<ApiSingleResponse<VaccinationBenchNet>>().data!!.toUi()
         }
 
+    /**
+     * Admin: create a new vaccination bench.
+     * POST /v1/benches
+     */
+    suspend fun createBench(request: CreateBenchFormRequest): ApiResult<VaccinationBenchUi> =
+        safeCall {
+            val body = mapOf(
+                "nameEn"           to request.nameEn,
+                "nameAr"           to request.nameAr,
+                "governorate"      to request.governorate,
+                "district"         to request.district,
+                "addressEn"        to request.addressEn,
+                "latitude"         to request.latitude,
+                "longitude"        to request.longitude,
+                "phone"            to request.phone,
+                "workingDays"      to request.workingDays,
+                "vaccinationDays"  to request.vaccinationDays,
+                "workingHoursStart" to request.workingHoursStart,
+                "workingHoursEnd"   to request.workingHoursEnd,
+                "vaccinesAvailable" to request.vaccinesAvailable
+            )
+            val resp = client.post("$BASE_URL${Endpoints.BENCHES}") { setBody(body) }
+            resp.body<ApiSingleResponse<VaccinationBenchNet>>().data!!.toUi()
+        }
+
+    /**
+     * Admin: deactivate (soft-delete) a bench.
+     * PATCH /v1/benches/{id}/deactivate
+     */
+    suspend fun deactivateBench(benchId: String): ApiResult<Unit> =
+        safeCall {
+            client.patch("$BASE_URL${Endpoints.deactivateBench(benchId)}")
+        }
+
     suspend fun assignBench(babyId: String, benchId: String): ApiResult<BabyBenchAssignmentUi> =
         safeCall {
             val resp = client.post("$BASE_URL${Endpoints.BENCH_ASSIGNMENTS}") {
@@ -443,6 +488,94 @@ class ApiService(
         safeCall {
             val resp = client.get("$BASE_URL${Endpoints.assignmentsByBench(benchId)}")
             resp.body<ApiListResponse<BabyBenchAssignmentNet>>().data.map { it.toUi() }
+        }
+
+    // ── Bench Requests ────────────────────────────────────────────────────────
+
+    /**
+     * Parent sends a join request for their baby to a specific bench.
+     * POST /v1/bench-requests
+     * Body: { babyId, benchId, notes? }
+     */
+    suspend fun sendBenchRequest(
+        babyId  : String,
+        benchId : String,
+        notes   : String? = null
+    ): ApiResult<BenchRequestNet> =
+        safeCall {
+            val body = buildMap<String, String?> {
+                put("babyId",  babyId)
+                put("benchId", benchId)
+                notes?.let { put("notes", it) }
+            }
+            val resp = client.post("$BASE_URL${Endpoints.BENCH_REQUESTS}") { setBody(body) }
+            resp.body<ApiSingleResponse<BenchRequestNet>>().data!!
+        }
+
+    /**
+     * Get the active (PENDING or ACCEPTED) bench request for a baby.
+     * GET /v1/bench-requests/baby/{babyId}/active
+     * Returns null when no active request exists (404 is swallowed gracefully).
+     */
+    suspend fun getActiveBenchRequest(babyId: String): ApiResult<BenchRequestNet?> =
+        safeCall {
+            val resp = client.get("$BASE_URL${Endpoints.benchRequestActiveBaby(babyId)}")
+            try {
+                resp.body<ApiSingleResponse<BenchRequestNet>>().data
+            } catch (e: Exception) {
+                null
+            }
+        }
+
+    /**
+     * Get all PENDING requests for a bench (used by the team's Requests tab).
+     * GET /v1/bench-requests/bench/{benchId}/pending
+     */
+    suspend fun getPendingRequestsForBench(benchId: String): ApiResult<List<BenchRequestNet>> =
+        safeCall {
+            val resp = client.get("$BASE_URL${Endpoints.benchRequestsPendingForBench(benchId)}")
+            resp.body<ApiListResponse<BenchRequestNet>>().data
+        }
+
+    /**
+     * Get all requests (pending + history) for a bench.
+     * GET /v1/bench-requests/bench/{benchId}
+     */
+    suspend fun getAllRequestsForBench(benchId: String): ApiResult<List<BenchRequestNet>> =
+        safeCall {
+            val resp = client.get("$BASE_URL${Endpoints.benchRequestsAllForBench(benchId)}")
+            resp.body<ApiListResponse<BenchRequestNet>>().data
+        }
+
+    /**
+     * Team member accepts or rejects a request.
+     * PATCH /v1/bench-requests/{requestId}/review
+     * Body: { action: "accept" | "reject", rejectReason? }
+     */
+    suspend fun reviewBenchRequest(
+        requestId    : String,
+        action       : String,          // "accept" or "reject"
+        rejectReason : String? = null
+    ): ApiResult<BenchRequestNet> =
+        safeCall {
+            val body = buildMap<String, String?> {
+                put("action", action)
+                rejectReason?.let { put("rejectReason", it) }
+            }
+            val resp = client.patch("$BASE_URL${Endpoints.benchRequestReview(requestId)}") {
+                setBody(body)
+            }
+            resp.body<ApiSingleResponse<BenchRequestNet>>().data!!
+        }
+
+    /**
+     * Parent cancels a pending request before it is reviewed.
+     * PATCH /v1/bench-requests/{requestId}/cancel
+     */
+    suspend fun cancelBenchRequest(requestId: String): ApiResult<BenchRequestNet> =
+        safeCall {
+            val resp = client.patch("$BASE_URL${Endpoints.benchRequestCancel(requestId)}")
+            resp.body<ApiSingleResponse<BenchRequestNet>>().data!!
         }
 
     // ── Health Issues ─────────────────────────────────────────────────────────
@@ -491,14 +624,10 @@ class ApiService(
         }
 
     suspend fun resolveHealthIssue(issueId: String): ApiResult<Unit> =
-        safeCall {
-            client.patch("$BASE_URL${Endpoints.resolveHealthIssue(issueId)}")
-        }
+        safeCall { client.patch("$BASE_URL${Endpoints.resolveHealthIssue(issueId)}") }
 
     suspend fun deleteHealthIssue(issueId: String): ApiResult<Unit> =
-        safeCall {
-            client.delete("$BASE_URL${Endpoints.healthIssueById(issueId)}")
-        }
+        safeCall { client.delete("$BASE_URL${Endpoints.healthIssueById(issueId)}") }
 
     // ── Appointments ──────────────────────────────────────────────────────────
 
@@ -554,9 +683,7 @@ class ApiService(
         }
 
     suspend fun cancelAppointment(appointmentId: String): ApiResult<Unit> =
-        safeCall {
-            client.patch("$BASE_URL${Endpoints.cancelAppointment(appointmentId)}")
-        }
+        safeCall { client.patch("$BASE_URL${Endpoints.cancelAppointment(appointmentId)}") }
 
     suspend fun confirmAppointment(appointmentId: String): ApiResult<AppointmentUi> =
         safeCall {
@@ -565,9 +692,7 @@ class ApiService(
         }
 
     suspend fun deleteAppointment(appointmentId: String): ApiResult<Unit> =
-        safeCall {
-            client.delete("$BASE_URL${Endpoints.appointmentById(appointmentId)}")
-        }
+        safeCall { client.delete("$BASE_URL${Endpoints.appointmentById(appointmentId)}") }
 
     // ── Health check ──────────────────────────────────────────────────────────
 
@@ -596,9 +721,7 @@ class ApiService(
         }
 
     suspend fun deleteFamilyHistory(historyId: String): ApiResult<Unit> =
-        safeCall {
-            client.delete("$BASE_URL${Endpoints.familyHistoryById(historyId)}")
-        }
+        safeCall { client.delete("$BASE_URL${Endpoints.familyHistoryById(historyId)}") }
 
     // ── Child Illnesses ───────────────────────────────────────────────────────
 
@@ -627,9 +750,7 @@ class ApiService(
         }
 
     suspend fun deleteChildIllness(illnessId: String): ApiResult<Unit> =
-        safeCall {
-            client.delete("$BASE_URL${Endpoints.childIllnessById(illnessId)}")
-        }
+        safeCall { client.delete("$BASE_URL${Endpoints.childIllnessById(illnessId)}") }
 
     // ── Pre-Check Investigations ──────────────────────────────────────────────
 
@@ -656,9 +777,7 @@ class ApiService(
         }
 
     suspend fun deletePreCheckInvestigation(id: String): ApiResult<Unit> =
-        safeCall {
-            client.delete("$BASE_URL${Endpoints.preCheckInvestigationById(id)}")
-        }
+        safeCall { client.delete("$BASE_URL${Endpoints.preCheckInvestigationById(id)}") }
 
     // ── Child Development ─────────────────────────────────────────────────────
 
@@ -728,9 +847,7 @@ class ApiService(
         }
 
     suspend fun deleteMemory(memoryId: String): ApiResult<Unit> =
-        safeCall {
-            client.delete("$BASE_URL${Endpoints.memory(memoryId)}")
-        }
+        safeCall { client.delete("$BASE_URL${Endpoints.memory(memoryId)}") }
 
     // ── Notifications ─────────────────────────────────────────────────────────
 
@@ -844,10 +961,10 @@ data class ApiSingleResponse<T>(
 )
 
 @Serializable data class GoogleAuthRequest(
-    val idToken      : String,
-    val email        : String,
-    val displayName  : String,
-    val photoUrl     : String? = null
+    val idToken     : String,
+    val email       : String,
+    val displayName : String,
+    val photoUrl    : String? = null
 )
 
 @Serializable data class FacebookAuthRequest(
@@ -877,10 +994,10 @@ data class ApiSingleResponse<T>(
 
 @Serializable data class AuthApiResponse<T>(
     val success   : Boolean,
-    val message   : String?      = null,
-    val data      : T?           = null,
+    val message   : String?       = null,
+    val data      : T?            = null,
     val errors    : List<String>? = null,
-    val timestamp : String?      = null
+    val timestamp : String?       = null
 )
 
 @Serializable data class BackendApiResponse<T>(
@@ -902,14 +1019,13 @@ data class PageResponse<T>(
     @SerialName("content")       val content       : List<T>,
     @SerialName("totalElements") val totalElements : Long,
     @SerialName("totalPages")    val totalPages    : Int,
-    @SerialName("pageSize")      val pageSize      : Int,      // was: size
-    @SerialName("pageNumber")    val pageNumber    : Int,      // was: number
+    @SerialName("pageSize")      val pageSize      : Int,
+    @SerialName("pageNumber")    val pageNumber    : Int,
     @SerialName("isLast")        val isLast        : Boolean = false
 )
 
 // ── Users ─────────────────────────────────────────────────────────────────────
 
-/** Used by admin to create any user with an explicit role (e.g. VACCINATION_TEAM). */
 @Serializable data class CreateUserRequest(
     val fullName        : String,
     val email           : String,
@@ -988,24 +1104,24 @@ data class PageResponse<T>(
 // ── Growth Records ────────────────────────────────────────────────────────────
 
 @Serializable data class CreateGrowthRecordRequest(
-    val babyId                     : String,
-    val measurementDate            : String,
-    val weight                     : Double? = null,
-    val height                     : Double? = null,
-    val headCircumference          : Double? = null,
-    val weightPercentile           : Int?    = null,
-    val heightPercentile           : Int?    = null,
-    val headCircumferencePercentile: Int?    = null
+    val babyId                      : String,
+    val measurementDate             : String,
+    val weight                      : Double? = null,
+    val height                      : Double? = null,
+    val headCircumference           : Double? = null,
+    val weightPercentile            : Int?    = null,
+    val heightPercentile            : Int?    = null,
+    val headCircumferencePercentile : Int?    = null
 )
 
 @Serializable data class UpdateGrowthRecordRequest(
-    val measurementDate            : String? = null,
-    val weight                     : Double? = null,
-    val height                     : Double? = null,
-    val headCircumference          : Double? = null,
-    val weightPercentile           : Int?    = null,
-    val heightPercentile           : Int?    = null,
-    val headCircumferencePercentile: Int?    = null
+    val measurementDate             : String? = null,
+    val weight                      : Double? = null,
+    val height                      : Double? = null,
+    val headCircumference           : Double? = null,
+    val weightPercentile            : Int?    = null,
+    val heightPercentile            : Int?    = null,
+    val headCircumferencePercentile : Int?    = null
 )
 
 @Serializable
@@ -1075,23 +1191,23 @@ data class GrowthRecordResponse(
 // ── Benches ───────────────────────────────────────────────────────────────────
 
 @Serializable data class VaccinationBenchNet(
-    val benchId             : String,
-    val nameEn              : String,
-    val nameAr              : String,
-    val governorate         : String,
-    val district            : String,
-    val addressEn           : String?       = null,
-    val addressAr           : String?       = null,
-    val latitude            : Double,
-    val longitude           : Double,
-    val phone               : String?       = null,
-    val workingDays         : List<String>  = emptyList(),
-    val workingHoursStart   : String        = "08:00",
-    val workingHoursEnd     : String        = "14:00",
-    val vaccinationDays     : List<String>  = emptyList(),
-    val type                : String        = "",
-    val vaccinesAvailable   : List<String>  = emptyList(),
-    val isActive            : Boolean       = true
+    val benchId           : String,
+    val nameEn            : String,
+    val nameAr            : String,
+    val governorate       : String,
+    val district          : String,
+    val addressEn         : String?      = null,
+    val addressAr         : String?      = null,
+    val latitude          : Double,
+    val longitude         : Double,
+    val phone             : String?      = null,
+    val workingDays       : List<String> = emptyList(),
+    val workingHoursStart : String       = "08:00",
+    val workingHoursEnd   : String       = "14:00",
+    val vaccinationDays   : List<String> = emptyList(),
+    val type              : String       = "",
+    val vaccinesAvailable : List<String> = emptyList(),
+    val isActive          : Boolean      = true
 )
 
 @Serializable data class BabyBenchAssignmentNet(

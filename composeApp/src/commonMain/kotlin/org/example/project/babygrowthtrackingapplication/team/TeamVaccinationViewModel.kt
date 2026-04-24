@@ -112,7 +112,7 @@ data class TeamVaccinationUiState(
 
 @OptIn(ExperimentalTime::class)
 class TeamVaccinationViewModel(
-    private val apiService         : ApiService,
+    val apiService         : ApiService,
     private val preferencesManager : PreferencesManager
 ) {
     var uiState by mutableStateOf(TeamVaccinationUiState())

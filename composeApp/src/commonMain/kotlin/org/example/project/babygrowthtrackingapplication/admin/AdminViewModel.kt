@@ -14,7 +14,9 @@ import org.example.project.babygrowthtrackingapplication.data.network.UserRespon
 // Enums (tab selections)
 // ─────────────────────────────────────────────────────────────────────────────
 
-enum class AdminTab          { DASHBOARD, USERS, BABIES, VACCINATIONS, TEAM, SETTINGS }
+enum class AdminTab {
+    DASHBOARD, USERS, BABIES, VACCINATIONS, TEAM, BENCHES, SETTINGS
+}
 enum class AdminUserFilterTab  { ALL, PARENTS, ADMINS }
 enum class AdminBabyFilterTab  { ALL, ACTIVE, ARCHIVED }
 enum class AdminVaxFilterTab   { ALL, OVERDUE, UPCOMING, COMPLETED }

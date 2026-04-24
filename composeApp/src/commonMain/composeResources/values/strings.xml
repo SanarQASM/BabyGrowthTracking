@@ -1502,7 +1502,7 @@ Last updated: 2025.</string>
     <string name="admin_bench_field_vaccines">Available Vaccines (comma-separated)</string>
     <string name="admin_bench_created_success">Health center added successfully</string>
     <string name="admin_bench_deleted_success">Health center deleted successfully</string>
-    <string name="admin_tab_benches">Centers</string>
+    <string name="admin_tab_benches">Benches</string>
 
     <string name="success_request_sent">Join request sent successfully!</string>
     <string name="success_request_cancelled">Request cancelled.</string>

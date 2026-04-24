@@ -5,7 +5,6 @@
 package org.example.project.babygrowthtrackingapplication.team
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.*
@@ -29,7 +28,7 @@ enum class TeamTab { BABIES, SCHEDULE, REQUESTS }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TeamVaccinationScreenUpdated(
+fun TeamVaccinationScreen(
     viewModel          : TeamVaccinationViewModel,
     onNavigateToWelcome: () -> Unit = {}
 ) {
