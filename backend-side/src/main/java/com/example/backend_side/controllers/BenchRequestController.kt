@@ -34,19 +34,25 @@ data class BenchRequestReviewRequest @JsonCreator constructor(
 )
 
 data class BenchRequestResponse(
-    val requestId    : String,
-    val babyId       : String,
-    val babyName     : String,
-    val benchId      : String,
-    val benchNameEn  : String,
-    val benchNameAr  : String,
-    val governorate  : String,
-    val status       : String,
-    val rejectReason : String? = null,
-    val notes        : String? = null,
-    val reviewedByName: String? = null,
-    val reviewedAt   : String? = null,
-    val createdAt    : String? = null
+    val requestId      : String,
+    val babyId         : String,
+    val babyName       : String,
+    val benchId        : String,
+    val benchNameEn    : String,
+    val benchNameAr    : String,
+    val governorate    : String,
+    val status         : String,
+    val rejectReason   : String?  = null,
+    val notes          : String?  = null,
+    val reviewedByName : String?  = null,
+    val reviewedAt     : String?  = null,
+    val createdAt      : String?  = null,
+
+    // ── NEW: expose which team member manages the target bench ─────────────
+    // The mobile app uses this to display "Your request has been sent to
+    // [teamMemberName] at [benchNameEn]" — makes the flow transparent.
+    val teamMemberId   : String?  = null,
+    val teamMemberName : String?  = null
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -85,6 +91,15 @@ class BenchRequestServiceImpl(
             throw BadRequestException("Baby already has an active bench request. Cancel it first.")
         }
 
+        // Guard: the bench must have a team member assigned — otherwise
+        // no one can review the request.
+        if (bench.teamMember == null) {
+            throw BadRequestException(
+                "This health center has no assigned vaccination team yet. " +
+                        "Please contact the admin to assign a team member first."
+            )
+        }
+
         val benchRequest = BenchRequest(
             requestId   = UUID.randomUUID().toString(),
             baby        = baby,
@@ -109,13 +124,25 @@ class BenchRequestServiceImpl(
     override fun getActiveRequestForBaby(babyId: String): BenchRequestResponse? =
         benchRequestRepository.findActiveRequestForBaby(babyId).map { it.toResponse() }.orElse(null)
 
-    override fun reviewRequest(requestId: String, reviewerId: String, action: String, rejectReason: String?): BenchRequestResponse {
+    override fun reviewRequest(
+        requestId   : String,
+        reviewerId  : String,
+        action      : String,
+        rejectReason: String?
+    ): BenchRequestResponse {
         val benchRequest = benchRequestRepository.findById(requestId)
             .orElseThrow { ResourceNotFoundException("Request not found: $requestId") }
-        val reviewer = userRepository.findById(reviewerId).orElseThrow { ResourceNotFoundException("Reviewer not found") }
+        val reviewer = userRepository.findById(reviewerId)
+            .orElseThrow { ResourceNotFoundException("Reviewer not found") }
 
         if (benchRequest.status != BenchRequestStatus.PENDING) {
             throw BadRequestException("Request is already ${benchRequest.status.name.lowercase()}")
+        }
+
+        // Verify the reviewer is the team member assigned to this bench
+        val assignedTeamMemberId = benchRequest.bench?.teamMember?.userId
+        if (assignedTeamMemberId != null && assignedTeamMemberId != reviewerId) {
+            throw ForbiddenException("Only the team member assigned to this bench can review requests")
         }
 
         when (action.lowercase()) {
@@ -125,10 +152,11 @@ class BenchRequestServiceImpl(
                 benchRequest.reviewedAt = LocalDateTime.now()
 
                 // Deactivate old active assignment
-                assignmentRepository.findByBaby_BabyIdAndIsActiveTrue(benchRequest.baby!!.babyId).ifPresent { old ->
-                    old.isActive = false
-                    assignmentRepository.save(old)
-                }
+                assignmentRepository.findByBaby_BabyIdAndIsActiveTrue(benchRequest.baby!!.babyId)
+                    .ifPresent { old ->
+                        old.isActive = false
+                        assignmentRepository.save(old)
+                    }
 
                 // Create new assignment
                 val assignment = com.example.backend_side.entity.BabyBenchAssignment(
@@ -162,27 +190,31 @@ class BenchRequestServiceImpl(
         val benchRequest = benchRequestRepository.findById(requestId)
             .orElseThrow { ResourceNotFoundException("Request not found: $requestId") }
 
-        if (benchRequest.requestedBy?.userId != userId) throw ForbiddenException("Cannot cancel another user's request")
-        if (benchRequest.status != BenchRequestStatus.PENDING) throw BadRequestException("Only pending requests can be cancelled")
+        if (benchRequest.requestedBy?.userId != userId)
+            throw ForbiddenException("Cannot cancel another user's request")
+        if (benchRequest.status != BenchRequestStatus.PENDING)
+            throw BadRequestException("Only pending requests can be cancelled")
 
         benchRequest.status = BenchRequestStatus.CANCELLED
         return benchRequestRepository.save(benchRequest).toResponse()
     }
 
     private fun BenchRequest.toResponse() = BenchRequestResponse(
-        requestId     = requestId,
-        babyId        = baby?.babyId ?: "",
-        babyName      = baby?.fullName ?: "",
-        benchId       = bench?.benchId ?: "",
-        benchNameEn   = bench?.nameEn ?: "",
-        benchNameAr   = bench?.nameAr ?: "",
-        governorate   = bench?.governorate ?: "",
-        status        = status.name,
-        rejectReason  = rejectReason,
-        notes         = notes,
+        requestId      = requestId,
+        babyId         = baby?.babyId ?: "",
+        babyName       = baby?.fullName ?: "",
+        benchId        = bench?.benchId ?: "",
+        benchNameEn    = bench?.nameEn ?: "",
+        benchNameAr    = bench?.nameAr ?: "",
+        governorate    = bench?.governorate ?: "",
+        status         = status.name,
+        rejectReason   = rejectReason,
+        notes          = notes,
         reviewedByName = reviewedBy?.fullName,
-        reviewedAt    = reviewedAt?.toString(),
-        createdAt     = createdAt?.toString()
+        reviewedAt     = reviewedAt?.toString(),
+        createdAt      = createdAt?.toString(),
+        teamMemberId   = bench?.teamMember?.userId,
+        teamMemberName = bench?.teamMember?.fullName
     )
 }
 
@@ -213,24 +245,35 @@ class BenchRequestController(
 
     @GetMapping("/baby/{babyId}/active")
     @Operation(summary = "Get active (pending/accepted) request for a baby")
-    fun getActiveRequestForBaby(@PathVariable babyId: String): ResponseEntity<ApiResponse<BenchRequestResponse?>> =
+    fun getActiveRequestForBaby(
+        @PathVariable babyId: String
+    ): ResponseEntity<ApiResponse<BenchRequestResponse?>> =
         ResponseEntity.ok(ApiResponse(true, "Active request retrieved", benchRequestService.getActiveRequestForBaby(babyId)))
 
     @GetMapping("/baby/{babyId}/history")
     @Operation(summary = "Get all requests for a baby")
-    fun getRequestsForBaby(@PathVariable babyId: String): ResponseEntity<ApiResponse<List<BenchRequestResponse>>> =
+    fun getRequestsForBaby(
+        @PathVariable babyId: String
+    ): ResponseEntity<ApiResponse<List<BenchRequestResponse>>> =
         ResponseEntity.ok(ApiResponse(true, "Requests retrieved", benchRequestService.getRequestsForBaby(babyId)))
 
     @GetMapping("/bench/{benchId}/pending")
     @Operation(summary = "Get pending requests for a bench — Team view")
-    fun getPendingForBench(@PathVariable benchId: String): ResponseEntity<ApiResponse<List<BenchRequestResponse>>> =
+    fun getPendingForBench(
+        @PathVariable benchId: String
+    ): ResponseEntity<ApiResponse<List<BenchRequestResponse>>> =
         ResponseEntity.ok(ApiResponse(true, "Pending requests retrieved", benchRequestService.getPendingRequestsForBench(benchId)))
 
     @GetMapping("/bench/{benchId}/all")
     @Operation(summary = "Get all requests for a bench — Team view")
-    fun getAllForBench(@PathVariable benchId: String): ResponseEntity<ApiResponse<List<BenchRequestResponse>>> =
+    fun getAllForBench(
+        @PathVariable benchId: String
+    ): ResponseEntity<ApiResponse<List<BenchRequestResponse>>> =
         ResponseEntity.ok(ApiResponse(true, "All requests retrieved", benchRequestService.getRequestsForBench(benchId)))
 
+    // ── Review: accept or reject ───────────────────────────────────────────
+    // Only the team member assigned to the bench can review.
+    // The service validates this internally.
     @PutMapping("/{requestId}/review")
     @Operation(summary = "Team vaccination reviews (accepts or rejects) a request")
     fun reviewRequest(

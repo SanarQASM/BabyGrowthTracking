@@ -13,7 +13,13 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.example.project.babygrowthtrackingapplication.admin.CreateBenchFormRequest
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.*
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.*
 
 // ─────────────────────────────────────────────────────────────────────────────
 // API Result wrapper
@@ -33,9 +39,9 @@ class ApiService(
     private val getToken: () -> String? = { null }
 ) {
     companion object {
-//        private const val BASE_URL = "http://10.0.2.2:8080/api"
+        //        private const val BASE_URL = "http://10.0.2.2:8080/api"
 //      private const val BASE_URL = "http://localhost:8080/api"
-      internal const val BASE_URL = "http://172.20.10.7:8080/api"
+        internal const val BASE_URL = "http://172.20.10.7:8080/api"
 
         object Endpoints {
 
@@ -94,6 +100,7 @@ class ApiService(
             const val BENCHES           = "/v1/benches"
             const val BENCH_ASSIGNMENTS = "/v1/bench-assignments"
             fun bench(id: String)                      = "$BENCHES/$id"
+            fun benchByTeamMember(teamMemberId: String) = "$BENCHES/by-team-member/$teamMemberId"
             fun deactivateBench(id: String)            = "$BENCHES/$id/deactivate"
             fun activeAssignment(babyId: String)       = "$BENCH_ASSIGNMENTS/baby/$babyId/active"
             fun changeBench(babyId: String)            = "$BENCH_ASSIGNMENTS/baby/$babyId/change-bench"
@@ -104,14 +111,14 @@ class ApiService(
             // GET    /v1/bench-requests/baby/{babyId}/active → active request for baby
             // GET    /v1/bench-requests/bench/{benchId}/pending → pending list (team)
             // GET    /v1/bench-requests/bench/{benchId}        → all requests (team)
-            // PATCH  /v1/bench-requests/{requestId}/review    → accept / reject (team)
-            // PATCH  /v1/bench-requests/{requestId}/cancel    → cancel (parent)
+            // PUT    /v1/bench-requests/{requestId}/review    → accept / reject (team)
+            // PUT    /v1/bench-requests/{requestId}/cancel    → cancel (parent)
             const val BENCH_REQUESTS = "/v1/bench-requests"
-            fun benchRequestActiveBaby(babyId: String)  = "$BENCH_REQUESTS/baby/$babyId/active"
-            fun benchRequestsPendingForBench(benchId: String) = "$BENCH_REQUESTS/bench/$benchId/pending"
-            fun benchRequestsAllForBench(benchId: String)     = "$BENCH_REQUESTS/bench/$benchId"
-            fun benchRequestReview(requestId: String)   = "$BENCH_REQUESTS/$requestId/review"
-            fun benchRequestCancel(requestId: String)   = "$BENCH_REQUESTS/$requestId/cancel"
+            fun benchRequestActiveBaby(babyId: String)            = "$BENCH_REQUESTS/baby/$babyId/active"
+            fun benchRequestsPendingForBench(benchId: String)     = "$BENCH_REQUESTS/bench/$benchId/pending"
+            fun benchRequestsAllForBench(benchId: String)         = "$BENCH_REQUESTS/bench/$benchId"
+            fun benchRequestReview(requestId: String)             = "$BENCH_REQUESTS/$requestId/review"
+            fun benchRequestCancel(requestId: String)             = "$BENCH_REQUESTS/$requestId/cancel"
 
             // ── Family History ────────────────────────────────────────────────
             const val FAMILY_HISTORY = "/v1/family-history"
@@ -429,27 +436,57 @@ class ApiService(
         }
 
     /**
+     * GET /v1/benches/by-team-member/{teamMemberId}
+     * Returns the bench the logged-in team member manages, or null if unassigned.
+     */
+    suspend fun getBenchByTeamMember(teamMemberId: String): ApiResult<VaccinationBenchUi?> =
+        safeCall {
+            val resp = client.get("$BASE_URL${Endpoints.benchByTeamMember(teamMemberId)}")
+            try {
+                resp.body<ApiSingleResponse<VaccinationBenchNet>>().data?.toUi()
+            } catch (e: Exception) {
+                null
+            }
+        }
+
+    /**
      * Admin: create a new vaccination bench.
      * POST /v1/benches
      */
     suspend fun createBench(request: CreateBenchFormRequest): ApiResult<VaccinationBenchUi> =
         safeCall {
             val body = mapOf(
-                "nameEn"           to request.nameEn,
-                "nameAr"           to request.nameAr,
-                "governorate"      to request.governorate,
-                "district"         to request.district,
-                "addressEn"        to request.addressEn,
-                "latitude"         to request.latitude,
-                "longitude"        to request.longitude,
-                "phone"            to request.phone,
-                "workingDays"      to request.workingDays,
-                "vaccinationDays"  to request.vaccinationDays,
-                "workingHoursStart" to request.workingHoursStart,
-                "workingHoursEnd"   to request.workingHoursEnd,
-                "vaccinesAvailable" to request.vaccinesAvailable
+                "nameEn"             to request.nameEn,
+                "nameAr"             to request.nameAr,
+                "governorate"        to request.governorate,
+                "district"           to request.district,
+                "addressEn"          to request.addressEn,
+                "latitude"           to request.latitude,
+                "longitude"          to request.longitude,
+                "phone"              to request.phone,
+                "workingDays"        to request.workingDays,
+                "vaccinationDays"    to request.vaccinationDays,
+                "workingHoursStart"  to request.workingHoursStart,
+                "workingHoursEnd"    to request.workingHoursEnd,
+                "vaccinesAvailable"  to request.vaccinesAvailable,
+                "teamMemberId"       to request.teamMemberId
             )
             val resp = client.post("$BASE_URL${Endpoints.BENCHES}") { setBody(body) }
+            resp.body<ApiSingleResponse<VaccinationBenchNet>>().data!!.toUi()
+        }
+
+    /**
+     * Admin: assign a team member as manager of a bench.
+     * PATCH /v1/benches/{benchId}/assign-team-member?teamMemberId=...
+     */
+    suspend fun assignTeamMemberToBench(
+        benchId      : String,
+        teamMemberId : String
+    ): ApiResult<VaccinationBenchUi> =
+        safeCall {
+            val resp = client.patch("$BASE_URL${Endpoints.bench(benchId)}/assign-team-member") {
+                parameter("teamMemberId", teamMemberId)
+            }
             resp.body<ApiSingleResponse<VaccinationBenchNet>>().data!!.toUi()
         }
 
@@ -495,7 +532,6 @@ class ApiService(
     /**
      * Parent sends a join request for their baby to a specific bench.
      * POST /v1/bench-requests
-     * Body: { babyId, benchId, notes? }
      */
     suspend fun sendBenchRequest(
         babyId  : String,
@@ -515,7 +551,6 @@ class ApiService(
     /**
      * Get the active (PENDING or ACCEPTED) bench request for a baby.
      * GET /v1/bench-requests/baby/{babyId}/active
-     * Returns null when no active request exists (404 is swallowed gracefully).
      */
     suspend fun getActiveBenchRequest(babyId: String): ApiResult<BenchRequestNet?> =
         safeCall {
@@ -549,8 +584,7 @@ class ApiService(
 
     /**
      * Team member accepts or rejects a request.
-     * PATCH /v1/bench-requests/{requestId}/review
-     * Body: { action: "accept" | "reject", rejectReason? }
+     * PUT /v1/bench-requests/{requestId}/review
      */
     suspend fun reviewBenchRequest(
         requestId    : String,
@@ -562,7 +596,7 @@ class ApiService(
                 put("action", action)
                 rejectReason?.let { put("rejectReason", it) }
             }
-            val resp = client.patch("$BASE_URL${Endpoints.benchRequestReview(requestId)}") {
+            val resp = client.put("$BASE_URL${Endpoints.benchRequestReview(requestId)}") {
                 setBody(body)
             }
             resp.body<ApiSingleResponse<BenchRequestNet>>().data!!
@@ -570,11 +604,11 @@ class ApiService(
 
     /**
      * Parent cancels a pending request before it is reviewed.
-     * PATCH /v1/bench-requests/{requestId}/cancel
+     * PUT /v1/bench-requests/{requestId}/cancel
      */
     suspend fun cancelBenchRequest(requestId: String): ApiResult<BenchRequestNet> =
         safeCall {
-            val resp = client.patch("$BASE_URL${Endpoints.benchRequestCancel(requestId)}")
+            val resp = client.put("$BASE_URL${Endpoints.benchRequestCancel(requestId)}")
             resp.body<ApiSingleResponse<BenchRequestNet>>().data!!
         }
 
@@ -1188,9 +1222,40 @@ data class GrowthRecordResponse(
     val notes  : String? = null
 )
 
-// ── Benches ───────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Flexible List<String> serializer — handles both JSON arrays and
+// legacy comma-separated strings from the backend without crashing.
+// ─────────────────────────────────────────────────────────────────────────────
 
-@Serializable data class VaccinationBenchNet(
+object FlexibleStringListSerializer : KSerializer<List<String>> {
+    private val listSerializer = ListSerializer(String.serializer())
+    override val descriptor: SerialDescriptor = listSerializer.descriptor
+
+    override fun serialize(encoder: Encoder, value: List<String>) =
+        listSerializer.serialize(encoder, value)
+
+    override fun deserialize(decoder: Decoder): List<String> {
+        val jsonDecoder = decoder as? JsonDecoder
+            ?: return listSerializer.deserialize(decoder)
+
+        return when (val element = jsonDecoder.decodeJsonElement()) {
+            is JsonArray     -> element.map { it.jsonPrimitive.content }
+            is JsonPrimitive -> {
+                val raw = element.content
+                if (raw.isBlank()) emptyList()
+                else raw.split(",").map { it.trim() }.filter { it.isNotBlank() }
+            }
+            else -> emptyList()
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Network DTO — mirrors VaccinationBenchResponse from the backend
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Serializable
+data class VaccinationBenchNet(
     val benchId           : String,
     val nameEn            : String,
     val nameAr            : String,
@@ -1201,16 +1266,35 @@ data class GrowthRecordResponse(
     val latitude          : Double,
     val longitude         : Double,
     val phone             : String?      = null,
+
+    @Serializable(with = FlexibleStringListSerializer::class)
     val workingDays       : List<String> = emptyList(),
+
     val workingHoursStart : String       = "08:00",
     val workingHoursEnd   : String       = "14:00",
+
+    @Serializable(with = FlexibleStringListSerializer::class)
     val vaccinationDays   : List<String> = emptyList(),
+
     val type              : String       = "",
+
+    @Serializable(with = FlexibleStringListSerializer::class)
     val vaccinesAvailable : List<String> = emptyList(),
-    val isActive          : Boolean      = true
+
+    val isActive          : Boolean      = true,
+
+    // Team member link
+    val teamMemberId      : String?      = null,
+    val teamMemberName    : String?      = null,
+    val teamMemberEmail   : String?      = null
 )
 
-@Serializable data class BabyBenchAssignmentNet(
+// ─────────────────────────────────────────────────────────────────────────────
+// BabyBenchAssignmentNet
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Serializable
+data class BabyBenchAssignmentNet(
     val assignmentId : String,
     val babyId       : String,
     val babyName     : String,
@@ -1219,6 +1303,169 @@ data class GrowthRecordResponse(
     val benchNameAr  : String,
     val governorate  : String,
     val isActive     : Boolean = true
+)
+
+@Serializable
+data class BenchRequestNet(
+    val requestId      : String,
+    val babyId         : String,
+    val babyName       : String,
+    val benchId        : String,
+    val benchNameEn    : String,
+    val benchNameAr    : String,
+    val governorate    : String,
+    val status         : String,            // PENDING | ACCEPTED | REJECTED | CANCELLED
+    val rejectReason   : String? = null,
+    val notes          : String? = null,
+    val reviewedByName : String? = null,
+    val reviewedAt     : String? = null,
+    val createdAt      : String? = null,
+    val teamMemberId   : String? = null,
+    val teamMemberName : String? = null
+)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Reschedule — network DTO + mapper
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Serializable
+data class RescheduleResponseNet(
+    val totalProcessed : Int    = 0,
+    val rescheduled    : Int    = 0,
+    val skipped        : Int    = 0,
+    val markedMissed   : Int    = 0,
+    val message        : String = ""
+)
+
+fun RescheduleResponseNet.toUi() = RescheduleResultUi(
+    totalProcessed = totalProcessed,
+    rescheduled    = rescheduled,
+    skipped        = skipped,
+    markedMissed   = markedMissed,
+    message        = message
+)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UI models — all defined HERE in data.network to avoid duplicate class errors
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum class BenchRequestStatusUi { PENDING, ACCEPTED, REJECTED, CANCELLED }
+
+data class BenchRequestUi(
+    val requestId      : String,
+    val babyId         : String,
+    val babyName       : String,
+    val benchId        : String,
+    val benchNameEn    : String,
+    val benchNameAr    : String,
+    val governorate    : String,
+    val status         : BenchRequestStatusUi,
+    val rejectReason   : String? = null,
+    val notes          : String? = null,
+    val reviewedByName : String? = null,
+    val reviewedAt     : String? = null,
+    val createdAt      : String? = null,
+    val teamMemberId   : String? = null,
+    val teamMemberName : String? = null
+)
+
+data class VaccinationBenchUi(
+    val benchId           : String,
+    val nameEn            : String,
+    val nameAr            : String,
+    val governorate       : String,
+    val district          : String,
+    val addressEn         : String?,
+    val addressAr         : String?,
+    val latitude          : Double,
+    val longitude         : Double,
+    val phone             : String?,
+    val workingDays       : List<String>,
+    val workingHoursStart : String,
+    val workingHoursEnd   : String,
+    val vaccinationDays   : List<String>,
+    val type              : String,
+    val vaccinesAvailable : List<String>,
+    val isActive          : Boolean,
+    val teamMemberId      : String?  = null,
+    val teamMemberName    : String?  = null,
+    val teamMemberEmail   : String?  = null
+)
+
+data class BabyBenchAssignmentUi(
+    val assignmentId : String,
+    val babyId       : String,
+    val babyName     : String,
+    val benchId      : String,
+    val benchNameEn  : String,
+    val benchNameAr  : String,
+    val governorate  : String,
+    val isActive     : Boolean
+)
+
+data class VaccinationScheduleUi(
+    val scheduleId           : String,
+    val babyId               : String,
+    val vaccineId            : Int,
+    val vaccineName          : String,
+    val vaccineNameAr        : String?,
+    val vaccineNameKu        : String?,
+    val vaccineNameCkb       : String?,
+    val description          : String?,
+    val descriptionAr        : String?,
+    val descriptionKu        : String?,
+    val descriptionCkb       : String?,
+    val doseNumber           : Int,
+    val recommendedAgeMonths : Int,
+    val idealDate            : String,
+    val scheduledDate        : String,
+    val shiftReason          : String,
+    val shiftDays            : Int,
+    val status               : String,
+    val completedDate        : String?,
+    val benchNameEn          : String,
+    val isVisibleToParent    : Boolean
+)
+
+enum class VaccinationFilter { ALL, UPCOMING, COMPLETED, OVERDUE }
+
+/**
+ * Single source of truth for reschedule results.
+ * Lives in data.network — do NOT redeclare this in any presentation model file.
+ * Delete any duplicate in com.babygrowth.presentation.screens.home.model.
+ */
+data class RescheduleResultUi(
+    val totalProcessed : Int,
+    val rescheduled    : Int,
+    val skipped        : Int,
+    val markedMissed   : Int,
+    val message        : String
+)
+
+data class HealthIssueUi(
+    val issueId        : String,
+    val babyId         : String,
+    val title          : String,
+    val description    : String?,
+    val issueDate      : String,
+    val severity       : String?,
+    val isResolved     : Boolean,
+    val resolutionDate : String?,
+    val resolvedNotes  : String?
+)
+
+data class AppointmentUi(
+    val appointmentId   : String,
+    val babyId          : String,
+    val babyName        : String,
+    val appointmentType : String,
+    val scheduledDate   : String,
+    val scheduledTime   : String?,
+    val durationMinutes : Int,
+    val status          : String,
+    val doctorName      : String?,
+    val location        : String?,
+    val notes           : String?
 )
 
 // ── Vaccination Schedules ─────────────────────────────────────────────────────
@@ -1458,7 +1705,10 @@ fun VaccinationBenchNet.toUi() = VaccinationBenchUi(
     vaccinationDays   = vaccinationDays,
     type              = type,
     vaccinesAvailable = vaccinesAvailable,
-    isActive          = isActive
+    isActive          = isActive,
+    teamMemberId      = teamMemberId,
+    teamMemberName    = teamMemberName,
+    teamMemberEmail   = teamMemberEmail
 )
 
 fun BabyBenchAssignmentNet.toUi() = BabyBenchAssignmentUi(
@@ -1470,6 +1720,29 @@ fun BabyBenchAssignmentNet.toUi() = BabyBenchAssignmentUi(
     benchNameAr  = benchNameAr,
     governorate  = governorate,
     isActive     = isActive
+)
+
+fun BenchRequestNet.toUi() = BenchRequestUi(
+    requestId      = requestId,
+    babyId         = babyId,
+    babyName       = babyName,
+    benchId        = benchId,
+    benchNameEn    = benchNameEn,
+    benchNameAr    = benchNameAr,
+    governorate    = governorate,
+    status         = when (status.uppercase()) {
+        "ACCEPTED"  -> BenchRequestStatusUi.ACCEPTED
+        "REJECTED"  -> BenchRequestStatusUi.REJECTED
+        "CANCELLED" -> BenchRequestStatusUi.CANCELLED
+        else        -> BenchRequestStatusUi.PENDING
+    },
+    rejectReason   = rejectReason,
+    notes          = notes,
+    reviewedByName = reviewedByName,
+    reviewedAt     = reviewedAt,
+    createdAt      = createdAt,
+    teamMemberId   = teamMemberId,
+    teamMemberName = teamMemberName
 )
 
 fun VaccinationScheduleNet.toUi() = VaccinationScheduleUi(

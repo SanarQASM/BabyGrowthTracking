@@ -1,6 +1,4 @@
-// File: composeApp/src/commonMain/kotlin/org/example/project/babygrowthtrackingapplication/team/TeamVaccinationScreen_Updated.kt
-// KEY CHANGE: Adds a "Requests" tab so the team can accept/reject parent join requests.
-// Add TeamTab.REQUESTS to the enum and wire TeamRequestsTab + TeamRequestsViewModel.
+// File: composeApp/src/commonMain/kotlin/org/example/project/babygrowthtrackingapplication/team/TeamVaccinationScreen.kt
 
 package org.example.project.babygrowthtrackingapplication.team
 
@@ -10,7 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -23,7 +21,6 @@ import babygrowthtrackingapplication.composeapp.generated.resources.*
 import org.example.project.babygrowthtrackingapplication.theme.*
 import org.jetbrains.compose.resources.stringResource
 
-// Updated enum — adds REQUESTS tab
 enum class TeamTab { BABIES, SCHEDULE, REQUESTS }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,7 +34,6 @@ fun TeamVaccinationScreen(
     val customColors = MaterialTheme.customColors
     val snackbar     = remember { SnackbarHostState() }
 
-    // ── Requests ViewModel — scoped to bench ──────────────────────────────────
     val requestsViewModel = remember {
         TeamRequestsViewModel(
             apiService = viewModel.apiService,
@@ -49,7 +45,6 @@ fun TeamVaccinationScreen(
     var selectedBaby     by remember { mutableStateOf<TeamBabyItem?>(null) }
     var showLogoutDialog by remember { mutableStateOf(false) }
 
-    // Load requests when requests tab first selected
     LaunchedEffect(selectedTab, state.benchId) {
         if (selectedTab == TeamTab.REQUESTS && state.benchId.isNotBlank()) {
             requestsViewModel.loadRequests()
@@ -63,7 +58,6 @@ fun TeamVaccinationScreen(
         state.successMessage?.let { snackbar.showSnackbar(it); viewModel.clearSuccess() }
     }
 
-    // Resolve request-related success messages
     val reqState = requestsViewModel.uiState
     val reqSuccessStr = when (reqState.successMessage) {
         "request_accepted" -> stringResource(Res.string.success_request_accepted)
@@ -84,9 +78,10 @@ fun TeamVaccinationScreen(
             title = { Text(stringResource(Res.string.admin_settings_logout_title)) },
             text  = { Text(stringResource(Res.string.settings_logout_message)) },
             confirmButton = {
-                Button(onClick = { showLogoutDialog = false; onNavigateToWelcome() }, colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)) {
-                    Text(stringResource(Res.string.settings_logout_confirm))
-                }
+                Button(
+                    onClick = { showLogoutDialog = false; onNavigateToWelcome() },
+                    colors  = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) { Text(stringResource(Res.string.settings_logout_confirm)) }
             },
             dismissButton = {
                 TextButton(onClick = { showLogoutDialog = false }) { Text(stringResource(Res.string.btn_cancel)) }
@@ -95,7 +90,7 @@ fun TeamVaccinationScreen(
     }
 
     AnimatedContent(
-        targetState = selectedBaby,
+        targetState  = selectedBaby,
         transitionSpec = {
             if (targetState != null) {
                 slideInHorizontally { it } + fadeIn() togetherWith slideOutHorizontally { -it } + fadeOut()
@@ -108,30 +103,51 @@ fun TeamVaccinationScreen(
         if (baby != null) {
             TeamBabyDetailScreen(baby = baby, viewModel = viewModel, onBack = { selectedBaby = null })
         } else {
-            Scaffold(snackbarHost = { SnackbarHost(snackbar) }, containerColor = MaterialTheme.colorScheme.background) { innerPadding ->
+            Scaffold(
+                snackbarHost   = { SnackbarHost(snackbar) },
+                containerColor = MaterialTheme.colorScheme.background
+            ) { innerPadding ->
                 Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
 
-                    // Top bar
+                    // ── Top bar ───────────────────────────────────────────────
                     Box(
-                        modifier = Modifier.fillMaxWidth().background(
-                            Brush.horizontalGradient(listOf(customColors.accentGradientStart, customColors.accentGradientEnd))
-                        ).padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingMedium)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                Brush.horizontalGradient(
+                                    listOf(customColors.accentGradientStart, customColors.accentGradientEnd)
+                                )
+                            )
+                            .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingMedium)
                     ) {
                         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            Box(modifier = Modifier.size(dimensions.iconXLarge).background(customColors.glassOverlay, CircleShape), contentAlignment = Alignment.Center) {
+                            Box(
+                                modifier = Modifier
+                                    .size(dimensions.iconXLarge)
+                                    .background(customColors.glassOverlay, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
                                 Text(stringResource(Res.string.team_hospital_emoji), style = MaterialTheme.typography.titleLarge)
                             }
                             Spacer(Modifier.width(dimensions.spacingMedium))
                             Column(modifier = Modifier.weight(1f)) {
-                                Text(state.benchName.ifBlank { stringResource(Res.string.team_bench_fallback) }, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimary, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                                Text(state.teamMemberName.ifBlank { stringResource(Res.string.team_member_fallback) }, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f))
+                                Text(
+                                    text     = state.benchName.ifBlank { stringResource(Res.string.team_bench_fallback) },
+                                    style    = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color    = MaterialTheme.colorScheme.onPrimary,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text  = state.teamMemberName.ifBlank { stringResource(Res.string.team_member_fallback) },
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f)
+                                )
                             }
 
-                            // Requests badge on top-bar icon
                             if (reqState.pendingRequests.isNotEmpty()) {
-                                BadgedBox(badge = {
-                                    Badge { Text("${reqState.pendingRequests.size}") }
-                                }) {
+                                BadgedBox(badge = { Badge { Text("${reqState.pendingRequests.size}") } }) {
                                     IconButton(onClick = { selectedTab = TeamTab.REQUESTS }) {
                                         Icon(
                                             Icons.Default.Notifications,
@@ -143,30 +159,72 @@ fun TeamVaccinationScreen(
                             }
 
                             IconButton(onClick = { showLogoutDialog = true }) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(Res.string.settings_logout), tint = MaterialTheme.colorScheme.onPrimary)
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = stringResource(Res.string.settings_logout),
+                                    tint = MaterialTheme.colorScheme.onPrimary
+                                )
                             }
                         }
                     }
 
-                    // Tab row
-                    Surface(color = MaterialTheme.colorScheme.surface, shadowElevation = dimensions.cardElevationSmall) {
-                        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingXSmall)) {
-                            data class TabInfo(val tab: TeamTab, val emoji: String, val label: String, val badgeCount: Int = 0)
+                    // ── "No bench assigned" full-screen state ─────────────────
+                    // Shown when the admin hasn't linked this team member to any bench yet.
+                    if (state.benchLoading) {
+                        Box(Modifier.fillMaxSize(), Alignment.Center) {
+                            CircularProgressIndicator(color = customColors.accentGradientStart)
+                        }
+                        return@Scaffold
+                    }
+
+                    if (state.noBenchAssigned) {
+                        NoBenchAssignedState(
+                            teamMemberName = state.teamMemberName,
+                            customColors   = customColors,
+                            dimensions     = dimensions,
+                            onRetry        = { viewModel.loadTeamData() }
+                        )
+                        return@Scaffold
+                    }
+
+                    // ── Tab row ───────────────────────────────────────────────
+                    Surface(
+                        color           = MaterialTheme.colorScheme.surface,
+                        shadowElevation = dimensions.cardElevationSmall
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingXSmall)
+                        ) {
+                            data class TabInfo(
+                                val tab       : TeamTab,
+                                val emoji     : String,
+                                val label     : String,
+                                val badgeCount: Int = 0
+                            )
                             val tabs = listOf(
-                                TabInfo(TeamTab.BABIES,   stringResource(Res.string.team_tab_babies_emoji),    stringResource(Res.string.team_tab_babies)),
-                                TabInfo(TeamTab.SCHEDULE, stringResource(Res.string.team_tab_schedule_emoji),  stringResource(Res.string.team_tab_schedule)),
-                                TabInfo(TeamTab.REQUESTS, stringResource(Res.string.team_tab_requests_emoji),  stringResource(Res.string.team_tab_requests), reqState.pendingRequests.size)
+                                TabInfo(TeamTab.BABIES,   stringResource(Res.string.team_tab_babies_emoji),   stringResource(Res.string.team_tab_babies)),
+                                TabInfo(TeamTab.SCHEDULE, stringResource(Res.string.team_tab_schedule_emoji), stringResource(Res.string.team_tab_schedule)),
+                                TabInfo(TeamTab.REQUESTS, stringResource(Res.string.team_tab_requests_emoji), stringResource(Res.string.team_tab_requests), reqState.pendingRequests.size)
                             )
                             tabs.forEach { info ->
                                 val isSelected = selectedTab == info.tab
                                 val bgColor by animateColorAsState(
-                                    if (isSelected) customColors.accentGradientStart.copy(alpha = 0.12f) else Color.Transparent, label = "tab_bg"
+                                    if (isSelected) customColors.accentGradientStart.copy(alpha = 0.12f)
+                                    else Color.Transparent, label = "tab_bg"
                                 )
                                 val fgColor by animateColorAsState(
-                                    if (isSelected) customColors.accentGradientStart else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f), label = "tab_fg"
+                                    if (isSelected) customColors.accentGradientStart
+                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f), label = "tab_fg"
                                 )
                                 Box(
-                                    modifier = Modifier.weight(1f).clip(RoundedCornerShape(dimensions.buttonCornerRadius)).background(bgColor).clickable { selectedTab = info.tab }.padding(vertical = dimensions.spacingSmall),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(dimensions.buttonCornerRadius))
+                                        .background(bgColor)
+                                        .clickable { selectedTab = info.tab }
+                                        .padding(vertical = dimensions.spacingSmall),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     BadgedBox(
@@ -176,9 +234,17 @@ fun TeamVaccinationScreen(
                                             }
                                         }
                                     ) {
-                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)) {
+                                        Row(
+                                            verticalAlignment     = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
+                                        ) {
                                             Text(info.emoji, style = MaterialTheme.typography.bodyMedium)
-                                            Text(info.label, style = MaterialTheme.typography.labelMedium, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal, color = fgColor)
+                                            Text(
+                                                info.label,
+                                                style      = MaterialTheme.typography.labelMedium,
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                                color      = fgColor
+                                            )
                                         }
                                     }
                                 }
@@ -186,13 +252,89 @@ fun TeamVaccinationScreen(
                         }
                     }
 
-                    // Content
+                    // ── Tab content ───────────────────────────────────────────
                     when (selectedTab) {
                         TeamTab.BABIES   -> TeamBabiesTab(viewModel = viewModel, onBabyClick = { selectedBaby = it })
                         TeamTab.SCHEDULE -> TeamScheduleTab(viewModel = viewModel)
                         TeamTab.REQUESTS -> TeamRequestsTab(viewModel = requestsViewModel)
                     }
                 }
+            }
+        }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NoBenchAssignedState
+//
+// Shown when the logged-in team member has no bench linked to them yet.
+// Instructs them to contact the admin to assign them to a health center.
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun NoBenchAssignedState(
+    teamMemberName: String,
+    customColors  : CustomColors,
+    dimensions    : Dimensions,
+    onRetry       : () -> Unit
+) {
+    Box(Modifier.fillMaxSize(), Alignment.Center) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium),
+            modifier            = Modifier.padding(dimensions.screenPadding)
+        ) {
+            Text("🏥", style = MaterialTheme.typography.displayMedium)
+
+            Text(
+                text       = "No Health Center Assigned",
+                style      = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color      = MaterialTheme.colorScheme.onBackground
+            )
+
+            Text(
+                text  = "Hello${if (teamMemberName.isNotBlank()) " $teamMemberName" else ""}! " +
+                        "You haven't been assigned to a health center yet.\n\n" +
+                        "Please ask the admin to assign you to a health center " +
+                        "so you can start managing vaccinations.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
+            )
+
+            Spacer(Modifier.height(dimensions.spacingSmall))
+
+            Surface(
+                shape    = RoundedCornerShape(dimensions.cardCornerRadius),
+                color    = customColors.accentGradientStart.copy(alpha = 0.08f),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier              = Modifier.padding(dimensions.spacingMedium),
+                    verticalAlignment     = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
+                ) {
+                    Icon(
+                        Icons.Default.Info,
+                        contentDescription = null,
+                        tint     = customColors.accentGradientStart,
+                        modifier = Modifier.size(dimensions.iconMedium)
+                    )
+                    Text(
+                        text  = "Admin → Health Centers → select center → Assign Team Member",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = customColors.accentGradientStart
+                    )
+                }
+            }
+
+            Button(
+                onClick = onRetry,
+                colors  = ButtonDefaults.buttonColors(containerColor = customColors.accentGradientStart)
+            ) {
+                Icon(Icons.Default.Refresh, null, modifier = Modifier.size(dimensions.iconSmall))
+                Spacer(Modifier.width(dimensions.spacingXSmall))
+                Text("Retry")
             }
         }
     }

@@ -30,10 +30,14 @@ interface VaccinationBenchService {
     fun getAllBenches(): List<VaccinationBenchResponse>
     fun getBenchesByGovernorate(governorate: String): List<VaccinationBenchResponse>
     fun getBenchById(benchId: String): VaccinationBenchResponse
+    // NEW: find the bench managed by a specific team member
+    fun getBenchByTeamMember(teamMemberId: String): VaccinationBenchResponse?
     fun searchBenches(query: String): List<VaccinationBenchResponse>
     fun getGovernorates(): List<String>
     fun createBench(request: VaccinationBenchCreateRequest): VaccinationBenchResponse
     fun updateBench(benchId: String, request: VaccinationBenchUpdateRequest): VaccinationBenchResponse
+    // NEW: assign a team member as manager of an existing bench
+    fun assignTeamMember(benchId: String, teamMemberId: String): VaccinationBenchResponse
     fun deactivateBench(benchId: String)
     fun loadBenchesFromJson(benches: List<VaccinationBenchCreateRequest>): Int
 }
@@ -41,7 +45,9 @@ interface VaccinationBenchService {
 @Service
 @Transactional
 class VaccinationBenchServiceImpl(
-    private val benchRepository: VaccinationBenchRepository
+    private val benchRepository: VaccinationBenchRepository,
+    // NEW: needed for team member lookup in assignTeamMember / createBench
+    private val userRepository : UserRepository
 ) : VaccinationBenchService {
 
     override fun getAllBenches(): List<VaccinationBenchResponse> =
@@ -55,13 +61,36 @@ class VaccinationBenchServiceImpl(
             .orElseThrow { ResourceNotFoundException("Bench not found: $benchId") }
             .toResponse()
 
+    // ── NEW ───────────────────────────────────────────────────────────────────
+    // Used by TeamVaccinationViewModel to resolve which bench belongs to
+    // the currently logged-in team member, instead of using getAllBenches().first().
+    override fun getBenchByTeamMember(teamMemberId: String): VaccinationBenchResponse? =
+        benchRepository.findByTeamMember_UserIdAndIsActiveTrue(teamMemberId)
+            .map { it.toResponse() }
+            .orElse(null)
+
     override fun searchBenches(query: String): List<VaccinationBenchResponse> =
         benchRepository.searchBenches(query).map { it.toResponse() }
 
     override fun getGovernorates(): List<String> =
         benchRepository.findAllGovernorates()
 
+    // ── CREATE ────────────────────────────────────────────────────────────────
+    // FIX: accepts workingDays / vaccinationDays / vaccinesAvailable as
+    // List<String> from the request DTO — joins to comma string for DB storage.
+    // NEW: optional teamMemberId links the bench to a team member on creation.
     override fun createBench(request: VaccinationBenchCreateRequest): VaccinationBenchResponse {
+
+        // Resolve optional team member — validate role before saving
+        val teamMember: User? = request.teamMemberId?.let { tmId ->
+            val user = userRepository.findById(tmId)
+                .orElseThrow { ResourceNotFoundException("Team member not found: $tmId") }
+            if (user.role != UserRole.VACCINATION_TEAM) {
+                throw BadRequestException("User $tmId is not a vaccination_team member")
+            }
+            user
+        }
+
         val bench = VaccinationBench(
             benchId           = UUID.randomUUID().toString(),
             nameEn            = request.nameEn,
@@ -73,28 +102,66 @@ class VaccinationBenchServiceImpl(
             latitude          = request.latitude,
             longitude         = request.longitude,
             phone             = request.phone,
+            // FIX: join List<String> → comma string for DB storage
             workingDays       = request.workingDays.joinToString(","),
             workingHoursStart = request.workingHoursStart,
             workingHoursEnd   = request.workingHoursEnd,
             vaccinationDays   = request.vaccinationDays.joinToString(","),
             type              = request.type,
-            vaccinesAvailable = request.vaccinesAvailable.joinToString(",")
+            vaccinesAvailable = request.vaccinesAvailable.joinToString(","),
+            // NEW: link team member if provided
+            teamMember        = teamMember
         )
         return benchRepository.save(bench).toResponse()
     }
 
+    // ── UPDATE ────────────────────────────────────────────────────────────────
+    // FIX: workingDays / vaccinationDays / vaccinesAvailable come in as
+    // List<String> and are joined to comma string before saving.
+    // NEW: teamMemberId can be updated to reassign the bench manager.
     override fun updateBench(benchId: String, request: VaccinationBenchUpdateRequest): VaccinationBenchResponse {
         val bench = benchRepository.findById(benchId)
             .orElseThrow { ResourceNotFoundException("Bench not found: $benchId") }
+
         request.nameEn?.let            { bench.nameEn            = it }
         request.nameAr?.let            { bench.nameAr            = it }
         request.phone?.let             { bench.phone             = it }
+        // FIX: joinToString converts List<String> to comma-separated DB value
         request.workingDays?.let       { bench.workingDays       = it.joinToString(",") }
         request.workingHoursStart?.let { bench.workingHoursStart = it }
         request.workingHoursEnd?.let   { bench.workingHoursEnd   = it }
         request.vaccinationDays?.let   { bench.vaccinationDays   = it.joinToString(",") }
         request.vaccinesAvailable?.let { bench.vaccinesAvailable = it.joinToString(",") }
         request.isActive?.let          { bench.isActive          = it }
+
+        // NEW: update team member assignment if provided
+        request.teamMemberId?.let { tmId ->
+            val user = userRepository.findById(tmId)
+                .orElseThrow { ResourceNotFoundException("Team member not found: $tmId") }
+            if (user.role != UserRole.VACCINATION_TEAM) {
+                throw BadRequestException("User $tmId is not a vaccination_team member")
+            }
+            bench.teamMember = user
+        }
+
+        return benchRepository.save(bench).toResponse()
+    }
+
+    // ── NEW: ASSIGN TEAM MEMBER ────────────────────────────────────────────────
+    // Dedicated endpoint for assigning a team member to an existing bench.
+    // Admin uses this after creating a bench and a team member separately,
+    // or via the "Assign Bench" screen shown right after team member creation.
+    override fun assignTeamMember(benchId: String, teamMemberId: String): VaccinationBenchResponse {
+        val bench = benchRepository.findById(benchId)
+            .orElseThrow { ResourceNotFoundException("Bench not found: $benchId") }
+        val user = userRepository.findById(teamMemberId)
+            .orElseThrow { ResourceNotFoundException("Team member not found: $teamMemberId") }
+
+        if (user.role != UserRole.VACCINATION_TEAM) {
+            throw BadRequestException("User $teamMemberId is not a vaccination_team member")
+        }
+
+        bench.teamMember = user
         return benchRepository.save(bench).toResponse()
     }
 
@@ -108,7 +175,8 @@ class VaccinationBenchServiceImpl(
     override fun loadBenchesFromJson(benches: List<VaccinationBenchCreateRequest>): Int {
         var loaded = 0
         for (request in benches) {
-            if (benchRepository.existsById(request.nameEn)) continue
+            // Skip if a bench with this nameEn already exists (simple dedup)
+            if (benchRepository.existsByNameEn(request.nameEn)) continue
             val bench = VaccinationBench(
                 benchId           = UUID.randomUUID().toString(),
                 nameEn            = request.nameEn,
@@ -126,6 +194,7 @@ class VaccinationBenchServiceImpl(
                 vaccinationDays   = request.vaccinationDays.joinToString(","),
                 type              = request.type,
                 vaccinesAvailable = request.vaccinesAvailable.joinToString(",")
+                // No teamMember on bulk JSON import — assign manually after
             )
             benchRepository.save(bench)
             loaded++
@@ -133,7 +202,12 @@ class VaccinationBenchServiceImpl(
         return loaded
     }
 
-    fun VaccinationBench.toResponse() = VaccinationBenchResponse(
+    // ── toResponse ────────────────────────────────────────────────────────────
+    // FIX: uses getWorkingDaysList() / getVaccinationDaysList() / getVaccinesAvailableList()
+    // which split the comma string back into List<String> — the API always
+    // returns List<String>, never a raw comma string.
+    // NEW: includes teamMemberId / teamMemberName / teamMemberEmail.
+    private fun VaccinationBench.toResponse() = VaccinationBenchResponse(
         benchId           = benchId,
         nameEn            = nameEn,
         nameAr            = nameAr,
@@ -144,6 +218,7 @@ class VaccinationBenchServiceImpl(
         latitude          = latitude,
         longitude         = longitude,
         phone             = phone,
+        // FIX: always return List<String> — never a raw comma string
         workingDays       = getWorkingDaysList(),
         workingHoursStart = workingHoursStart,
         workingHoursEnd   = workingHoursEnd,
@@ -151,12 +226,16 @@ class VaccinationBenchServiceImpl(
         type              = type,
         vaccinesAvailable = getVaccinesAvailableList(),
         isActive          = isActive,
+        // NEW: team member fields — null when no team member is assigned yet
+        teamMemberId      = teamMember?.userId,
+        teamMemberName    = teamMember?.fullName,
+        teamMemberEmail   = teamMember?.email,
         createdAt         = createdAt
     )
 }
 
 // ============================================================
-// BABY BENCH ASSIGNMENT SERVICE
+// BABY BENCH ASSIGNMENT SERVICE  (unchanged from original)
 // ============================================================
 
 interface BabyBenchAssignmentService {
@@ -206,7 +285,7 @@ class BabyBenchAssignmentServiceImpl(
         val saved = assignmentRepository.save(assignment)
         logger.info { "Assigned bench ${bench.benchId} to baby ${baby.babyId}" }
 
-        // ── KEY: generate schedule AFTER assignment is saved ──────────────
+        // Generate schedule AFTER assignment is saved
         scheduleGeneratorService.generateScheduleForBaby(baby, bench)
 
         return saved.toResponse()
@@ -244,7 +323,7 @@ class BabyBenchAssignmentServiceImpl(
 }
 
 // ============================================================
-// BENCH HOLIDAY SERVICE
+// BENCH HOLIDAY SERVICE  (unchanged from original)
 // ============================================================
 
 interface BenchHolidayService {
@@ -302,7 +381,7 @@ class BenchHolidayServiceImpl(
 }
 
 // ============================================================
-// SCHEDULE GENERATOR SERVICE
+// SCHEDULE GENERATOR SERVICE  (unchanged from original — already correct)
 // ============================================================
 
 interface ScheduleGeneratorService {
@@ -386,13 +465,16 @@ class ScheduleGeneratorServiceImpl(
     }
 
     override fun regenerateScheduleOnBenchChange(babyId: String, newBench: VaccinationBench) {
-        val upcomingSchedules = scheduleRepository.findByBaby_BabyIdAndStatus(babyId, ScheduleStatus.UPCOMING) +
-                scheduleRepository.findByBaby_BabyIdAndStatus(babyId, ScheduleStatus.DUE_SOON)
+        val upcomingSchedules =
+            scheduleRepository.findByBaby_BabyIdAndStatus(babyId, ScheduleStatus.UPCOMING) +
+                    scheduleRepository.findByBaby_BabyIdAndStatus(babyId, ScheduleStatus.DUE_SOON)
 
         val vaccinationDays = newBench.getVaccinationDaysList()
             .mapNotNull { DAY_NAME_MAP[it] }.toSet()
         val baby = upcomingSchedules.firstOrNull()?.baby ?: return
-        val holidayDates = loadHolidayDates(newBench.benchId, LocalDate.now(), LocalDate.now().plusYears(3))
+        val holidayDates = loadHolidayDates(
+            newBench.benchId, LocalDate.now(), LocalDate.now().plusYears(3)
+        )
 
         for (schedule in upcomingSchedules) {
             val oldDate = schedule.scheduledDate
@@ -440,33 +522,12 @@ class ScheduleGeneratorServiceImpl(
         }
     }
 
-    /**
-     * Finds the next valid vaccination date starting from [from].
-     *
-     * A valid date must:
-     *  - Fall on one of the bench's [vaccinationDays]
-     *  - Not be a holiday (in [holidayDates])
-     *  - Not be a weekend (Friday or Saturday in the Iraqi calendar)
-     *
-     * The [ShiftReason] returned reflects the *first* reason a shift was
-     * needed (WEEKEND > HOLIDAY > not-a-vaccination-day).  If no valid date
-     * is found within 365 days the original [from] date is returned with
-     * ShiftReason.NONE and 0 shift days.
-     *
-     * FIX: removed the erroneous recursive calls that passed the original
-     * [from] date instead of the already-advanced [candidate], which caused
-     * infinite recursion (StackOverflowError).  The while-loop already
-     * advances the candidate correctly, so we only need to track the first
-     * reason here.
-     */
     private fun findNextValidDate(
         from: LocalDate,
         vaccinationDays: Set<DayOfWeek>,
         holidayDates: Set<LocalDate>
     ): Triple<LocalDate, ShiftReason, Int> {
 
-        // Guard: if the bench has no vaccination days configured we can never
-        // find a valid date — return the original date immediately.
         if (vaccinationDays.isEmpty()) {
             logger.warn { "vaccinationDays is empty — returning idealDate unchanged" }
             return Triple(from, ShiftReason.NONE, 0)
@@ -474,7 +535,7 @@ class ScheduleGeneratorServiceImpl(
 
         var candidate   = from
         var shiftDays   = 0
-        var firstReason = ShiftReason.NONE   // track the *first* reason we had to shift
+        var firstReason = ShiftReason.NONE
 
         while (shiftDays <= 365) {
             val isWeekend = candidate.dayOfWeek == DayOfWeek.FRIDAY ||
@@ -483,30 +544,24 @@ class ScheduleGeneratorServiceImpl(
             val isVacDay  = candidate.dayOfWeek in vaccinationDays
 
             when {
-                // Weekend takes priority over everything else
                 isWeekend -> {
                     if (firstReason == ShiftReason.NONE) firstReason = ShiftReason.WEEKEND
                     candidate = candidate.plusDays(1)
                     shiftDays++
                 }
-                // Holiday check next
                 isHoliday -> {
                     if (firstReason == ShiftReason.NONE) firstReason = ShiftReason.HOLIDAY
                     candidate = candidate.plusDays(1)
                     shiftDays++
                 }
-                // Not a configured vaccination day
                 !isVacDay -> {
-                    if (firstReason == ShiftReason.NONE) firstReason = ShiftReason.NONE
                     candidate = candidate.plusDays(1)
                     shiftDays++
                 }
-                // All conditions satisfied — we have our date
                 else -> return Triple(candidate, firstReason, shiftDays)
             }
         }
 
-        // Safety fallback: could not find a valid date within a year
         logger.warn {
             "Could not find a valid vaccination date within 365 days of $from — returning original date"
         }
@@ -528,7 +583,7 @@ class ScheduleGeneratorServiceImpl(
 }
 
 // ============================================================
-// VACCINATION SCHEDULE SERVICE
+// VACCINATION SCHEDULE SERVICE  (unchanged from original)
 // ============================================================
 
 interface VaccinationScheduleService {
@@ -581,7 +636,10 @@ class VaccinationScheduleServiceImpl(
     override fun getScheduleByBenchAndRange(benchId: String, from: LocalDate, to: LocalDate) =
         scheduleRepository.findByBenchAndDateRange(benchId, from, to).map { it.toResponse() }
 
-    override fun updateScheduleStatus(scheduleId: String, request: VaccinationScheduleUpdateRequest): VaccinationScheduleResponse {
+    override fun updateScheduleStatus(
+        scheduleId: String,
+        request: VaccinationScheduleUpdateRequest
+    ): VaccinationScheduleResponse {
         val schedule = scheduleRepository.findById(scheduleId)
             .orElseThrow { ResourceNotFoundException("Schedule not found: $scheduleId") }
         request.status?.let            { schedule.status        = it }
@@ -591,7 +649,10 @@ class VaccinationScheduleServiceImpl(
         return scheduleRepository.save(schedule).toResponse()
     }
 
-    override fun adjustScheduleDate(adjustedByUserId: String, request: ScheduleAdjustmentRequest): VaccinationScheduleResponse {
+    override fun adjustScheduleDate(
+        adjustedByUserId: String,
+        request: ScheduleAdjustmentRequest
+    ): VaccinationScheduleResponse {
         val schedule   = scheduleRepository.findById(request.scheduleId)
             .orElseThrow { ResourceNotFoundException("Schedule not found: ${request.scheduleId}") }
         val adjustedBy = userRepository.findById(adjustedByUserId).orElse(null)

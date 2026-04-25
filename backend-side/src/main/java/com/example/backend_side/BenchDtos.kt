@@ -1,231 +1,99 @@
 package com.example.backend_side
 
-import com.example.backend_side.entity.*
-import com.fasterxml.jackson.annotation.JsonCreator
-import com.fasterxml.jackson.annotation.JsonProperty
-import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.NotNull
-import java.time.LocalDate
-import java.time.LocalDateTime
-
-// ============================================================
-// BenchDtos.kt  — FIXED
+// ─────────────────────────────────────────────────────────────────────────────
+// Bench-related request / response DTOs
 //
-// All request DTOs now have @JsonCreator + @JsonProperty.
-// VaccinationBenchCreateRequest, VaccinationBenchUpdateRequest,
-// BenchHolidayCreateRequest, and VaccinationScheduleUpdateRequest
-// were previously missing these annotations and would throw
-// InvalidDefinitionException on any POST/PUT request.
+// KEY FIX — workingDays / vaccinationDays / vaccinesAvailable:
+//   The DB stores these as comma-separated Strings.
+//   The API accepts and returns them as List<String>.
+//   Jackson deserializes List<String> from a JSON array → no crash.
+//   The service layer joins them back to comma strings before saving to DB.
 //
-// BabyBenchAssignRequest and ScheduleAdjustmentRequest already
-// had the fix — they are preserved unchanged.
-// ============================================================
+//   The old code had a mismatch: the entity had @JsonIgnore on nothing,
+//   so Jackson tried to deserialize "Sunday,Monday,..." (a String in the DB
+//   response) as List<String> → MismatchedInputException.
+//   Now the entity uses @JsonIgnore on raw fields + @JsonProperty on computed
+//   list getters.  These DTOs always use List<String> for the API boundary.
+// ─────────────────────────────────────────────────────────────────────────────
 
-// ============================================================
-// VACCINATION BENCH DTOs
-// ============================================================
+import com.example.backend_side.entity.BenchType
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 
-// Response DTO — no @JsonCreator needed (serialization only)
+// ── Create request (POST /v1/benches) ─────────────────────────────────────────
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class VaccinationBenchCreateRequest(
+    val nameEn            : String,
+    val nameAr            : String,
+    val governorate       : String,
+    val district          : String       = "",
+    val addressEn         : String?      = null,
+    val addressAr         : String?      = null,
+    val latitude          : Double,
+    val longitude         : Double,
+    val phone             : String?      = null,
+
+    // ── Accept as List<String> from JSON ── e.g. ["Sunday","Monday","Tuesday"]
+    // The service converts them to comma-separated before saving.
+    val workingDays        : List<String> = listOf("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"),
+    val vaccinationDays    : List<String> = listOf("Sunday", "Tuesday", "Thursday"),
+    val workingHoursStart  : String       = "08:00",
+    val workingHoursEnd    : String       = "14:00",
+    val vaccinesAvailable  : List<String> = emptyList(),
+
+    val type               : String       = "primary_health_center",
+
+    // ── Optional: link the bench to a team member on creation ─────────────
+    // When provided, the bench's teamMember is set immediately so the team
+    // vaccination user can start receiving requests right away.
+    val teamMemberId       : String?      = null
+)
+
+// ── Update request (PUT /v1/benches/{id}) ─────────────────────────────────────
+@JsonIgnoreProperties(ignoreUnknown = true)
+data class VaccinationBenchUpdateRequest(
+    val nameEn            : String?       = null,
+    val nameAr            : String?       = null,
+    val governorate       : String?       = null,
+    val district          : String?       = null,
+    val addressEn         : String?       = null,
+    val addressAr         : String?       = null,
+    val latitude          : Double?       = null,
+    val longitude         : Double?       = null,
+    val phone             : String?       = null,
+    val workingDays        : List<String>? = null,
+    val vaccinationDays    : List<String>? = null,
+    val workingHoursStart  : String?       = null,
+    val workingHoursEnd    : String?       = null,
+    val vaccinesAvailable  : List<String>? = null,
+    val type               : String?       = null,
+    val teamMemberId       : String?       = null
+)
+
+// ── Response (GET /v1/benches, etc.) ──────────────────────────────────────────
+// Always returns List<String> for day/vaccine fields — never a raw comma string.
 data class VaccinationBenchResponse(
     val benchId            : String,
     val nameEn             : String,
     val nameAr             : String,
     val governorate        : String,
     val district           : String,
-    val addressEn          : String?        = null,
-    val addressAr          : String?        = null,
+    val addressEn          : String?,
+    val addressAr          : String?,
     val latitude           : Double,
     val longitude          : Double,
-    val phone              : String?        = null,
-    val workingDays        : List<String>,
+    val phone              : String?,
+    val workingDays        : List<String>,   // ← always List in JSON
     val workingHoursStart  : String,
     val workingHoursEnd    : String,
-    val vaccinationDays    : List<String>,
-    val type               : BenchType,
-    val vaccinesAvailable  : List<String>,
+    val vaccinationDays    : List<String>,   // ← always List in JSON
+    val type               : String,
+    val vaccinesAvailable  : List<String>,   // ← always List in JSON
     val isActive           : Boolean,
-    val createdAt          : LocalDateTime? = null
-)
 
-// ✅ FIXED — was missing @JsonCreator
-data class VaccinationBenchCreateRequest @JsonCreator constructor(
-    @JsonProperty("nameEn")
-    @field:NotBlank(message = "English name is required")
-    val nameEn: String,
-
-    @JsonProperty("nameAr")
-    @field:NotBlank(message = "Arabic name is required")
-    val nameAr: String,
-
-    @JsonProperty("governorate")
-    @field:NotBlank(message = "Governorate is required")
-    val governorate: String,
-
-    @JsonProperty("district")          val district         : String      = "",
-    @JsonProperty("addressEn")         val addressEn        : String?     = null,
-    @JsonProperty("addressAr")         val addressAr        : String?     = null,
-
-    @JsonProperty("latitude")
-    @field:NotNull(message = "Latitude is required")
-    val latitude: Double,
-
-    @JsonProperty("longitude")
-    @field:NotNull(message = "Longitude is required")
-    val longitude: Double,
-
-    @JsonProperty("phone")             val phone            : String?     = null,
-    @JsonProperty("workingDays")       val workingDays      : List<String> = listOf("Sunday","Monday","Tuesday","Wednesday","Thursday"),
-    @JsonProperty("workingHoursStart") val workingHoursStart: String      = "08:00",
-    @JsonProperty("workingHoursEnd")   val workingHoursEnd  : String      = "14:00",
-    @JsonProperty("vaccinationDays")   val vaccinationDays  : List<String> = listOf("Sunday","Tuesday","Thursday"),
-    @JsonProperty("type")              val type             : BenchType   = BenchType.PRIMARY_HEALTH_CENTER,
-    @JsonProperty("vaccinesAvailable") val vaccinesAvailable: List<String> = emptyList()
-)
-
-// ✅ FIXED — was missing @JsonCreator
-data class VaccinationBenchUpdateRequest @JsonCreator constructor(
-    @JsonProperty("nameEn")            val nameEn           : String?      = null,
-    @JsonProperty("nameAr")            val nameAr           : String?      = null,
-    @JsonProperty("phone")             val phone            : String?      = null,
-    @JsonProperty("workingDays")       val workingDays      : List<String>? = null,
-    @JsonProperty("workingHoursStart") val workingHoursStart: String?      = null,
-    @JsonProperty("workingHoursEnd")   val workingHoursEnd  : String?      = null,
-    @JsonProperty("vaccinationDays")   val vaccinationDays  : List<String>? = null,
-    @JsonProperty("vaccinesAvailable") val vaccinesAvailable: List<String>? = null,
-    @JsonProperty("isActive")          val isActive         : Boolean?     = null
-)
-
-// ============================================================
-// BABY BENCH ASSIGNMENT DTOs
-// ============================================================
-
-// ✅ Already correct — preserved unchanged
-data class BabyBenchAssignRequest @JsonCreator constructor(
-    @JsonProperty("babyId")  @field:NotBlank(message = "Baby ID is required")  val babyId : String,
-    @JsonProperty("benchId") @field:NotBlank(message = "Bench ID is required") val benchId: String,
-    @JsonProperty("notes")   val notes: String? = null
-)
-
-// Response DTO — no @JsonCreator needed
-data class BabyBenchAssignmentResponse(
-    val assignmentId: String,
-    val babyId      : String,
-    val babyName    : String,
-    val benchId     : String,
-    val benchNameEn : String,
-    val benchNameAr : String,
-    val governorate : String,
-    val assignedAt  : String,    // String not LocalDateTime — avoids Jackson array bug
-    val isActive    : Boolean,
-    val notes       : String?    = null
-)
-
-// ============================================================
-// BENCH HOLIDAY DTOs
-// ============================================================
-
-// ✅ FIXED — was missing @JsonCreator
-data class BenchHolidayCreateRequest @JsonCreator constructor(
-    @JsonProperty("benchId")    val benchId    : String? = null,
-
-    @JsonProperty("holidayDate")
-    @field:NotNull(message = "Holiday date is required")
-    val holidayDate: LocalDate,
-
-    @JsonProperty("reason")
-    @field:NotBlank(message = "Reason is required")
-    val reason: String,
-
-    @JsonProperty("isNational") val isNational: Boolean = false
-)
-
-// Response DTO — no @JsonCreator needed
-data class BenchHolidayResponse(
-    val holidayId  : String,
-    val benchId    : String?        = null,
-    val benchNameEn: String?        = null,
-    val holidayDate: LocalDate,
-    val reason     : String,
-    val isNational : Boolean,
-    val createdAt  : LocalDateTime? = null
-)
-
-// ============================================================
-// VACCINATION SCHEDULE DTOs
-// ============================================================
-
-// Response DTO — no @JsonCreator needed
-data class VaccinationScheduleResponse(
-    val scheduleId          : String,
-    val babyId              : String,
-    val babyName            : String,
-    val benchId             : String,
-    val benchNameEn         : String,
-    val benchNameAr         : String,
-    val vaccineId           : Int,
-    val vaccineName         : String,
-    val vaccineNameAr       : String?    = null,
-    val vaccineNameKu       : String?    = null,
-    val vaccineNameCkb      : String?    = null,
-    val description         : String?    = null,
-    val descriptionAr       : String?    = null,
-    val descriptionKu       : String?    = null,
-    val descriptionCkb      : String?    = null,
-    val doseNumber          : Int,
-    val recommendedAgeMonths: Int,
-    val idealDate           : LocalDate,
-    val scheduledDate       : LocalDate,
-    val shiftReason         : ShiftReason,
-    val shiftDays           : Int,
-    val status              : ScheduleStatus,
-    val completedDate       : LocalDate? = null,
-    val completedByName     : String?    = null,
-    val isVisibleToParent   : Boolean,
-    val isVisibleToTeam     : Boolean,
-    val createdAt           : String?    = null,
-    val updatedAt           : String?    = null
-)
-
-// ✅ FIXED — was missing @JsonCreator
-data class VaccinationScheduleUpdateRequest @JsonCreator constructor(
-    @JsonProperty("status")            val status           : ScheduleStatus? = null,
-    @JsonProperty("completedDate")     val completedDate    : LocalDate?      = null,
-    @JsonProperty("completedByUserId") val completedByUserId: String?         = null,
-    @JsonProperty("vaccinationId")     val vaccinationId    : String?         = null,
-    @JsonProperty("notes")             val notes            : String?         = null
-)
-
-// Response DTO — no @JsonCreator needed
-data class BenchDayScheduleResponse(
-    val benchId    : String,
-    val benchNameEn: String,
-    val date       : LocalDate,
-    val totalBabies: Int,
-    val items      : List<VaccinationScheduleResponse>
-)
-
-// ============================================================
-// SCHEDULE ADJUSTMENT LOG DTOs
-// ============================================================
-
-// ✅ Already correct — preserved unchanged
-data class ScheduleAdjustmentRequest @JsonCreator constructor(
-    @JsonProperty("scheduleId") @field:NotBlank(message = "Schedule ID is required") val scheduleId: String,
-    @JsonProperty("newDate")    @field:NotNull(message = "New date is required")     val newDate   : LocalDate,
-    @JsonProperty("reason")     @field:NotNull(message = "Reason is required")       val reason    : AdjustmentReason,
-    @JsonProperty("notes")      val notes: String? = null
-)
-
-// Response DTO — no @JsonCreator needed
-data class ScheduleAdjustmentLogResponse(
-    val logId          : String,
-    val scheduleId     : String,
-    val babyId         : String,
-    val babyName       : String,
-    val oldDate        : LocalDate,
-    val newDate        : LocalDate,
-    val reason         : AdjustmentReason,
-    val notes          : String?       = null,
-    val adjustedByName : String?       = null,
-    val adjustedAt     : LocalDateTime
+    // ── Team member info ───────────────────────────────────────────────────
+    // Included in the response so the mobile app knows which team member
+    // manages this bench (for routing bench requests correctly).
+    val teamMemberId       : String?  = null,
+    val teamMemberName     : String?  = null,
+    val teamMemberEmail    : String?  = null
 )
