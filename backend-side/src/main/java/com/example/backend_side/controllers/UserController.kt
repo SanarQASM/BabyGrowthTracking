@@ -22,51 +22,22 @@ class UserController(
     private val prefsRepository: com.example.backend_side.repositories.UserNotificationPreferencesRepository
 ) {
 
-    /**
-     * FIX: PageResponse deserialization error on the client side.
-     *
-     * BUG: The client's PageResponse data class uses Jackson to deserialize the
-     * response. Spring's Page<T>.map{} produces a JSON object whose pagination
-     * fields are named "number" and "size" (Spring defaults), but the client DTO
-     * has fields named "pageNumber" and "pageSize". This mismatch caused:
-     *
-     *   "Illegal input: Fields [size, number] are required for type with serial name
-     *    'org.example.project...PageResponse', but they were missing at path: $.data"
-     *
-     * FIX: Build the PageResponse manually using the backend's own PageResponse DTO
-     * (which already has pageNumber / pageSize field names) so the serialised JSON
-     * always contains those exact field names. This keeps backend ↔ client in sync.
-     *
-     * Default page size raised to 200 to match AdminViewModel.loadDashboardData()
-     * which calls getAllUsers(page=0, size=200).
-     */
     @GetMapping
     fun getAllUsers(
         @RequestParam(defaultValue = "0")   page: Int,
         @RequestParam(defaultValue = "200") size: Int
     ): ResponseEntity<ApiResponse<PageResponse<UserResponse>>> {
-
         val pageable   = PageRequest.of(page, size, Sort.by("fullName").ascending())
         val resultPage = userRepository.findAll(pageable)
-
-        // Build the DTO explicitly so field names match what the Kotlin client expects:
-        //   pageNumber, pageSize, totalElements, totalPages, isLast, content
         val pageResponse = PageResponse(
             content       = resultPage.content.map { it.toResponse() },
-            pageNumber    = resultPage.number,          // "pageNumber" in JSON ✓
-            pageSize      = resultPage.size,            // "pageSize"   in JSON ✓
+            pageNumber    = resultPage.number,
+            pageSize      = resultPage.size,
             totalElements = resultPage.totalElements,
             totalPages    = resultPage.totalPages,
             isLast        = resultPage.isLast
         )
-
-        return ResponseEntity.ok(
-            ApiResponse(
-                success = true,
-                message = "Users retrieved",
-                data    = pageResponse
-            )
-        )
+        return ResponseEntity.ok(ApiResponse(true, "Users retrieved", pageResponse))
     }
 
     @GetMapping("/{userId}")
@@ -80,6 +51,22 @@ class UserController(
         userRepository.findByEmail(email)
             .map { ResponseEntity.ok(ApiResponse(true, "User found", it.toResponse())) }
             .orElse(ResponseEntity.notFound().build())
+
+    // FIX ADDED: GET /v1/users/by-role/{role}
+    // Previously missing — client's ApiService.getUsersByRole() calls this endpoint.
+    // Without it every call to load team members in AdminBenchesScreen returned 404.
+    @GetMapping("/by-role/{role}")
+    fun getUsersByRole(
+        @PathVariable role: String
+    ): ResponseEntity<ApiResponse<List<UserResponse>>> {
+        val userRole = runCatching {
+            UserRole.valueOf(role.uppercase())
+        }.getOrElse {
+            throw BadRequestException("Invalid role '$role'. Valid values: PARENT, ADMIN, VACCINATION_TEAM")
+        }
+        val users = userRepository.findByRole(userRole).map { it.toResponse() }
+        return ResponseEntity.ok(ApiResponse(true, "Users retrieved", users))
+    }
 
     @PutMapping("/{userId}")
     fun updateUser(
@@ -108,21 +95,32 @@ class UserController(
             ResponseEntity.notFound().build()
         }
 
-    // ── Mapper ───────────────────────────────────────────────────────────────
+    // FIX ADDED: PATCH /v1/users/{userId}/deactivate
+    // Client calls apiService.deactivateUser(userId) which maps to this path.
+    // Previously missing — caused 404 on every deactivate attempt.
+    @PatchMapping("/{userId}/deactivate")
+    @Transactional
+    fun deactivateUser(@PathVariable userId: String): ResponseEntity<ApiResponse<UserResponse>> {
+        val user = userRepository.findById(userId)
+            .orElseThrow { ResourceNotFoundException("User not found: $userId") }
+        user.isActive = false
+        val saved = userRepository.save(user)
+        return ResponseEntity.ok(ApiResponse(true, "User deactivated", saved.toResponse()))
+    }
 
-    private fun User.toResponse() = UserResponse(
-        userId          = userId,
-        fullName        = fullName,
-        email           = email,
-        phone           = phone,
-        address         = address,
-        city            = city,
-        profileImageUrl = profileImageUrl,
-        role            = role,
-        isActive        = isActive,
-        createdAt       = createdAt,
-        updatedAt       = updatedAt
-    )
+    // FIX ADDED: PATCH /v1/users/{userId}/activate
+    // Client calls apiService.activateUser(userId) which maps to this path.
+    // Previously missing — caused 404 on every activate attempt.
+    @PatchMapping("/{userId}/activate")
+    @Transactional
+    fun activateUser(@PathVariable userId: String): ResponseEntity<ApiResponse<UserResponse>> {
+        val user = userRepository.findById(userId)
+            .orElseThrow { ResourceNotFoundException("User not found: $userId") }
+        user.isActive = true
+        val saved = userRepository.save(user)
+        return ResponseEntity.ok(ApiResponse(true, "User activated", saved.toResponse()))
+    }
+
     @PostMapping
     @Transactional
     fun createUser(
@@ -149,7 +147,6 @@ class UserController(
         )
         val saved = userRepository.save(user)
 
-        // Always create preferences row together with the user
         if (!prefsRepository.existsByUserId(saved.userId)) {
             prefsRepository.save(UserNotificationPreferences(userId = saved.userId))
         }
@@ -157,4 +154,18 @@ class UserController(
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse(true, "User created successfully", saved.toResponse()))
     }
+
+    private fun User.toResponse() = UserResponse(
+        userId          = userId,
+        fullName        = fullName,
+        email           = email,
+        phone           = phone,
+        address         = address,
+        city            = city,
+        profileImageUrl = profileImageUrl,
+        role            = role,
+        isActive        = isActive,
+        createdAt       = createdAt,
+        updatedAt       = updatedAt
+    )
 }

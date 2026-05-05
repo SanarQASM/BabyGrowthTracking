@@ -1,5 +1,3 @@
-// File: composeApp/src/commonMain/kotlin/org/example/project/babygrowthtrackingapplication/admin/AdminCreateTeamMemberScreen.kt
-
 package org.example.project.babygrowthtrackingapplication.admin
 
 import androidx.compose.animation.core.*
@@ -27,29 +25,15 @@ import androidx.compose.ui.text.input.*
 import androidx.compose.ui.text.style.TextAlign
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 import babygrowthtrackingapplication.composeapp.generated.resources.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.example.project.babygrowthtrackingapplication.data.network.ApiResult
 import org.example.project.babygrowthtrackingapplication.data.network.ApiService
+import org.example.project.babygrowthtrackingapplication.data.network.UserResponse
 import org.example.project.babygrowthtrackingapplication.theme.*
 import org.example.project.babygrowthtrackingapplication.ui.components.GlassmorphicTextField
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 
-// ─────────────────────────────────────────────────────────────────────────────
-// AdminCreateTeamMemberScreen
-//
-// Allows admin to create a new vaccination_team account.
-// All attributes match what the signup flow captures:
-//   fullName, email, password, confirmPassword, phone, city, address
-//
-// Uses the same glassmorphic field style as the rest of the auth/admin screens.
-// No hardcoded values — all dims from LocalDimensions, colours from theme.
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ── Lightweight local UI state for this form ──────────────────────────────────
 private data class CreateTeamMemberFormState(
     val fullName             : String  = "",
     val email                : String  = "",
@@ -63,13 +47,23 @@ private data class CreateTeamMemberFormState(
     val isLoading            : Boolean = false,
     val isSuccess            : Boolean = false,
     val errorMessage         : String? = null,
+    // FIX: store the created user so it can be passed to onCreated callback
+    val createdUser          : UserResponse? = null,
 )
 
+// ─────────────────────────────────────────────────────────────────────────────
+// FIX: onCreated signature changed from () -> Unit to (UserResponse) -> Unit.
+// Previously the created user was discarded, making viewModel.onTeamMemberCreated
+// unreachable (dead code). Now the UserResponse is passed through so:
+//  1. AdminViewModel.onTeamMemberCreated() can do an optimistic list update
+//  2. AdminHomeScreen can navigate to AssignBench(newMember) immediately
+// ─────────────────────────────────────────────────────────────────────────────
 @Composable
 fun AdminCreateTeamMemberScreen(
     apiService  : ApiService,
     onBackClick : () -> Unit,
-    onCreated   : () -> Unit,
+    // FIX: was () -> Unit — now (UserResponse) -> Unit to propagate created user
+    onCreated   : (UserResponse) -> Unit,
     modifier    : Modifier = Modifier,
 ) {
     val dimensions   = LocalDimensions.current
@@ -80,16 +74,23 @@ fun AdminCreateTeamMemberScreen(
     var form by remember { mutableStateOf(CreateTeamMemberFormState()) }
     var animationStarted by remember { mutableStateOf(false) }
 
+    // FIX: use rememberCoroutineScope() instead of creating a new
+    // CoroutineScope(Dispatchers.Main) on every submit tap.
+    // The remembered scope is tied to the composable lifecycle and is
+    // cancelled automatically when the composable leaves composition,
+    // preventing coroutine leaks when the user navigates away mid-request.
+    val scope = rememberCoroutineScope()
+
     LaunchedEffect(Unit) {
-        delay(80)
+        kotlinx.coroutines.delay(80)
         animationStarted = true
     }
 
-    // ── Navigate away after success ────────────────────────────────────────
+    // FIX: navigate with the created user when success flag is set
     LaunchedEffect(form.isSuccess) {
         if (form.isSuccess) {
-            delay(700)
-            onCreated()
+            kotlinx.coroutines.delay(700)
+            form.createdUser?.let { onCreated(it) }
         }
     }
 
@@ -104,12 +105,10 @@ fun AdminCreateTeamMemberScreen(
         label         = "alpha"
     )
 
-    // ── Submit ─────────────────────────────────────────────────────────────
+    // FIX: submit now uses the remembered scope (bound to composable lifecycle)
+    // and stores the created UserResponse in form.createdUser for propagation.
     fun submit() {
-        // Launch the coroutine immediately to handle both suspendable string fetching and the API call
-        CoroutineScope(Dispatchers.Main).launch {
-
-            // 1. Perform validation using suspendable getString() instead of @Composable stringResource()
+        scope.launch {
             val error = when {
                 form.fullName.isBlank()               -> getString(Res.string.signup_error_full_name_required)
                 form.email.isBlank()                  -> getString(Res.string.signup_error_email_required)
@@ -121,13 +120,11 @@ fun AdminCreateTeamMemberScreen(
                 else                                  -> null
             }
 
-            // 2. Halt if validation fails
             if (error != null) {
                 form = form.copy(errorMessage = error)
                 return@launch
             }
 
-            // 3. Proceed with API call
             form = form.copy(isLoading = true, errorMessage = null)
 
             val result = apiService.createTeamMember(
@@ -138,14 +135,23 @@ fun AdminCreateTeamMemberScreen(
                 city     = form.city.trim().ifBlank { null },
                 address  = form.address.trim().ifBlank { null },
             )
+
             form = when (result) {
-                is ApiResult.Success -> form.copy(isLoading = false, isSuccess = true)
-                is ApiResult.Error   -> form.copy(isLoading = false, errorMessage = result.message)
-                else                 -> form.copy(isLoading = false)
+                is ApiResult.Success -> form.copy(
+                    isLoading   = false,
+                    isSuccess   = true,
+                    // FIX: store the created UserResponse so LaunchedEffect can pass it
+                    createdUser = result.data
+                )
+                is ApiResult.Error  -> form.copy(
+                    isLoading    = false,
+                    errorMessage = result.message
+                )
+                else -> form.copy(isLoading = false)
             }
         }
     }
-    // ── UI ─────────────────────────────────────────────────────────────────
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -206,7 +212,7 @@ fun AdminCreateTeamMemberScreen(
 
         Spacer(Modifier.height(dimensions.spacingLarge))
 
-        // ── Form card ──────────────────────────────────────────────────────
+        // Form card
         Card(
             modifier  = Modifier
                 .widthIn(max = dimensions.authCardMaxWidth)
@@ -223,10 +229,8 @@ fun AdminCreateTeamMemberScreen(
                     .padding(dimensions.spacingLarge),
                 verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
             ) {
-                // Section: Personal Info
                 AdminSectionHeader(title = stringResource(Res.string.admin_team_section_personal))
 
-                // Full Name
                 GlassmorphicTextField(
                     value           = form.fullName,
                     onValueChange   = { form = form.copy(fullName = it, errorMessage = null) },
@@ -236,17 +240,11 @@ fun AdminCreateTeamMemberScreen(
                         Icon(Icons.Default.Person, null,
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                     },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        imeAction    = ImeAction.Next
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                    ),
-                    modifier = Modifier.fillMaxWidth()
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                    modifier        = Modifier.fillMaxWidth()
                 )
 
-                // Email
                 GlassmorphicTextField(
                     value           = form.email,
                     onValueChange   = { form = form.copy(email = it, errorMessage = null) },
@@ -256,17 +254,11 @@ fun AdminCreateTeamMemberScreen(
                         Icon(Icons.Default.Email, null,
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                     },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Email,
-                        imeAction    = ImeAction.Next
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                    ),
-                    modifier = Modifier.fillMaxWidth()
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                    modifier        = Modifier.fillMaxWidth()
                 )
 
-                // Phone (optional)
                 GlassmorphicTextField(
                     value           = form.phone,
                     onValueChange   = { form = form.copy(phone = it) },
@@ -276,17 +268,11 @@ fun AdminCreateTeamMemberScreen(
                         Icon(Icons.Default.Phone, null,
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                     },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Phone,
-                        imeAction    = ImeAction.Next
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                    ),
-                    modifier = Modifier.fillMaxWidth()
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                    modifier        = Modifier.fillMaxWidth()
                 )
 
-                // City (optional)
                 GlassmorphicTextField(
                     value           = form.city,
                     onValueChange   = { form = form.copy(city = it) },
@@ -296,17 +282,11 @@ fun AdminCreateTeamMemberScreen(
                         Icon(Icons.Default.LocationCity, null,
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                     },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        imeAction    = ImeAction.Next
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                    ),
-                    modifier = Modifier.fillMaxWidth()
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                    modifier        = Modifier.fillMaxWidth()
                 )
 
-                // Address (optional)
                 GlassmorphicTextField(
                     value           = form.address,
                     onValueChange   = { form = form.copy(address = it) },
@@ -316,20 +296,13 @@ fun AdminCreateTeamMemberScreen(
                         Icon(Icons.Default.Home, null,
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                     },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        imeAction    = ImeAction.Next
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                    ),
-                    modifier = Modifier.fillMaxWidth()
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Next),
+                    keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
+                    modifier        = Modifier.fillMaxWidth()
                 )
 
-                // Section: Credentials
                 AdminSectionHeader(title = stringResource(Res.string.admin_team_section_credentials))
 
-                // Password
                 GlassmorphicTextField(
                     value                = form.password,
                     onValueChange        = { form = form.copy(password = it, errorMessage = null) },
@@ -354,17 +327,11 @@ fun AdminCreateTeamMemberScreen(
                     },
                     visualTransformation = if (form.passwordVisible) VisualTransformation.None
                     else PasswordVisualTransformation(),
-                    keyboardOptions      = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction    = ImeAction.Next
-                    ),
-                    keyboardActions      = KeyboardActions(
-                        onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                    ),
+                    keyboardOptions      = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
+                    keyboardActions      = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) }),
                     modifier             = Modifier.fillMaxWidth()
                 )
 
-                // Confirm Password
                 GlassmorphicTextField(
                     value                = form.confirmPassword,
                     onValueChange        = { form = form.copy(confirmPassword = it, errorMessage = null) },
@@ -375,9 +342,9 @@ fun AdminCreateTeamMemberScreen(
                             tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
                     },
                     trailingIcon         = {
-                        IconButton(
-                            onClick = { form = form.copy(confirmPasswordVisible = !form.confirmPasswordVisible) }
-                        ) {
+                        IconButton(onClick = {
+                            form = form.copy(confirmPasswordVisible = !form.confirmPasswordVisible)
+                        }) {
                             Icon(
                                 imageVector = if (form.confirmPasswordVisible) Icons.Default.Visibility
                                 else Icons.Default.VisibilityOff,
@@ -391,13 +358,8 @@ fun AdminCreateTeamMemberScreen(
                     },
                     visualTransformation = if (form.confirmPasswordVisible) VisualTransformation.None
                     else PasswordVisualTransformation(),
-                    keyboardOptions      = KeyboardOptions(
-                        keyboardType = KeyboardType.Password,
-                        imeAction    = ImeAction.Done
-                    ),
-                    keyboardActions      = KeyboardActions(
-                        onDone = { focusManager.clearFocus(); submit() }
-                    ),
+                    keyboardOptions      = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+                    keyboardActions      = KeyboardActions(onDone = { focusManager.clearFocus(); submit() }),
                     modifier             = Modifier.fillMaxWidth()
                 )
 
@@ -472,9 +434,9 @@ fun AdminCreateTeamMemberScreen(
                                 modifier           = Modifier.size(dimensions.iconSmall)
                             )
                             Text(
-                                text  = stringResource(Res.string.admin_team_created_success),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.secondary,
+                                text       = stringResource(Res.string.admin_team_created_success),
+                                style      = MaterialTheme.typography.bodySmall,
+                                color      = MaterialTheme.colorScheme.secondary,
                                 fontWeight = FontWeight.Medium
                             )
                         }

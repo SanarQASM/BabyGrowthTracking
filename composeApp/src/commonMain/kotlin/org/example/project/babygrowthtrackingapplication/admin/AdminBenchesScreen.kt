@@ -1,14 +1,3 @@
-// File: composeApp/src/commonMain/kotlin/org/example/project/babygrowthtrackingapplication/admin/AdminBenchesScreen.kt
-//
-// KEY CHANGES:
-//  1. Lat/Lng now come from an interactive map picker (LeafletMapPicker WebView widget)
-//     instead of manual text fields — admin taps on a map to place a pin.
-//  2. "Working days" and "vaccination days" are now multi-select checkboxes,
-//     not raw comma-string text fields.  They are sent as List<String>.
-//  3. The create form includes an optional "Team Member" dropdown so the admin
-//     can link a team member to the bench on creation — no separate step needed.
-//  4. The bench card shows the assigned team member's name.
-
 package org.example.project.babygrowthtrackingapplication.admin
 
 import androidx.compose.foundation.layout.*
@@ -28,45 +17,89 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 import babygrowthtrackingapplication.composeapp.generated.resources.*
+import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.VaccinationBenchUi
 import org.example.project.babygrowthtrackingapplication.data.network.ApiResult
 import org.example.project.babygrowthtrackingapplication.data.network.ApiService
 import org.example.project.babygrowthtrackingapplication.data.network.UserResponse
+// FIX: was importing VaccinationBenchUi from the wrong package
+// (com.babygrowth.presentation.screens.home.model). The canonical definition
+// lives in data.network — that is the type ApiService.getAllBenches() returns.
+import org.example.project.babygrowthtrackingapplication.data.network.VaccinationBenchUi
 import org.example.project.babygrowthtrackingapplication.theme.LocalDimensions
 import org.example.project.babygrowthtrackingapplication.theme.customColors
 import org.jetbrains.compose.resources.stringResource
-import androidx.compose.runtime.rememberCoroutineScope
+import kotlin.math.pow
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Form state for creating a bench
-// ─────────────────────────────────────────────────────────────────────────────
-
-private val ALL_DAYS = listOf("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
+private val ALL_DAYS = listOf(
+    "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+)
 
 private data class AddBenchFormState(
-    val nameEn            : String            = "",
-    val nameAr            : String            = "",
-    val governorate       : String            = "",
-    val district          : String            = "",
-    val addressEn         : String            = "",
-    val phone             : String            = "",
-    val latitude          : Double?           = null,
-    val longitude         : Double?           = null,
-    // Multi-select — stored as Set<String>
+    val nameEn                  : String      = "",
+    val nameAr                  : String      = "",
+    val governorate             : String      = "",
+    val district                : String      = "",
+    val addressEn               : String      = "",
+    val phone                   : String      = "",
+    val latitude                : Double?     = null,
+    val longitude               : Double?     = null,
     val selectedWorkingDays     : Set<String> = setOf("Sunday","Monday","Tuesday","Wednesday","Thursday"),
     val selectedVaccinationDays : Set<String> = setOf("Sunday","Tuesday","Thursday"),
-    val workingHoursStart : String            = "08:00",
-    val workingHoursEnd   : String            = "14:00",
-    val vaccinesText      : String            = "",   // comma-separated vaccine names
-    // Optional: link team member on creation
-    val teamMemberId      : String?           = null,
-    val teamMemberName    : String            = "",
-    val error             : String?           = null,
-    val showTeamDropdown  : Boolean           = false,
-    // Map picker state
-    val showMapPicker     : Boolean           = false
+    val workingHoursStart       : String      = "08:00",
+    val workingHoursEnd         : String      = "14:00",
+    val vaccinesText            : String      = "",
+    val teamMemberId            : String?     = null,
+    val teamMemberName          : String      = "",
+    val error                   : String?     = null,
+    val showTeamDropdown        : Boolean     = false,
+    val showMapPicker           : Boolean     = false,
 )
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CreateBenchFormRequest — plain data class (not @Serializable itself;
+// ApiService converts it to the internal @Serializable CreateBenchRequest).
+// ─────────────────────────────────────────────────────────────────────────────
+data class CreateBenchFormRequest(
+    val nameEn            : String,
+    val nameAr            : String,
+    val governorate       : String,
+    val district          : String,
+    val addressEn         : String,
+    val latitude          : Double,
+    val longitude         : Double,
+    val phone             : String,
+    val workingDays       : List<String>,
+    val vaccinationDays   : List<String>,
+    val workingHoursStart : String,
+    val workingHoursEnd   : String,
+    val vaccinesAvailable : List<String>,
+    val teamMemberId      : String? = null,
+)
+
+// ─────────────────────────────────────────────────────────────────────────────
+// KMP-safe coordinate formatter
+// FIX: String.format() / "%.4f".format() is JVM-only and unresolved in KMP.
+// roundTo(4) from kotlin.math rounds to 4 decimal places; we build the string
+// manually so it compiles on all KMP targets (Android, iOS, Desktop).
+// ─────────────────────────────────────────────────────────────────────────────
+private fun Double.toCoordString(decimals: Int = 4): String {
+    val factor = 10.0.pow(decimals)
+    val rounded = kotlin.math.round(this * factor) / factor
+    // Convert to string and pad/trim to exactly `decimals` decimal places.
+    val raw = rounded.toString()
+    val dotIndex = raw.indexOf('.')
+    return if (dotIndex < 0) {
+        raw + "." + "0".repeat(decimals)
+    } else {
+        val currentDecimals = raw.length - dotIndex - 1
+        when {
+            currentDecimals < decimals -> raw + "0".repeat(decimals - currentDecimals)
+            currentDecimals > decimals -> raw.substring(0, dotIndex + decimals + 1)
+            else                       -> raw
+        }
+    }
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AdminBenchesScreen
@@ -75,13 +108,15 @@ private data class AddBenchFormState(
 @Composable
 fun AdminBenchesScreen(
     apiService : ApiService,
-    modifier   : Modifier = Modifier
+    modifier   : Modifier = Modifier,
 ) {
     val dimensions        = LocalDimensions.current
     val customColors      = MaterialTheme.customColors
     val scope             = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
+    // FIX: VaccinationBenchUi now resolves to data.network.VaccinationBenchUi,
+    // matching the return type of ApiService.getAllBenches(). No more type mismatch.
     var benches       by remember { mutableStateOf<List<VaccinationBenchUi>>(emptyList()) }
     var teamMembers   by remember { mutableStateOf<List<UserResponse>>(emptyList()) }
     var isLoading     by remember { mutableStateOf(true) }
@@ -98,14 +133,16 @@ fun AdminBenchesScreen(
         }
     }
 
-    // Load benches and team members together
     LaunchedEffect(Unit) {
         isLoading = true
-        val benchResult = apiService.getAllBenches()
-        if (benchResult is ApiResult.Success) benches = benchResult.data
+        val benchDeferred = scope.async { apiService.getAllBenches() }
+        val teamDeferred  = scope.async { apiService.getUsersByRole("VACCINATION_TEAM") }
 
-        val usersResult = apiService.getUsersByRole("VACCINATION_TEAM")
-        if (usersResult is ApiResult.Success) teamMembers = usersResult.data
+        val benchResult = benchDeferred.await()
+        val teamResult  = teamDeferred.await()
+
+        if (benchResult is ApiResult.Success) benches     = benchResult.data
+        if (teamResult  is ApiResult.Success) teamMembers = teamResult.data
 
         isLoading = false
     }
@@ -114,12 +151,12 @@ fun AdminBenchesScreen(
         snackMsg?.let { snackbarHostState.showSnackbar(it); snackMsg = null }
     }
 
-    // ── Delete confirmation ────────────────────────────────────────────────
+    // Delete confirmation
     pendingDelete?.let { bench ->
         AdminConfirmDialog(
-            title        = stringResource(Res.string.admin_bench_delete_title),
-            message      = stringResource(Res.string.admin_bench_delete_message, bench.nameEn),
-            confirmLabel = stringResource(Res.string.admin_action_delete),
+            title        = "Deactivate Health Center",
+            message      = "Deactivate ${bench.nameEn}? It will no longer appear to parents. You can reactivate it later.",
+            confirmLabel = "Deactivate",
             onConfirm    = {
                 scope.launch {
                     apiService.deactivateBench(bench.benchId)
@@ -132,7 +169,7 @@ fun AdminBenchesScreen(
         )
     }
 
-    // ── Add bench dialog ───────────────────────────────────────────────────
+    // Add bench dialog
     if (showAddDialog) {
         AddBenchDialog(
             teamMembers = teamMembers,
@@ -154,11 +191,11 @@ fun AdminBenchesScreen(
                         workingHoursEnd   = state.workingHoursEnd,
                         vaccinesAvailable = state.vaccinesText
                             .split(",").map { it.trim() }.filter { it.isNotBlank() },
-                        teamMemberId      = state.teamMemberId
+                        teamMemberId      = state.teamMemberId,
                     )
-                    apiService.createBench(req)
-                    snackMsg = "Bench created"
-                    loadBenches()
+                    val result = apiService.createBench(req)
+                    snackMsg = if (result is ApiResult.Success) "Bench created" else "Failed to create bench"
+                    if (result is ApiResult.Success) loadBenches()
                 }
                 showAddDialog = false
             }
@@ -210,7 +247,7 @@ fun AdminBenchesScreen(
             )
 
             when {
-                isLoading -> {
+                isLoading    -> {
                     Box(Modifier.fillMaxSize(), Alignment.Center) {
                         CircularProgressIndicator(color = customColors.accentGradientStart)
                     }
@@ -241,11 +278,14 @@ fun AdminBenchesScreen(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Bench card — now shows team member
+// Bench card
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
-private fun AdminBenchCard(bench: VaccinationBenchUi, onDelete: () -> Unit) {
+private fun AdminBenchCard(
+    bench    : VaccinationBenchUi,
+    onDelete : () -> Unit,
+) {
     val dimensions = LocalDimensions.current
 
     Card(
@@ -281,10 +321,9 @@ private fun AdminBenchCard(bench: VaccinationBenchUi, onDelete: () -> Unit) {
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
                 )
 
-                // ── Location from map picker ────────────────────────────────
                 if (bench.latitude != 0.0 || bench.longitude != 0.0) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalAlignment     = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
                     ) {
                         Icon(
@@ -293,8 +332,10 @@ private fun AdminBenchCard(bench: VaccinationBenchUi, onDelete: () -> Unit) {
                             tint     = MaterialTheme.customColors.accentGradientStart,
                             modifier = Modifier.size(dimensions.iconSmall)
                         )
+                        // FIX: replaced "%.4f".format(...) with toCoordString()
+                        // "%.4f".format() is JVM-only; toCoordString() works on all KMP targets.
                         Text(
-                            text  = "%.4f, %.4f".format(bench.latitude, bench.longitude),
+                            text  = "${bench.latitude.toCoordString()}, ${bench.longitude.toCoordString()}",
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
                         )
@@ -309,13 +350,20 @@ private fun AdminBenchCard(bench: VaccinationBenchUi, onDelete: () -> Unit) {
                         color = MaterialTheme.customColors.accentGradientStart
                     )
                     if (!bench.isActive) {
-                        AdminStatusBadge(label = "Inactive", color = MaterialTheme.colorScheme.error)
+                        AdminStatusBadge(
+                            label = "Inactive",
+                            color = MaterialTheme.colorScheme.error
+                        )
                     }
                 }
 
-                // ── Team member badge ───────────────────────────────────────
-                bench.teamMemberName?.let { name ->
-                    Spacer(Modifier.height(dimensions.spacingXSmall))
+                // FIX: was bench.teamMemberName?.let { ... } ?: run { ... } which failed
+                // type-inference ("Cannot infer type for R/T", "Inapplicable ELVIS_CALL")
+                // because the two branches returned incompatible inferred types.
+                // Replaced with an explicit if/else block — no ambiguity for the compiler.
+                Spacer(Modifier.height(dimensions.spacingXSmall))
+                val memberName: String? = bench.teamMemberName
+                if (memberName != null) {
                     Row(
                         verticalAlignment     = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
@@ -327,13 +375,12 @@ private fun AdminBenchCard(bench: VaccinationBenchUi, onDelete: () -> Unit) {
                             modifier = Modifier.size(dimensions.iconSmall)
                         )
                         Text(
-                            text  = name,
+                            text  = memberName,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.customColors.accentGradientEnd
                         )
                     }
-                } ?: run {
-                    Spacer(Modifier.height(dimensions.spacingXSmall))
+                } else {
                     Text(
                         text  = "⚠ No team member assigned",
                         style = MaterialTheme.typography.labelSmall,
@@ -354,22 +401,22 @@ private fun AdminBenchCard(bench: VaccinationBenchUi, onDelete: () -> Unit) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// AddBenchDialog — with map picker + multi-select days + team member dropdown
+// AddBenchDialog
 // ─────────────────────────────────────────────────────────────────────────────
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun AddBenchDialog(
     teamMembers : List<UserResponse>,
     onDismiss   : () -> Unit,
-    onSave      : (AddBenchFormState) -> Unit
+    onSave      : (AddBenchFormState) -> Unit,
 ) {
     val dimensions = LocalDimensions.current
     var form by remember { mutableStateOf(AddBenchFormState()) }
 
-    // ── Map picker dialog ──────────────────────────────────────────────────
     if (form.showMapPicker) {
         LatLngPickerDialog(
-            initialLat = form.latitude ?: 36.19,
+            initialLat = form.latitude  ?: 36.19,
             initialLng = form.longitude ?: 44.01,
             onConfirm  = { lat, lng ->
                 form = form.copy(latitude = lat, longitude = lng, showMapPicker = false)
@@ -393,22 +440,21 @@ private fun AddBenchDialog(
                     .verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
             ) {
-                // ── Basic info ─────────────────────────────────────────────
-                BenchTextField(form.nameEn,       { form = form.copy(nameEn = it) },       stringResource(Res.string.admin_bench_field_name_en),    required = true)
-                BenchTextField(form.nameAr,       { form = form.copy(nameAr = it) },       stringResource(Res.string.admin_bench_field_name_ar),    required = true)
-                BenchTextField(form.governorate,  { form = form.copy(governorate = it) },  stringResource(Res.string.admin_bench_field_governorate), required = true)
-                BenchTextField(form.district,     { form = form.copy(district = it) },     stringResource(Res.string.admin_bench_field_district))
-                BenchTextField(form.addressEn,    { form = form.copy(addressEn = it) },    stringResource(Res.string.admin_bench_field_address_en))
-                BenchTextField(form.phone,        { form = form.copy(phone = it) },        stringResource(Res.string.admin_bench_field_phone))
+                BenchTextField(form.nameEn,      { form = form.copy(nameEn = it) },      stringResource(Res.string.admin_bench_field_name_en),     required = true)
+                BenchTextField(form.nameAr,      { form = form.copy(nameAr = it) },      stringResource(Res.string.admin_bench_field_name_ar),     required = true)
+                BenchTextField(form.governorate, { form = form.copy(governorate = it) }, stringResource(Res.string.admin_bench_field_governorate), required = true)
+                BenchTextField(form.district,    { form = form.copy(district = it) },    stringResource(Res.string.admin_bench_field_district))
+                BenchTextField(form.addressEn,   { form = form.copy(addressEn = it) },   stringResource(Res.string.admin_bench_field_address_en))
+                BenchTextField(form.phone,       { form = form.copy(phone = it) },       stringResource(Res.string.admin_bench_field_phone))
 
-                // ── Location — map picker button ───────────────────────────
+                // Location picker
                 Text(
                     text  = "Location *",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
                 OutlinedButton(
-                    onClick = { form = form.copy(showMapPicker = true) },
+                    onClick  = { form = form.copy(showMapPicker = true) },
                     modifier = Modifier.fillMaxWidth(),
                     shape    = RoundedCornerShape(dimensions.buttonCornerRadius),
                     colors   = ButtonDefaults.outlinedButtonColors(
@@ -417,38 +463,37 @@ private fun AddBenchDialog(
                 ) {
                     Icon(
                         Icons.Default.LocationOn,
-                        contentDescription = null,
+                        null,
                         modifier = Modifier.size(dimensions.iconSmall)
                     )
                     Spacer(Modifier.width(dimensions.spacingXSmall))
-                    Text(
-                        text = if (form.latitude != null && form.longitude != null)
-                            "📍 %.4f, %.4f".format(form.latitude, form.longitude)
-                        else
-                            "Tap to pick location on map",
-                        style = MaterialTheme.typography.bodySmall
-                    )
+                    // FIX: replaced "%.4f".format(...) with toCoordString() — KMP safe.
+                    val locationLabel = if (form.latitude != null && form.longitude != null)
+                        "📍 ${form.latitude!!.toCoordString()}, ${form.longitude!!.toCoordString()}"
+                    else
+                        "Tap to pick location on map"
+                    Text(text = locationLabel, style = MaterialTheme.typography.bodySmall)
                 }
 
-                // ── Working hours ──────────────────────────────────────────
+                // Working hours
                 Row(horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
                     BenchTextField(
-                        form.workingHoursStart,
-                        { form = form.copy(workingHoursStart = it) },
-                        "Hours Start",
+                        value    = form.workingHoursStart,
+                        onChange = { form = form.copy(workingHoursStart = it) },
+                        label    = "Hours Start",
                         modifier = Modifier.weight(1f)
                     )
                     BenchTextField(
-                        form.workingHoursEnd,
-                        { form = form.copy(workingHoursEnd = it) },
-                        "Hours End",
+                        value    = form.workingHoursEnd,
+                        onChange = { form = form.copy(workingHoursEnd = it) },
+                        label    = "Hours End",
                         modifier = Modifier.weight(1f)
                     )
                 }
 
-                // ── Working days multi-select ──────────────────────────────
+                // Working days
                 Text(
-                    text  = "Working Days",
+                    "Working Days",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
@@ -464,9 +509,9 @@ private fun AddBenchDialog(
                     }
                 )
 
-                // ── Vaccination days multi-select ──────────────────────────
+                // Vaccination days
                 Text(
-                    text  = "Vaccination Days",
+                    "Vaccination Days",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
@@ -482,16 +527,15 @@ private fun AddBenchDialog(
                     }
                 )
 
-                // ── Vaccines ───────────────────────────────────────────────
                 BenchTextField(
-                    form.vaccinesText,
-                    { form = form.copy(vaccinesText = it) },
-                    stringResource(Res.string.admin_bench_field_vaccines)
+                    value    = form.vaccinesText,
+                    onChange = { form = form.copy(vaccinesText = it) },
+                    label    = stringResource(Res.string.admin_bench_field_vaccines)
                 )
 
-                // ── Team member dropdown ───────────────────────────────────
+                // Team member dropdown
                 Text(
-                    text  = "Assign Team Member (optional)",
+                    "Assign Team Member (optional)",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
@@ -500,16 +544,16 @@ private fun AddBenchDialog(
                     onExpandedChange = { form = form.copy(showTeamDropdown = !form.showTeamDropdown) }
                 ) {
                     OutlinedTextField(
-                        value          = form.teamMemberName.ifBlank { "None" },
-                        onValueChange  = {},
-                        readOnly       = true,
-                        label          = { Text("Team Member") },
-                        trailingIcon   = { ExposedDropdownMenuDefaults.TrailingIcon(form.showTeamDropdown) },
-                        modifier       = Modifier
+                        value         = form.teamMemberName.ifBlank { "None" },
+                        onValueChange = {},
+                        readOnly      = true,
+                        label         = { Text("Team Member") },
+                        trailingIcon  = { ExposedDropdownMenuDefaults.TrailingIcon(form.showTeamDropdown) },
+                        modifier      = Modifier
                             .fillMaxWidth()
                             .menuAnchor(),
-                        shape          = RoundedCornerShape(dimensions.buttonCornerRadius),
-                        colors         = OutlinedTextFieldDefaults.colors(
+                        shape  = RoundedCornerShape(dimensions.buttonCornerRadius),
+                        colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = MaterialTheme.customColors.accentGradientStart
                         )
                     )
@@ -542,9 +586,12 @@ private fun AddBenchDialog(
                     }
                 }
 
-                // ── Error ──────────────────────────────────────────────────
                 form.error?.let {
-                    Text(text = it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                    Text(
+                        text  = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
             }
         },
@@ -579,31 +626,32 @@ private fun AddBenchDialog(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DayMultiSelect — chip row for selecting days
+// DayMultiSelect
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun DayMultiSelect(
-    selectedDays: Set<String>,
-    onToggle    : (String) -> Unit
+    selectedDays : Set<String>,
+    onToggle     : (String) -> Unit,
 ) {
     val dimensions = LocalDimensions.current
-    // 3-letter abbreviations for display
     val abbrevs = mapOf(
-        "Sunday" to "Sun", "Monday" to "Mon", "Tuesday" to "Tue",
-        "Wednesday" to "Wed", "Thursday" to "Thu", "Friday" to "Fri", "Saturday" to "Sat"
+        "Sunday"    to "Sun", "Monday" to "Mon", "Tuesday"   to "Tue",
+        "Wednesday" to "Wed", "Thursday" to "Thu", "Friday"  to "Fri",
+        "Saturday"  to "Sat"
     )
-    androidx.compose.foundation.layout.FlowRow(
+    FlowRow(
         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall),
         verticalArrangement   = Arrangement.spacedBy(dimensions.spacingXSmall)
     ) {
         ALL_DAYS.forEach { day ->
-            val selected = day in selectedDays
             FilterChip(
-                selected = selected,
+                selected = day in selectedDays,
                 onClick  = { onToggle(day) },
-                label    = { Text(abbrevs[day] ?: day, style = MaterialTheme.typography.labelSmall) },
-                colors   = FilterChipDefaults.filterChipColors(
+                label    = {
+                    Text(abbrevs[day] ?: day, style = MaterialTheme.typography.labelSmall)
+                },
+                colors = FilterChipDefaults.filterChipColors(
                     selectedContainerColor = MaterialTheme.customColors.accentGradientStart,
                     selectedLabelColor     = MaterialTheme.colorScheme.onPrimary
                 )
@@ -613,23 +661,19 @@ private fun DayMultiSelect(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// LatLngPickerDialog — shows a simple coordinate picker
-// On Android/iOS with WebView available you'd embed a Leaflet/Google map.
-// Here we use a clean manual entry as fallback with a "search by address" hint.
-// In production, replace the body with a WebView loading:
-//   https://leafletjs.com demo that posts back {lat,lng} via JS bridge.
+// LatLngPickerDialog
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 fun LatLngPickerDialog(
-    initialLat: Double,
-    initialLng: Double,
-    onConfirm : (Double, Double) -> Unit,
-    onDismiss : () -> Unit
+    initialLat : Double,
+    initialLng : Double,
+    onConfirm  : (Double, Double) -> Unit,
+    onDismiss  : () -> Unit,
 ) {
     val dimensions = LocalDimensions.current
-    var latText by remember { mutableStateOf(if (initialLat != 36.19) "%.6f".format(initialLat) else "") }
-    var lngText by remember { mutableStateOf(if (initialLng != 44.01) "%.6f".format(initialLng) else "") }
+    var latText by remember { mutableStateOf(if (initialLat != 36.19) initialLat.toCoordString(6) else "") }
+    var lngText by remember { mutableStateOf(if (initialLng != 44.01) initialLng.toCoordString(6) else "") }
     var error   by remember { mutableStateOf<String?>(null) }
 
     AlertDialog(
@@ -643,27 +687,25 @@ fun LatLngPickerDialog(
             )
         },
         title = { Text("Pick Location", fontWeight = FontWeight.Bold) },
-        text = {
+        text  = {
             Column(verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
-                // Instruction banner
                 Surface(
                     shape = RoundedCornerShape(dimensions.cardCornerRadius),
                     color = MaterialTheme.customColors.accentGradientStart.copy(alpha = 0.08f)
                 ) {
                     Row(
-                        modifier          = Modifier.padding(dimensions.spacingSmall),
-                        verticalAlignment = Alignment.CenterVertically,
+                        modifier              = Modifier.padding(dimensions.spacingSmall),
+                        verticalAlignment     = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
                     ) {
                         Icon(
                             Icons.Default.Info,
-                            contentDescription = null,
+                            null,
                             tint     = MaterialTheme.customColors.accentGradientStart,
                             modifier = Modifier.size(dimensions.iconSmall)
                         )
                         Text(
-                            text  = "Enter the GPS coordinates of the health center. " +
-                                    "You can find them on Google Maps by long-pressing the location.",
+                            text  = "Enter GPS coordinates. Find them on Google Maps by long-pressing the location.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.customColors.accentGradientStart
                         )
@@ -676,31 +718,44 @@ fun LatLngPickerDialog(
                     label         = { Text("Latitude  (e.g. 36.1911)") },
                     singleLine    = true,
                     leadingIcon   = {
-                        Icon(Icons.Default.LocationOn, null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                        Icon(
+                            Icons.Default.LocationOn,
+                            null,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        )
                     },
-                    modifier      = Modifier.fillMaxWidth(),
-                    shape         = RoundedCornerShape(dimensions.buttonCornerRadius),
-                    colors        = OutlinedTextFieldDefaults.colors(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape    = RoundedCornerShape(dimensions.buttonCornerRadius),
+                    colors   = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.customColors.accentGradientStart
                     )
                 )
+
                 OutlinedTextField(
                     value         = lngText,
                     onValueChange = { lngText = it; error = null },
                     label         = { Text("Longitude (e.g. 44.0127)") },
                     singleLine    = true,
                     leadingIcon   = {
-                        Icon(Icons.Default.LocationOn, null, tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
+                        Icon(
+                            Icons.Default.LocationOn,
+                            null,
+                            tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                        )
                     },
-                    modifier      = Modifier.fillMaxWidth(),
-                    shape         = RoundedCornerShape(dimensions.buttonCornerRadius),
-                    colors        = OutlinedTextFieldDefaults.colors(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape    = RoundedCornerShape(dimensions.buttonCornerRadius),
+                    colors   = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = MaterialTheme.customColors.accentGradientStart
                     )
                 )
 
                 error?.let {
-                    Text(text = it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                    Text(
+                        text  = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
             }
         },
@@ -710,13 +765,10 @@ fun LatLngPickerDialog(
                     val lat = latText.toDoubleOrNull()
                     val lng = lngText.toDoubleOrNull()
                     when {
-                        lat == null || lng == null ->
-                            error = "Please enter valid numeric coordinates"
-                        lat !in -90.0..90.0 ->
-                            error = "Latitude must be between -90 and 90"
-                        lng !in -180.0..180.0 ->
-                            error = "Longitude must be between -180 and 180"
-                        else -> onConfirm(lat, lng)
+                        lat == null || lng == null -> error = "Please enter valid numeric coordinates"
+                        lat !in -90.0..90.0        -> error = "Latitude must be between -90 and 90"
+                        lng !in -180.0..180.0      -> error = "Longitude must be between -180 and 180"
+                        else                       -> onConfirm(lat, lng)
                     }
                 },
                 colors = ButtonDefaults.buttonColors(
@@ -729,34 +781,15 @@ fun LatLngPickerDialog(
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(Res.string.btn_cancel)) }
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(Res.string.btn_cancel))
+            }
         }
     )
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// CreateBenchFormRequest — updated model with proper List<String> and lat/lng Double
-// ─────────────────────────────────────────────────────────────────────────────
-
-data class CreateBenchFormRequest(
-    val nameEn            : String,
-    val nameAr            : String,
-    val governorate       : String,
-    val district          : String,
-    val addressEn         : String,
-    val latitude          : Double,          // ← Double from map picker (not String)
-    val longitude         : Double,          // ← Double from map picker (not String)
-    val phone             : String,
-    val workingDays       : List<String>,    // ← List<String>, not comma-string
-    val vaccinationDays   : List<String>,    // ← List<String>, not comma-string
-    val workingHoursStart : String,
-    val workingHoursEnd   : String,
-    val vaccinesAvailable : List<String>,    // ← List<String>
-    val teamMemberId      : String? = null   // ← NEW: optional team member link
-)
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Helper composable — reusable text field for the bench form
+// BenchTextField — reusable helper
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -765,7 +798,7 @@ private fun BenchTextField(
     onChange : (String) -> Unit,
     label    : String,
     required : Boolean  = false,
-    modifier : Modifier = Modifier.fillMaxWidth()
+    modifier : Modifier = Modifier.fillMaxWidth(),
 ) {
     val dimensions = LocalDimensions.current
     OutlinedTextField(

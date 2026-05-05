@@ -7,8 +7,15 @@ import androidx.compose.runtime.*
 import kotlinx.coroutines.*
 import org.example.project.babygrowthtrackingapplication.data.network.ApiResult
 import org.example.project.babygrowthtrackingapplication.data.network.ApiService
+import org.example.project.babygrowthtrackingapplication.data.network.AppointmentUi
+import org.example.project.babygrowthtrackingapplication.data.network.BabyBenchAssignmentUi
 import org.example.project.babygrowthtrackingapplication.data.network.BabyResponse
+import org.example.project.babygrowthtrackingapplication.data.network.BenchRequestStatusUi
 import org.example.project.babygrowthtrackingapplication.data.network.BenchRequestUi
+import org.example.project.babygrowthtrackingapplication.data.network.HealthIssueUi
+import org.example.project.babygrowthtrackingapplication.data.network.RescheduleResultUi
+import org.example.project.babygrowthtrackingapplication.data.network.VaccinationBenchUi
+import org.example.project.babygrowthtrackingapplication.data.network.VaccinationScheduleUi
 import org.example.project.babygrowthtrackingapplication.data.network.toUi
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -22,7 +29,7 @@ data class HealthRecordUiState(
 
     // Branch assignment (per child)
     val assignment        : BabyBenchAssignmentUi? = null,
-    val assignmentLoading : Boolean               = false,
+    val assignmentLoading : Boolean                = false,
 
     // ── BENCH REQUEST FLOW ───────────────────────────────────────────────────
     /** Active pending or accepted request for the selected baby. */
@@ -67,8 +74,8 @@ data class HealthRecordUiState(
     val successMessage: String? = null,
 
     // ── RESCHEDULE ─────────────────────────────────────────────────────────
-    val showRescheduleReasonPicker: Boolean          = false,
-    val rescheduleInProgress      : Boolean          = false,
+    val showRescheduleReasonPicker: Boolean             = false,
+    val rescheduleInProgress      : Boolean             = false,
     val rescheduleResult          : RescheduleResultUi? = null,
 
     // Add dialogs
@@ -88,10 +95,10 @@ val HealthRecordUiState.isConnectedToBench: Boolean
     get() = assignment != null
 
 val HealthRecordUiState.hasPendingRequest: Boolean
-    get() = activeBenchRequest?.status == org.example.project.babygrowthtrackingapplication.data.network.BenchRequestStatusUi.PENDING
+    get() = activeBenchRequest?.status == BenchRequestStatusUi.PENDING
 
 val HealthRecordUiState.hasRejectedRequest: Boolean
-    get() = activeBenchRequest?.status == org.example.project.babygrowthtrackingapplication.data.network.BenchRequestStatusUi.REJECTED
+    get() = activeBenchRequest?.status == BenchRequestStatusUi.REJECTED
 
 // ─────────────────────────────────────────────────────────────────────────────
 // ViewModel
@@ -182,9 +189,9 @@ class HealthRecordViewModel(
                 when (result) {
                     is ApiResult.Success -> {
                         uiState = uiState.copy(
-                            activeBenchRequest  = result.data.toUi(),
+                            activeBenchRequest     = result.data.toUi(),
                             benchRequestSubmitting = false,
-                            successMessage      = "request_sent"  // localised in UI
+                            successMessage         = "request_sent"  // localised in UI
                         )
                     }
                     is ApiResult.Error -> uiState = uiState.copy(

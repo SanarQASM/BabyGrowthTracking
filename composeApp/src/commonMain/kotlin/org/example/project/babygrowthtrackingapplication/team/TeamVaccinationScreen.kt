@@ -1,5 +1,3 @@
-// File: composeApp/src/commonMain/kotlin/org/example/project/babygrowthtrackingapplication/team/TeamVaccinationScreen.kt
-
 package org.example.project.babygrowthtrackingapplication.team
 
 import androidx.compose.animation.*
@@ -7,7 +5,7 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -34,17 +32,30 @@ fun TeamVaccinationScreen(
     val customColors = MaterialTheme.customColors
     val snackbar     = remember { SnackbarHostState() }
 
+    // FIX: getBenchId lambda now reads viewModel.uiState.benchId at call time,
+    // not a captured snapshot of state. Previously `getBenchId = { state.benchId }`
+    // captured the state value at composition time — when benchId loaded
+    // asynchronously it was still "" inside the lambda, causing
+    // getPendingRequestsForBench("") which errors silently.
     val requestsViewModel = remember {
         TeamRequestsViewModel(
             apiService = viewModel.apiService,
-            getBenchId = { state.benchId }
+            getBenchId = { viewModel.uiState.benchId }
         )
+    }
+
+    // FIX: dispose requestsViewModel coroutine scope when this composable leaves
+    // composition. Previously the scope was never cancelled — coroutine leak.
+    DisposableEffect(Unit) {
+        onDispose { requestsViewModel.onDestroy() }
     }
 
     var selectedTab      by remember { mutableStateOf(TeamTab.BABIES) }
     var selectedBaby     by remember { mutableStateOf<TeamBabyItem?>(null) }
     var showLogoutDialog by remember { mutableStateOf(false) }
 
+    // FIX: now also waits for benchId to be non-blank before loading requests,
+    // because requestsViewModel.getBenchId() correctly returns the latest value.
     LaunchedEffect(selectedTab, state.benchId) {
         if (selectedTab == TeamTab.REQUESTS && state.benchId.isNotBlank()) {
             requestsViewModel.loadRequests()
@@ -84,7 +95,9 @@ fun TeamVaccinationScreen(
                 ) { Text(stringResource(Res.string.settings_logout_confirm)) }
             },
             dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) { Text(stringResource(Res.string.btn_cancel)) }
+                TextButton(onClick = { showLogoutDialog = false }) {
+                    Text(stringResource(Res.string.btn_cancel))
+                }
             }
         )
     }
@@ -101,7 +114,11 @@ fun TeamVaccinationScreen(
         label = "team_detail_transition"
     ) { baby ->
         if (baby != null) {
-            TeamBabyDetailScreen(baby = baby, viewModel = viewModel, onBack = { selectedBaby = null })
+            TeamBabyDetailScreen(
+                baby      = baby,
+                viewModel = viewModel,
+                onBack    = { selectedBaby = null }
+            )
         } else {
             Scaffold(
                 snackbarHost   = { SnackbarHost(snackbar) },
@@ -127,17 +144,20 @@ fun TeamVaccinationScreen(
                                     .background(customColors.glassOverlay, CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(stringResource(Res.string.team_hospital_emoji), style = MaterialTheme.typography.titleLarge)
+                                Text(
+                                    stringResource(Res.string.team_hospital_emoji),
+                                    style = MaterialTheme.typography.titleLarge
+                                )
                             }
                             Spacer(Modifier.width(dimensions.spacingMedium))
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text     = state.benchName.ifBlank { stringResource(Res.string.team_bench_fallback) },
-                                    style    = MaterialTheme.typography.titleMedium,
+                                    text       = state.benchName.ifBlank { stringResource(Res.string.team_bench_fallback) },
+                                    style      = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
-                                    color    = MaterialTheme.colorScheme.onPrimary,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
+                                    color      = MaterialTheme.colorScheme.onPrimary,
+                                    maxLines   = 1,
+                                    overflow   = TextOverflow.Ellipsis
                                 )
                                 Text(
                                     text  = state.teamMemberName.ifBlank { stringResource(Res.string.team_member_fallback) },
@@ -158,18 +178,19 @@ fun TeamVaccinationScreen(
                                 }
                             }
 
+                            // FIX: was Icons.AutoMirrored.Filled.ArrowBack — semantically wrong for logout.
+                            // Back arrow implies navigation; logout needs a logout icon.
                             IconButton(onClick = { showLogoutDialog = true }) {
                                 Icon(
-                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    imageVector        = Icons.AutoMirrored.Filled.Logout,
                                     contentDescription = stringResource(Res.string.settings_logout),
-                                    tint = MaterialTheme.colorScheme.onPrimary
+                                    tint               = MaterialTheme.colorScheme.onPrimary
                                 )
                             }
                         }
                     }
 
-                    // ── "No bench assigned" full-screen state ─────────────────
-                    // Shown when the admin hasn't linked this team member to any bench yet.
+                    // ── Loading / no bench states ──────────────────────────────
                     if (state.benchLoading) {
                         Box(Modifier.fillMaxSize(), Alignment.Center) {
                             CircularProgressIndicator(color = customColors.accentGradientStart)
@@ -216,7 +237,8 @@ fun TeamVaccinationScreen(
                                 )
                                 val fgColor by animateColorAsState(
                                     if (isSelected) customColors.accentGradientStart
-                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f), label = "tab_fg"
+                                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+                                    label = "tab_fg"
                                 )
                                 Box(
                                     modifier = Modifier
@@ -230,7 +252,12 @@ fun TeamVaccinationScreen(
                                     BadgedBox(
                                         badge = {
                                             if (info.badgeCount > 0) {
-                                                Badge { Text("${info.badgeCount}", style = MaterialTheme.typography.labelSmall) }
+                                                Badge {
+                                                    Text(
+                                                        "${info.badgeCount}",
+                                                        style = MaterialTheme.typography.labelSmall
+                                                    )
+                                                }
                                             }
                                         }
                                     ) {
@@ -254,7 +281,10 @@ fun TeamVaccinationScreen(
 
                     // ── Tab content ───────────────────────────────────────────
                     when (selectedTab) {
-                        TeamTab.BABIES   -> TeamBabiesTab(viewModel = viewModel, onBabyClick = { selectedBaby = it })
+                        TeamTab.BABIES   -> TeamBabiesTab(
+                            viewModel  = viewModel,
+                            onBabyClick = { selectedBaby = it }
+                        )
                         TeamTab.SCHEDULE -> TeamScheduleTab(viewModel = viewModel)
                         TeamTab.REQUESTS -> TeamRequestsTab(viewModel = requestsViewModel)
                     }
@@ -266,9 +296,6 @@ fun TeamVaccinationScreen(
 
 // ─────────────────────────────────────────────────────────────────────────────
 // NoBenchAssignedState
-//
-// Shown when the logged-in team member has no bench linked to them yet.
-// Instructs them to contact the admin to assign them to a health center.
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable

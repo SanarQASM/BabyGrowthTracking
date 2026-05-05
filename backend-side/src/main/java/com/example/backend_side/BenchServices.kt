@@ -30,13 +30,11 @@ interface VaccinationBenchService {
     fun getAllBenches(): List<VaccinationBenchResponse>
     fun getBenchesByGovernorate(governorate: String): List<VaccinationBenchResponse>
     fun getBenchById(benchId: String): VaccinationBenchResponse
-    // NEW: find the bench managed by a specific team member
     fun getBenchByTeamMember(teamMemberId: String): VaccinationBenchResponse?
     fun searchBenches(query: String): List<VaccinationBenchResponse>
     fun getGovernorates(): List<String>
     fun createBench(request: VaccinationBenchCreateRequest): VaccinationBenchResponse
     fun updateBench(benchId: String, request: VaccinationBenchUpdateRequest): VaccinationBenchResponse
-    // NEW: assign a team member as manager of an existing bench
     fun assignTeamMember(benchId: String, teamMemberId: String): VaccinationBenchResponse
     fun deactivateBench(benchId: String)
     fun loadBenchesFromJson(benches: List<VaccinationBenchCreateRequest>): Int
@@ -46,24 +44,23 @@ interface VaccinationBenchService {
 @Transactional
 class VaccinationBenchServiceImpl(
     private val benchRepository: VaccinationBenchRepository,
-    // NEW: needed for team member lookup in assignTeamMember / createBench
     private val userRepository : UserRepository
 ) : VaccinationBenchService {
 
     override fun getAllBenches(): List<VaccinationBenchResponse> =
         benchRepository.findByIsActiveTrue().map { it.toResponse() }
 
+    // FIX: was findByGovernorateAndIsActiveTrue (exact case) — repository declares
+    // findByGovernorateIgnoreCaseAndIsActiveTrue. Calling the wrong name caused
+    // Spring Data JPA NoSuchMethodException at startup.
     override fun getBenchesByGovernorate(governorate: String): List<VaccinationBenchResponse> =
-        benchRepository.findByGovernorateAndIsActiveTrue(governorate).map { it.toResponse() }
+        benchRepository.findByGovernorateIgnoreCaseAndIsActiveTrue(governorate).map { it.toResponse() }
 
     override fun getBenchById(benchId: String): VaccinationBenchResponse =
         benchRepository.findById(benchId)
             .orElseThrow { ResourceNotFoundException("Bench not found: $benchId") }
             .toResponse()
 
-    // ── NEW ───────────────────────────────────────────────────────────────────
-    // Used by TeamVaccinationViewModel to resolve which bench belongs to
-    // the currently logged-in team member, instead of using getAllBenches().first().
     override fun getBenchByTeamMember(teamMemberId: String): VaccinationBenchResponse? =
         benchRepository.findByTeamMember_UserIdAndIsActiveTrue(teamMemberId)
             .map { it.toResponse() }
@@ -72,16 +69,12 @@ class VaccinationBenchServiceImpl(
     override fun searchBenches(query: String): List<VaccinationBenchResponse> =
         benchRepository.searchBenches(query).map { it.toResponse() }
 
+    // FIX: was benchRepository.findAllGovernorates() — repository declares findAllGovernorates()
+    // as a @Query alias. Both are now present in the repository to satisfy both call sites.
     override fun getGovernorates(): List<String> =
         benchRepository.findAllGovernorates()
 
-    // ── CREATE ────────────────────────────────────────────────────────────────
-    // FIX: accepts workingDays / vaccinationDays / vaccinesAvailable as
-    // List<String> from the request DTO — joins to comma string for DB storage.
-    // NEW: optional teamMemberId links the bench to a team member on creation.
     override fun createBench(request: VaccinationBenchCreateRequest): VaccinationBenchResponse {
-
-        // Resolve optional team member — validate role before saving
         val teamMember: User? = request.teamMemberId?.let { tmId ->
             val user = userRepository.findById(tmId)
                 .orElseThrow { ResourceNotFoundException("Team member not found: $tmId") }
@@ -102,39 +95,40 @@ class VaccinationBenchServiceImpl(
             latitude          = request.latitude,
             longitude         = request.longitude,
             phone             = request.phone,
-            // FIX: join List<String> → comma string for DB storage
             workingDays       = request.workingDays.joinToString(","),
             workingHoursStart = request.workingHoursStart,
             workingHoursEnd   = request.workingHoursEnd,
             vaccinationDays   = request.vaccinationDays.joinToString(","),
+            // FIX: request.type is now BenchType (was String) — assign directly
             type              = request.type,
             vaccinesAvailable = request.vaccinesAvailable.joinToString(","),
-            // NEW: link team member if provided
             teamMember        = teamMember
         )
         return benchRepository.save(bench).toResponse()
     }
 
-    // ── UPDATE ────────────────────────────────────────────────────────────────
-    // FIX: workingDays / vaccinationDays / vaccinesAvailable come in as
-    // List<String> and are joined to comma string before saving.
-    // NEW: teamMemberId can be updated to reassign the bench manager.
     override fun updateBench(benchId: String, request: VaccinationBenchUpdateRequest): VaccinationBenchResponse {
         val bench = benchRepository.findById(benchId)
             .orElseThrow { ResourceNotFoundException("Bench not found: $benchId") }
 
         request.nameEn?.let            { bench.nameEn            = it }
         request.nameAr?.let            { bench.nameAr            = it }
+        request.governorate?.let       { bench.governorate       = it }
+        request.district?.let          { bench.district          = it }
+        request.addressEn?.let         { bench.addressEn         = it }
+        request.addressAr?.let         { bench.addressAr         = it }
+        request.latitude?.let          { bench.latitude          = it }
+        request.longitude?.let         { bench.longitude         = it }
         request.phone?.let             { bench.phone             = it }
-        // FIX: joinToString converts List<String> to comma-separated DB value
         request.workingDays?.let       { bench.workingDays       = it.joinToString(",") }
         request.workingHoursStart?.let { bench.workingHoursStart = it }
         request.workingHoursEnd?.let   { bench.workingHoursEnd   = it }
         request.vaccinationDays?.let   { bench.vaccinationDays   = it.joinToString(",") }
         request.vaccinesAvailable?.let { bench.vaccinesAvailable = it.joinToString(",") }
         request.isActive?.let          { bench.isActive          = it }
+        // FIX: request.type is now BenchType? — assign directly
+        request.type?.let              { bench.type              = it }
 
-        // NEW: update team member assignment if provided
         request.teamMemberId?.let { tmId ->
             val user = userRepository.findById(tmId)
                 .orElseThrow { ResourceNotFoundException("Team member not found: $tmId") }
@@ -147,10 +141,6 @@ class VaccinationBenchServiceImpl(
         return benchRepository.save(bench).toResponse()
     }
 
-    // ── NEW: ASSIGN TEAM MEMBER ────────────────────────────────────────────────
-    // Dedicated endpoint for assigning a team member to an existing bench.
-    // Admin uses this after creating a bench and a team member separately,
-    // or via the "Assign Bench" screen shown right after team member creation.
     override fun assignTeamMember(benchId: String, teamMemberId: String): VaccinationBenchResponse {
         val bench = benchRepository.findById(benchId)
             .orElseThrow { ResourceNotFoundException("Bench not found: $benchId") }
@@ -175,7 +165,7 @@ class VaccinationBenchServiceImpl(
     override fun loadBenchesFromJson(benches: List<VaccinationBenchCreateRequest>): Int {
         var loaded = 0
         for (request in benches) {
-            // Skip if a bench with this nameEn already exists (simple dedup)
+            // FIX: existsByNameEn is now declared in VaccinationBenchRepository
             if (benchRepository.existsByNameEn(request.nameEn)) continue
             val bench = VaccinationBench(
                 benchId           = UUID.randomUUID().toString(),
@@ -192,9 +182,9 @@ class VaccinationBenchServiceImpl(
                 workingHoursStart = request.workingHoursStart,
                 workingHoursEnd   = request.workingHoursEnd,
                 vaccinationDays   = request.vaccinationDays.joinToString(","),
+                // FIX: request.type is now BenchType
                 type              = request.type,
                 vaccinesAvailable = request.vaccinesAvailable.joinToString(",")
-                // No teamMember on bulk JSON import — assign manually after
             )
             benchRepository.save(bench)
             loaded++
@@ -202,11 +192,7 @@ class VaccinationBenchServiceImpl(
         return loaded
     }
 
-    // ── toResponse ────────────────────────────────────────────────────────────
-    // FIX: uses getWorkingDaysList() / getVaccinationDaysList() / getVaccinesAvailableList()
-    // which split the comma string back into List<String> — the API always
-    // returns List<String>, never a raw comma string.
-    // NEW: includes teamMemberId / teamMemberName / teamMemberEmail.
+    // FIX: toResponse now includes type as String (enum name) and createdAt
     private fun VaccinationBench.toResponse() = VaccinationBenchResponse(
         benchId           = benchId,
         nameEn            = nameEn,
@@ -218,15 +204,13 @@ class VaccinationBenchServiceImpl(
         latitude          = latitude,
         longitude         = longitude,
         phone             = phone,
-        // FIX: always return List<String> — never a raw comma string
         workingDays       = getWorkingDaysList(),
         workingHoursStart = workingHoursStart,
         workingHoursEnd   = workingHoursEnd,
         vaccinationDays   = getVaccinationDaysList(),
-        type              = type,
+        type              = type.name,
         vaccinesAvailable = getVaccinesAvailableList(),
         isActive          = isActive,
-        // NEW: team member fields — null when no team member is assigned yet
         teamMemberId      = teamMember?.userId,
         teamMemberName    = teamMember?.fullName,
         teamMemberEmail   = teamMember?.email,
@@ -235,7 +219,7 @@ class VaccinationBenchServiceImpl(
 }
 
 // ============================================================
-// BABY BENCH ASSIGNMENT SERVICE  (unchanged from original)
+// BABY BENCH ASSIGNMENT SERVICE
 // ============================================================
 
 interface BabyBenchAssignmentService {
@@ -267,7 +251,6 @@ class BabyBenchAssignmentServiceImpl(
         val assignedBy = userRepository.findById(assignedByUserId)
             .orElseThrow { ResourceNotFoundException("User not found: $assignedByUserId") }
 
-        // Deactivate existing active assignment
         assignmentRepository.findByBaby_BabyIdAndIsActiveTrue(request.babyId).ifPresent { old ->
             old.isActive = false
             assignmentRepository.save(old)
@@ -285,7 +268,6 @@ class BabyBenchAssignmentServiceImpl(
         val saved = assignmentRepository.save(assignment)
         logger.info { "Assigned bench ${bench.benchId} to baby ${baby.babyId}" }
 
-        // Generate schedule AFTER assignment is saved
         scheduleGeneratorService.generateScheduleForBaby(baby, bench)
 
         return saved.toResponse()
@@ -323,7 +305,7 @@ class BabyBenchAssignmentServiceImpl(
 }
 
 // ============================================================
-// BENCH HOLIDAY SERVICE  (unchanged from original)
+// BENCH HOLIDAY SERVICE
 // ============================================================
 
 interface BenchHolidayService {
@@ -381,7 +363,7 @@ class BenchHolidayServiceImpl(
 }
 
 // ============================================================
-// SCHEDULE GENERATOR SERVICE  (unchanged from original — already correct)
+// SCHEDULE GENERATOR SERVICE
 // ============================================================
 
 interface ScheduleGeneratorService {
@@ -406,7 +388,7 @@ class ScheduleGeneratorServiceImpl(
 
         if (allVaccines.isEmpty()) {
             logger.error {
-                "❌ vaccine_types table is EMPTY — cannot generate schedule for baby ${baby.babyId}."
+                "vaccine_types table is EMPTY — cannot generate schedule for baby ${baby.babyId}."
             }
             return
         }
@@ -461,7 +443,7 @@ class ScheduleGeneratorServiceImpl(
                 ))
             }
         }
-        logger.info { "✅ Schedule generation complete — created $created schedules for baby ${baby.babyId}" }
+        logger.info { "Schedule generation complete — created $created schedules for baby ${baby.babyId}" }
     }
 
     override fun regenerateScheduleOnBenchChange(babyId: String, newBench: VaccinationBench) {
@@ -510,8 +492,6 @@ class ScheduleGeneratorServiceImpl(
             scheduleRepository.save(schedule)
         }
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private fun computeStatus(scheduledDate: LocalDate): ScheduleStatus {
         val today = LocalDate.now()
@@ -583,7 +563,7 @@ class ScheduleGeneratorServiceImpl(
 }
 
 // ============================================================
-// VACCINATION SCHEDULE SERVICE  (unchanged from original)
+// VACCINATION SCHEDULE SERVICE
 // ============================================================
 
 interface VaccinationScheduleService {

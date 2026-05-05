@@ -1,5 +1,3 @@
-// composeApp/src/commonMain/kotlin/org/example/project/babygrowthtrackingapplication/team/TeamScheduleTab.kt
-
 package org.example.project.babygrowthtrackingapplication.team
 
 import androidx.compose.foundation.*
@@ -14,17 +12,18 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.*
-import androidx.compose.ui.unit.dp
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 import babygrowthtrackingapplication.composeapp.generated.resources.*
+import kotlinx.datetime.Instant
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.number
+import kotlinx.datetime.toLocalDateTime
 import org.example.project.babygrowthtrackingapplication.theme.*
 import org.jetbrains.compose.resources.stringResource
+import kotlin.time.ExperimentalTime
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Schedule Tab — Daily vaccination schedule view
-// ─────────────────────────────────────────────────────────────────────────────
-
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalTime::class)
 @Composable
 fun TeamScheduleTab(viewModel: TeamVaccinationViewModel) {
     val state        = viewModel.uiState
@@ -40,9 +39,15 @@ fun TeamScheduleTab(viewModel: TeamVaccinationViewModel) {
             confirmButton = {
                 TextButton(onClick = {
                     datePickerState.selectedDateMillis?.let { ms ->
-                        val days = (ms / 86_400_000L).toInt()
-                        val d    = kotlinx.datetime.LocalDate.fromEpochDays(days)
-                        val iso  = "${d.year}-${d.monthNumber.toString().padStart(2, '0')}-${d.dayOfMonth.toString().padStart(2, '0')}"
+                        // FIX: was ms / 86_400_000L which gives UTC date and can be
+                        // off by one day for timezones behind UTC. Now uses
+                        // Instant → LocalDateTime conversion respecting device timezone.
+                        val localDate = Instant.fromEpochMilliseconds(ms)
+                            .toLocalDateTime(TimeZone.currentSystemDefault())
+                            .date
+                        val iso = "${localDate.year}-${
+                            localDate.month.number.toString().padStart(2, '0')
+                        }-${localDate.day.toString().padStart(2, '0')}"
                         viewModel.onDateSelected(iso)
                     }
                     showDatePicker = false
@@ -169,7 +174,9 @@ fun TeamScheduleTab(viewModel: TeamVaccinationViewModel) {
                         ScheduleItemCard(
                             item         = item,
                             onMarkDone   = { viewModel.openCompleteDialog(item.scheduleId) },
-                            onMarkMissed = { viewModel.markAsMissed(item.scheduleId) },
+                            // FIX: pass babyId explicitly so markAsMissed can
+                            // refresh the schedule tab even without a detail baby set
+                            onMarkMissed = { viewModel.markAsMissed(item.scheduleId, item.babyId) },
                             customColors = customColors,
                             dimensions   = dimensions
                         )
@@ -217,8 +224,17 @@ private fun ScheduleSummaryChip(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(emoji, style = MaterialTheme.typography.bodyMedium)
-            Text(text = value, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = color)
-            Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f))
+            Text(
+                text       = value,
+                style      = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color      = color
+            )
+            Text(
+                text  = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
+            )
         }
     }
 }
@@ -236,7 +252,8 @@ private fun ScheduleItemCard(
     dimensions  : Dimensions
 ) {
     val isFemale    = item.gender.equals("GIRL", ignoreCase = true)
-    val genderEmoji = if (isFemale) stringResource(Res.string.team_emoji_girl) else stringResource(Res.string.team_emoji_boy)
+    val genderEmoji = if (isFemale) stringResource(Res.string.team_emoji_girl)
+    else          stringResource(Res.string.team_emoji_boy)
     val isCompleted = item.status == "COMPLETED"
     val isMissed    = item.status == "MISSED"
     val isDone      = isCompleted || isMissed
@@ -260,11 +277,14 @@ private fun ScheduleItemCard(
         modifier  = Modifier.fillMaxWidth(),
         shape     = RoundedCornerShape(dimensions.cardCornerRadius),
         colors    = CardDefaults.cardColors(
-            containerColor = if (isDone) MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)
-            else MaterialTheme.colorScheme.surface
+            containerColor = if (isDone)
+                MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)
+            else
+                MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isDone) dimensions.cardElevationSmall * 0f else dimensions.cardElevationSmall
+            defaultElevation = if (isDone) dimensions.cardElevationSmall * 0f
+            else        dimensions.cardElevationSmall
         )
     ) {
         Column(
@@ -293,7 +313,7 @@ private fun ScheduleItemCard(
                         style      = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                         color      = if (isDone) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                        else MaterialTheme.colorScheme.onSurface,
+                        else        MaterialTheme.colorScheme.onSurface,
                         maxLines   = 1,
                         overflow   = TextOverflow.Ellipsis
                     )
@@ -336,7 +356,7 @@ private fun ScheduleItemCard(
                     style      = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
                     color      = if (isDone) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                    else MaterialTheme.colorScheme.onSurface,
+                    else        MaterialTheme.colorScheme.onSurface,
                     modifier   = Modifier.weight(1f)
                 )
                 Text(
@@ -408,38 +428,49 @@ private fun CompleteVaccinationDialog(
         },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
+                // FIX: was `{ onChange { it.copy(administeredDate = it.administeredDate) } }`
+                // which copied the OLD value back, making the date field read-only.
+                // Now correctly propagates the user's new input value `v`.
                 OutlinedTextField(
                     value         = form.administeredDate,
-                    onValueChange = { onChange { it.copy(administeredDate = it.administeredDate) } },
+                    onValueChange = { v -> onChange { f -> f.copy(administeredDate = v) } },
                     label         = { Text(stringResource(Res.string.team_field_date_hint)) },
                     singleLine    = true,
                     modifier      = Modifier.fillMaxWidth(),
-                    colors        = OutlinedTextFieldDefaults.colors(focusedBorderColor = customColors.accentGradientStart)
+                    colors        = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = customColors.accentGradientStart
+                    )
                 )
                 OutlinedTextField(
                     value         = form.batchNumber,
-                    onValueChange = { onChange { f -> f.copy(batchNumber = it) } },
+                    onValueChange = { v -> onChange { f -> f.copy(batchNumber = v) } },
                     label         = { Text(stringResource(Res.string.team_field_batch)) },
                     singleLine    = true,
                     modifier      = Modifier.fillMaxWidth(),
-                    colors        = OutlinedTextFieldDefaults.colors(focusedBorderColor = customColors.accentGradientStart)
+                    colors        = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = customColors.accentGradientStart
+                    )
                 )
                 OutlinedTextField(
                     value         = form.location,
-                    onValueChange = { onChange { f -> f.copy(location = it) } },
+                    onValueChange = { v -> onChange { f -> f.copy(location = v) } },
                     label         = { Text(stringResource(Res.string.team_field_location)) },
                     singleLine    = true,
                     modifier      = Modifier.fillMaxWidth(),
-                    colors        = OutlinedTextFieldDefaults.colors(focusedBorderColor = customColors.accentGradientStart)
+                    colors        = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = customColors.accentGradientStart
+                    )
                 )
                 OutlinedTextField(
                     value         = form.notes,
-                    onValueChange = { onChange { f -> f.copy(notes = it) } },
+                    onValueChange = { v -> onChange { f -> f.copy(notes = v) } },
                     label         = { Text(stringResource(Res.string.team_field_notes)) },
                     singleLine    = false,
                     maxLines      = 3,
                     modifier      = Modifier.fillMaxWidth(),
-                    colors        = OutlinedTextFieldDefaults.colors(focusedBorderColor = customColors.accentGradientStart)
+                    colors        = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = customColors.accentGradientStart
+                    )
                 )
             }
         },

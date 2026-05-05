@@ -29,7 +29,7 @@ data class BenchRequestCreateRequest @JsonCreator constructor(
 )
 
 data class BenchRequestReviewRequest @JsonCreator constructor(
-    @JsonProperty("action")       val action      : String,  // "accept" or "reject"
+    @JsonProperty("action")       val action      : String,
     @JsonProperty("rejectReason") val rejectReason: String? = null
 )
 
@@ -47,10 +47,6 @@ data class BenchRequestResponse(
     val reviewedByName : String?  = null,
     val reviewedAt     : String?  = null,
     val createdAt      : String?  = null,
-
-    // ── NEW: expose which team member manages the target bench ─────────────
-    // The mobile app uses this to display "Your request has been sent to
-    // [teamMemberName] at [benchNameEn]" — makes the flow transparent.
     val teamMemberId   : String?  = null,
     val teamMemberName : String?  = null
 )
@@ -91,8 +87,6 @@ class BenchRequestServiceImpl(
             throw BadRequestException("Baby already has an active bench request. Cancel it first.")
         }
 
-        // Guard: the bench must have a team member assigned — otherwise
-        // no one can review the request.
         if (bench.teamMember == null) {
             throw BadRequestException(
                 "This health center has no assigned vaccination team yet. " +
@@ -139,7 +133,6 @@ class BenchRequestServiceImpl(
             throw BadRequestException("Request is already ${benchRequest.status.name.lowercase()}")
         }
 
-        // Verify the reviewer is the team member assigned to this bench
         val assignedTeamMemberId = benchRequest.bench?.teamMember?.userId
         if (assignedTeamMemberId != null && assignedTeamMemberId != reviewerId) {
             throw ForbiddenException("Only the team member assigned to this bench can review requests")
@@ -169,8 +162,17 @@ class BenchRequestServiceImpl(
                 )
                 assignmentRepository.save(assignment)
 
-                // Generate vaccination schedule
-                scheduleGeneratorService.generateScheduleForBaby(benchRequest.baby!!, benchRequest.bench!!)
+                // FIX: check if existing schedules point to a different bench.
+                // If so, regenerate (update bench + recalculate dates) rather than
+                // blindly generating new rows on top of old ones.
+                // generateScheduleForBaby already skips vaccines that exist — but
+                // existing schedules still point to the OLD bench. We must update them.
+                val newBench = benchRequest.bench!!
+                scheduleGeneratorService.regenerateScheduleOnBenchChange(
+                    benchRequest.baby!!.babyId, newBench
+                )
+                // Then generate any NEW vaccine rows not yet scheduled
+                scheduleGeneratorService.generateScheduleForBaby(benchRequest.baby!!, newBench)
             }
             "reject" -> {
                 if (rejectReason.isNullOrBlank()) throw BadRequestException("Reject reason is required")
@@ -271,9 +273,6 @@ class BenchRequestController(
     ): ResponseEntity<ApiResponse<List<BenchRequestResponse>>> =
         ResponseEntity.ok(ApiResponse(true, "All requests retrieved", benchRequestService.getRequestsForBench(benchId)))
 
-    // ── Review: accept or reject ───────────────────────────────────────────
-    // Only the team member assigned to the bench can review.
-    // The service validates this internally.
     @PutMapping("/{requestId}/review")
     @Operation(summary = "Team vaccination reviews (accepts or rejects) a request")
     fun reviewRequest(

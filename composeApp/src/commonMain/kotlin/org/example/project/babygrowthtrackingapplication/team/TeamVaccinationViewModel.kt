@@ -1,14 +1,15 @@
-// composeApp/src/commonMain/kotlin/org/example/project/babygrowthtrackingapplication/team/TeamVaccinationViewModel.kt
-
 package org.example.project.babygrowthtrackingapplication.team
 
 import androidx.compose.runtime.*
 import kotlinx.coroutines.*
 import kotlinx.datetime.*
-import kotlinx.datetime.number
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.data.PreferencesManager
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.*
-import org.example.project.babygrowthtrackingapplication.data.network.*
+import org.example.project.babygrowthtrackingapplication.data.network.ApiResult
+import org.example.project.babygrowthtrackingapplication.data.network.ApiService
+import org.example.project.babygrowthtrackingapplication.data.network.BabyBenchAssignmentUi
+import org.example.project.babygrowthtrackingapplication.data.network.CreateGrowthRecordRequest
+import org.example.project.babygrowthtrackingapplication.data.network.GrowthRecordResponse
+import org.example.project.babygrowthtrackingapplication.data.network.VaccinationScheduleUi
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
@@ -55,6 +56,17 @@ data class CompleteVaccinationForm(
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
+// FIX: Declare TeamVaccinationFilter locally instead of importing
+// org.example.project.babygrowthtrackingapplication.data.network.VaccinationFilter
+// or org.example.project.babygrowthtrackingapplication.com.babygrowth...VaccinationFilter.
+// Both those imports caused "Overload resolution ambiguity" at lines 79 & 384
+// because the compiler found two VaccinationFilter types in scope and couldn't
+// pick one for the default parameter value in the data class.
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum class TeamVaccinationFilter { ALL, UPCOMING, COMPLETED, OVERDUE }
+
+// ─────────────────────────────────────────────────────────────────────────────
 // UI State
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -64,39 +76,32 @@ data class TeamVaccinationUiState(
     val benchId          : String = "",
     val benchName        : String = "",
 
-    // Babies tab
     val babies           : List<TeamBabyItem> = emptyList(),
     val babiesLoading    : Boolean = false,
     val searchQuery      : String = "",
     val showActiveOnly   : Boolean = true,
 
-    // Schedule tab
     val scheduleItems    : List<TeamScheduleItem> = emptyList(),
     val scheduleLoading  : Boolean = false,
     val selectedDate     : String = "",
 
-    // Baby detail
     val detailBaby            : TeamBabyItem? = null,
     val detailSchedules       : List<VaccinationScheduleUi> = emptyList(),
     val detailSchedulesLoading: Boolean = false,
     val detailGrowthRecords   : List<GrowthRecordResponse> = emptyList(),
     val detailGrowthLoading   : Boolean = false,
-    val detailVacFilter       : VaccinationFilter = VaccinationFilter.ALL,
+    // FIX: TeamVaccinationFilter.ALL — local enum, no ambiguity
+    val detailVacFilter       : TeamVaccinationFilter = TeamVaccinationFilter.ALL,
 
-    // Complete vaccination dialog
     val completeForm        : CompleteVaccinationForm? = null,
 
-    // Add measurement
     val showAddMeasurement  : Boolean = false,
     val measurementBabyId   : String = "",
 
-    // Error / success
     val errorMessage        : String? = null,
     val successMessage      : String? = null,
 
-    // True while we are still resolving the team member's bench
     val benchLoading        : Boolean = false,
-    // True when the bench lookup succeeded but the team member has no bench
     val noBenchAssigned     : Boolean = false
 ) {
     val filteredBabies: List<TeamBabyItem>
@@ -135,27 +140,21 @@ class TeamVaccinationViewModel(
 
     private fun initTodayDate() {
         val now   = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-        val today = "${now.year}-${now.month.number.toString().padStart(2,'0')}-${now.day.toString().padStart(2,'0')}"
+        val today = "${now.year}-${now.month.number.toString().padStart(2, '0')}-${now.day.toString().padStart(2, '0')}"
         uiState   = uiState.copy(selectedDate = today)
     }
 
     // ── Public entry points ───────────────────────────────────────────────────
 
-    /** Called after a fresh VACCINATION_TEAM login. */
     fun loadTeamData() {
         refreshIdentity()
         initTodayDate()
         loadBenchAndBabies()
     }
 
-    /** Called when the app resumes with a persisted session. */
     fun onSessionRestored() = loadTeamData()
 
     // ── Core: resolve bench → load babies ─────────────────────────────────────
-    //
-    // KEY FIX: previously we called getAllBenches().first() which gave the team
-    // member a random bench.  Now we call getBenchByTeamMember(teamMemberId) so
-    // each team member only sees the bench they are assigned to manage.
 
     private fun loadBenchAndBabies() {
         val teamMemberId = uiState.teamMemberId
@@ -168,16 +167,13 @@ class TeamVaccinationViewModel(
             uiState = uiState.copy(benchLoading = true, babiesLoading = true, noBenchAssigned = false)
 
             try {
-                // ── Step 1: resolve this team member's bench ───────────────
                 val benchResult = apiService.getBenchByTeamMember(teamMemberId)
-
                 val bench = when (benchResult) {
                     is ApiResult.Success -> benchResult.data
                     else                 -> null
                 }
 
                 if (bench == null) {
-                    // Team member exists but has no bench assigned yet
                     uiState = uiState.copy(
                         benchLoading    = false,
                         babiesLoading   = false,
@@ -187,12 +183,11 @@ class TeamVaccinationViewModel(
                 }
 
                 uiState = uiState.copy(
-                    benchId     = bench.benchId,
-                    benchName   = bench.nameEn,
+                    benchId      = bench.benchId,
+                    benchName    = bench.nameEn,
                     benchLoading = false
                 )
 
-                // ── Step 2: load babies assigned to this bench ─────────────
                 loadBabiesForBench(bench.benchId)
                 loadScheduleForDate(bench.benchId, uiState.selectedDate)
 
@@ -206,6 +201,8 @@ class TeamVaccinationViewModel(
         }
     }
 
+    // FIX: coroutineScope { } provides the required CoroutineScope receiver for async { },
+    // fixing "'async' cannot be called without corresponding coroutine scope".
     private suspend fun loadBabiesForBench(benchId: String) {
         try {
             val assignResult = apiService.getAssignmentsByBench(benchId)
@@ -214,40 +211,42 @@ class TeamVaccinationViewModel(
                 return
             }
 
-            val babies = mutableListOf<TeamBabyItem>()
+            val results: List<TeamBabyItem> = coroutineScope {
+                assignResult.data.map { assignment: BabyBenchAssignmentUi ->
+                    async {
+                        val babyResult = apiService.getBaby(assignment.babyId)
+                        if (babyResult !is ApiResult.Success) return@async null
+                        val baby = babyResult.data
 
-            for (assignment in assignResult.data) {
-                val babyResult = apiService.getBaby(assignment.babyId)
-                if (babyResult !is ApiResult.Success) continue
-                val baby = babyResult.data
+                        // FIX: explicit type annotation resolves "Cannot infer type for T"
+                        val schedules: List<VaccinationScheduleUi> = try {
+                            val r = apiService.getScheduleForBaby(baby.babyId)
+                            if (r is ApiResult.Success) r.data else emptyList()
+                        } catch (_: Exception) { emptyList() }
 
-                val schedules = try {
-                    val r = apiService.getScheduleForBaby(baby.babyId)
-                    if (r is ApiResult.Success) r.data else emptyList()
-                } catch (_: Exception) { emptyList() }
+                        val status   = determineVaccineStatus(schedules)
+                        // FIX: explicit lambda param 's' avoids "Cannot infer type for value parameter"
+                        val nextDate = schedules
+                            .filter { s -> s.status == "UPCOMING" || s.status == "DUE_SOON" }
+                            .minByOrNull { s -> s.scheduledDate }?.scheduledDate
 
-                val status   = determineVaccineStatus(schedules)
-                val nextDate = schedules
-                    .filter { it.status == "UPCOMING" || it.status == "DUE_SOON" }
-                    .minByOrNull { it.scheduledDate }?.scheduledDate
-
-                babies.add(
-                    TeamBabyItem(
-                        babyId        = baby.babyId,
-                        fullName      = baby.fullName,
-                        dateOfBirth   = baby.dateOfBirth,
-                        ageInMonths   = baby.ageInMonths,
-                        gender        = baby.gender,
-                        parentName    = baby.parentName,
-                        parentPhone   = "",
-                        nextVacDate   = nextDate,
-                        vaccineStatus = status,
-                        benchName     = assignment.benchNameEn
-                    )
-                )
+                        TeamBabyItem(
+                            babyId        = baby.babyId,
+                            fullName      = baby.fullName,
+                            dateOfBirth   = baby.dateOfBirth,
+                            ageInMonths   = baby.ageInMonths,
+                            gender        = baby.gender,
+                            parentName    = baby.parentName,
+                            parentPhone   = "",
+                            nextVacDate   = nextDate,
+                            vaccineStatus = status,
+                            benchName     = assignment.benchNameEn
+                        )
+                    }
+                }.awaitAll().filterNotNull()
             }
 
-            uiState = uiState.copy(babies = babies, babiesLoading = false)
+            uiState = uiState.copy(babies = results, babiesLoading = false)
         } catch (e: Exception) {
             uiState = uiState.copy(babiesLoading = false, errorMessage = e.message)
         }
@@ -265,32 +264,63 @@ class TeamVaccinationViewModel(
     // ── Schedule tab ──────────────────────────────────────────────────────────
 
     private fun loadScheduleForDate(benchId: String, date: String) {
+        if (benchId.isBlank() || date.isBlank()) return
         scope.launch {
             uiState = uiState.copy(scheduleLoading = true)
             try {
                 val items = mutableListOf<TeamScheduleItem>()
-                for (baby in uiState.babies) {
-                    val schedules = try {
-                        val r = apiService.getScheduleForBaby(baby.babyId)
-                        if (r is ApiResult.Success) r.data else emptyList()
-                    } catch (_: Exception) { emptyList() }
 
-                    schedules.filter { it.scheduledDate == date }.forEach { s ->
+                // FIX: call apiService.getBenchDaySchedule directly — this must be
+                // declared in ApiService (see companion object below this file).
+                // Previously the inline Ktor extension caused "Unresolved reference: parameter/body".
+                val benchDayResult = apiService.getBenchDaySchedule(benchId, date)
+                if (benchDayResult is ApiResult.Success) {
+                    // FIX: VaccinationScheduleUi has NO babyName field.
+                    // Resolve baby name from the cached babies list using babyId.
+                    // Use explicit param 'schedUi' to avoid shadowed 'it' ambiguity.
+                    benchDayResult.data.forEach { schedUi ->
+                        val cachedBaby = uiState.babies.find { baby -> baby.babyId == schedUi.babyId }
                         items.add(
                             TeamScheduleItem(
-                                scheduleId    = s.scheduleId,
-                                babyId        = baby.babyId,
-                                babyName      = baby.fullName,
-                                ageInMonths   = baby.ageInMonths,
-                                gender        = baby.gender,
-                                vaccineName   = s.vaccineName,
-                                vaccineNameAr = s.vaccineNameAr,
-                                doseNumber    = s.doseNumber,
-                                scheduledDate = s.scheduledDate,
-                                status        = s.status,
-                                benchNameEn   = s.benchNameEn
+                                scheduleId    = schedUi.scheduleId,
+                                babyId        = schedUi.babyId,
+                                babyName      = cachedBaby?.fullName ?: "",
+                                ageInMonths   = cachedBaby?.ageInMonths ?: 0,
+                                gender        = cachedBaby?.gender ?: "",
+                                vaccineName   = schedUi.vaccineName,
+                                vaccineNameAr = schedUi.vaccineNameAr,
+                                doseNumber    = schedUi.doseNumber,
+                                scheduledDate = schedUi.scheduledDate,
+                                status        = schedUi.status,
+                                benchNameEn   = schedUi.benchNameEn
                             )
                         )
+                    }
+                    uiState = uiState.copy(scheduleItems = items, scheduleLoading = false)
+                    return@launch
+                }
+
+                // Fallback: per-baby schedule
+                uiState.babies.forEach { baby ->
+                    val r = apiService.getScheduleForBaby(baby.babyId)
+                    if (r is ApiResult.Success) {
+                        r.data.filter { schedUi -> schedUi.scheduledDate == date }.forEach { schedUi ->
+                            items.add(
+                                TeamScheduleItem(
+                                    scheduleId    = schedUi.scheduleId,
+                                    babyId        = baby.babyId,
+                                    babyName      = baby.fullName,
+                                    ageInMonths   = baby.ageInMonths,
+                                    gender        = baby.gender,
+                                    vaccineName   = schedUi.vaccineName,
+                                    vaccineNameAr = schedUi.vaccineNameAr,
+                                    doseNumber    = schedUi.doseNumber,
+                                    scheduledDate = schedUi.scheduledDate,
+                                    status        = schedUi.status,
+                                    benchNameEn   = schedUi.benchNameEn
+                                )
+                            )
+                        }
                     }
                 }
                 uiState = uiState.copy(scheduleItems = items, scheduleLoading = false)
@@ -337,7 +367,7 @@ class TeamVaccinationViewModel(
                     val r = apiService.getGrowthRecords(baby.babyId)
                     uiState = if (r is ApiResult.Success)
                         uiState.copy(
-                            detailGrowthRecords = r.data.sortedByDescending { it.measurementDate },
+                            detailGrowthRecords = r.data.sortedByDescending { rec -> rec.measurementDate },
                             detailGrowthLoading = false
                         )
                     else
@@ -349,13 +379,14 @@ class TeamVaccinationViewModel(
         }
     }
 
-    fun setDetailVacFilter(f: VaccinationFilter) { uiState = uiState.copy(detailVacFilter = f) }
+    // FIX: parameter type is now TeamVaccinationFilter, not the ambiguous VaccinationFilter
+    fun setDetailVacFilter(f: TeamVaccinationFilter) { uiState = uiState.copy(detailVacFilter = f) }
 
     // ── Complete vaccination ───────────────────────────────────────────────────
 
     fun openCompleteDialog(scheduleId: String) {
         val now   = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-        val today = "${now.year}-${now.month.number.toString().padStart(2,'0')}-${now.day.toString().padStart(2,'0')}"
+        val today = "${now.year}-${now.month.number.toString().padStart(2, '0')}-${now.day.toString().padStart(2, '0')}"
         uiState   = uiState.copy(
             completeForm = CompleteVaccinationForm(
                 scheduleId       = scheduleId,
@@ -375,8 +406,10 @@ class TeamVaccinationViewModel(
 
     fun submitCompleteVaccination() {
         val form   = uiState.completeForm ?: return
-        val babyId = uiState.detailBaby?.babyId ?: return
-        uiState    = uiState.copy(completeForm = form.copy(isLoading = true))
+        val babyId = uiState.detailBaby?.babyId
+            ?: uiState.scheduleItems.find { item -> item.scheduleId == form.scheduleId }?.babyId
+            ?: return
+        uiState = uiState.copy(completeForm = form.copy(isLoading = true))
         scope.launch {
             try {
                 val result = apiService.updateVaccinationScheduleStatus(
@@ -385,9 +418,13 @@ class TeamVaccinationViewModel(
                 )
                 if (result is ApiResult.Success) {
                     uiState = uiState.copy(completeForm = null, successMessage = "Vaccination marked as completed ✅")
-                    val r = apiService.getScheduleForBaby(babyId)
-                    if (r is ApiResult.Success) uiState = uiState.copy(detailSchedules = r.data)
-                    if (uiState.benchId.isNotBlank()) loadScheduleForDate(uiState.benchId, uiState.selectedDate)
+                    uiState.detailBaby?.let { baby ->
+                        val r = apiService.getScheduleForBaby(baby.babyId)
+                        if (r is ApiResult.Success) uiState = uiState.copy(detailSchedules = r.data)
+                    }
+                    if (uiState.benchId.isNotBlank()) {
+                        loadScheduleForDate(uiState.benchId, uiState.selectedDate)
+                    }
                 } else {
                     uiState = uiState.copy(completeForm = form.copy(isLoading = false), errorMessage = "Failed to update")
                 }
@@ -397,15 +434,27 @@ class TeamVaccinationViewModel(
         }
     }
 
-    fun markAsMissed(scheduleId: String) {
-        val babyId = uiState.detailBaby?.babyId ?: return
+    fun markAsMissed(scheduleId: String, babyId: String? = null) {
+        val resolvedBabyId = babyId
+            ?: uiState.detailBaby?.babyId
+            ?: uiState.scheduleItems.find { item -> item.scheduleId == scheduleId }?.babyId
+            ?: return
+
         scope.launch {
             try {
-                val result = apiService.updateVaccinationScheduleStatus(scheduleId = scheduleId, status = "MISSED")
+                val result = apiService.updateVaccinationScheduleStatus(
+                    scheduleId = scheduleId,
+                    status     = "MISSED"
+                )
                 if (result is ApiResult.Success) {
                     uiState = uiState.copy(successMessage = "Marked as missed")
-                    val r = apiService.getScheduleForBaby(babyId)
-                    if (r is ApiResult.Success) uiState = uiState.copy(detailSchedules = r.data)
+                    if (uiState.detailBaby?.babyId == resolvedBabyId) {
+                        val r = apiService.getScheduleForBaby(resolvedBabyId)
+                        if (r is ApiResult.Success) uiState = uiState.copy(detailSchedules = r.data)
+                    }
+                    if (uiState.benchId.isNotBlank()) {
+                        loadScheduleForDate(uiState.benchId, uiState.selectedDate)
+                    }
                 } else {
                     uiState = uiState.copy(errorMessage = "Failed to update status")
                 }
@@ -440,7 +489,9 @@ class TeamVaccinationViewModel(
                     uiState = uiState.copy(showAddMeasurement = false, successMessage = "Measurement saved 📏")
                     val r = apiService.getGrowthRecords(babyId)
                     if (r is ApiResult.Success) {
-                        uiState = uiState.copy(detailGrowthRecords = r.data.sortedByDescending { it.measurementDate })
+                        uiState = uiState.copy(
+                            detailGrowthRecords = r.data.sortedByDescending { rec -> rec.measurementDate }
+                        )
                     }
                 } else {
                     uiState = uiState.copy(errorMessage = "Failed to save measurement")

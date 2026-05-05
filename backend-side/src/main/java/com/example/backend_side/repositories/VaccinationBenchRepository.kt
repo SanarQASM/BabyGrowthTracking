@@ -12,12 +12,13 @@ interface VaccinationBenchRepository : JpaRepository<VaccinationBench, String> {
 
     fun findByIsActiveTrue(): List<VaccinationBench>
 
+    // FIX: was findByGovernorateAndIsActiveTrue (exact case) — must match IgnoreCase variant
     fun findByGovernorateIgnoreCaseAndIsActiveTrue(governorate: String): List<VaccinationBench>
 
-    // ── NEW: find the bench managed by a specific team member ──────────────
-    // Returns Optional so the service can return null gracefully when the
-    // team member has no bench assigned yet.
     fun findByTeamMember_UserIdAndIsActiveTrue(teamMemberId: String): Optional<VaccinationBench>
+
+    // FIX ADDED: was missing — called by loadBenchesFromJson in BenchServices.kt
+    fun existsByNameEn(nameEn: String): Boolean
 
     @Query("""
         SELECT b FROM VaccinationBench b
@@ -30,6 +31,12 @@ interface VaccinationBenchRepository : JpaRepository<VaccinationBench, String> {
     """)
     fun searchBenches(@Param("q") query: String): List<VaccinationBench>
 
+    // FIX: was findDistinctGovernorates — renamed to findAllGovernorates to match service call
+    // ALSO keep the old name as alias so both compile
     @Query("SELECT DISTINCT b.governorate FROM VaccinationBench b WHERE b.isActive = true ORDER BY b.governorate")
     fun findDistinctGovernorates(): List<String>
+
+    // FIX ADDED: alias used by VaccinationBenchServiceImpl.getGovernorates()
+    @Query("SELECT DISTINCT b.governorate FROM VaccinationBench b WHERE b.isActive = true ORDER BY b.governorate")
+    fun findAllGovernorates(): List<String>
 }

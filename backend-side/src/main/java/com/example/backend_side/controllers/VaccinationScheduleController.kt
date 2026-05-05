@@ -11,8 +11,18 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate
+
 // ============================================================
 // VACCINATION SCHEDULE CONTROLLER
+// ============================================================
+//
+// FIX: updateStatus was @PutMapping("/{scheduleId}/status") but the client
+// calls it with HTTP PATCH (client.patch(...) in ApiService.kt).
+// Changed to @PatchMapping so the HTTP method matches the client call.
+// A PUT/PATCH mismatch returns 405 Method Not Allowed.
+//
+// VaccinationRescheduleController also shares /v1/vaccination-schedules base
+// path — Spring disambiguates by method-level mappings, no conflict.
 // ============================================================
 
 @RestController
@@ -20,12 +30,14 @@ import java.time.LocalDate
 @Tag(name = "Vaccination Schedules", description = "View and manage vaccination schedules per baby and bench")
 class VaccinationScheduleController(
     private val scheduleService: VaccinationScheduleService,
-    private val userRepository: UserRepository
+    private val userRepository : UserRepository
 ) {
 
     @GetMapping("/baby/{babyId}")
     @Operation(summary = "Get full vaccination schedule for a baby — parent view")
-    fun getScheduleForBaby(@PathVariable babyId: String): ResponseEntity<ApiResponse<List<VaccinationScheduleResponse>>> =
+    fun getScheduleForBaby(
+        @PathVariable babyId: String
+    ): ResponseEntity<ApiResponse<List<VaccinationScheduleResponse>>> =
         ResponseEntity.ok(ApiResponse(true, "Schedule retrieved", scheduleService.getScheduleForBaby(babyId)))
 
     @GetMapping("/baby/{babyId}/upcoming")
@@ -38,7 +50,9 @@ class VaccinationScheduleController(
 
     @GetMapping("/baby/{babyId}/overdue")
     @Operation(summary = "Get overdue vaccinations for a baby")
-    fun getOverdueForBaby(@PathVariable babyId: String): ResponseEntity<ApiResponse<List<VaccinationScheduleResponse>>> =
+    fun getOverdueForBaby(
+        @PathVariable babyId: String
+    ): ResponseEntity<ApiResponse<List<VaccinationScheduleResponse>>> =
         ResponseEntity.ok(ApiResponse(true, "Overdue retrieved", scheduleService.getOverdueForBaby(babyId)))
 
     @GetMapping("/bench/{benchId}/day")
@@ -58,7 +72,10 @@ class VaccinationScheduleController(
     ): ResponseEntity<ApiResponse<List<VaccinationScheduleResponse>>> =
         ResponseEntity.ok(ApiResponse(true, "Range schedule retrieved", scheduleService.getScheduleByBenchAndRange(benchId, from, to)))
 
-    @PutMapping("/{scheduleId}/status")
+    // FIX: was @PutMapping — client sends PATCH, so this must be @PatchMapping.
+    // HTTP method mismatch caused 405 Method Not Allowed on every status update
+    // from TeamVaccinationViewModel.submitCompleteVaccination() and markAsMissed().
+    @PatchMapping("/{scheduleId}/status")
     @Operation(summary = "Update schedule status — mark completed, missed, etc.")
     fun updateStatus(
         @PathVariable scheduleId: String,
@@ -84,6 +101,8 @@ class VaccinationScheduleController(
 
     @GetMapping("/{scheduleId}/history")
     @Operation(summary = "Get date adjustment history for a schedule")
-    fun getAdjustmentHistory(@PathVariable scheduleId: String): ResponseEntity<ApiResponse<List<ScheduleAdjustmentLogResponse>>> =
+    fun getAdjustmentHistory(
+        @PathVariable scheduleId: String
+    ): ResponseEntity<ApiResponse<List<ScheduleAdjustmentLogResponse>>> =
         ResponseEntity.ok(ApiResponse(true, "History retrieved", scheduleService.getAdjustmentHistory(scheduleId)))
 }

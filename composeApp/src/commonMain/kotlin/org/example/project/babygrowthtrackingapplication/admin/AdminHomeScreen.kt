@@ -1,15 +1,9 @@
-// File: composeApp/src/commonMain/kotlin/org/example/project/babygrowthtrackingapplication/admin/AdminHomeScreen.kt
-//
-// Changes from original:
-//  - AdminBenchesScreen now receives teamMembers list via apiService (no change needed here
-//    since AdminBenchesScreen loads team members itself via apiService.getUsersByRole)
-//  - AdminTabContent.BENCHES passes apiService correctly (was already correct)
-//  - AdminTab.TEAM flow: after creating a team member the admin is prompted to
-//    also assign them to a bench immediately (new TeamSubScreen.AssignBench state)
-
 package org.example.project.babygrowthtrackingapplication.admin
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -22,13 +16,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
 import babygrowthtrackingapplication.composeapp.generated.resources.*
+import kotlinx.coroutines.launch
 import org.example.project.babygrowthtrackingapplication.data.network.ApiResult
 import org.example.project.babygrowthtrackingapplication.data.network.ApiService
 import org.example.project.babygrowthtrackingapplication.data.network.UserResponse
+import org.example.project.babygrowthtrackingapplication.data.network.VaccinationBenchUi
 import org.example.project.babygrowthtrackingapplication.theme.LocalDimensions
 import org.example.project.babygrowthtrackingapplication.theme.customColors
 import org.jetbrains.compose.resources.stringResource
-import kotlinx.coroutines.launch
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Team sub-screen states
@@ -37,7 +32,7 @@ import kotlinx.coroutines.launch
 private sealed interface TeamSubScreen {
     data object List   : TeamSubScreen
     data object Create : TeamSubScreen
-    // NEW: after creating a team member, offer to assign them to a bench
+    // After creating a team member, offer to assign them to a bench immediately
     data class AssignBench(val newMember: UserResponse) : TeamSubScreen
 }
 
@@ -53,7 +48,7 @@ private data class AdminNavItem(
 )
 
 @Composable
-private fun adminNavItems(): List<AdminNavItem> = listOf(
+private fun adminNavItems(): kotlin.collections.List<AdminNavItem> = listOf(
     AdminNavItem(AdminTab.DASHBOARD,    { stringResource(Res.string.admin_tab_dashboard)    }, Icons.Default.Dashboard),
     AdminNavItem(AdminTab.USERS,        { stringResource(Res.string.admin_tab_users)        }, Icons.Default.Group),
     AdminNavItem(AdminTab.BABIES,       { stringResource(Res.string.admin_tab_babies)       }, Icons.Default.ChildCare),
@@ -79,7 +74,6 @@ fun AdminHomeScreen(
     val navItems          = adminNavItems()
     val customColors      = MaterialTheme.customColors
     val snackbarHostState = remember { SnackbarHostState() }
-    val scope             = kotlinx.coroutines.rememberCoroutineScope()
 
     var teamSubScreen by remember { mutableStateOf<TeamSubScreen>(TeamSubScreen.List) }
     var activeTab     by remember { mutableStateOf(AdminTab.DASHBOARD) }
@@ -136,8 +130,15 @@ fun AdminHomeScreen(
                         selected = selected,
                         onClick  = { activeTab = item.tab },
                         icon     = { Icon(if (selected) item.selectedIcon else item.icon, item.labelRes()) },
-                        label    = { Text(item.labelRes(), style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis) },
-                        colors   = NavigationRailItemDefaults.colors(
+                        label    = {
+                            Text(
+                                item.labelRes(),
+                                style    = MaterialTheme.typography.labelSmall,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                        },
+                        colors = NavigationRailItemDefaults.colors(
                             selectedIconColor   = customColors.accentGradientStart,
                             selectedTextColor   = customColors.accentGradientStart,
                             indicatorColor      = customColors.accentGradientStart.copy(alpha = 0.15f),
@@ -169,7 +170,14 @@ fun AdminHomeScreen(
                             selected        = selected,
                             onClick         = { activeTab = item.tab },
                             icon            = { Icon(if (selected) item.selectedIcon else item.icon, item.labelRes()) },
-                            label           = { Text(item.labelRes(), style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                            label           = {
+                                Text(
+                                    item.labelRes(),
+                                    style    = MaterialTheme.typography.labelSmall,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            },
                             alwaysShowLabel = false,
                             colors          = NavigationBarItemDefaults.colors(
                                 selectedIconColor   = customColors.accentGradientStart,
@@ -205,44 +213,37 @@ private fun AdminTabContent(
         AdminTab.BABIES       -> AdminBabiesScreen(viewModel = viewModel, modifier = modifier)
         AdminTab.VACCINATIONS -> AdminVaccinationsScreen(viewModel = viewModel, modifier = modifier)
         AdminTab.SETTINGS     -> AdminSettingsScreen(viewModel = viewModel, modifier = modifier)
+        AdminTab.BENCHES      -> AdminBenchesScreen(apiService = apiService, modifier = modifier)
 
-        // ── Benches: AdminBenchesScreen loads team members itself via apiService ──
-        AdminTab.BENCHES -> AdminBenchesScreen(apiService = apiService, modifier = modifier)
-
-        // ── Team member management ─────────────────────────────────────────
         AdminTab.TEAM -> when (val sub = teamSubScreen) {
 
-            // List of team members
             TeamSubScreen.List -> AdminTeamMembersScreen(
                 viewModel  = viewModel,
                 onAddClick = { onTeamSubScreenChange(TeamSubScreen.Create) },
                 modifier   = modifier,
             )
 
-            // Create new team member form
             TeamSubScreen.Create -> AdminCreateTeamMemberScreen(
                 apiService  = apiService,
                 onBackClick = { onTeamSubScreenChange(TeamSubScreen.List) },
-                onCreated   = {
-                    viewModel.loadTeamMembers()
-                    onTeamSubScreenChange(TeamSubScreen.List)
+                onCreated   = { newMember ->
+                    viewModel.onTeamMemberCreated(newMember)
+                    onTeamSubScreenChange(TeamSubScreen.AssignBench(newMember))
                 },
                 modifier = modifier,
             )
 
-            // NEW: after creating, offer immediate bench assignment
             is TeamSubScreen.AssignBench -> AdminAssignBenchToMemberScreen(
-                apiService     = apiService,
-                teamMember     = sub.newMember,
-                onDone         = {
+                apiService  = apiService,
+                teamMember  = sub.newMember,
+                onDone      = {
                     viewModel.loadTeamMembers()
                     onTeamSubScreenChange(TeamSubScreen.List)
                 },
-                onSkip         = {
-                    viewModel.loadTeamMembers()
+                onSkip      = {
                     onTeamSubScreenChange(TeamSubScreen.List)
                 },
-                modifier       = modifier
+                modifier    = modifier
             )
         }
     }
@@ -250,9 +251,6 @@ private fun AdminTabContent(
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AdminAssignBenchToMemberScreen
-//
-// Shown right after a team member is created so the admin can immediately
-// link them to a health center without navigating to the Benches tab.
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -265,22 +263,31 @@ fun AdminAssignBenchToMemberScreen(
 ) {
     val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
-    val scope        = kotlinx.coroutines.rememberCoroutineScope()
+    // FIX 1: Use properly imported rememberCoroutineScope (kotlinx.coroutines)
+    val scope        = rememberCoroutineScope()
 
-    var benches       by remember { mutableStateOf<List<org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.VaccinationBenchUi>>(emptyList()) }
+    // FIX 2: Use VaccinationBenchUi from data.network (same package as ApiService),
+    // removing the wrong import from com.babygrowth.presentation.screens.home.model
+    var benches       by remember { mutableStateOf<kotlin.collections.List<VaccinationBenchUi>>(emptyList()) }
     var isLoading     by remember { mutableStateOf(true) }
     var isAssigning   by remember { mutableStateOf(false) }
-    var selectedBench by remember { mutableStateOf<org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.VaccinationBenchUi?>(null) }
+    var selectedBench by remember { mutableStateOf<VaccinationBenchUi?>(null) }
     var error         by remember { mutableStateOf<String?>(null) }
     var success       by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         val result = apiService.getAllBenches()
         if (result is ApiResult.Success) {
-            // Only show benches that don't already have a team member
             benches = result.data.filter { it.isActive && it.teamMemberId == null }
         }
         isLoading = false
+    }
+
+    LaunchedEffect(success) {
+        if (success) {
+            kotlinx.coroutines.delay(1200)
+            onDone()
+        }
     }
 
     Column(
@@ -289,7 +296,6 @@ fun AdminAssignBenchToMemberScreen(
             .padding(dimensions.screenPadding),
         verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
     ) {
-        // Header
         Text(
             text       = "Assign to Health Center",
             style      = MaterialTheme.typography.headlineSmall,
@@ -303,79 +309,88 @@ fun AdminAssignBenchToMemberScreen(
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.65f)
         )
 
-        if (isLoading) {
-            Box(Modifier.fillMaxWidth(), Alignment.Center) {
-                CircularProgressIndicator(color = customColors.accentGradientStart)
+        when {
+            isLoading -> {
+                Box(Modifier.fillMaxWidth(), Alignment.Center) {
+                    CircularProgressIndicator(color = customColors.accentGradientStart)
+                }
             }
-        } else if (benches.isEmpty()) {
-            Surface(
-                shape    = RoundedCornerShape(dimensions.cardCornerRadius),
-                color    = MaterialTheme.colorScheme.errorContainer,
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            benches.isEmpty() -> {
+                Surface(
+                    shape    = RoundedCornerShape(dimensions.cardCornerRadius),
+                    color    = MaterialTheme.colorScheme.errorContainer,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text     = "All health centers already have a team member assigned, " +
+                                "or no health centers exist yet. You can assign them later from the Benches tab.",
+                        style    = MaterialTheme.typography.bodySmall,
+                        color    = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.padding(dimensions.spacingMedium)
+                    )
+                }
+            }
+            else -> {
                 Text(
-                    text     = "All health centers already have a team member assigned, " +
-                            "or no health centers exist yet. You can assign them later from the Benches tab.",
-                    style    = MaterialTheme.typography.bodySmall,
-                    color    = MaterialTheme.colorScheme.onErrorContainer,
-                    modifier = Modifier.padding(dimensions.spacingMedium)
+                    text  = "Select a health center (only unassigned centers shown):",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                 )
-            }
-        } else {
-            Text(
-                text  = "Select a health center (only unassigned centers shown):",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-            )
 
-            androidx.compose.foundation.lazy.LazyColumn(
-                modifier            = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
-            ) {
-                androidx.compose.foundation.lazy.items(benches) { bench ->
-                    val isSelected = selectedBench?.benchId == bench.benchId
-                    Card(
-                        modifier  = Modifier.fillMaxWidth(),
-                        shape     = RoundedCornerShape(dimensions.cardCornerRadius),
-                        colors    = CardDefaults.cardColors(
-                            containerColor = if (isSelected)
-                                customColors.accentGradientStart.copy(alpha = 0.12f)
-                            else
-                                MaterialTheme.colorScheme.surface
-                        ),
-                        border    = if (isSelected)
-                            androidx.compose.foundation.BorderStroke(
-                                dimensions.borderWidthMedium,
-                                customColors.accentGradientStart
-                            )
-                        else null,
-                        onClick   = { selectedBench = bench }
-                    ) {
-                        Row(
-                            modifier          = Modifier
-                                .fillMaxWidth()
-                                .padding(dimensions.spacingMedium),
-                            verticalAlignment = Alignment.CenterVertically
+                // FIX 3: Use properly imported LazyColumn and items (androidx.compose.foundation.lazy)
+                // FIX 4: Explicit type on bench lambda parameter to resolve inference error
+                LazyColumn(
+                    modifier            = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
+                ) {
+                    items(benches) { bench: VaccinationBenchUi ->
+                        val isSelected = selectedBench?.benchId == bench.benchId
+                        Card(
+                            modifier  = Modifier.fillMaxWidth(),
+                            shape     = RoundedCornerShape(dimensions.cardCornerRadius),
+                            // FIX 5: cardColors / border are non-composable — use local vals
+                            // (Card's named parameters are not @Composable call sites, so
+                            //  reading MaterialTheme here is fine inside the composable scope)
+                            colors    = CardDefaults.cardColors(
+                                containerColor = if (isSelected)
+                                    customColors.accentGradientStart.copy(alpha = 0.12f)
+                                else
+                                    MaterialTheme.colorScheme.surface
+                            ),
+                            border    = if (isSelected)
+                                BorderStroke(
+                                    dimensions.borderWidthMedium,
+                                    customColors.accentGradientStart
+                                )
+                            else null,
+                            onClick   = { selectedBench = bench }
                         ) {
-                            RadioButton(
-                                selected = isSelected,
-                                onClick  = { selectedBench = bench },
-                                colors   = RadioButtonDefaults.colors(
-                                    selectedColor = customColors.accentGradientStart
+                            Row(
+                                modifier          = Modifier
+                                    .fillMaxWidth()
+                                    .padding(dimensions.spacingMedium),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(
+                                    selected = isSelected,
+                                    onClick  = { selectedBench = bench },
+                                    colors   = RadioButtonDefaults.colors(
+                                        selectedColor = customColors.accentGradientStart
+                                    )
                                 )
-                            )
-                            Spacer(Modifier.width(dimensions.spacingSmall))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text       = bench.nameEn,
-                                    style      = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Text(
-                                    text  = "${bench.governorate} · ${bench.district}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                )
+                                Spacer(Modifier.width(dimensions.spacingSmall))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text       = bench.nameEn,
+                                        style      = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        text  = "${bench.governorate} · ${bench.district}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                    )
+                                }
                             }
                         }
                     }
@@ -384,7 +399,11 @@ fun AdminAssignBenchToMemberScreen(
         }
 
         error?.let {
-            Text(text = it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+            Text(
+                text  = it,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
         }
 
         if (success) {
@@ -427,14 +446,12 @@ fun AdminAssignBenchToMemberScreen(
                         isAssigning = false
                         if (result is ApiResult.Success) {
                             success = true
-                            kotlinx.coroutines.delay(1200)
-                            onDone()
                         } else {
                             error = "Failed to assign. Please try from the Benches tab."
                         }
                     }
                 },
-                enabled  = selectedBench != null && !isAssigning && !success,
+                enabled  = selectedBench != null && !isAssigning && !success && benches.isNotEmpty(),
                 modifier = Modifier.weight(1f),
                 shape    = RoundedCornerShape(dimensions.buttonCornerRadius),
                 colors   = ButtonDefaults.buttonColors(containerColor = customColors.accentGradientStart)

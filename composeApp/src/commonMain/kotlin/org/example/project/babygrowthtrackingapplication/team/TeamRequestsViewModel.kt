@@ -1,6 +1,3 @@
-// File: composeApp/src/commonMain/kotlin/org/example/project/babygrowthtrackingapplication/team/TeamRequestsViewModel.kt
-// Additional ViewModel mixin — handles incoming bench requests for team vaccination
-
 package org.example.project.babygrowthtrackingapplication.team
 
 import androidx.compose.runtime.*
@@ -12,28 +9,23 @@ import org.example.project.babygrowthtrackingapplication.data.network.BenchReque
 import org.example.project.babygrowthtrackingapplication.data.network.BenchRequestUi
 import org.example.project.babygrowthtrackingapplication.data.network.toUi
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TeamRequestsUiState — incoming join requests from parents
-// ─────────────────────────────────────────────────────────────────────────────
-
 data class TeamRequestsUiState(
-    val pendingRequests     : List<BenchRequestUi> = emptyList(),
-    val allRequests         : List<BenchRequestUi> = emptyList(),
-    val requestsLoading     : Boolean              = false,
-    val reviewSubmitting    : Boolean              = false,
-    val selectedRequest     : BenchRequestUi?      = null,
-    val showRejectDialog    : Boolean              = false,
-    val rejectReason        : String               = "",
-    val errorMessage        : String?              = null,
-    val successMessage      : String?              = null
+    val pendingRequests  : List<BenchRequestUi> = emptyList(),
+    val allRequests      : List<BenchRequestUi> = emptyList(),
+    val requestsLoading  : Boolean              = false,
+    val reviewSubmitting : Boolean              = false,
+    val selectedRequest  : BenchRequestUi?      = null,
+    val showRejectDialog : Boolean              = false,
+    val rejectReason     : String               = "",
+    val errorMessage     : String?              = null,
+    val successMessage   : String?              = null
 )
-
-// ─────────────────────────────────────────────────────────────────────────────
-// TeamRequestsViewModel
-// ─────────────────────────────────────────────────────────────────────────────
 
 class TeamRequestsViewModel(
     private val apiService : ApiService,
+    // FIX: getBenchId is a lambda that reads viewModel.uiState.benchId at call time.
+    // Previously called with `getBenchId = { state.benchId }` which captured the
+    // state snapshot at composition — returning "" when benchId hadn't loaded yet.
     private val getBenchId : () -> String
 ) {
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
@@ -44,20 +36,35 @@ class TeamRequestsViewModel(
     fun loadRequests() {
         val benchId = getBenchId()
         if (benchId.isBlank()) return
+
         scope.launch {
-            uiState = uiState.copy(requestsLoading = true)
-            try {
-                // Load pending first for the badge count
-                val pending = apiService.getPendingRequestsForBench(benchId)
-                val all     = apiService.getAllRequestsForBench(benchId)
-                uiState = uiState.copy(
-                    pendingRequests = (pending as? ApiResult.Success)?.data?.map { it.toUi() } ?: emptyList(),
-                    allRequests     = (all     as? ApiResult.Success)?.data?.map { it.toUi() } ?: emptyList(),
-                    requestsLoading = false
-                )
-            } catch (e: Exception) {
-                uiState = uiState.copy(requestsLoading = false, errorMessage = e.message)
+            uiState = uiState.copy(requestsLoading = true, errorMessage = null)
+
+            // FIX: was using (pending as? ApiResult.Success)?.data which silently
+            // returns emptyList() on error, hiding the failure from the user.
+            // Now both branches are handled explicitly.
+            val pendingResult = apiService.getPendingRequestsForBench(benchId)
+            val allResult     = apiService.getAllRequestsForBench(benchId)
+
+            // Collect any error from either call
+            val error = when {
+                pendingResult is ApiResult.Error -> pendingResult.message
+                allResult     is ApiResult.Error -> allResult.message
+                else                             -> null
             }
+
+            uiState = uiState.copy(
+                pendingRequests = if (pendingResult is ApiResult.Success)
+                    pendingResult.data.map { it.toUi() }
+                else
+                    emptyList(),
+                allRequests     = if (allResult is ApiResult.Success)
+                    allResult.data.map { it.toUi() }
+                else
+                    emptyList(),
+                requestsLoading = false,
+                errorMessage    = error
+            )
         }
     }
 
@@ -67,32 +74,32 @@ class TeamRequestsViewModel(
 
     fun acceptRequest(requestId: String) {
         scope.launch {
-            uiState = uiState.copy(reviewSubmitting = true)
-            try {
-                val result = apiService.reviewBenchRequest(requestId, "accept")
-                when (result) {
-                    is ApiResult.Success -> {
-                        uiState = uiState.copy(
-                            reviewSubmitting = false,
-                            selectedRequest  = null,
-                            successMessage   = "request_accepted"
-                        )
-                        loadRequests()
-                    }
-                    is ApiResult.Error -> uiState = uiState.copy(
+            uiState = uiState.copy(reviewSubmitting = true, errorMessage = null)
+            val result = apiService.reviewBenchRequest(requestId, "accept")
+            when (result) {
+                is ApiResult.Success -> {
+                    uiState = uiState.copy(
                         reviewSubmitting = false,
-                        errorMessage = result.message
+                        selectedRequest  = null,
+                        successMessage   = "request_accepted"
                     )
-                    else -> uiState = uiState.copy(reviewSubmitting = false)
+                    loadRequests()
                 }
-            } catch (e: Exception) {
-                uiState = uiState.copy(reviewSubmitting = false, errorMessage = e.message)
+                is ApiResult.Error -> uiState = uiState.copy(
+                    reviewSubmitting = false,
+                    errorMessage     = result.message.ifBlank { "Failed to accept request" }
+                )
+                else -> uiState = uiState.copy(reviewSubmitting = false)
             }
         }
     }
 
     fun openRejectDialog(request: BenchRequestUi) {
-        uiState = uiState.copy(selectedRequest = request, showRejectDialog = true, rejectReason = "")
+        uiState = uiState.copy(
+            selectedRequest  = request,
+            showRejectDialog = true,
+            rejectReason     = ""
+        )
     }
 
     fun dismissRejectDialog() {
@@ -110,33 +117,36 @@ class TeamRequestsViewModel(
             return
         }
         scope.launch {
-            uiState = uiState.copy(reviewSubmitting = true)
-            try {
-                val result = apiService.reviewBenchRequest(requestId, "reject", uiState.rejectReason)
-                when (result) {
-                    is ApiResult.Success -> {
-                        uiState = uiState.copy(
-                            reviewSubmitting = false,
-                            showRejectDialog = false,
-                            selectedRequest  = null,
-                            rejectReason     = "",
-                            successMessage   = "request_rejected"
-                        )
-                        loadRequests()
-                    }
-                    is ApiResult.Error -> uiState = uiState.copy(
+            uiState = uiState.copy(reviewSubmitting = true, errorMessage = null)
+            val result = apiService.reviewBenchRequest(
+                requestId    = requestId,
+                action       = "reject",
+                rejectReason = uiState.rejectReason
+            )
+            when (result) {
+                is ApiResult.Success -> {
+                    uiState = uiState.copy(
                         reviewSubmitting = false,
-                        errorMessage = result.message
+                        showRejectDialog = false,
+                        selectedRequest  = null,
+                        rejectReason     = "",
+                        successMessage   = "request_rejected"
                     )
-                    else -> uiState = uiState.copy(reviewSubmitting = false)
+                    loadRequests()
                 }
-            } catch (e: Exception) {
-                uiState = uiState.copy(reviewSubmitting = false, errorMessage = e.message)
+                is ApiResult.Error -> uiState = uiState.copy(
+                    reviewSubmitting = false,
+                    errorMessage     = result.message.ifBlank { "Failed to reject request" }
+                )
+                else -> uiState = uiState.copy(reviewSubmitting = false)
             }
         }
     }
 
     fun clearError()   { uiState = uiState.copy(errorMessage = null) }
     fun clearSuccess() { uiState = uiState.copy(successMessage = null) }
+
+    // FIX: onDestroy is now properly called from TeamVaccinationScreen via
+    // DisposableEffect — coroutine scope is cancelled when composable leaves.
     fun onDestroy()    { scope.cancel() }
 }

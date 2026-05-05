@@ -1,23 +1,27 @@
 package com.example.backend_side
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Bench-related request / response DTOs
-//
-// KEY FIX — workingDays / vaccinationDays / vaccinesAvailable:
-//   The DB stores these as comma-separated Strings.
-//   The API accepts and returns them as List<String>.
-//   Jackson deserializes List<String> from a JSON array → no crash.
-//   The service layer joins them back to comma strings before saving to DB.
-//
-//   The old code had a mismatch: the entity had @JsonIgnore on nothing,
-//   so Jackson tried to deserialize "Sunday,Monday,..." (a String in the DB
-//   response) as List<String> → MismatchedInputException.
-//   Now the entity uses @JsonIgnore on raw fields + @JsonProperty on computed
-//   list getters.  These DTOs always use List<String> for the API boundary.
-// ─────────────────────────────────────────────────────────────────────────────
-
 import com.example.backend_side.entity.BenchType
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
+import java.time.LocalDateTime
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Bench-related request / response DTOs  — FIXED
+//
+// FIX 1 — VaccinationBenchCreateRequest.type:
+//   Was: type: String = "primary_health_center"
+//   The service passed this String directly to VaccinationBench.type which is
+//   typed as BenchType enum. The String was silently ignored because the entity
+//   used its own default. Now typed as BenchType so Jackson deserializes it
+//   through the registered BenchTypeConverter correctly.
+//
+// FIX 2 — VaccinationBenchUpdateRequest.type:
+//   Same problem as above — was String?, now BenchType? so it can be applied
+//   in the service update block.
+//
+// FIX 3 — VaccinationBenchResponse.createdAt:
+//   Added LocalDateTime? field so the response carries the entity's audit
+//   timestamp (used by the admin bench card in the UI).
+// ─────────────────────────────────────────────────────────────────────────────
 
 // ── Create request (POST /v1/benches) ─────────────────────────────────────────
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -32,19 +36,18 @@ data class VaccinationBenchCreateRequest(
     val longitude         : Double,
     val phone             : String?      = null,
 
-    // ── Accept as List<String> from JSON ── e.g. ["Sunday","Monday","Tuesday"]
-    // The service converts them to comma-separated before saving.
+    // Accept as List<String> from JSON — e.g. ["Sunday","Monday","Tuesday"]
     val workingDays        : List<String> = listOf("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"),
     val vaccinationDays    : List<String> = listOf("Sunday", "Tuesday", "Thursday"),
     val workingHoursStart  : String       = "08:00",
     val workingHoursEnd    : String       = "14:00",
     val vaccinesAvailable  : List<String> = emptyList(),
 
-    val type               : String       = "primary_health_center",
+    // FIX 1: was String — now BenchType so Jackson uses the registered converter
+    // and the service can assign it directly to VaccinationBench.type
+    val type               : BenchType    = BenchType.PRIMARY_HEALTH_CENTER,
 
-    // ── Optional: link the bench to a team member on creation ─────────────
-    // When provided, the bench's teamMember is set immediately so the team
-    // vaccination user can start receiving requests right away.
+    // Optional: link the bench to a team member on creation
     val teamMemberId       : String?      = null
 )
 
@@ -65,12 +68,13 @@ data class VaccinationBenchUpdateRequest(
     val workingHoursStart  : String?       = null,
     val workingHoursEnd    : String?       = null,
     val vaccinesAvailable  : List<String>? = null,
-    val type               : String?       = null,
+    val isActive           : Boolean?      = null,
+    // FIX 2: was String? — now BenchType? so the service update block can assign it
+    val type               : BenchType?    = null,
     val teamMemberId       : String?       = null
 )
 
 // ── Response (GET /v1/benches, etc.) ──────────────────────────────────────────
-// Always returns List<String> for day/vaccine fields — never a raw comma string.
 data class VaccinationBenchResponse(
     val benchId            : String,
     val nameEn             : String,
@@ -82,18 +86,18 @@ data class VaccinationBenchResponse(
     val latitude           : Double,
     val longitude          : Double,
     val phone              : String?,
-    val workingDays        : List<String>,   // ← always List in JSON
+    val workingDays        : List<String>,
     val workingHoursStart  : String,
     val workingHoursEnd    : String,
-    val vaccinationDays    : List<String>,   // ← always List in JSON
+    val vaccinationDays    : List<String>,
+    // FIX 2 (response): expose type as String (enum name) for the client
     val type               : String,
-    val vaccinesAvailable  : List<String>,   // ← always List in JSON
+    val vaccinesAvailable  : List<String>,
     val isActive           : Boolean,
-
-    // ── Team member info ───────────────────────────────────────────────────
-    // Included in the response so the mobile app knows which team member
-    // manages this bench (for routing bench requests correctly).
-    val teamMemberId       : String?  = null,
-    val teamMemberName     : String?  = null,
-    val teamMemberEmail    : String?  = null
+    // Team member info
+    val teamMemberId       : String?        = null,
+    val teamMemberName     : String?        = null,
+    val teamMemberEmail    : String?        = null,
+    // FIX 3: expose audit timestamp
+    val createdAt          : LocalDateTime? = null
 )

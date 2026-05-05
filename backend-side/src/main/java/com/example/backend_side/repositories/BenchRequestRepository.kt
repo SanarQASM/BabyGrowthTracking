@@ -19,21 +19,34 @@ interface BenchRequestRepository : JpaRepository<BenchRequest, String> {
 
     fun findByBench_BenchId(benchId: String): List<BenchRequest>
 
+    // FIX: replaced raw string literals ('pending','accepted') with typed enum parameter
+    // Raw JPQL string literals bypass the LowercaseEnumConverter and are fragile —
+    // if the converter changes, the query silently breaks.
     @Query("""
         SELECT r FROM BenchRequest r
         WHERE r.baby.babyId = :babyId
-        AND r.status IN ('pending','accepted')
+        AND r.status IN :statuses
         ORDER BY r.createdAt DESC
     """)
-    fun findActiveRequestForBaby(@Param("babyId") babyId: String): Optional<BenchRequest>
+    fun findActiveRequestForBaby(
+        @Param("babyId") babyId: String,
+        @Param("statuses") statuses: List<BenchRequestStatus> = listOf(
+            BenchRequestStatus.PENDING,
+            BenchRequestStatus.ACCEPTED
+        )
+    ): Optional<BenchRequest>
 
     fun existsByBaby_BabyIdAndStatus(babyId: String, status: BenchRequestStatus): Boolean
 
+    // FIX: replaced raw string literal ('pending') with typed enum parameter
     @Query("""
         SELECT r FROM BenchRequest r
         WHERE r.bench.benchId = :benchId
-        AND r.status = 'pending'
+        AND r.status = :status
         ORDER BY r.createdAt ASC
     """)
-    fun findPendingForBench(@Param("benchId") benchId: String): List<BenchRequest>
+    fun findPendingForBench(
+        @Param("benchId") benchId: String,
+        @Param("status") status: BenchRequestStatus = BenchRequestStatus.PENDING
+    ): List<BenchRequest>
 }

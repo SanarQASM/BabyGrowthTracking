@@ -1,5 +1,3 @@
-// File: composeApp/src/commonMain/kotlin/org/example/project/babygrowthtrackingapplication/team/TeamRequestsTab.kt
-
 package org.example.project.babygrowthtrackingapplication.team
 
 import androidx.compose.foundation.layout.*
@@ -23,18 +21,12 @@ import org.example.project.babygrowthtrackingapplication.theme.LocalDimensions
 import org.example.project.babygrowthtrackingapplication.theme.customColors
 import org.jetbrains.compose.resources.stringResource
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TeamRequestsTab
-// Shows pending & historical join requests from parents for this bench.
-// ─────────────────────────────────────────────────────────────────────────────
-
 @Composable
 fun TeamRequestsTab(viewModel: TeamRequestsViewModel) {
     val state        = viewModel.uiState
     val dimensions   = LocalDimensions.current
     val customColors = MaterialTheme.customColors
 
-    // ── Reject dialog ─────────────────────────────────────────────────────────
     if (state.showRejectDialog) {
         AlertDialog(
             onDismissRequest = viewModel::dismissRejectDialog,
@@ -47,7 +39,10 @@ fun TeamRequestsTab(viewModel: TeamRequestsViewModel) {
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)) {
                     Text(
-                        stringResource(Res.string.team_request_reject_body, state.selectedRequest?.babyName ?: ""),
+                        stringResource(
+                            Res.string.team_request_reject_body,
+                            state.selectedRequest?.babyName ?: ""
+                        ),
                         style = MaterialTheme.typography.bodyMedium
                     )
                     OutlinedTextField(
@@ -67,7 +62,9 @@ fun TeamRequestsTab(viewModel: TeamRequestsViewModel) {
                 Button(
                     onClick  = viewModel::confirmReject,
                     enabled  = state.rejectReason.isNotBlank() && !state.reviewSubmitting,
-                    colors   = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                    colors   = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
                 ) {
                     if (state.reviewSubmitting) {
                         CircularProgressIndicator(
@@ -90,7 +87,6 @@ fun TeamRequestsTab(viewModel: TeamRequestsViewModel) {
 
     Column(modifier = Modifier.fillMaxSize()) {
 
-        // Header with pending count badge
         Surface(
             color           = MaterialTheme.colorScheme.surface,
             shadowElevation = dimensions.cardElevationSmall
@@ -98,7 +94,10 @@ fun TeamRequestsTab(viewModel: TeamRequestsViewModel) {
             Row(
                 modifier              = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingSmall),
+                    .padding(
+                        horizontal = dimensions.screenPadding,
+                        vertical   = dimensions.spacingSmall
+                    ),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment     = Alignment.CenterVertically
             ) {
@@ -108,16 +107,16 @@ fun TeamRequestsTab(viewModel: TeamRequestsViewModel) {
                     fontWeight = FontWeight.Bold
                 )
                 if (state.pendingRequests.isNotEmpty()) {
-                    Surface(
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.error
-                    ) {
+                    Surface(shape = CircleShape, color = MaterialTheme.colorScheme.error) {
                         Text(
-                            text     = "${state.pendingRequests.size}",
-                            style    = MaterialTheme.typography.labelSmall,
-                            color    = MaterialTheme.colorScheme.onError,
+                            text       = "${state.pendingRequests.size}",
+                            style      = MaterialTheme.typography.labelSmall,
+                            color      = MaterialTheme.colorScheme.onError,
                             fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = dimensions.spacingSmall, vertical = dimensions.borderWidthMedium)
+                            modifier   = Modifier.padding(
+                                horizontal = dimensions.spacingSmall,
+                                vertical   = dimensions.borderWidthMedium
+                            )
                         )
                     }
                 }
@@ -139,6 +138,16 @@ fun TeamRequestsTab(viewModel: TeamRequestsViewModel) {
                 )
             }
             else -> {
+                // FIX: history filtered to exclude any request already in the pending
+                // list to prevent duplicate LazyColumn keys. Previously a request that
+                // appeared in both allRequests AND pendingRequests (same requestId)
+                // would cause a "Duplicate keys in lazy list" crash.
+                val pendingIds = state.pendingRequests.map { it.requestId }.toSet()
+                val history    = state.allRequests.filter { r ->
+                    r.status != BenchRequestStatusUi.PENDING &&
+                            r.requestId !in pendingIds
+                }
+
                 LazyColumn(
                     modifier            = Modifier.fillMaxSize(),
                     contentPadding      = PaddingValues(
@@ -147,7 +156,6 @@ fun TeamRequestsTab(viewModel: TeamRequestsViewModel) {
                     ),
                     verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
                 ) {
-                    // Pending section
                     if (state.pendingRequests.isNotEmpty()) {
                         item {
                             Text(
@@ -158,19 +166,19 @@ fun TeamRequestsTab(viewModel: TeamRequestsViewModel) {
                                 modifier   = Modifier.padding(vertical = dimensions.spacingXSmall)
                             )
                         }
+                        // FIX: key uses plain requestId (no suffix needed since
+                        // pendingIds and history are now mutually exclusive sets)
                         items(state.pendingRequests, key = { it.requestId }) { req ->
                             RequestCard(
-                                request         = req,
-                                isSubmitting    = state.reviewSubmitting,
-                                onAccept        = { viewModel.acceptRequest(req.requestId) },
-                                onReject        = { viewModel.openRejectDialog(req) }
+                                request      = req,
+                                isSubmitting = state.reviewSubmitting,
+                                onAccept     = { viewModel.acceptRequest(req.requestId) },
+                                onReject     = { viewModel.openRejectDialog(req) }
                             )
                         }
                         item { Spacer(Modifier.height(dimensions.spacingSmall)) }
                     }
 
-                    // History section
-                    val history = state.allRequests.filter { it.status != BenchRequestStatusUi.PENDING }
                     if (history.isNotEmpty()) {
                         item {
                             Text(
@@ -181,7 +189,9 @@ fun TeamRequestsTab(viewModel: TeamRequestsViewModel) {
                                 modifier   = Modifier.padding(vertical = dimensions.spacingXSmall)
                             )
                         }
-                        items(history, key = { it.requestId + "_hist" }) { req ->
+                        // FIX: key uses plain requestId — no collision with pending
+                        // because history items are filtered to exclude pendingIds
+                        items(history, key = { it.requestId }) { req ->
                             HistoryRequestCard(req)
                         }
                     }
@@ -194,7 +204,7 @@ fun TeamRequestsTab(viewModel: TeamRequestsViewModel) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Pending request card — accept / reject actions
+// Pending request card
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -253,7 +263,10 @@ private fun RequestCard(
                         style      = MaterialTheme.typography.labelSmall,
                         color      = MaterialTheme.colorScheme.error,
                         fontWeight = FontWeight.SemiBold,
-                        modifier   = Modifier.padding(horizontal = dimensions.spacingSmall, vertical = dimensions.borderWidthMedium)
+                        modifier   = Modifier.padding(
+                            horizontal = dimensions.spacingSmall,
+                            vertical   = dimensions.borderWidthMedium
+                        )
                     )
                 }
             }
@@ -291,7 +304,9 @@ private fun RequestCard(
                         dimensions.borderWidthThin,
                         MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
                     ),
-                    colors         = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    colors         = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    ),
                     contentPadding = PaddingValues(vertical = dimensions.spacingXSmall)
                 ) {
                     Icon(Icons.Default.Close, null, modifier = Modifier.size(dimensions.iconSmall))
@@ -304,7 +319,7 @@ private fun RequestCard(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// History card — accepted / rejected / cancelled (read-only)
+// History card
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -317,15 +332,19 @@ private fun HistoryRequestCard(request: BenchRequestUi) {
         BenchRequestStatusUi.REJECTED  ->
             stringResource(Res.string.bench_request_status_rejected) to MaterialTheme.colorScheme.error
         BenchRequestStatusUi.CANCELLED ->
-            stringResource(Res.string.bench_request_status_cancelled) to MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+            stringResource(Res.string.bench_request_status_cancelled) to
+                    MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
         else ->
-            stringResource(Res.string.bench_request_status_pending) to MaterialTheme.colorScheme.error
+            stringResource(Res.string.bench_request_status_pending) to
+                    MaterialTheme.colorScheme.error
     }
 
     Card(
         modifier  = Modifier.fillMaxWidth(),
         shape     = RoundedCornerShape(dimensions.cardCornerRadius),
-        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)),
+        colors    = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
+        ),
         elevation = CardDefaults.cardElevation()
     ) {
         Row(
@@ -346,9 +365,14 @@ private fun HistoryRequestCard(request: BenchRequestUi) {
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
                 )
-                if (request.status == BenchRequestStatusUi.REJECTED && !request.rejectReason.isNullOrBlank()) {
+                if (request.status == BenchRequestStatusUi.REJECTED &&
+                    !request.rejectReason.isNullOrBlank()
+                ) {
                     Text(
-                        text  = stringResource(Res.string.team_request_reject_reason_label, request.rejectReason),
+                        text  = stringResource(
+                            Res.string.team_request_reject_reason_label,
+                            request.rejectReason
+                        ),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.error.copy(alpha = 0.7f)
                     )
@@ -363,7 +387,10 @@ private fun HistoryRequestCard(request: BenchRequestUi) {
                     style      = MaterialTheme.typography.labelSmall,
                     color      = statusColor,
                     fontWeight = FontWeight.SemiBold,
-                    modifier   = Modifier.padding(horizontal = dimensions.spacingSmall, vertical = dimensions.borderWidthMedium)
+                    modifier   = Modifier.padding(
+                        horizontal = dimensions.spacingSmall,
+                        vertical   = dimensions.borderWidthMedium
+                    )
                 )
             }
         }

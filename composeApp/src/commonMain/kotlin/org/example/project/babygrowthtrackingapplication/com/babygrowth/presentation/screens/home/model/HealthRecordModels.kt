@@ -52,61 +52,6 @@ data class BabyBenchAssignmentUi(
 // ─────────────────────────────────────────────────────────────────────────────
 
 enum class ScheduleStatusUi { UPCOMING, DUE_SOON, OVERDUE, COMPLETED, MISSED, RESCHEDULED }
-enum class ShiftReasonUi { NONE, WEEKEND, HOLIDAY, BENCH_CLOSED, MISSED, RESCHEDULED }
-
-@Serializable
-data class VaccinationScheduleUi(
-    val scheduleId          : String,
-    val babyId              : String,
-    val vaccineId           : Int,
-    // ── Multilingual vaccine names ─────────────────────────────────────────
-    val vaccineName         : String,           // English — always present
-    val vaccineNameAr       : String? = null,   // Arabic
-    val vaccineNameKu       : String? = null,   // Kurdish Sorani
-    val vaccineNameCkb      : String? = null,   // Kurdish Badini
-    // ── Multilingual descriptions ──────────────────────────────────────────
-    val description         : String? = null,
-    val descriptionAr       : String? = null,
-    val descriptionKu       : String? = null,
-    val descriptionCkb      : String? = null,
-    val doseNumber          : Int,
-    val recommendedAgeMonths: Int,
-    val idealDate           : String,
-    val scheduledDate       : String,
-    val shiftReason         : String = "NONE",
-    val shiftDays           : Int = 0,
-    val status              : String,
-    val completedDate       : String? = null,
-    val benchNameEn         : String = "",
-    val isVisibleToParent   : Boolean = true
-) {
-    // ── Returns the vaccine name in the current app language ───────────────
-    // Falls back to English if the translation is not available
-    fun getLocalizedName(languageCode: String): String = when (languageCode) {
-        "ar"  -> vaccineNameAr  ?: vaccineName
-        "ku"  -> vaccineNameKu  ?: vaccineName
-        "ckb" -> vaccineNameCkb ?: vaccineName
-        else  -> vaccineName
-    }
-
-    // ── Returns the description in the current app language ────────────────
-    fun getLocalizedDescription(languageCode: String): String? = when (languageCode) {
-        "ar"  -> descriptionAr  ?: description
-        "ku"  -> descriptionKu  ?: description
-        "ckb" -> descriptionCkb ?: description
-        else  -> description
-    }
-
-    val statusUi: ScheduleStatusUi
-        get() = when (status.uppercase()) {
-            "DUE_SOON"    -> ScheduleStatusUi.DUE_SOON
-            "OVERDUE"     -> ScheduleStatusUi.OVERDUE
-            "COMPLETED"   -> ScheduleStatusUi.COMPLETED
-            "MISSED"      -> ScheduleStatusUi.MISSED
-            "RESCHEDULED" -> ScheduleStatusUi.RESCHEDULED
-            else          -> ScheduleStatusUi.UPCOMING
-        }
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Health Issue
