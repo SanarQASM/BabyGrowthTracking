@@ -5,7 +5,7 @@ import androidx.compose.ui.Modifier
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.VaccinationBenchUi
+import org.example.project.babygrowthtrackingapplication.data.network.VaccinationBenchUi
 
 @Composable
 actual fun MapView(

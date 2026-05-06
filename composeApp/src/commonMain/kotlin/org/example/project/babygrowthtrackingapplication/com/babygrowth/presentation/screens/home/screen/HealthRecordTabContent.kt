@@ -1,33 +1,96 @@
-// File: composeApp/src/commonMain/kotlin/org/example/project/babygrowthtrackingapplication/com/babygrowth/presentation/screens/home/screen/HealthRecordTabContent_Updated.kt
-//
-// KEY CHANGES vs original:
-//  1. BenchRequestStatusScreen shown when baby has PENDING or REJECTED request
-//  2. "Send Join Request" replaces old "Assign bench" in the map flow
-//  3. Success message sentinels resolved to localised strings
-//  4. No hardcoded strings — all from stringResource()
 
 package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen
 
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.*
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.LocationOn
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import babygrowthtrackingapplication.composeapp.generated.resources.Res
-import babygrowthtrackingapplication.composeapp.generated.resources.*
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.*
+import babygrowthtrackingapplication.composeapp.generated.resources.error_reject_reason_required
+import babygrowthtrackingapplication.composeapp.generated.resources.health_assigned_center
+import babygrowthtrackingapplication.composeapp.generated.resources.health_no_assignment
+import babygrowthtrackingapplication.composeapp.generated.resources.health_open_map
+import babygrowthtrackingapplication.composeapp.generated.resources.health_record_title
+import babygrowthtrackingapplication.composeapp.generated.resources.health_select_child
+import babygrowthtrackingapplication.composeapp.generated.resources.health_select_child_hint
+import babygrowthtrackingapplication.composeapp.generated.resources.health_sub_tab_appointments
+import babygrowthtrackingapplication.composeapp.generated.resources.health_sub_tab_health_issues
+import babygrowthtrackingapplication.composeapp.generated.resources.health_sub_tab_vaccinations
+import babygrowthtrackingapplication.composeapp.generated.resources.schedule_no_assignment_body
+import babygrowthtrackingapplication.composeapp.generated.resources.schedule_no_assignment_title
+import babygrowthtrackingapplication.composeapp.generated.resources.schedule_no_babies
+import babygrowthtrackingapplication.composeapp.generated.resources.schedule_reschedule_checking
+import babygrowthtrackingapplication.composeapp.generated.resources.schedule_reschedule_in_progress_title
+import babygrowthtrackingapplication.composeapp.generated.resources.success_appointment_added
+import babygrowthtrackingapplication.composeapp.generated.resources.success_appointment_cancelled
+import babygrowthtrackingapplication.composeapp.generated.resources.success_health_issue_added
+import babygrowthtrackingapplication.composeapp.generated.resources.success_issue_resolved
+import babygrowthtrackingapplication.composeapp.generated.resources.success_request_accepted
+import babygrowthtrackingapplication.composeapp.generated.resources.success_request_cancelled
+import babygrowthtrackingapplication.composeapp.generated.resources.success_request_rejected
+import babygrowthtrackingapplication.composeapp.generated.resources.success_request_sent
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HealthRecordSubTab
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HealthRecordUiState
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HealthRecordViewModel
+import org.example.project.babygrowthtrackingapplication.data.network.ScheduleStatusUi
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.VaccinationBenchUi as PresentationVaccinationBenchUi
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.hasPendingRequest
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.hasRejectedRequest
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.isConnectedToBench
 import org.example.project.babygrowthtrackingapplication.data.network.BabyResponse
 import org.example.project.babygrowthtrackingapplication.data.network.BenchRequestStatusUi
+import org.example.project.babygrowthtrackingapplication.data.network.VaccinationScheduleUi
 import org.example.project.babygrowthtrackingapplication.theme.LocalDimensions
 import org.example.project.babygrowthtrackingapplication.theme.customColors
 import org.jetbrains.compose.resources.stringResource
@@ -40,7 +103,7 @@ private sealed class HealthNavState {
     object Main : HealthNavState()
     data class Map(val babyName: String)       : HealthNavState()
     data class BenchDetail(
-        val bench    : VaccinationBenchUi,
+        val bench    : org.example.project.babygrowthtrackingapplication.data.network.VaccinationBenchUi,
         val babyName : String,
         val fromMap  : Boolean = true
     ) : HealthNavState()
@@ -87,11 +150,13 @@ fun HealthRecordTabContent(
         else                      -> state.error
     }
 
-    LaunchedEffect(state.error)          { errorResolved?.let { snackbarHostState.showSnackbar(it); viewModel.clearError() } }
-    LaunchedEffect(state.successMessage) { successResolved?.let { snackbarHostState.showSnackbar(it); viewModel.clearSuccess() } }
+    LaunchedEffect(state.error)          { errorResolved?.let { msg: String -> snackbarHostState.showSnackbar(msg); viewModel.clearError() } }
+    LaunchedEffect(state.successMessage) { successResolved?.let { msg: String -> snackbarHostState.showSnackbar(msg); viewModel.clearSuccess() } }
 
-    // ── Reschedule dialogs (unchanged from original) ──────────────────────────
+    // ── Reschedule dialogs ────────────────────────────────────────────────────
     if (state.showRescheduleReasonPicker) {
+        // FIX: ScheduleStatusUi (imported from presentation model) replaces the
+        //      non-existent NetworkScheduleStatusUi reference
         val overdueCount       = state.schedules.count { it.statusUi == ScheduleStatusUi.OVERDUE || it.statusUi == ScheduleStatusUi.MISSED }
         val reschedulableCount = state.schedules.count { it.statusUi != ScheduleStatusUi.COMPLETED && it.statusUi != ScheduleStatusUi.MISSED }
         RescheduleReasonPickerDialog(
@@ -115,8 +180,14 @@ fun HealthRecordTabContent(
             confirmButton = {}
         )
     }
-    state.rescheduleResult?.let { result ->
-        RescheduleResultDialog(result = result, onDismiss = viewModel::dismissRescheduleResult)
+    // FIX: Replace (state.rescheduleResult as? RescheduleResultUi) — RescheduleResultUi
+    //      was not imported/defined. Use the actual type from state directly via
+    //      a null-check; if RescheduleResultUi is a real class in your project,
+    //      add the correct import and reinstate the cast. The safe pattern below
+    //      avoids the unresolved-reference error regardless.
+    val rescheduleResult = state.rescheduleResult
+    if (rescheduleResult != null) {
+        RescheduleResultDialog(result = rescheduleResult, onDismiss = viewModel::dismissRescheduleResult)
     }
 
     Scaffold(snackbarHost = { SnackbarHost(snackbarHostState) }) { padding ->
@@ -134,13 +205,11 @@ fun HealthRecordTabContent(
                     )
                 }
                 is HealthNavState.Map -> {
-                    // Map now sends a REQUEST instead of directly assigning
                     BenchMapScreen(
                         viewModel       = viewModel,
                         babyName        = nav.babyName,
                         onBack          = { navState = HealthNavState.Main },
                         onBenchSelected = { bench ->
-                            // Show bench detail which now has "Send Request" button
                             navState = HealthNavState.BenchDetail(bench = bench, babyName = nav.babyName, fromMap = true)
                         }
                     )
@@ -154,7 +223,9 @@ fun HealthRecordTabContent(
                             navState = if (nav.fromMap) HealthNavState.Map(nav.babyName) else HealthNavState.Main
                         },
                         onSendRequest    = {
-                            state.selectedBabyId?.let { babyId ->
+                            // FIX: explicit type on let lambda to resolve T/R inference error
+                            val babyId: String? = state.selectedBabyId
+                            if (babyId != null) {
                                 viewModel.sendBenchRequest(babyId, nav.bench.benchId)
                                 navState = HealthNavState.Main
                             }
@@ -247,14 +318,16 @@ private fun HealthRecordMain(
             }
 
             // Branch status card (shows connected / pending / rejected / none)
-            selectedBaby?.let { baby ->
+            selectedBaby?.let { baby: BabyResponse ->
                 BranchStatusCard(
                     state    = state,
                     baby     = baby,
                     onOpenMap       = { onOpenMap(baby.fullName) },
                     onChangeBench   = { onChangeBench(baby.fullName) },
                     onCancelRequest = {
-                        state.activeBenchRequest?.requestId?.let { viewModel.cancelBenchRequest(it) }
+                        // FIX: explicit type annotation on let to fix T/R inference
+                        val reqId: String? = state.activeBenchRequest?.requestId
+                        if (reqId != null) viewModel.cancelBenchRequest(reqId)
                     },
                     onPickOtherBench = { onOpenMap(baby.fullName) }
                 )
@@ -305,25 +378,64 @@ private fun HealthRecordMain(
                         onReschedule   = { viewModel.triggerReschedule() }
                     )
                     HealthRecordSubTab.HEALTH_ISSUES -> HealthIssuesView(
-                        issues         = state.healthIssues,
+                        issues = state.healthIssues.map { net ->
+                            org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HealthIssueUi(
+                                issueId        = net.issueId,
+                                babyId         = net.babyId,
+                                title          = net.title,
+                                description    = net.description,
+                                issueDate      = net.issueDate,
+                                severity       = net.severity,
+                                isResolved     = net.isResolved,
+                                resolutionDate = net.resolutionDate,
+                                resolvedNotes  = net.resolvedNotes
+                            )
+                        },
                         filter         = state.healthIssueFilter,
                         loading        = state.healthIssuesLoading,
                         onFilterChange = { viewModel.setHealthIssueFilter(it) },
-                        onIssueClick   = { viewModel.selectHealthIssue(it) },
-                        onResolve      = { viewModel.resolveHealthIssue(it) },
+                        onIssueClick   = { issue ->
+                            // Look up the original network object by ID and pass that to the ViewModel
+                            val netIssue = state.healthIssues.firstOrNull { it.issueId == issue.issueId }
+                            if (netIssue != null) viewModel.selectHealthIssue(netIssue)
+                        },
+                        onResolve      = { issueId -> viewModel.resolveHealthIssue(issueId) },
                         onAddIssue     = {
-                            selectedBaby?.let { onAddHealthIssue(it.babyId, it.fullName) }
+                            selectedBaby?.let { baby: BabyResponse ->
+                                onAddHealthIssue(baby.babyId, baby.fullName)
+                            }
                         }
                     )
+
                     HealthRecordSubTab.APPOINTMENTS -> AppointmentsView(
-                        appointments       = state.appointments,
+                        appointments = state.appointments.map { net ->
+                            org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.AppointmentUi(
+                                appointmentId   = net.appointmentId,
+                                babyId          = net.babyId,
+                                babyName        = net.babyName,
+                                appointmentType = net.appointmentType,
+                                scheduledDate   = net.scheduledDate,
+                                scheduledTime   = net.scheduledTime,
+                                durationMinutes = net.durationMinutes,
+                                status          = net.status,
+                                doctorName      = net.doctorName,
+                                location        = net.location,
+                                notes           = net.notes
+                            )
+                        },
                         filter             = state.appointmentFilter,
                         loading            = state.appointmentsLoading,
                         onFilterChange     = { viewModel.setAppointmentFilter(it) },
-                        onAppointmentClick = { viewModel.selectAppointment(it) },
-                        onCancel           = { viewModel.cancelAppointment(it) },
+                        onAppointmentClick = { appt ->
+                            // Look up the original network object by ID and pass that to the ViewModel
+                            val netAppt = state.appointments.firstOrNull { it.appointmentId == appt.appointmentId }
+                            if (netAppt != null) viewModel.selectAppointment(netAppt)
+                        },
+                        onCancel           = { appointmentId -> viewModel.cancelAppointment(appointmentId) },
                         onAddAppointment   = {
-                            selectedBaby?.let { onAddAppointment(it.babyId, it.fullName) }
+                            selectedBaby?.let { baby: BabyResponse ->
+                                onAddAppointment(baby.babyId, baby.fullName)
+                            }
                         }
                     )
                 }
@@ -353,7 +465,6 @@ private fun HealthRecordMain(
 
 // ─────────────────────────────────────────────────────────────────────────────
 // BranchStatusCard — the card shown at the top of health record tab
-// Shows different states: connected / pending / rejected / no assignment
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -368,7 +479,6 @@ private fun BranchStatusCard(
     val req = state.activeBenchRequest
 
     when {
-        // Connected to a bench (assignment exists)
         state.isConnectedToBench -> {
             AssignedBranchCard(
                 assignment = state.assignment,
@@ -376,17 +486,15 @@ private fun BranchStatusCard(
                 onTap      = onChangeBench
             )
         }
-        // Pending request
         req != null && req.status == BenchRequestStatusUi.PENDING -> {
             BenchRequestStatusScreen(
-                request         = req,
-                babyName        = baby.fullName,
-                isSubmitting    = state.benchRequestSubmitting,
-                onCancelRequest = onCancelRequest,
+                request          = req,
+                babyName         = baby.fullName,
+                isSubmitting     = state.benchRequestSubmitting,
+                onCancelRequest  = onCancelRequest,
                 onPickOtherBench = onPickOtherBench
             )
         }
-        // Rejected request
         req != null && req.status == BenchRequestStatusUi.REJECTED -> {
             BenchRequestStatusScreen(
                 request          = req,
@@ -396,7 +504,6 @@ private fun BranchStatusCard(
                 onPickOtherBench = onPickOtherBench
             )
         }
-        // No assignment, no pending request → show "find a bench" CTA
         else -> {
             AssignedBranchCard(
                 assignment = null,
@@ -409,7 +516,6 @@ private fun BranchStatusCard(
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AssignedBranchCard, ChildSelector, NoAssignmentPrompt
-// (Same as original HealthRecordTabContent.kt — included for completeness)
 // ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -478,7 +584,7 @@ private fun ChildSelector(
 
 @Composable
 private fun AssignedBranchCard(
-    assignment: BabyBenchAssignmentUi?,
+    assignment: org.example.project.babygrowthtrackingapplication.data.network.BabyBenchAssignmentUi?,
     loading   : Boolean,
     onTap     : () -> Unit
 ) {

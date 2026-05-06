@@ -28,32 +28,11 @@ data class VaccinationBenchUi(
     val type: String = "Primary Health Center",
     val vaccinesAvailable: List<String> = emptyList(),
     val isActive: Boolean = true,
+    val teamMemberId: String? = null,      // ADD THIS
+    val teamMemberName: String? = null,    // ADD THIS
     val distanceKm: Double? = null
 )
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Bench Assignment
-// ─────────────────────────────────────────────────────────────────────────────
-
-@Serializable
-data class BabyBenchAssignmentUi(
-    val assignmentId: String,
-    val babyId: String,
-    val babyName: String,
-    val benchId: String,
-    val benchNameEn: String,
-    val benchNameAr: String,
-    val governorate: String,
-    val isActive: Boolean
-)
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Vaccination Schedule
-// ─────────────────────────────────────────────────────────────────────────────
-
-enum class ScheduleStatusUi { UPCOMING, DUE_SOON, OVERDUE, COMPLETED, MISSED, RESCHEDULED }
-
-// ─────────────────────────────────────────────────────────────────────────────
 // Health Issue
 // ─────────────────────────────────────────────────────────────────────────────
 

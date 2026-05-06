@@ -4,17 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.persistence.*
 
-// Location: entity/VaccinationBench.kt
-//
-// Maps to: vaccination_benches table
-// working_days and vaccination_days are stored as comma-separated strings
-// in the database, but serialized/deserialized as List<String> in the API
-// via @JsonIgnore on the raw fields and @JsonProperty on the computed getters.
-//
-// FIX: Jackson was trying to deserialize "Sunday,Monday,Tuesday" (a String)
-// directly into List<String> — that's a MismatchedInputException.
-// Solution: store raw comma string in DB column, expose List<String> to JSON.
-
 @Entity
 @Table(name = "vaccination_benches")
 data class VaccinationBench(
@@ -50,10 +39,6 @@ data class VaccinationBench(
     @Column(name = "phone", length = 50)
     var phone: String? = null,
 
-    // ── Stored as comma-separated string in DB ─────────────────────────────
-    // "Sunday,Monday,Tuesday,Wednesday,Thursday"
-    // @JsonIgnore prevents Jackson from trying to deserialize this field directly.
-    // The API exposes workingDaysList (List<String>) instead.
     @JsonIgnore
     @Column(name = "working_days", nullable = false)
     var workingDays: String = "Sunday,Monday,Tuesday,Wednesday,Thursday",
@@ -64,8 +49,6 @@ data class VaccinationBench(
     @Column(name = "working_hours_end", length = 10)
     var workingHoursEnd: String = "14:00",
 
-    // ── Stored as comma-separated string in DB ─────────────────────────────
-    // "Sunday,Tuesday,Thursday"
     @JsonIgnore
     @Column(name = "vaccination_days", nullable = false)
     var vaccinationDays: String = "Sunday,Tuesday,Thursday",
@@ -76,7 +59,6 @@ data class VaccinationBench(
     )
     var type: BenchType = BenchType.PRIMARY_HEALTH_CENTER,
 
-    // ── Stored as comma-separated vaccine names in DB ──────────────────────
     @JsonIgnore
     @Column(name = "vaccines_available", columnDefinition = "TEXT")
     var vaccinesAvailable: String = "",
@@ -84,13 +66,10 @@ data class VaccinationBench(
     @Column(name = "is_active")
     var isActive: Boolean = true,
 
-    // ── Link to the team member who manages this bench ─────────────────────
-    // NULL means the bench has no assigned manager yet.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_member_id", nullable = true)
     var teamMember: User? = null,
 
-    // Reverse relations
     @OneToMany(mappedBy = "bench", cascade = [CascadeType.ALL], orphanRemoval = true)
     var babyAssignments: MutableList<BabyBenchAssignment> = mutableListOf(),
 
@@ -98,11 +77,6 @@ data class VaccinationBench(
     var holidays: MutableList<BenchHoliday> = mutableListOf()
 
 ) : BaseEntity() {
-
-    // ── JSON-exposed list getters ──────────────────────────────────────────
-    // These are serialized as List<String> in the API response.
-    // The corresponding comma-string setters are used when accepting List<String>
-    // from incoming requests (see VaccinationBenchService.fromRequest).
 
     @get:JsonProperty("workingDays")
     val workingDaysList: List<String>
@@ -115,9 +89,4 @@ data class VaccinationBench(
     @get:JsonProperty("vaccinesAvailable")
     val vaccinesAvailableList: List<String>
         get() = vaccinesAvailable.split(",").map { it.trim() }.filter { it.isNotBlank() }
-
-    // ── Internal helpers (used by service layer) ───────────────────────────
-    fun getVaccinationDaysList(): List<String>  = vaccinationDaysList
-    fun getWorkingDaysList(): List<String>       = workingDaysList
-    fun getVaccinesAvailableList(): List<String> = vaccinesAvailableList
 }

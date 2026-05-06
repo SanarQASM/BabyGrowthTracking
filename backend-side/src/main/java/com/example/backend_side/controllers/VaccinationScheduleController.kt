@@ -38,7 +38,9 @@ class VaccinationScheduleController(
     fun getScheduleForBaby(
         @PathVariable babyId: String
     ): ResponseEntity<ApiResponse<List<VaccinationScheduleResponse>>> =
-        ResponseEntity.ok(ApiResponse(true, "Schedule retrieved", scheduleService.getScheduleForBaby(babyId)))
+        ResponseEntity.ok(
+            ApiResponse(true, "Schedule retrieved", scheduleService.getScheduleForBaby(babyId))
+        )
 
     @GetMapping("/baby/{babyId}/upcoming")
     @Operation(summary = "Get upcoming vaccinations within N days")
@@ -46,14 +48,18 @@ class VaccinationScheduleController(
         @PathVariable babyId: String,
         @RequestParam(defaultValue = "30") daysAhead: Int
     ): ResponseEntity<ApiResponse<List<VaccinationScheduleResponse>>> =
-        ResponseEntity.ok(ApiResponse(true, "Upcoming retrieved", scheduleService.getUpcomingForBaby(babyId, daysAhead)))
+        ResponseEntity.ok(
+            ApiResponse(true, "Upcoming retrieved", scheduleService.getUpcomingForBaby(babyId, daysAhead))
+        )
 
     @GetMapping("/baby/{babyId}/overdue")
     @Operation(summary = "Get overdue vaccinations for a baby")
     fun getOverdueForBaby(
         @PathVariable babyId: String
     ): ResponseEntity<ApiResponse<List<VaccinationScheduleResponse>>> =
-        ResponseEntity.ok(ApiResponse(true, "Overdue retrieved", scheduleService.getOverdueForBaby(babyId)))
+        ResponseEntity.ok(
+            ApiResponse(true, "Overdue retrieved", scheduleService.getOverdueForBaby(babyId))
+        )
 
     @GetMapping("/bench/{benchId}/day")
     @Operation(summary = "Get all babies scheduled at a bench on a date — Team daily view")
@@ -61,7 +67,10 @@ class VaccinationScheduleController(
         @PathVariable benchId: String,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) date: LocalDate
     ): ResponseEntity<ApiResponse<BenchDayScheduleResponse>> =
-        ResponseEntity.ok(ApiResponse(true, "Daily schedule retrieved", scheduleService.getScheduleByBenchAndDate(benchId, date)))
+        ResponseEntity.ok(
+            ApiResponse(true, "Daily schedule retrieved",
+                scheduleService.getScheduleByBenchAndDate(benchId, date))
+        )
 
     @GetMapping("/bench/{benchId}/range")
     @Operation(summary = "Get schedules for a bench in a date range — Team weekly/monthly view")
@@ -70,18 +79,23 @@ class VaccinationScheduleController(
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) from: LocalDate,
         @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) to: LocalDate
     ): ResponseEntity<ApiResponse<List<VaccinationScheduleResponse>>> =
-        ResponseEntity.ok(ApiResponse(true, "Range schedule retrieved", scheduleService.getScheduleByBenchAndRange(benchId, from, to)))
+        ResponseEntity.ok(
+            ApiResponse(true, "Range schedule retrieved",
+                scheduleService.getScheduleByBenchAndRange(benchId, from, to))
+        )
 
     // FIX: was @PutMapping — client sends PATCH, so this must be @PatchMapping.
-    // HTTP method mismatch caused 405 Method Not Allowed on every status update
-    // from TeamVaccinationViewModel.submitCompleteVaccination() and markAsMissed().
+    // HTTP method mismatch caused 405 Method Not Allowed on every status update.
     @PatchMapping("/{scheduleId}/status")
     @Operation(summary = "Update schedule status — mark completed, missed, etc.")
     fun updateStatus(
         @PathVariable scheduleId: String,
         @Valid @RequestBody request: VaccinationScheduleUpdateRequest
     ): ResponseEntity<ApiResponse<VaccinationScheduleResponse>> =
-        ResponseEntity.ok(ApiResponse(true, "Status updated", scheduleService.updateScheduleStatus(scheduleId, request)))
+        ResponseEntity.ok(
+            ApiResponse(true, "Status updated",
+                scheduleService.updateScheduleStatus(scheduleId, request))
+        )
 
     @PutMapping("/{scheduleId}/adjust")
     @Operation(summary = "Manually adjust a scheduled date — parent or team member")
@@ -104,5 +118,8 @@ class VaccinationScheduleController(
     fun getAdjustmentHistory(
         @PathVariable scheduleId: String
     ): ResponseEntity<ApiResponse<List<ScheduleAdjustmentLogResponse>>> =
-        ResponseEntity.ok(ApiResponse(true, "History retrieved", scheduleService.getAdjustmentHistory(scheduleId)))
+        ResponseEntity.ok(
+            ApiResponse(true, "History retrieved",
+                scheduleService.getAdjustmentHistory(scheduleId))
+        )
 }

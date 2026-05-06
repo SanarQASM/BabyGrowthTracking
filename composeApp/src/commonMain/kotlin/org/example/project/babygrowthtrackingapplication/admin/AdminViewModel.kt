@@ -41,31 +41,31 @@ data class AdminVaxRecord(
 )
 
 data class AdminUiState(
-    val adminName         : String                  = "",
-    val adminEmail        : String                  = "",
-    val isLoading         : Boolean                 = true,
-    val isRefreshing      : Boolean                 = false,
-    val stats             : AdminDashboardStats      = AdminDashboardStats(),
-    val allUsers          : List<UserResponse>       = emptyList(),
-    val filteredUsers     : List<UserResponse>       = emptyList(),
-    val userSearchQuery   : String                   = "",
-    val selectedUserTab   : AdminUserFilterTab       = AdminUserFilterTab.ALL,
-    val allBabies         : List<BabyResponse>       = emptyList(),
-    val filteredBabies    : List<BabyResponse>       = emptyList(),
-    val babySearchQuery   : String                   = "",
-    val selectedBabyTab   : AdminBabyFilterTab       = AdminBabyFilterTab.ALL,
-    val allVaxRecords     : List<AdminVaxRecord>     = emptyList(),
-    val filteredVaxRecords: List<AdminVaxRecord>     = emptyList(),
-    val vaxSearchQuery    : String                   = "",
-    val selectedVaxTab    : AdminVaxFilterTab        = AdminVaxFilterTab.ALL,
-    val allTeamMembers     : List<UserResponse>      = emptyList(),
-    val filteredTeamMembers: List<UserResponse>      = emptyList(),
-    val teamSearchQuery    : String                  = "",
-    val selectedTeamTab    : AdminTeamFilterTab      = AdminTeamFilterTab.ALL,
-    val isTeamLoading      : Boolean                 = false,
-    val successMessageKey : String?                  = null,
-    val errorMessageKey   : String?                  = null,
-    val navigateToWelcome : Boolean                  = false,
+    val adminName          : String               = "",
+    val adminEmail         : String               = "",
+    val isLoading          : Boolean              = false,   // FIX: was true — caused spinner on cold start before any load triggered
+    val isRefreshing       : Boolean              = false,
+    val stats              : AdminDashboardStats  = AdminDashboardStats(),
+    val allUsers           : List<UserResponse>   = emptyList(),
+    val filteredUsers      : List<UserResponse>   = emptyList(),
+    val userSearchQuery    : String               = "",
+    val selectedUserTab    : AdminUserFilterTab   = AdminUserFilterTab.ALL,
+    val allBabies          : List<BabyResponse>   = emptyList(),
+    val filteredBabies     : List<BabyResponse>   = emptyList(),
+    val babySearchQuery    : String               = "",
+    val selectedBabyTab    : AdminBabyFilterTab   = AdminBabyFilterTab.ALL,
+    val allVaxRecords      : List<AdminVaxRecord> = emptyList(),
+    val filteredVaxRecords : List<AdminVaxRecord> = emptyList(),
+    val vaxSearchQuery     : String               = "",
+    val selectedVaxTab     : AdminVaxFilterTab    = AdminVaxFilterTab.ALL,
+    val allTeamMembers     : List<UserResponse>   = emptyList(),
+    val filteredTeamMembers: List<UserResponse>   = emptyList(),
+    val teamSearchQuery    : String               = "",
+    val selectedTeamTab    : AdminTeamFilterTab   = AdminTeamFilterTab.ALL,
+    val isTeamLoading      : Boolean              = false,
+    val successMessageKey  : String?              = null,
+    val errorMessageKey    : String?              = null,
+    val navigateToWelcome  : Boolean              = false,
 )
 
 class AdminViewModel(
@@ -77,10 +77,43 @@ class AdminViewModel(
 
     private val scope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
-    init {
+    // FIX (Bug 1 — "request failed on first admin login"):
+    //
+    // REMOVED the eager `init { loadAdminProfile(); loadDashboardData() }` block.
+    //
+    // ROOT CAUSE: AdminViewModel is created once in AppNavigation's `remember {}`
+    // block — which fires immediately, before the admin has completed login and
+    // before the auth token has been saved to PreferencesManager.  Every API call
+    // in loadDashboardData() therefore sent an empty/invalid token and received a
+    // 401 "request failed".  On the second attempt (manual refresh) the token was
+    // already persisted, so everything worked.
+    //
+    // FIX: replace the init block with a public `onEnterAdminHome()` function that
+    // AppNavigation calls via LaunchedEffect(currentScreen) only AFTER navigation
+    // to Screen.AdminHome — by which point the token is guaranteed to be saved.
+    // An `isInitialised` flag prevents redundant reloads on re-composition.
+
+    private var isInitialised = false
+
+    /**
+     * Entry point called by AppNavigation via LaunchedEffect the moment the UI
+     * transitions to AdminHome.  By this point the auth token is already persisted.
+     * Safe to call multiple times — subsequent calls are no-ops unless
+     * [forceRefresh] is true.
+     */
+    fun onEnterAdminHome(forceRefresh: Boolean = false) {
+        if (isInitialised && !forceRefresh) return
+        val token = preferencesManager.getAuthToken()
+        if (token.isNullOrBlank()) {
+            uiState = uiState.copy(errorMessageKey = "ERR_GENERIC")
+            return
+        }
+        isInitialised = true
         loadAdminProfile()
         loadDashboardData()
     }
+
+    // ── Profile ───────────────────────────────────────────────────────────────
 
     private fun loadAdminProfile() {
         uiState = uiState.copy(
@@ -88,6 +121,8 @@ class AdminViewModel(
             adminEmail = preferencesManager.getUserEmail() ?: "",
         )
     }
+
+    // ── Dashboard / main data load ────────────────────────────────────────────
 
     fun loadDashboardData(forceRefresh: Boolean = false) {
         scope.launch {
@@ -102,7 +137,7 @@ class AdminViewModel(
 
                     // Fetch babies for all parents in parallel
                     val allBabies = mutableListOf<BabyResponse>()
-                    val babyJobs = parents.take(50).map { parent ->
+                    val babyJobs  = parents.take(50).map { parent ->
                         async {
                             val r = apiService.getBabiesByParent(parent.userId)
                             if (r is ApiResult.Success) r.data else emptyList()
@@ -110,7 +145,6 @@ class AdminViewModel(
                     }
                     babyJobs.awaitAll().forEach { allBabies.addAll(it) }
 
-                    // FIX: build vax records in parallel (was sequential O(n) calls)
                     val vaxRecords = buildVaxRecordsParallel(allBabies)
 
                     val stats = AdminDashboardStats(
@@ -157,13 +191,9 @@ class AdminViewModel(
         }
     }
 
-    // FIX: was private suspend fun doing sequential calls — one per baby.
-    // Now fires all schedule requests in parallel with async/awaitAll.
-    // For 30 babies with 500ms each: was 15s total, now ~500ms.
     private suspend fun buildVaxRecordsParallel(
         babies: List<BabyResponse>
     ): List<AdminVaxRecord> = coroutineScope {
-
         val jobs = babies.take(30).map { baby ->
             async {
                 val result = apiService.getScheduleForBaby(baby.babyId)
@@ -183,7 +213,6 @@ class AdminViewModel(
                 } else emptyList()
             }
         }
-
         jobs.awaitAll().flatten()
     }
 
@@ -192,7 +221,7 @@ class AdminViewModel(
         loadDashboardData(forceRefresh = true)
     }
 
-    // ── Team member management ────────────────────────────────────────────
+    // ── Team member management ────────────────────────────────────────────────
 
     fun setTeamSearchQuery(query: String) {
         uiState = uiState.copy(
@@ -260,10 +289,6 @@ class AdminViewModel(
         }
     }
 
-    // FIX: this method is now actually called from AdminHomeScreen.onCreated
-    // via AdminCreateTeamMemberScreen returning the new UserResponse.
-    // Previously onCreated: () -> Unit discarded the created user so this
-    // optimistic update path was dead code. Now wired correctly.
     fun onTeamMemberCreated(newMember: UserResponse) {
         val updatedTeam  = uiState.allTeamMembers + newMember
         val updatedUsers = uiState.allUsers       + newMember
@@ -277,7 +302,7 @@ class AdminViewModel(
         recalcStats(updatedUsers, uiState.allBabies)
     }
 
-    // ── User management ───────────────────────────────────────────────────
+    // ── User management ───────────────────────────────────────────────────────
 
     fun setUserSearchQuery(query: String) {
         uiState = uiState.copy(
@@ -297,7 +322,7 @@ class AdminViewModel(
         scope.launch {
             when (val result = apiService.deleteUser(userId)) {
                 is ApiResult.Success -> {
-                    val updatedUsers = uiState.allUsers.filter { it.userId != userId }
+                    val updatedUsers = uiState.allUsers.filter      { it.userId != userId }
                     val updatedTeam  = uiState.allTeamMembers.filter { it.userId != userId }
                     uiState = uiState.copy(
                         allUsers            = updatedUsers,
@@ -314,7 +339,7 @@ class AdminViewModel(
         }
     }
 
-    // ── Baby management ───────────────────────────────────────────────────
+    // ── Baby management ───────────────────────────────────────────────────────
 
     fun setBabySearchQuery(query: String) {
         uiState = uiState.copy(
@@ -348,7 +373,7 @@ class AdminViewModel(
         }
     }
 
-    // ── Vaccination management ────────────────────────────────────────────
+    // ── Vaccination management ────────────────────────────────────────────────
 
     fun setVaxSearchQuery(query: String) {
         uiState = uiState.copy(
@@ -364,9 +389,12 @@ class AdminViewModel(
         )
     }
 
-    // ── Logout ────────────────────────────────────────────────────────────
+    // ── Logout ────────────────────────────────────────────────────────────────
 
     fun logout() {
+        // FIX: also reset isInitialised so that if the admin logs back in
+        // during the same process lifetime, data is refreshed with the new token.
+        isInitialised = false
         preferencesManager.logout()
         uiState = uiState.copy(navigateToWelcome = true)
     }
@@ -377,7 +405,7 @@ class AdminViewModel(
 
     fun onDestroy() { scope.cancel() }
 
-    // ── Private helpers ───────────────────────────────────────────────────
+    // ── Private helpers ───────────────────────────────────────────────────────
 
     private fun recalcStats(users: List<UserResponse>, babies: List<BabyResponse>) {
         val stats = AdminDashboardStats(
@@ -396,7 +424,11 @@ class AdminViewModel(
         uiState = uiState.copy(stats = stats)
     }
 
-    private fun applyUserFilter(users: List<UserResponse>, tab: AdminUserFilterTab, query: String): List<UserResponse> {
+    private fun applyUserFilter(
+        users: List<UserResponse>,
+        tab  : AdminUserFilterTab,
+        query: String
+    ): List<UserResponse> {
         val byTab = when (tab) {
             AdminUserFilterTab.ALL     -> users
             AdminUserFilterTab.PARENTS -> users.filter { it.role.equals("parent", ignoreCase = true) }
@@ -405,11 +437,15 @@ class AdminViewModel(
         return if (query.isBlank()) byTab
         else byTab.filter {
             it.fullName.contains(query, ignoreCase = true) ||
-                    it.email.contains(query,    ignoreCase = true)
+                    it.email.contains(query, ignoreCase = true)
         }
     }
 
-    private fun applyBabyFilter(babies: List<BabyResponse>, tab: AdminBabyFilterTab, query: String): List<BabyResponse> {
+    private fun applyBabyFilter(
+        babies: List<BabyResponse>,
+        tab   : AdminBabyFilterTab,
+        query : String
+    ): List<BabyResponse> {
         val byTab = when (tab) {
             AdminBabyFilterTab.ALL      -> babies
             AdminBabyFilterTab.ACTIVE   -> babies.filter { it.isActive }
@@ -419,11 +455,18 @@ class AdminViewModel(
         else byTab.filter { it.fullName.contains(query, ignoreCase = true) }
     }
 
-    private fun applyVaxFilter(records: List<AdminVaxRecord>, tab: AdminVaxFilterTab, query: String): List<AdminVaxRecord> {
+    private fun applyVaxFilter(
+        records: List<AdminVaxRecord>,
+        tab    : AdminVaxFilterTab,
+        query  : String
+    ): List<AdminVaxRecord> {
         val byTab = when (tab) {
             AdminVaxFilterTab.ALL       -> records
             AdminVaxFilterTab.OVERDUE   -> records.filter { it.status.equals("OVERDUE",   ignoreCase = true) }
-            AdminVaxFilterTab.UPCOMING  -> records.filter { it.status.equals("UPCOMING",  ignoreCase = true) || it.status.equals("DUE_SOON", ignoreCase = true) }
+            AdminVaxFilterTab.UPCOMING  -> records.filter {
+                it.status.equals("UPCOMING", ignoreCase = true) ||
+                        it.status.equals("DUE_SOON", ignoreCase = true)
+            }
             AdminVaxFilterTab.COMPLETED -> records.filter { it.status.equals("COMPLETED", ignoreCase = true) }
         }
         return if (query.isBlank()) byTab
@@ -434,7 +477,11 @@ class AdminViewModel(
         }
     }
 
-    private fun applyTeamFilter(members: List<UserResponse>, tab: AdminTeamFilterTab, query: String): List<UserResponse> {
+    private fun applyTeamFilter(
+        members: List<UserResponse>,
+        tab    : AdminTeamFilterTab,
+        query  : String
+    ): List<UserResponse> {
         val byTab = when (tab) {
             AdminTeamFilterTab.ALL      -> members
             AdminTeamFilterTab.ACTIVE   -> members.filter { it.isActive }
@@ -443,7 +490,7 @@ class AdminViewModel(
         return if (query.isBlank()) byTab
         else byTab.filter {
             it.fullName.contains(query, ignoreCase = true) ||
-                    it.email.contains(query,    ignoreCase = true)
+                    it.email.contains(query, ignoreCase = true)
         }
     }
 }

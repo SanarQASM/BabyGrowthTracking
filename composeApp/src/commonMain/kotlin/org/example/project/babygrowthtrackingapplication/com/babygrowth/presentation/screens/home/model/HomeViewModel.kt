@@ -334,6 +334,20 @@ class HomeViewModel(
     // ─────────────────────────────────────────────────────────────────────────
     // Cleanup
     // ─────────────────────────────────────────────────────────────────────────
+    fun clearState() {
+        // Invalidate all caches so the next login fetches fresh data
+        babiesCache.invalidate()
+        vaccinationCaches.values.forEach { it.invalidate() }
+        latestGrowthCaches.values.forEach { it.invalidate() }
+        allGrowthCaches.values.forEach { it.invalidate() }
+        vaccinationCaches.clear()
+        latestGrowthCaches.clear()
+        allGrowthCaches.clear()
+
+        // Reset UI state to blank — prevents stale baby/growth data from
+        // flashing on screen when a new user logs in after logout
+        uiState = HomeUiState()
+    }
 
     fun onDestroy() { scope.cancel() }
 }

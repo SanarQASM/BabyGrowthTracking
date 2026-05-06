@@ -31,8 +31,7 @@ sealed class ApiResult<out T> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Serializable bench create request — replaces raw Map<String,Any?> which
-// crashes kotlinx-serialization at runtime
+// Serializable bench create request
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Serializable
@@ -54,6 +53,36 @@ data class CreateBenchRequest(
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
+// ScheduleStatusUi — presentation-layer status enum, lives here so both
+// data.network and presentation layers can share it without circular imports.
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum class ScheduleStatusUi {
+    UPCOMING,
+    DUE_SOON,
+    OVERDUE,
+    COMPLETED,
+    MISSED,
+    RESCHEDULED
+}
+
+/** Maps raw backend status string → ScheduleStatusUi */
+fun String.toScheduleStatusUi(): ScheduleStatusUi = when (this.uppercase()) {
+    "COMPLETED"             -> ScheduleStatusUi.COMPLETED
+    "OVERDUE"               -> ScheduleStatusUi.OVERDUE
+    "MISSED"                -> ScheduleStatusUi.MISSED
+    "DUE_SOON", "DUE SOON" -> ScheduleStatusUi.DUE_SOON
+    "RESCHEDULED"           -> ScheduleStatusUi.RESCHEDULED
+    else                    -> ScheduleStatusUi.UPCOMING
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BenchMapFilter — used by both map screen and view-model
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum class BenchMapFilter { ALL, NEAR }
+
+// ─────────────────────────────────────────────────────────────────────────────
 // ApiService
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -64,153 +93,113 @@ class ApiService(
         internal const val BASE_URL = "http://172.20.10.7:8080/api"
 
         object Endpoints {
+            const val AUTH_REGISTER                 = "/v1/auth/register"
+            const val AUTH_PRE_REGISTER             = "/v1/auth/pre-register"
+            const val AUTH_VERIFY_SIGNUP_CODE       = "/v1/auth/verify-signup-code"
+            const val AUTH_RESEND_SIGNUP_CODE       = "/v1/auth/resend-signup-code"
+            const val AUTH_COMPLETE_REGISTRATION    = "/v1/auth/complete-registration"
+            const val AUTH_LOGIN                    = "/v1/auth/login"
+            const val AUTH_GOOGLE                   = "/v1/auth/google"
+            const val AUTH_FACEBOOK                 = "/v1/auth/facebook"
+            const val AUTH_SEND_VERIFY_CODE         = "/v1/auth/send-verification"
+            const val AUTH_VERIFY_ACCOUNT           = "/v1/auth/verify-account"
+            const val AUTH_FORGOT_PASSWORD          = "/v1/auth/forgot-password"
+            const val AUTH_VERIFY_RESET             = "/v1/auth/verify-reset-code"
+            const val AUTH_RESET_PASSWORD           = "/v1/auth/reset-password"
 
-            // ── Auth ──────────────────────────────────────────────────────────
-            const val AUTH_REGISTER = "/v1/auth/register"
-            const val AUTH_PRE_REGISTER = "/v1/auth/pre-register"
-            const val AUTH_VERIFY_SIGNUP_CODE = "/v1/auth/verify-signup-code"
-            const val AUTH_RESEND_SIGNUP_CODE = "/v1/auth/resend-signup-code"
-            const val AUTH_COMPLETE_REGISTRATION = "/v1/auth/complete-registration"
-            const val AUTH_LOGIN = "/v1/auth/login"
-            const val AUTH_GOOGLE = "/v1/auth/google"
-            const val AUTH_FACEBOOK = "/v1/auth/facebook"
-            const val AUTH_SEND_VERIFY_CODE = "/v1/auth/send-verification"
-            const val AUTH_VERIFY_ACCOUNT = "/v1/auth/verify-account"
-            const val AUTH_FORGOT_PASSWORD = "/v1/auth/forgot-password"
-            const val AUTH_VERIFY_RESET = "/v1/auth/verify-reset-code"
-            const val AUTH_RESET_PASSWORD = "/v1/auth/reset-password"
-
-            // ── Users ─────────────────────────────────────────────────────────
             const val USERS = "/v1/users"
-            fun user(id: String) = "$USERS/$id"
-
-            // FIX: was /v1/users/by-role/{role} — now matches GET /v1/users/by-role/{role}
-            // added to UserController in this fix set
-            fun userByRole(role: String) = "$USERS/by-role/$role"
-
-            // FIX: was /v1/users/{id}/deactivate — now matches PATCH endpoint added to UserController
+            fun user(id: String)           = "$USERS/$id"
+            fun userByRole(role: String)   = "$USERS/by-role/$role"
             fun deactivateUser(id: String) = "$USERS/$id/deactivate"
+            fun activateUser(id: String)   = "$USERS/$id/activate"
 
-            // FIX: was /v1/users/{id}/activate — now matches PATCH endpoint added to UserController
-            fun activateUser(id: String) = "$USERS/$id/activate"
-
-            // ── Babies ────────────────────────────────────────────────────────
-            const val BABIES = "/v1/babies"
-
-            // FIX: was "/v1/babies/all" — BabyController maps GET /v1/babies (no /all suffix)
-            // Changed to match the actual controller @GetMapping
+            const val BABIES     = "/v1/babies"
             const val BABIES_ALL = "/v1/babies"
-            fun baby(id: String) = "$BABIES/$id"
-            fun babyStatus(id: String) = "$BABIES/$id/status"
-            fun babiesByParent(parentId: String) = "$BABIES/parent/$parentId"
-            fun babiesByBench(benchId: String) = "$BABIES/bench/$benchId"
+            fun baby(id: String)                      = "$BABIES/$id"
+            fun babyStatus(id: String)                = "$BABIES/$id/status"
+            fun babiesByParent(parentId: String)      = "$BABIES/parent/$parentId"
+            fun babiesByBench(benchId: String)        = "$BABIES/bench/$benchId"
 
-            // ── Growth Records ────────────────────────────────────────────────
             const val GROWTH_RECORDS = "/v1/growth-records"
-            fun growthRecord(id: String) = "$GROWTH_RECORDS/$id"
-            fun babyGrowthRecords(babyId: String) = "$GROWTH_RECORDS/baby/$babyId"
-            fun latestGrowthRecord(babyId: String) = "$GROWTH_RECORDS/baby/$babyId/latest"
-            fun updateGrowthRecord(id: String) = "$GROWTH_RECORDS/$id"
+            fun growthRecord(id: String)              = "$GROWTH_RECORDS/$id"
+            fun babyGrowthRecords(babyId: String)     = "$GROWTH_RECORDS/baby/$babyId"
+            fun latestGrowthRecord(babyId: String)    = "$GROWTH_RECORDS/baby/$babyId/latest"
+            fun updateGrowthRecord(id: String)        = "$GROWTH_RECORDS/$id"
 
-            // ── Vaccinations ──────────────────────────────────────────────────
             const val VACCINATIONS = "/v1/vaccinations"
-            fun vaccination(id: String) = "$VACCINATIONS/$id"
-            fun babyVaccinations(babyId: String) = "$VACCINATIONS/baby/$babyId"
-            fun upcomingVaccinations(babyId: String) = "$VACCINATIONS/baby/$babyId/upcoming"
+            fun vaccination(id: String)               = "$VACCINATIONS/$id"
+            fun babyVaccinations(babyId: String)      = "$VACCINATIONS/baby/$babyId"
+            fun upcomingVaccinations(babyId: String)  = "$VACCINATIONS/baby/$babyId/upcoming"
             fun rescheduleVaccinations(babyId: String) =
                 "$VACCINATION_SCHEDULES/baby/$babyId/reschedule"
+            fun markVaccinationDone(id: String)       = "$VACCINATIONS/$id/complete"
 
-            fun markVaccinationDone(id: String) = "$VACCINATIONS/$id/complete"
-
-            // ── Vaccination Schedules ─────────────────────────────────────────
             const val VACCINATION_SCHEDULES = "/v1/vaccination-schedules"
             fun babyVaccinationSchedule(babyId: String) = "$VACCINATION_SCHEDULES/baby/$babyId"
-            fun vaccinationSchedule(id: String) = "$VACCINATION_SCHEDULES/$id"
+            fun vaccinationSchedule(id: String)          = "$VACCINATION_SCHEDULES/$id"
+            fun updateScheduleStatus(id: String)         = "$VACCINATION_SCHEDULES/$id/status"
 
-            // FIX: client calls client.patch(...) so this must be PATCH on backend too.
-            // VaccinationScheduleController now uses @PatchMapping("/{scheduleId}/status")
-            fun updateScheduleStatus(id: String) = "$VACCINATION_SCHEDULES/$id/status"
-
-            // ── Benches ───────────────────────────────────────────────────────
-            const val BENCHES = "/v1/benches"
+            const val BENCHES          = "/v1/benches"
             const val BENCH_ASSIGNMENTS = "/v1/bench-assignments"
-            fun bench(id: String) = "$BENCHES/$id"
-            fun benchByTeamMember(teamMemberId: String) = "$BENCHES/by-team-member/$teamMemberId"
-            fun deactivateBench(id: String) = "$BENCHES/$id/deactivate"
-            fun assignTeamMemberToBench(id: String) = "$BENCHES/$id/assign-team-member"
-            fun activeAssignment(babyId: String) = "$BENCH_ASSIGNMENTS/baby/$babyId/active"
-            fun changeBench(babyId: String) = "$BENCH_ASSIGNMENTS/baby/$babyId/change-bench"
-            fun assignmentsByBench(benchId: String) = "$BENCH_ASSIGNMENTS/bench/$benchId/babies"
+            fun bench(id: String)                              = "$BENCHES/$id"
+            fun benchByTeamMember(teamMemberId: String)        = "$BENCHES/by-team-member/$teamMemberId"
+            fun deactivateBench(id: String)                    = "$BENCHES/$id/deactivate"
+            fun assignTeamMemberToBench(id: String)            = "$BENCHES/$id/assign-team-member"
+            fun activeAssignment(babyId: String)               = "$BENCH_ASSIGNMENTS/baby/$babyId/active"
+            fun changeBench(babyId: String)                    = "$BENCH_ASSIGNMENTS/baby/$babyId/change-bench"
+            fun assignmentsByBench(benchId: String)            = "$BENCH_ASSIGNMENTS/bench/$benchId/babies"
 
-            // ── Bench Requests ────────────────────────────────────────────────
             const val BENCH_REQUESTS = "/v1/bench-requests"
-            fun benchRequestActiveBaby(babyId: String) = "$BENCH_REQUESTS/baby/$babyId/active"
-            fun benchRequestsPendingForBench(benchId: String) =
-                "$BENCH_REQUESTS/bench/$benchId/pending"
+            fun benchRequestActiveBaby(babyId: String)         = "$BENCH_REQUESTS/baby/$babyId/active"
+            fun benchRequestsPendingForBench(benchId: String)  = "$BENCH_REQUESTS/bench/$benchId/pending"
+            fun benchRequestsAllForBench(benchId: String)      = "$BENCH_REQUESTS/bench/$benchId/all"
+            fun benchRequestReview(requestId: String)          = "$BENCH_REQUESTS/$requestId/review"
+            fun benchRequestCancel(requestId: String)          = "$BENCH_REQUESTS/$requestId/cancel"
 
-            fun benchRequestsAllForBench(benchId: String) = "$BENCH_REQUESTS/bench/$benchId/all"
-            fun benchRequestReview(requestId: String) = "$BENCH_REQUESTS/$requestId/review"
-            fun benchRequestCancel(requestId: String) = "$BENCH_REQUESTS/$requestId/cancel"
-
-            // ── Family History ────────────────────────────────────────────────
             const val FAMILY_HISTORY = "/v1/family-history"
-            fun familyHistoryByBaby(babyId: String) = "$FAMILY_HISTORY/baby/$babyId"
-            fun familyHistoryById(historyId: String) = "$FAMILY_HISTORY/$historyId"
+            fun familyHistoryByBaby(babyId: String)      = "$FAMILY_HISTORY/baby/$babyId"
+            fun familyHistoryById(historyId: String)     = "$FAMILY_HISTORY/$historyId"
 
-            // ── Child Illnesses ───────────────────────────────────────────────
             const val CHILD_ILLNESSES = "/v1/child-illnesses"
-            fun childIllnessesByBaby(babyId: String) = "$CHILD_ILLNESSES/baby/$babyId"
-            fun childIllnessById(illnessId: String) = "$CHILD_ILLNESSES/$illnessId"
+            fun childIllnessesByBaby(babyId: String)     = "$CHILD_ILLNESSES/baby/$babyId"
+            fun childIllnessById(illnessId: String)      = "$CHILD_ILLNESSES/$illnessId"
             fun childIllnessDeactivate(illnessId: String) = "$CHILD_ILLNESSES/$illnessId/deactivate"
 
-            // ── Pre-Check Investigations ──────────────────────────────────────
             const val PRE_CHECK_INVESTIGATIONS = "/v1/pre-check-investigations"
             fun preCheckInvestigationsByBaby(babyId: String) =
                 "$PRE_CHECK_INVESTIGATIONS/baby/$babyId"
-
             fun preCheckInvestigationById(id: String) = "$PRE_CHECK_INVESTIGATIONS/$id"
 
-            // ── Health Issues ─────────────────────────────────────────────────
             const val HEALTH_ISSUES = "/v1/health-issues"
-            fun healthIssuesByBaby(babyId: String) = "$HEALTH_ISSUES/baby/$babyId"
-            fun healthIssueById(issueId: String) = "$HEALTH_ISSUES/$issueId"
-            fun resolveHealthIssue(issueId: String) = "$HEALTH_ISSUES/$issueId/resolve"
+            fun healthIssuesByBaby(babyId: String)   = "$HEALTH_ISSUES/baby/$babyId"
+            fun healthIssueById(issueId: String)     = "$HEALTH_ISSUES/$issueId"
+            fun resolveHealthIssue(issueId: String)  = "$HEALTH_ISSUES/$issueId/resolve"
 
-            // ── Appointments ──────────────────────────────────────────────────
             const val APPOINTMENTS = "/v1/appointments"
-            fun appointmentsByBaby(babyId: String) = "$APPOINTMENTS/baby/$babyId"
-            fun appointmentById(appointmentId: String) = "$APPOINTMENTS/$appointmentId"
+            fun appointmentsByBaby(babyId: String)       = "$APPOINTMENTS/baby/$babyId"
+            fun appointmentById(appointmentId: String)   = "$APPOINTMENTS/$appointmentId"
             fun cancelAppointment(appointmentId: String) = "$APPOINTMENTS/$appointmentId/cancel"
-            fun confirmAppointment(id: String) = "$APPOINTMENTS/$id/confirm"
+            fun confirmAppointment(id: String)           = "$APPOINTMENTS/$id/confirm"
 
-            // ── Child Development ─────────────────────────────────────────────
-            const val CHILD_DEV_VISION_MOTOR = "/v1/child-development/vision-motor"
+            const val CHILD_DEV_VISION_MOTOR   = "/v1/child-development/vision-motor"
             const val CHILD_DEV_HEARING_SPEECH = "/v1/child-development/hearing-speech"
-            fun childDevVisionMotorByBaby(babyId: String) = "$CHILD_DEV_VISION_MOTOR/baby/$babyId"
-            fun childDevVisionMotorById(id: String) = "$CHILD_DEV_VISION_MOTOR/$id"
-            fun childDevHearingSpeechByBaby(babyId: String) =
-                "$CHILD_DEV_HEARING_SPEECH/baby/$babyId"
+            fun childDevVisionMotorByBaby(babyId: String)    = "$CHILD_DEV_VISION_MOTOR/baby/$babyId"
+            fun childDevVisionMotorById(id: String)          = "$CHILD_DEV_VISION_MOTOR/$id"
+            fun childDevHearingSpeechByBaby(babyId: String)  = "$CHILD_DEV_HEARING_SPEECH/baby/$babyId"
+            fun childDevHearingSpeechById(id: String)        = "$CHILD_DEV_HEARING_SPEECH/$id"
 
-            fun childDevHearingSpeechById(id: String) = "$CHILD_DEV_HEARING_SPEECH/$id"
-
-            // ── Memories ──────────────────────────────────────────────────────
             const val MEMORIES = "/v1/memories"
             fun memoriesByBaby(babyId: String) = "$MEMORIES/baby/$babyId"
-            fun memory(id: String) = "$MEMORIES/$id"
+            fun memory(id: String)             = "$MEMORIES/$id"
 
-            // ── Health ────────────────────────────────────────────────────────
             const val HEALTH = "/v1/health"
 
-            // ── Notifications ─────────────────────────────────────────────────
             const val NOTIFICATIONS = "/v1/notifications"
-            fun notificationsByUser(userId: String) = "$NOTIFICATIONS/user/$userId"
-            fun markNotificationRead(id: String) = "$NOTIFICATIONS/$id/read"
-            fun markAllNotificationsRead(userId: String) =
-                "$NOTIFICATIONS/user/$userId/mark-all-read"
+            fun notificationsByUser(userId: String)        = "$NOTIFICATIONS/user/$userId"
+            fun markNotificationRead(id: String)           = "$NOTIFICATIONS/$id/read"
+            fun markAllNotificationsRead(userId: String)   = "$NOTIFICATIONS/user/$userId/mark-all-read"
 
-            // ── Admin user management ─────────────────────────────────────────
-            // FIX: admin-specific user routes use /v1/admin/users prefix
-            const val ADMIN_USERS = "/v1/admin/users"
+            const val ADMIN_USERS      = "/v1/admin/users"
             fun adminUsersByRole(role: String) = "$ADMIN_USERS/role/$role"
             const val ADMIN_USERS_TEAM = "$ADMIN_USERS/vaccination-team"
         }
@@ -224,7 +213,7 @@ class ApiService(
         install(HttpTimeout) {
             requestTimeoutMillis = 30_000
             connectTimeoutMillis = 30_000
-            socketTimeoutMillis = 30_000
+            socketTimeoutMillis  = 30_000
         }
         defaultRequest {
             contentType(ContentType.Application.Json)
@@ -250,13 +239,7 @@ class ApiService(
         makeRequest { client.post("$BASE_URL${Endpoints.AUTH_RESEND_SIGNUP_CODE}") { setBody(request) } }
 
     suspend fun completeRegistration(request: CompleteRegistrationRequest): ApiResult<AuthResponse> =
-        makeRequest {
-            client.post("$BASE_URL${Endpoints.AUTH_COMPLETE_REGISTRATION}") {
-                setBody(
-                    request
-                )
-            }
-        }
+        makeRequest { client.post("$BASE_URL${Endpoints.AUTH_COMPLETE_REGISTRATION}") { setBody(request) } }
 
     suspend fun login(request: LoginRequest): ApiResult<AuthResponse> =
         makeRequest { client.post("$BASE_URL${Endpoints.AUTH_LOGIN}") { setBody(request) } }
@@ -293,60 +276,39 @@ class ApiService(
     suspend fun getAllUsers(page: Int = 0, size: Int = 10): ApiResult<PageResponse<UserResponse>> =
         makeRequest {
             client.get("$BASE_URL${Endpoints.USERS}") {
-                parameter("page", page)
-                parameter("size", size)
+                parameter("page", page); parameter("size", size)
             }
         }
 
-    // FIX: now calls /v1/users/by-role/{role} which is added to UserController
     suspend fun getUsersByRole(role: String): ApiResult<List<UserResponse>> =
         makeRequest { client.get("$BASE_URL${Endpoints.userByRole(role)}") }
 
     suspend fun deleteUser(userId: String): ApiResult<Unit> =
         makeRequest { client.delete("$BASE_URL${Endpoints.user(userId)}") }
 
-    // FIX: PATCH /v1/users/{id}/deactivate — endpoint now exists in UserController
     suspend fun deactivateUser(userId: String): ApiResult<UserResponse> =
         makeRequest { client.patch("$BASE_URL${Endpoints.deactivateUser(userId)}") }
 
-    // FIX: PATCH /v1/users/{id}/activate — endpoint now exists in UserController
     suspend fun activateUser(userId: String): ApiResult<UserResponse> =
         makeRequest { client.patch("$BASE_URL${Endpoints.activateUser(userId)}") }
 
     suspend fun createTeamMember(
-        fullName: String,
-        email: String,
-        password: String,
-        phone: String? = null,
-        city: String? = null,
-        address: String? = null,
+        fullName: String, email: String, password: String,
+        phone: String? = null, city: String? = null, address: String? = null
     ): ApiResult<UserResponse> =
         makeRequest {
             client.post("$BASE_URL${Endpoints.USERS}") {
-                setBody(
-                    CreateUserRequest(
-                        fullName = fullName,
-                        email = email,
-                        password = password,
-                        phone = phone,
-                        city = city,
-                        address = address,
-                        role = "VACCINATION_TEAM"
-                    )
-                )
+                setBody(CreateUserRequest(fullName = fullName, email = email, password = password,
+                    phone = phone, city = city, address = address, role = "VACCINATION_TEAM"))
             }
         }
 
     // ── Babies ────────────────────────────────────────────────────────────────
 
-    suspend fun createBaby(
-        parentUserId: String,
-        request: CreateBabyRequest
-    ): ApiResult<BabyResponse> =
+    suspend fun createBaby(parentUserId: String, request: CreateBabyRequest): ApiResult<BabyResponse> =
         makeRequest {
             client.post("$BASE_URL${Endpoints.BABIES}") {
-                header("X-User-Id", parentUserId)
-                setBody(request)
+                header("X-User-Id", parentUserId); setBody(request)
             }
         }
 
@@ -359,12 +321,10 @@ class ApiService(
     suspend fun getBabiesByBench(benchId: String): ApiResult<List<BabyResponse>> =
         makeRequest { client.get("$BASE_URL${Endpoints.babiesByBench(benchId)}") }
 
-    // FIX: BABIES_ALL is now "/v1/babies" (was "/v1/babies/all" which doesn't exist)
     suspend fun getAllBabies(page: Int = 0, size: Int = 20): ApiResult<PageResponse<BabyResponse>> =
         makeRequest {
             client.get("$BASE_URL${Endpoints.BABIES_ALL}") {
-                parameter("page", page)
-                parameter("size", size)
+                parameter("page", page); parameter("size", size)
             }
         }
 
@@ -373,9 +333,7 @@ class ApiService(
 
     suspend fun updateBabyStatus(babyId: String, status: String): ApiResult<BabyResponse> =
         makeRequest {
-            client.patch("$BASE_URL${Endpoints.babyStatus(babyId)}") {
-                setBody(ArchiveBabyRequest(status))
-            }
+            client.patch("$BASE_URL${Endpoints.babyStatus(babyId)}") { setBody(ArchiveBabyRequest(status)) }
         }
 
     suspend fun deleteBaby(babyId: String): ApiResult<Unit> =
@@ -383,14 +341,10 @@ class ApiService(
 
     // ── Growth Records ────────────────────────────────────────────────────────
 
-    suspend fun createGrowthRecord(
-        userId: String,
-        request: CreateGrowthRecordRequest
-    ): ApiResult<GrowthRecordResponse> =
+    suspend fun createGrowthRecord(userId: String, request: CreateGrowthRecordRequest): ApiResult<GrowthRecordResponse> =
         makeRequest {
             client.post("$BASE_URL${Endpoints.GROWTH_RECORDS}") {
-                header("X-User-Id", userId)
-                setBody(request)
+                header("X-User-Id", userId); setBody(request)
             }
         }
 
@@ -400,13 +354,8 @@ class ApiService(
     suspend fun getLatestGrowthRecord(babyId: String): ApiResult<GrowthRecordResponse> =
         makeRequest { client.get("$BASE_URL${Endpoints.latestGrowthRecord(babyId)}") }
 
-    suspend fun updateGrowthRecord(
-        recordId: String,
-        request: UpdateGrowthRecordRequest
-    ): ApiResult<GrowthRecordResponse> =
-        makeRequest {
-            client.put("$BASE_URL${Endpoints.updateGrowthRecord(recordId)}") { setBody(request) }
-        }
+    suspend fun updateGrowthRecord(recordId: String, request: UpdateGrowthRecordRequest): ApiResult<GrowthRecordResponse> =
+        makeRequest { client.put("$BASE_URL${Endpoints.updateGrowthRecord(recordId)}") { setBody(request) } }
 
     suspend fun deleteGrowthRecord(recordId: String): ApiResult<Unit> =
         makeRequest { client.delete("$BASE_URL${Endpoints.growthRecord(recordId)}") }
@@ -423,18 +372,11 @@ class ApiService(
         makeRequest { client.get("$BASE_URL${Endpoints.upcomingVaccinations(babyId)}") }
 
     suspend fun markVaccinationDone(
-        vaccinationId: String,
-        administeredDate: String,
-        notes: String? = null
+        vaccinationId: String, administeredDate: String, notes: String? = null
     ): ApiResult<VaccinationResponse> =
         makeRequest {
             client.patch("$BASE_URL${Endpoints.markVaccinationDone(vaccinationId)}") {
-                setBody(
-                    MarkVaccinationDoneRequest(
-                        administeredDate = administeredDate,
-                        notes = notes
-                    )
-                )
+                setBody(MarkVaccinationDoneRequest(administeredDate = administeredDate, notes = notes))
             }
         }
 
@@ -449,38 +391,25 @@ class ApiService(
             resp.body<ApiListResponse<VaccinationScheduleNet>>().data.map { it.toUi() }
         }
 
-    suspend fun getBenchDaySchedule(
-        benchId: String,
-        date: String
-    ): ApiResult<List<VaccinationScheduleUi>> = safeCall {
-        val resp = client.get("$BASE_URL${Endpoints.VACCINATION_SCHEDULES}/bench/$benchId/day") {
-            parameter("date", date)
+    suspend fun getBenchDaySchedule(benchId: String, date: String): ApiResult<List<VaccinationScheduleUi>> =
+        safeCall {
+            val resp = client.get("$BASE_URL${Endpoints.VACCINATION_SCHEDULES}/bench/$benchId/day") {
+                parameter("date", date)
+            }
+            resp.body<ApiListResponse<VaccinationScheduleNet>>().data.map { it.toUi() }
         }
-        resp.body<ApiListResponse<VaccinationScheduleNet>>().data.map { it.toUi() }
-    }
 
     suspend fun rescheduleAllVaccinations(
-        babyId: String,
-        shiftReason: String,
-        notes: String? = null,
-        rescheduleOverdue: Boolean = true
+        babyId: String, shiftReason: String, notes: String? = null, rescheduleOverdue: Boolean = true
     ): ApiResult<RescheduleResultUi> = safeCall {
-        val request = RescheduleRequest(
-            shiftReason = shiftReason,
-            rescheduleOverdue = rescheduleOverdue,
-            notes = notes
-        )
-        val resp = client.post(
-            "$BASE_URL${Endpoints.rescheduleVaccinations(babyId)}"
-        ) { setBody(request) }
+        val resp = client.post("$BASE_URL${Endpoints.rescheduleVaccinations(babyId)}") {
+            setBody(RescheduleRequest(shiftReason = shiftReason, rescheduleOverdue = rescheduleOverdue, notes = notes))
+        }
         resp.body<ApiSingleResponse<RescheduleResponseNet>>().data!!.toUi()
     }
 
-    // FIX: uses client.patch — backend now uses @PatchMapping("/{scheduleId}/status")
     suspend fun updateVaccinationScheduleStatus(
-        scheduleId: String,
-        status: String,
-        notes: String? = null
+        scheduleId: String, status: String, notes: String? = null
     ): ApiResult<VaccinationScheduleNet> =
         safeCall {
             val resp = client.patch("$BASE_URL${Endpoints.updateScheduleStatus(scheduleId)}") {
@@ -506,42 +435,28 @@ class ApiService(
     suspend fun getBenchByTeamMember(teamMemberId: String): ApiResult<VaccinationBenchUi?> =
         safeCall {
             val resp = client.get("$BASE_URL${Endpoints.benchByTeamMember(teamMemberId)}")
-            try {
-                resp.body<ApiSingleResponse<VaccinationBenchNet>>().data?.toUi()
-            } catch (e: Exception) {
-                null
-            }
+            try { resp.body<ApiSingleResponse<VaccinationBenchNet>>().data?.toUi() }
+            catch (e: Exception) { null }
         }
 
-    // FIX: was setBody(mapOf(...)) with mixed types — Map<String,Any?> cannot be
-    // serialized by kotlinx-serialization without a custom serializer.
-    // Now uses a proper @Serializable data class CreateBenchRequest.
-    suspend fun createBench(request: org.example.project.babygrowthtrackingapplication.admin.CreateBenchFormRequest): ApiResult<VaccinationBenchUi> =
+    suspend fun createBench(
+        request: org.example.project.babygrowthtrackingapplication.admin.CreateBenchFormRequest
+    ): ApiResult<VaccinationBenchUi> =
         safeCall {
             val body = CreateBenchRequest(
-                nameEn = request.nameEn,
-                nameAr = request.nameAr,
-                governorate = request.governorate,
-                district = request.district,
-                addressEn = request.addressEn,
-                latitude = request.latitude,
-                longitude = request.longitude,
-                phone = request.phone,
-                workingDays = request.workingDays,
-                vaccinationDays = request.vaccinationDays,
-                workingHoursStart = request.workingHoursStart,
-                workingHoursEnd = request.workingHoursEnd,
-                vaccinesAvailable = request.vaccinesAvailable,
-                teamMemberId = request.teamMemberId
+                nameEn = request.nameEn, nameAr = request.nameAr,
+                governorate = request.governorate, district = request.district,
+                addressEn = request.addressEn, latitude = request.latitude,
+                longitude = request.longitude, phone = request.phone,
+                workingDays = request.workingDays, vaccinationDays = request.vaccinationDays,
+                workingHoursStart = request.workingHoursStart, workingHoursEnd = request.workingHoursEnd,
+                vaccinesAvailable = request.vaccinesAvailable, teamMemberId = request.teamMemberId
             )
             val resp = client.post("$BASE_URL${Endpoints.BENCHES}") { setBody(body) }
             resp.body<ApiSingleResponse<VaccinationBenchNet>>().data!!.toUi()
         }
 
-    suspend fun assignTeamMemberToBench(
-        benchId: String,
-        teamMemberId: String
-    ): ApiResult<VaccinationBenchUi> =
+    suspend fun assignTeamMemberToBench(benchId: String, teamMemberId: String): ApiResult<VaccinationBenchUi> =
         safeCall {
             val resp = client.patch("$BASE_URL${Endpoints.assignTeamMemberToBench(benchId)}") {
                 parameter("teamMemberId", teamMemberId)
@@ -550,9 +465,7 @@ class ApiService(
         }
 
     suspend fun deactivateBench(benchId: String): ApiResult<Unit> =
-        safeCall {
-            client.patch("$BASE_URL${Endpoints.deactivateBench(benchId)}")
-        }
+        safeCall { client.patch("$BASE_URL${Endpoints.deactivateBench(benchId)}") }
 
     suspend fun assignBench(babyId: String, benchId: String): ApiResult<BabyBenchAssignmentUi> =
         safeCall {
@@ -584,16 +497,10 @@ class ApiService(
 
     // ── Bench Requests ────────────────────────────────────────────────────────
 
-    suspend fun sendBenchRequest(
-        babyId: String,
-        benchId: String,
-        notes: String? = null
-    ): ApiResult<BenchRequestNet> =
+    suspend fun sendBenchRequest(babyId: String, benchId: String, notes: String? = null): ApiResult<BenchRequestNet> =
         safeCall {
             val body = buildMap<String, String?> {
-                put("babyId", babyId)
-                put("benchId", benchId)
-                notes?.let { put("notes", it) }
+                put("babyId", babyId); put("benchId", benchId); notes?.let { put("notes", it) }
             }
             val resp = client.post("$BASE_URL${Endpoints.BENCH_REQUESTS}") { setBody(body) }
             resp.body<ApiSingleResponse<BenchRequestNet>>().data!!
@@ -602,11 +509,8 @@ class ApiService(
     suspend fun getActiveBenchRequest(babyId: String): ApiResult<BenchRequestNet?> =
         safeCall {
             val resp = client.get("$BASE_URL${Endpoints.benchRequestActiveBaby(babyId)}")
-            try {
-                resp.body<ApiSingleResponse<BenchRequestNet>>().data
-            } catch (e: Exception) {
-                null
-            }
+            try { resp.body<ApiSingleResponse<BenchRequestNet>>().data }
+            catch (e: Exception) { null }
         }
 
     suspend fun getPendingRequestsForBench(benchId: String): ApiResult<List<BenchRequestNet>> =
@@ -621,19 +525,12 @@ class ApiService(
             resp.body<ApiListResponse<BenchRequestNet>>().data
         }
 
-    suspend fun reviewBenchRequest(
-        requestId: String,
-        action: String,
-        rejectReason: String? = null
-    ): ApiResult<BenchRequestNet> =
+    suspend fun reviewBenchRequest(requestId: String, action: String, rejectReason: String? = null): ApiResult<BenchRequestNet> =
         safeCall {
             val body = buildMap<String, String?> {
-                put("action", action)
-                rejectReason?.let { put("rejectReason", it) }
+                put("action", action); rejectReason?.let { put("rejectReason", it) }
             }
-            val resp = client.put("$BASE_URL${Endpoints.benchRequestReview(requestId)}") {
-                setBody(body)
-            }
+            val resp = client.put("$BASE_URL${Endpoints.benchRequestReview(requestId)}") { setBody(body) }
             resp.body<ApiSingleResponse<BenchRequestNet>>().data!!
         }
 
@@ -652,16 +549,12 @@ class ApiService(
         }
 
     suspend fun createHealthIssue(
-        babyId: String,
-        title: String,
-        description: String?,
-        severity: String?,
-        issueDate: String
+        babyId: String, title: String, description: String?,
+        severity: String?, issueDate: String
     ): ApiResult<HealthIssueUi> =
         safeCall {
             val body = buildMap<String, String?> {
-                put("babyId", babyId)
-                put("title", title)
+                put("babyId", babyId); put("title", title)
                 description?.let { put("description", it) }
                 severity?.let { put("severity", it) }
                 put("issueDate", issueDate)
@@ -671,21 +564,15 @@ class ApiService(
         }
 
     suspend fun updateHealthIssue(
-        issueId: String,
-        title: String,
-        description: String?,
-        severity: String?,
-        issueDate: String
+        issueId: String, title: String, description: String?,
+        severity: String?, issueDate: String
     ): ApiResult<HealthIssueUi> =
         safeCall {
             val body = buildMap<String, String?> {
-                put("title", title)
-                description?.let { put("description", it) }
-                severity?.let { put("severity", it) }
-                put("issueDate", issueDate)
+                put("title", title); description?.let { put("description", it) }
+                severity?.let { put("severity", it) }; put("issueDate", issueDate)
             }
-            val resp =
-                client.put("$BASE_URL${Endpoints.healthIssueById(issueId)}") { setBody(body) }
+            val resp = client.put("$BASE_URL${Endpoints.healthIssueById(issueId)}") { setBody(body) }
             resp.body<ApiSingleResponse<HealthIssueNet>>().data!!.toUi()
         }
 
@@ -704,48 +591,30 @@ class ApiService(
         }
 
     suspend fun createAppointment(
-        babyId: String,
-        type: String,
-        date: String,
-        time: String?,
-        doctorName: String?,
-        location: String?,
-        notes: String?
+        babyId: String, type: String, date: String, time: String?,
+        doctorName: String?, location: String?, notes: String?
     ): ApiResult<AppointmentUi> =
         safeCall {
             val body = buildMap<String, String?> {
-                put("babyId", babyId)
-                put("appointmentType", type)
-                put("scheduledDate", date)
-                time?.let { put("scheduledTime", it) }
-                doctorName?.let { put("doctorName", it) }
-                location?.let { put("location", it) }
-                notes?.let { put("notes", it) }
+                put("babyId", babyId); put("appointmentType", type); put("scheduledDate", date)
+                time?.let { put("scheduledTime", it) }; doctorName?.let { put("doctorName", it) }
+                location?.let { put("location", it) }; notes?.let { put("notes", it) }
             }
             val resp = client.post("$BASE_URL${Endpoints.APPOINTMENTS}") { setBody(body) }
             resp.body<ApiSingleResponse<AppointmentNet>>().data!!.toUi()
         }
 
     suspend fun updateAppointment(
-        appointmentId: String,
-        type: String,
-        date: String,
-        time: String?,
-        doctorName: String?,
-        location: String?,
-        notes: String?
+        appointmentId: String, type: String, date: String, time: String?,
+        doctorName: String?, location: String?, notes: String?
     ): ApiResult<AppointmentUi> =
         safeCall {
             val body = buildMap<String, String?> {
-                put("appointmentType", type)
-                put("scheduledDate", date)
-                time?.let { put("scheduledTime", it) }
-                doctorName?.let { put("doctorName", it) }
-                location?.let { put("location", it) }
-                notes?.let { put("notes", it) }
+                put("appointmentType", type); put("scheduledDate", date)
+                time?.let { put("scheduledTime", it) }; doctorName?.let { put("doctorName", it) }
+                location?.let { put("location", it) }; notes?.let { put("notes", it) }
             }
-            val resp =
-                client.put("$BASE_URL${Endpoints.appointmentById(appointmentId)}") { setBody(body) }
+            val resp = client.put("$BASE_URL${Endpoints.appointmentById(appointmentId)}") { setBody(body) }
             resp.body<ApiSingleResponse<AppointmentNet>>().data!!.toUi()
         }
 
@@ -769,11 +638,8 @@ class ApiService(
     suspend fun getFamilyHistory(babyId: String): ApiResult<FamilyHistoryNet?> =
         safeCall {
             val resp = client.get("$BASE_URL${Endpoints.familyHistoryByBaby(babyId)}")
-            try {
-                resp.body<ApiSingleResponse<FamilyHistoryNet>>().data
-            } catch (e: Exception) {
-                null
-            }
+            try { resp.body<ApiSingleResponse<FamilyHistoryNet>>().data }
+            catch (e: Exception) { null }
         }
 
     suspend fun createFamilyHistory(request: FamilyHistoryRequest): ApiResult<FamilyHistoryNet> =
@@ -782,13 +648,9 @@ class ApiService(
             resp.body<ApiSingleResponse<FamilyHistoryNet>>().data!!
         }
 
-    suspend fun updateFamilyHistory(
-        historyId: String,
-        request: FamilyHistoryRequest
-    ): ApiResult<FamilyHistoryNet> =
+    suspend fun updateFamilyHistory(historyId: String, request: FamilyHistoryRequest): ApiResult<FamilyHistoryNet> =
         safeCall {
-            val resp =
-                client.put("$BASE_URL${Endpoints.familyHistoryById(historyId)}") { setBody(request) }
+            val resp = client.put("$BASE_URL${Endpoints.familyHistoryById(historyId)}") { setBody(request) }
             resp.body<ApiSingleResponse<FamilyHistoryNet>>().data!!
         }
 
@@ -809,13 +671,9 @@ class ApiService(
             resp.body<ApiSingleResponse<ChildIllnessNet>>().data!!
         }
 
-    suspend fun updateChildIllness(
-        illnessId: String,
-        request: ChildIllnessRequest
-    ): ApiResult<ChildIllnessNet> =
+    suspend fun updateChildIllness(illnessId: String, request: ChildIllnessRequest): ApiResult<ChildIllnessNet> =
         safeCall {
-            val resp =
-                client.put("$BASE_URL${Endpoints.childIllnessById(illnessId)}") { setBody(request) }
+            val resp = client.put("$BASE_URL${Endpoints.childIllnessById(illnessId)}") { setBody(request) }
             resp.body<ApiSingleResponse<ChildIllnessNet>>().data!!
         }
 
@@ -833,27 +691,19 @@ class ApiService(
     suspend fun getPreCheckInvestigationByBaby(babyId: String): ApiResult<PreCheckInvestigationNet?> =
         safeCall {
             val resp = client.get("$BASE_URL${Endpoints.preCheckInvestigationsByBaby(babyId)}")
-            try {
-                resp.body<ApiSingleResponse<PreCheckInvestigationNet>>().data
-            } catch (e: Exception) {
-                null
-            }
+            try { resp.body<ApiSingleResponse<PreCheckInvestigationNet>>().data }
+            catch (e: Exception) { null }
         }
 
     suspend fun createPreCheckInvestigation(request: PreCheckInvestigationRequest): ApiResult<PreCheckInvestigationNet> =
         safeCall {
-            val resp =
-                client.post("$BASE_URL${Endpoints.PRE_CHECK_INVESTIGATIONS}") { setBody(request) }
+            val resp = client.post("$BASE_URL${Endpoints.PRE_CHECK_INVESTIGATIONS}") { setBody(request) }
             resp.body<ApiSingleResponse<PreCheckInvestigationNet>>().data!!
         }
 
-    suspend fun updatePreCheckInvestigation(
-        id: String,
-        request: PreCheckInvestigationRequest
-    ): ApiResult<PreCheckInvestigationNet> =
+    suspend fun updatePreCheckInvestigation(id: String, request: PreCheckInvestigationRequest): ApiResult<PreCheckInvestigationNet> =
         safeCall {
-            val resp =
-                client.put("$BASE_URL${Endpoints.preCheckInvestigationById(id)}") { setBody(request) }
+            val resp = client.put("$BASE_URL${Endpoints.preCheckInvestigationById(id)}") { setBody(request) }
             resp.body<ApiSingleResponse<PreCheckInvestigationNet>>().data!!
         }
 
@@ -870,18 +720,13 @@ class ApiService(
 
     suspend fun saveVisionMotorRecord(request: VisionMotorNet): ApiResult<VisionMotorNet> =
         safeCall {
-            val resp =
-                client.post("$BASE_URL${Endpoints.CHILD_DEV_VISION_MOTOR}") { setBody(request) }
+            val resp = client.post("$BASE_URL${Endpoints.CHILD_DEV_VISION_MOTOR}") { setBody(request) }
             resp.body<ApiSingleResponse<VisionMotorNet>>().data!!
         }
 
-    suspend fun updateVisionMotorRecord(
-        id: String,
-        request: VisionMotorNet
-    ): ApiResult<VisionMotorNet> =
+    suspend fun updateVisionMotorRecord(id: String, request: VisionMotorNet): ApiResult<VisionMotorNet> =
         safeCall {
-            val resp =
-                client.put("$BASE_URL${Endpoints.childDevVisionMotorById(id)}") { setBody(request) }
+            val resp = client.put("$BASE_URL${Endpoints.childDevVisionMotorById(id)}") { setBody(request) }
             resp.body<ApiSingleResponse<VisionMotorNet>>().data!!
         }
 
@@ -896,18 +741,13 @@ class ApiService(
 
     suspend fun saveHearingSpeechRecord(request: HearingSpeechNet): ApiResult<HearingSpeechNet> =
         safeCall {
-            val resp =
-                client.post("$BASE_URL${Endpoints.CHILD_DEV_HEARING_SPEECH}") { setBody(request) }
+            val resp = client.post("$BASE_URL${Endpoints.CHILD_DEV_HEARING_SPEECH}") { setBody(request) }
             resp.body<ApiSingleResponse<HearingSpeechNet>>().data!!
         }
 
-    suspend fun updateHearingSpeechRecord(
-        id: String,
-        request: HearingSpeechNet
-    ): ApiResult<HearingSpeechNet> =
+    suspend fun updateHearingSpeechRecord(id: String, request: HearingSpeechNet): ApiResult<HearingSpeechNet> =
         safeCall {
-            val resp =
-                client.put("$BASE_URL${Endpoints.childDevHearingSpeechById(id)}") { setBody(request) }
+            val resp = client.put("$BASE_URL${Endpoints.childDevHearingSpeechById(id)}") { setBody(request) }
             resp.body<ApiSingleResponse<HearingSpeechNet>>().data!!
         }
 
@@ -925,8 +765,7 @@ class ApiService(
     suspend fun createMemory(userId: String, request: CreateMemoryRequest): ApiResult<MemoryNet> =
         safeCall {
             val resp = client.post("$BASE_URL${Endpoints.MEMORIES}") {
-                if (userId.isNotBlank()) header("X-User-Id", userId)
-                setBody(request)
+                if (userId.isNotBlank()) header("X-User-Id", userId); setBody(request)
             }
             resp.body<ApiSingleResponse<MemoryNet>>().data!!
         }
@@ -968,25 +807,18 @@ class ApiService(
                 else
                     ApiResult.Error(apiResponse.message ?: "Unknown error")
             }
-
             HttpStatusCode.NoContent -> {
                 @Suppress("UNCHECKED_CAST")
                 ApiResult.Success(Unit as T)
             }
-
-            HttpStatusCode.BadRequest -> ApiResult.Error(
-                response.body<AuthApiResponse<T>>().message ?: "Bad request"
-            )
-
-            HttpStatusCode.Unauthorized -> ApiResult.Error(
-                response.body<AuthApiResponse<T>>().message ?: "Invalid credentials", 401
-            )
-
-            HttpStatusCode.NotFound -> ApiResult.Error("Resource not found", 404)
-            HttpStatusCode.Conflict -> ApiResult.Error("Email already registered", 409)
+            HttpStatusCode.BadRequest ->
+                ApiResult.Error(response.body<AuthApiResponse<T>>().message ?: "Bad request")
+            HttpStatusCode.Unauthorized ->
+                ApiResult.Error(response.body<AuthApiResponse<T>>().message ?: "Invalid credentials", 401)
+            HttpStatusCode.NotFound    -> ApiResult.Error("Resource not found", 404)
+            HttpStatusCode.Conflict    -> ApiResult.Error("Email already registered", 409)
             else -> ApiResult.Error(
-                "Request failed: ${response.status.description}",
-                response.status.value
+                "Request failed: ${response.status.description}", response.status.value
             )
         }
     } catch (e: HttpRequestTimeoutException) {
@@ -1005,9 +837,7 @@ class ApiService(
         ApiResult.Error("Network error: ${e.message ?: "Unknown error"}")
     }
 
-    fun close() {
-        client.close()
-    }
+    fun close() { client.close() }
 }
 
 // =============================================================================
@@ -1029,770 +859,483 @@ data class ApiSingleResponse<T>(
 )
 
 // =============================================================================
-// DTOs (unchanged from original except RescheduleResponseNet)
+// DTOs
 // =============================================================================
 
-@Serializable
-data class RegisterRequest(
-    val fullName: String,
-    val email: String,
-    val password: String,
-    val phone: String? = null,
-    val city: String? = null,
-    val address: String? = null,
-    val profileImageUrl: String? = null
-)
-
-@Serializable
-data class PreRegisterRequest(
-    val fullName: String,
-    val email: String,
-    val password: String,
-    val phone: String? = null,
-    val city: String? = null,
-    val address: String? = null
-)
-
-@Serializable
-data class VerifySignupCodeRequest(val email: String, val code: String)
-@Serializable
-data class ResendSignupCodeRequest(val email: String)
-@Serializable
-data class CompleteRegistrationRequest(val email: String)
-@Serializable
-data class LoginRequest(val emailOrPhone: String, val password: String)
-@Serializable
-data class GoogleAuthRequest(
-    val idToken: String,
-    val email: String,
-    val displayName: String,
-    val photoUrl: String? = null
-)
-
-@Serializable
-data class FacebookAuthRequest(
-    val accessToken: String,
-    val userId: String,
-    val email: String,
-    val name: String,
-    val photoUrl: String? = null
-)
-
-@Serializable
-data class SendVerificationCodeRequest(val recipient: String, val method: String)
-@Serializable
-data class VerifyAccountRequest(val code: String, val method: String)
-@Serializable
-data class ForgotPasswordRequest(val email: String)
-@Serializable
-data class VerifyResetCodeRequest(val email: String, val code: String)
-@Serializable
-data class ResetPasswordRequest(val email: String, val code: String, val newPassword: String)
-@Serializable
-data class VerificationResponse(val message: String, val success: Boolean)
-@Serializable
-data class AuthResponse(val token: String, val user: UserResponse)
-@Serializable
-data class AuthApiResponse<T>(
-    val success: Boolean,
-    val message: String? = null,
-    val data: T? = null,
-    val errors: List<String>? = null,
-    val timestamp: String? = null
-)
-
-@Serializable
-data class BackendApiResponse<T>(
-    val success: Boolean,
-    val message: String? = null,
-    val data: T? = null,
-    val errors: List<String>? = null
-)
-
-@Serializable
-data class HealthResponse(
-    val status: String,
-    val timestamp: String? = null,
-    val service: String? = null,
-    val version: String? = null
-)
-
-@Serializable
-data class PageResponse<T>(
-    @SerialName("content") val content: List<T>,
-    @SerialName("totalElements") val totalElements: Long,
-    @SerialName("totalPages") val totalPages: Int,
-    @SerialName("pageSize") val pageSize: Int,
-    @SerialName("pageNumber") val pageNumber: Int,
-    @SerialName("isLast") val isLast: Boolean = false
-)
-
-@Serializable
-data class CreateUserRequest(
-    val fullName: String,
-    val email: String,
-    val password: String,
-    val phone: String? = null,
-    val city: String? = null,
-    val address: String? = null,
-    val profileImageUrl: String? = null,
-    val role: String = "PARENT"
-)
-
-@Serializable
-data class UpdateUserRequest(
-    val fullName: String? = null,
-    val phone: String? = null,
-    val city: String? = null,
-    val address: String? = null,
-    val profileImageUrl: String? = null
-)
-
-@Serializable
-data class UserResponse(
-    val userId: String,
-    val fullName: String,
-    val email: String,
-    val phone: String? = null,
-    val city: String? = null,
-    val address: String? = null,
-    val profileImageUrl: String? = null,
-    val role: String,
-    val isActive: Boolean = false,
-    val createdAt: String? = null,
-    val updatedAt: String? = null
-)
-
-@Serializable
-data class PreRegisterResponse(val email: String, val codeSent: Boolean)
-@Serializable
-data class CreateBabyRequest(
-    val fullName: String,
-    val dateOfBirth: String,
-    val gender: String,
-    val birthWeight: Double? = null,
-    val birthHeight: Double? = null,
-    val birthHeadCircumference: Double? = null,
-    val photoUrl: String? = null
-)
-
-@Serializable
-data class UpdateBabyRequest(val fullName: String? = null, val photoUrl: String? = null)
-@Serializable
-data class ArchiveBabyRequest(val status: String)
-@Serializable
-data class BabyResponse(
-    val babyId: String,
-    val parentUserId: String,
-    val parentName: String,
-    val fullName: String,
-    val dateOfBirth: String,
-    val gender: String,
-    val birthWeight: Double? = null,
-    val birthHeight: Double? = null,
-    val birthHeadCircumference: Double? = null,
-    val ageInMonths: Int,
-    val ageInDays: Long,
-    val photoUrl: String? = null,
-    val isActive: Boolean = true,
-    val createdAt: String? = null,
-    val updatedAt: String? = null
-)
-
-@Serializable
-data class CreateGrowthRecordRequest(
-    val babyId: String,
-    val measurementDate: String,
-    val weight: Double? = null,
-    val height: Double? = null,
-    val headCircumference: Double? = null,
-    val weightPercentile: Int? = null,
-    val heightPercentile: Int? = null,
-    val headCircumferencePercentile: Int? = null
-)
-
-@Serializable
-data class UpdateGrowthRecordRequest(
-    val measurementDate: String? = null,
-    val weight: Double? = null,
-    val height: Double? = null,
-    val headCircumference: Double? = null,
-    val weightPercentile: Int? = null,
-    val heightPercentile: Int? = null,
-    val headCircumferencePercentile: Int? = null
-)
-
-@Serializable
-data class GrowthRecordResponse(
-    val recordId: String, val babyId: String, val babyName: String,
-    val measurementDate: String, val ageInMonths: Int, val ageInDays: Int? = null,
-    val weight: Double? = null, val height: Double? = null, val headCircumference: Double? = null,
-    val weightPercentile: Int? = null, val heightPercentile: Int? = null,
-    val headCircumferencePercentile: Int? = null,
-    val measuredByName: String? = null,
-    @SerialName("isTeamMeasurement") val isTeamMeasurement: Boolean = false,
-    val createdAt: String? = null, val updatedAt: String? = null
-) {
+@Serializable data class RegisterRequest(val fullName: String, val email: String, val password: String, val phone: String? = null, val city: String? = null, val address: String? = null, val profileImageUrl: String? = null)
+@Serializable data class PreRegisterRequest(val fullName: String, val email: String, val password: String, val phone: String? = null, val city: String? = null, val address: String? = null)
+@Serializable data class VerifySignupCodeRequest(val email: String, val code: String)
+@Serializable data class ResendSignupCodeRequest(val email: String)
+@Serializable data class CompleteRegistrationRequest(val email: String)
+@Serializable data class LoginRequest(val emailOrPhone: String, val password: String)
+@Serializable data class GoogleAuthRequest(val idToken: String, val email: String, val displayName: String, val photoUrl: String? = null)
+@Serializable data class FacebookAuthRequest(val accessToken: String, val userId: String, val email: String, val name: String, val photoUrl: String? = null)
+@Serializable data class SendVerificationCodeRequest(val recipient: String, val method: String)
+@Serializable data class VerifyAccountRequest(val code: String, val method: String)
+@Serializable data class ForgotPasswordRequest(val email: String)
+@Serializable data class VerifyResetCodeRequest(val email: String, val code: String)
+@Serializable data class ResetPasswordRequest(val email: String, val code: String, val newPassword: String)
+@Serializable data class VerificationResponse(val message: String, val success: Boolean)
+@Serializable data class AuthResponse(val token: String, val user: UserResponse)
+@Serializable data class AuthApiResponse<T>(val success: Boolean, val message: String? = null, val data: T? = null, val errors: List<String>? = null, val timestamp: String? = null)
+@Serializable data class BackendApiResponse<T>(val success: Boolean, val message: String? = null, val data: T? = null, val errors: List<String>? = null)
+@Serializable data class HealthResponse(val status: String, val timestamp: String? = null, val service: String? = null, val version: String? = null)
+@Serializable data class PageResponse<T>(@SerialName("content") val content: List<T>, @SerialName("totalElements") val totalElements: Long, @SerialName("totalPages") val totalPages: Int, @SerialName("pageSize") val pageSize: Int, @SerialName("pageNumber") val pageNumber: Int, @SerialName("isLast") val isLast: Boolean = false)
+@Serializable data class CreateUserRequest(val fullName: String, val email: String, val password: String, val phone: String? = null, val city: String? = null, val address: String? = null, val profileImageUrl: String? = null, val role: String = "PARENT")
+@Serializable data class UpdateUserRequest(val fullName: String? = null, val phone: String? = null, val city: String? = null, val address: String? = null, val profileImageUrl: String? = null)
+@Serializable data class UserResponse(val userId: String, val fullName: String, val email: String, val phone: String? = null, val city: String? = null, val address: String? = null, val profileImageUrl: String? = null, val role: String, val isActive: Boolean = false, val createdAt: String? = null, val updatedAt: String? = null)
+@Serializable data class PreRegisterResponse(val email: String, val codeSent: Boolean)
+@Serializable data class CreateBabyRequest(val fullName: String, val dateOfBirth: String, val gender: String, val birthWeight: Double? = null, val birthHeight: Double? = null, val birthHeadCircumference: Double? = null, val photoUrl: String? = null)
+@Serializable data class UpdateBabyRequest(val fullName: String? = null, val photoUrl: String? = null)
+@Serializable data class ArchiveBabyRequest(val status: String)
+@Serializable data class BabyResponse(val babyId: String, val parentUserId: String, val parentName: String, val fullName: String, val dateOfBirth: String, val gender: String, val birthWeight: Double? = null, val birthHeight: Double? = null, val birthHeadCircumference: Double? = null, val ageInMonths: Int, val ageInDays: Long, val photoUrl: String? = null, val isActive: Boolean = true, val createdAt: String? = null, val updatedAt: String? = null)
+@Serializable data class CreateGrowthRecordRequest(val babyId: String, val measurementDate: String, val weight: Double? = null, val height: Double? = null, val headCircumference: Double? = null, val weightPercentile: Int? = null, val heightPercentile: Int? = null, val headCircumferencePercentile: Int? = null)
+@Serializable data class UpdateGrowthRecordRequest(val measurementDate: String? = null, val weight: Double? = null, val height: Double? = null, val headCircumference: Double? = null, val weightPercentile: Int? = null, val heightPercentile: Int? = null, val headCircumferencePercentile: Int? = null)
+@Serializable data class GrowthRecordResponse(val recordId: String, val babyId: String, val babyName: String, val measurementDate: String, val ageInMonths: Int, val ageInDays: Int? = null, val weight: Double? = null, val height: Double? = null, val headCircumference: Double? = null, val weightPercentile: Int? = null, val heightPercentile: Int? = null, val headCircumferencePercentile: Int? = null, val measuredByName: String? = null, @SerialName("isTeamMeasurement") val isTeamMeasurement: Boolean = false, val createdAt: String? = null, val updatedAt: String? = null) {
     val addedByTeam: Boolean get() = isTeamMeasurement || !measuredByName.isNullOrBlank()
 }
+@Serializable data class CreateVaccinationRequest(val babyId: String, val vaccineId: Int, val scheduledDate: String, val location: String? = null, val notes: String? = null)
+@Serializable data class MarkVaccinationDoneRequest(val administeredDate: String, val notes: String? = null)
+@Serializable data class VaccinationResponse(val vaccinationId: String, val babyId: String, val babyName: String, val vaccineId: Int, val vaccineName: String, val scheduledDate: String, val administeredDate: String? = null, val status: String, val location: String? = null, val notes: String? = null, val createdAt: String)
+@Serializable data class RescheduleRequest(val shiftReason: String, val rescheduleOverdue: Boolean, val notes: String? = null)
+@Serializable data class UpdateScheduleStatusRequest(val status: String, val notes: String? = null)
 
-@Serializable
-data class CreateVaccinationRequest(
-    val babyId: String,
-    val vaccineId: Int,
-    val scheduledDate: String,
-    val location: String? = null,
-    val notes: String? = null
-)
-
-@Serializable
-data class MarkVaccinationDoneRequest(val administeredDate: String, val notes: String? = null)
-@Serializable
-data class VaccinationResponse(
-    val vaccinationId: String,
-    val babyId: String,
-    val babyName: String,
-    val vaccineId: Int,
-    val vaccineName: String,
-    val scheduledDate: String,
-    val administeredDate: String? = null,
-    val status: String,
-    val location: String? = null,
-    val notes: String? = null,
-    val createdAt: String
-)
-
-@Serializable
-data class RescheduleRequest(
-    val shiftReason: String,
-    val rescheduleOverdue: Boolean,
-    val notes: String? = null
-)
-
-@Serializable
-data class UpdateScheduleStatusRequest(val status: String, val notes: String? = null)
-
-// FIX: field names now match backend VaccinationRescheduleResponse exactly.
-// Was: rescheduled/skipped/markedMissed/totalProcessed — all zeros at runtime.
-// Now: rescheduledCount/skippedCount/tooLateCount/totalVaccines
 @Serializable
 data class RescheduleResponseNet(
-    @SerialName("totalVaccines") val totalVaccines: Int = 0,
-    @SerialName("rescheduledCount") val rescheduledCount: Int = 0,
-    @SerialName("skippedCount") val skippedCount: Int = 0,
-    @SerialName("tooLateCount") val tooLateCount: Int = 0,
-    @SerialName("message") val message: String = ""
+    @SerialName("totalVaccines")    val totalVaccines    : Int    = 0,
+    @SerialName("rescheduledCount") val rescheduledCount : Int    = 0,
+    @SerialName("skippedCount")     val skippedCount     : Int    = 0,
+    @SerialName("tooLateCount")     val tooLateCount     : Int    = 0,
+    @SerialName("message")          val message          : String = ""
 )
 
 fun RescheduleResponseNet.toUi() = RescheduleResultUi(
     totalProcessed = totalVaccines,
-    rescheduled = rescheduledCount,
-    skipped = skippedCount,
-    markedMissed = tooLateCount,
-    message = message
+    rescheduledCount = rescheduledCount,
+    skippedCount     = skippedCount,
+    tooLateCount     = tooLateCount,
+    message          = message,
+    items            = emptyList()
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Flexible List<String> serializer
+// FlexibleStringListSerializer
 // ─────────────────────────────────────────────────────────────────────────────
 
 object FlexibleStringListSerializer : KSerializer<List<String>> {
     private val listSerializer = ListSerializer(String.serializer())
     override val descriptor: SerialDescriptor = listSerializer.descriptor
-    override fun serialize(encoder: Encoder, value: List<String>) =
-        listSerializer.serialize(encoder, value)
-
+    override fun serialize(encoder: Encoder, value: List<String>) = listSerializer.serialize(encoder, value)
     override fun deserialize(decoder: Decoder): List<String> {
         val jsonDecoder = decoder as? JsonDecoder ?: return listSerializer.deserialize(decoder)
         return when (val element = jsonDecoder.decodeJsonElement()) {
-            is JsonArray -> element.map { it.jsonPrimitive.content }
+            is JsonArray     -> element.map { it.jsonPrimitive.content }
             is JsonPrimitive -> {
-                val raw = element.content; if (raw.isBlank()) emptyList() else raw.split(",")
-                    .map { it.trim() }.filter { it.isNotBlank() }
+                val raw = element.content
+                if (raw.isBlank()) emptyList() else raw.split(",").map { it.trim() }.filter { it.isNotBlank() }
             }
-
             else -> emptyList()
         }
     }
 }
 
+// =============================================================================
+// Network DTOs
+// =============================================================================
+
 @Serializable
 data class VaccinationBenchNet(
-    val benchId: String,
-    val nameEn: String,
-    val nameAr: String,
-    val governorate: String,
-    val district: String,
-    val addressEn: String? = null,
-    val addressAr: String? = null,
-    val latitude: Double,
-    val longitude: Double,
-    val phone: String? = null,
-    @Serializable(with = FlexibleStringListSerializer::class) val workingDays: List<String> = emptyList(),
-    val workingHoursStart: String = "08:00",
-    val workingHoursEnd: String = "14:00",
-    @Serializable(with = FlexibleStringListSerializer::class) val vaccinationDays: List<String> = emptyList(),
-    val type: String = "",
-    @Serializable(with = FlexibleStringListSerializer::class) val vaccinesAvailable: List<String> = emptyList(),
-    val isActive: Boolean = true,
-    val teamMemberId: String? = null,
-    val teamMemberName: String? = null,
-    val teamMemberEmail: String? = null
+    val benchId            : String,
+    val nameEn             : String,
+    val nameAr             : String,
+    val governorate        : String,
+    val district           : String,
+    val addressEn          : String?      = null,
+    val addressAr          : String?      = null,
+    val latitude           : Double,
+    val longitude          : Double,
+    val phone              : String?      = null,
+    @Serializable(with = FlexibleStringListSerializer::class)
+    val workingDays        : List<String> = emptyList(),
+    val workingHoursStart  : String       = "08:00",
+    val workingHoursEnd    : String       = "14:00",
+    @Serializable(with = FlexibleStringListSerializer::class)
+    val vaccinationDays    : List<String> = emptyList(),
+    val type               : String       = "",
+    @Serializable(with = FlexibleStringListSerializer::class)
+    val vaccinesAvailable  : List<String> = emptyList(),
+    val isActive           : Boolean      = true,
+    val teamMemberId       : String?      = null,
+    val teamMemberName     : String?      = null,
+    val teamMemberEmail    : String?      = null
 )
 
 @Serializable
 data class BabyBenchAssignmentNet(
-    val assignmentId: String,
-    val babyId: String,
-    val babyName: String,
-    val benchId: String,
-    val benchNameEn: String,
-    val benchNameAr: String,
-    val governorate: String,
-    val isActive: Boolean = true
+    val assignmentId : String,
+    val babyId       : String,
+    val babyName     : String,
+    val benchId      : String,
+    val benchNameEn  : String,
+    val benchNameAr  : String,
+    val governorate  : String,
+    val isActive     : Boolean = true
 )
 
 @Serializable
 data class BenchRequestNet(
-    val requestId: String, val babyId: String, val babyName: String,
-    val benchId: String, val benchNameEn: String, val benchNameAr: String,
-    val governorate: String, val status: String,
-    val rejectReason: String? = null, val notes: String? = null,
-    val reviewedByName: String? = null, val reviewedAt: String? = null,
-    val createdAt: String? = null,
-    val teamMemberId: String? = null, val teamMemberName: String? = null
+    val requestId      : String,
+    val babyId         : String,
+    val babyName       : String,
+    val benchId        : String,
+    val benchNameEn    : String,
+    val benchNameAr    : String,
+    val governorate    : String,
+    val status         : String,
+    val rejectReason   : String? = null,
+    val notes          : String? = null,
+    val reviewedByName : String? = null,
+    val reviewedAt     : String? = null,
+    val createdAt      : String? = null,
+    val teamMemberId   : String? = null,
+    val teamMemberName : String? = null
 )
 
 @Serializable
 data class VaccinationScheduleNet(
-    val scheduleId: String,
-    val babyId: String,
-    val babyName: String,
-    val benchId: String,
-    val benchNameEn: String,
-    val benchNameAr: String,
-    val vaccineId: Int,
-    val vaccineName: String,
-    val vaccineNameAr: String? = null,
-    val vaccineNameKu: String? = null,
-    val vaccineNameCkb: String? = null,
-    val description: String? = null,
-    val descriptionAr: String? = null,
-    val descriptionKu: String? = null,
-    val descriptionCkb: String? = null,
-    val doseNumber: Int,
-    val recommendedAgeMonths: Int,
-    val idealDate: String,
-    val scheduledDate: String,
-    val shiftReason: String = "NONE",
-    val shiftDays: Int = 0,
-    val status: String,
-    val completedDate: String? = null,
-    val completedByName: String? = null,
-    val isVisibleToParent: Boolean = true,
-    val isVisibleToTeam: Boolean = true,
-    val createdAt: String? = null,
-    val updatedAt: String? = null
+    val scheduleId           : String,
+    val babyId               : String,
+    val babyName             : String,
+    val benchId              : String,
+    val benchNameEn          : String,
+    val benchNameAr          : String,
+    val vaccineId            : Int,
+    val vaccineName          : String,
+    val vaccineNameAr        : String?  = null,
+    val vaccineNameKu        : String?  = null,
+    val vaccineNameCkb       : String?  = null,
+    val description          : String?  = null,
+    val descriptionAr        : String?  = null,
+    val descriptionKu        : String?  = null,
+    val descriptionCkb       : String?  = null,
+    val doseNumber           : Int,
+    val recommendedAgeMonths : Int,
+    val idealDate            : String,
+    val scheduledDate        : String,
+    val shiftReason          : String   = "NONE",
+    val shiftDays            : Int      = 0,
+    val status               : String,
+    val completedDate        : String?  = null,
+    val completedByName      : String?  = null,
+    val isVisibleToParent    : Boolean  = true,
+    val isVisibleToTeam      : Boolean  = true,
+    val createdAt            : String?  = null,
+    val updatedAt            : String?  = null
 )
 
 @Serializable
 data class HealthIssueNet(
-    val issueId: String,
-    val babyId: String,
-    val title: String,
-    val description: String? = null,
-    val issueDate: String,
-    val severity: String? = null,
-    val isResolved: Boolean = false,
-    val resolutionDate: String? = null,
-    val resolvedNotes: String? = null
+    val issueId        : String,
+    val babyId         : String,
+    val title          : String,
+    val description    : String?  = null,
+    val issueDate      : String,
+    val severity       : String?  = null,
+    val isResolved     : Boolean  = false,
+    val resolutionDate : String?  = null,
+    val resolvedNotes  : String?  = null
 )
 
-@Serializable
-data class FamilyHistoryRequest(
-    val babyId: String,
-    val heredity: String? = null,
-    val bloodDiseases: String? = null,
-    val cardiovascularDiseases: String? = null,
-    val metabolicDiseases: String? = null,
-    val appendicitis: String? = null,
-    val tuberculosis: String? = null,
-    val parkinsonism: String? = null,
-    val allergies: String? = null,
-    val others: String? = null
-)
-
-@Serializable
-data class FamilyHistoryNet(
-    val historyId: String = "",
-    val babyId: String = "",
-    val heredity: String? = null,
-    val bloodDiseases: String? = null,
-    val cardiovascularDiseases: String? = null,
-    val metabolicDiseases: String? = null,
-    val appendicitis: String? = null,
-    val tuberculosis: String? = null,
-    val parkinsonism: String? = null,
-    val allergies: String? = null,
-    val others: String? = null
-)
-
-@Serializable
-data class ChildIllnessNet(
-    val illnessId: String,
-    val babyId: String,
-    val illnessName: String,
-    val diagnosisDate: String? = null,
-    val notes: String? = null,
-    val isActive: Boolean = true,
-    val createdAt: String? = null,
-    val updatedAt: String? = null
-)
-
-@Serializable
-data class ChildIllnessRequest(
-    val babyId: String,
-    val illnessName: String,
-    val diagnosisDate: String? = null,
-    val notes: String? = null,
-    val isActive: Boolean = true
-)
-
-@Serializable
-enum class InvestigationStatusNet { yes, no, not_known }
-@Serializable
-data class PreCheckInvestigationNet(
-    val investigationId: String = "",
-    val babyId: String = "",
-    val checkDate: String = "",
-    val jaundice: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val shortnessOfBreath: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val turningBlue: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val marbleHeart: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val inflammationOfLiver: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val inflammationOfSpleen: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val hernia: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val hydroceleOfEar: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val hipJointDislocation: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val musclesNormal: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val reactionsNormal: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val nucleusNormal: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val genitalsNormal: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val eyeNormal: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val redReflex: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val reactionToSound: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val others: String? = null,
-    val createdAt: String? = null,
-    val updatedAt: String? = null
-)
-
-@Serializable
-data class PreCheckInvestigationRequest(
-    val babyId: String,
-    val checkDate: String,
-    val jaundice: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val shortnessOfBreath: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val turningBlue: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val marbleHeart: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val inflammationOfLiver: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val inflammationOfSpleen: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val hernia: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val hydroceleOfEar: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val hipJointDislocation: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val musclesNormal: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val reactionsNormal: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val nucleusNormal: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val genitalsNormal: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val eyeNormal: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val redReflex: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val reactionToSound: InvestigationStatusNet = InvestigationStatusNet.not_known,
-    val others: String? = null
-)
+@Serializable data class FamilyHistoryRequest(val babyId: String, val heredity: String? = null, val bloodDiseases: String? = null, val cardiovascularDiseases: String? = null, val metabolicDiseases: String? = null, val appendicitis: String? = null, val tuberculosis: String? = null, val parkinsonism: String? = null, val allergies: String? = null, val others: String? = null)
+@Serializable data class FamilyHistoryNet(val historyId: String = "", val babyId: String = "", val heredity: String? = null, val bloodDiseases: String? = null, val cardiovascularDiseases: String? = null, val metabolicDiseases: String? = null, val appendicitis: String? = null, val tuberculosis: String? = null, val parkinsonism: String? = null, val allergies: String? = null, val others: String? = null)
+@Serializable data class ChildIllnessNet(val illnessId: String, val babyId: String, val illnessName: String, val diagnosisDate: String? = null, val notes: String? = null, val isActive: Boolean = true, val createdAt: String? = null, val updatedAt: String? = null)
+@Serializable data class ChildIllnessRequest(val babyId: String, val illnessName: String, val diagnosisDate: String? = null, val notes: String? = null, val isActive: Boolean = true)
+@Serializable enum class InvestigationStatusNet { yes, no, not_known }
+@Serializable data class PreCheckInvestigationNet(val investigationId: String = "", val babyId: String = "", val checkDate: String = "", val jaundice: InvestigationStatusNet = InvestigationStatusNet.not_known, val shortnessOfBreath: InvestigationStatusNet = InvestigationStatusNet.not_known, val turningBlue: InvestigationStatusNet = InvestigationStatusNet.not_known, val marbleHeart: InvestigationStatusNet = InvestigationStatusNet.not_known, val inflammationOfLiver: InvestigationStatusNet = InvestigationStatusNet.not_known, val inflammationOfSpleen: InvestigationStatusNet = InvestigationStatusNet.not_known, val hernia: InvestigationStatusNet = InvestigationStatusNet.not_known, val hydroceleOfEar: InvestigationStatusNet = InvestigationStatusNet.not_known, val hipJointDislocation: InvestigationStatusNet = InvestigationStatusNet.not_known, val musclesNormal: InvestigationStatusNet = InvestigationStatusNet.not_known, val reactionsNormal: InvestigationStatusNet = InvestigationStatusNet.not_known, val nucleusNormal: InvestigationStatusNet = InvestigationStatusNet.not_known, val genitalsNormal: InvestigationStatusNet = InvestigationStatusNet.not_known, val eyeNormal: InvestigationStatusNet = InvestigationStatusNet.not_known, val redReflex: InvestigationStatusNet = InvestigationStatusNet.not_known, val reactionToSound: InvestigationStatusNet = InvestigationStatusNet.not_known, val others: String? = null, val createdAt: String? = null, val updatedAt: String? = null)
+@Serializable data class PreCheckInvestigationRequest(val babyId: String, val checkDate: String, val jaundice: InvestigationStatusNet = InvestigationStatusNet.not_known, val shortnessOfBreath: InvestigationStatusNet = InvestigationStatusNet.not_known, val turningBlue: InvestigationStatusNet = InvestigationStatusNet.not_known, val marbleHeart: InvestigationStatusNet = InvestigationStatusNet.not_known, val inflammationOfLiver: InvestigationStatusNet = InvestigationStatusNet.not_known, val inflammationOfSpleen: InvestigationStatusNet = InvestigationStatusNet.not_known, val hernia: InvestigationStatusNet = InvestigationStatusNet.not_known, val hydroceleOfEar: InvestigationStatusNet = InvestigationStatusNet.not_known, val hipJointDislocation: InvestigationStatusNet = InvestigationStatusNet.not_known, val musclesNormal: InvestigationStatusNet = InvestigationStatusNet.not_known, val reactionsNormal: InvestigationStatusNet = InvestigationStatusNet.not_known, val nucleusNormal: InvestigationStatusNet = InvestigationStatusNet.not_known, val genitalsNormal: InvestigationStatusNet = InvestigationStatusNet.not_known, val eyeNormal: InvestigationStatusNet = InvestigationStatusNet.not_known, val redReflex: InvestigationStatusNet = InvestigationStatusNet.not_known, val reactionToSound: InvestigationStatusNet = InvestigationStatusNet.not_known, val others: String? = null)
 
 @Serializable
 data class AppointmentNet(
-    val appointmentId: String,
-    val babyId: String,
-    val babyName: String,
-    val appointmentType: String,
-    val scheduledDate: String,
-    val scheduledTime: String? = null,
-    val durationMinutes: Int = 30,
-    val status: String,
-    val doctorName: String? = null,
-    val location: String? = null,
-    val notes: String? = null
+    val appointmentId   : String,
+    val babyId          : String,
+    val babyName        : String,
+    val appointmentType : String,
+    val scheduledDate   : String,
+    val scheduledTime   : String?  = null,
+    val durationMinutes : Int      = 30,
+    val status          : String,
+    val doctorName      : String?  = null,
+    val location        : String?  = null,
+    val notes           : String?  = null
 )
 
-@Serializable
-data class MemoryNet(
-    val memoryId: String,
-    val babyId: String,
-    val babyName: String,
-    val title: String,
-    val description: String? = null,
-    val memoryDate: String,
-    val imageCount: Int? = null,
-    val captions: List<String>? = null,
-    val ageInMonths: Int? = null,
-    val ageInDays: Int? = null,
-    val createdAt: String? = null,
-    val updatedAt: String? = null
-)
-
-@Serializable
-data class CreateMemoryRequest(
-    val babyId: String,
-    val title: String,
-    val description: String? = null,
-    val memoryDate: String,
-    val imageCount: Int = 0,
-    val captions: List<String>? = null
-)
-
-@Serializable
-data class UpdateMemoryRequest(
-    val title: String? = null,
-    val description: String? = null,
-    val memoryDate: String? = null,
-    val imageCount: Int? = null,
-    val captions: List<String>? = null
-)
-
-@Serializable
-data class NotificationNet(
-    val notificationId: String,
-    val userId: String,
-    val title: String,
-    val body: String,
-    val type: String? = null,
-    val referenceId: String? = null,
-    val isRead: Boolean = false,
-    val createdAt: String? = null
-)
+@Serializable data class MemoryNet(val memoryId: String, val babyId: String, val babyName: String, val title: String, val description: String? = null, val memoryDate: String, val imageCount: Int? = null, val captions: List<String>? = null, val ageInMonths: Int? = null, val ageInDays: Int? = null, val createdAt: String? = null, val updatedAt: String? = null)
+@Serializable data class CreateMemoryRequest(val babyId: String, val title: String, val description: String? = null, val memoryDate: String, val imageCount: Int = 0, val captions: List<String>? = null)
+@Serializable data class UpdateMemoryRequest(val title: String? = null, val description: String? = null, val memoryDate: String? = null, val imageCount: Int? = null, val captions: List<String>? = null)
+@Serializable data class NotificationNet(val notificationId: String, val userId: String, val title: String, val body: String, val type: String? = null, val referenceId: String? = null, val isRead: Boolean = false, val createdAt: String? = null)
 
 // =============================================================================
-// UI models
+// UI models — canonical presentation-layer types
+// ALL presentation files import ONLY from this package, never from
+// presentation.screens.home.model for these types.
 // =============================================================================
 
 enum class BenchRequestStatusUi { PENDING, ACCEPTED, REJECTED, CANCELLED }
 
 data class BenchRequestUi(
-    val requestId: String,
-    val babyId: String,
-    val babyName: String,
-    val benchId: String,
-    val benchNameEn: String,
-    val benchNameAr: String,
-    val governorate: String,
-    val status: BenchRequestStatusUi,
-    val rejectReason: String? = null,
-    val notes: String? = null,
-    val reviewedByName: String? = null,
-    val reviewedAt: String? = null,
-    val createdAt: String? = null,
-    val teamMemberId: String? = null,
-    val teamMemberName: String? = null
+    val requestId      : String,
+    val babyId         : String,
+    val babyName       : String,
+    val benchId        : String,
+    val benchNameEn    : String,
+    val benchNameAr    : String,
+    val governorate    : String,
+    val status         : BenchRequestStatusUi,
+    val rejectReason   : String? = null,
+    val notes          : String? = null,
+    val reviewedByName : String? = null,
+    val reviewedAt     : String? = null,
+    val createdAt      : String? = null,
+    val teamMemberId   : String? = null,
+    val teamMemberName : String? = null
 )
 
+/**
+ * Presentation-layer bench UI model.
+ * [distanceKm] is null when location permission was denied or distance
+ * calculation failed. It is populated by the ViewModel after fetching benches.
+ */
 data class VaccinationBenchUi(
-    val benchId: String,
-    val nameEn: String,
-    val nameAr: String,
-    val governorate: String,
-    val district: String,
-    val addressEn: String?,
-    val addressAr: String?,
-    val latitude: Double,
-    val longitude: Double,
-    val phone: String?,
-    val workingDays: List<String>,
-    val workingHoursStart: String,
-    val workingHoursEnd: String,
-    val vaccinationDays: List<String>,
-    val type: String,
-    val vaccinesAvailable: List<String>,
-    val isActive: Boolean,
-    val teamMemberId: String? = null,
-    val teamMemberName: String? = null,
-    val teamMemberEmail: String? = null
+    val benchId           : String,
+    val nameEn            : String,
+    val nameAr            : String,
+    val governorate       : String,
+    val district          : String,
+    val addressEn         : String?      = null,
+    val addressAr         : String?      = null,
+    val latitude          : Double,
+    val longitude         : Double,
+    val phone             : String?      = null,
+    val workingDays       : List<String> = emptyList(),
+    val workingHoursStart : String       = "08:00",
+    val workingHoursEnd   : String       = "14:00",
+    val vaccinationDays   : List<String> = emptyList(),
+    val type              : String       = "",
+    val vaccinesAvailable : List<String> = emptyList(),
+    val isActive          : Boolean      = true,
+    val teamMemberId      : String?      = null,
+    val teamMemberName    : String?      = null,
+    val teamMemberEmail   : String?      = null,
+    /** Calculated by ViewModel from device GPS — null if unavailable */
+    val distanceKm        : Double?      = null
 )
 
 data class BabyBenchAssignmentUi(
-    val assignmentId: String,
-    val babyId: String,
-    val babyName: String,
-    val benchId: String,
-    val benchNameEn: String,
-    val benchNameAr: String,
-    val governorate: String,
-    val isActive: Boolean
+    val assignmentId : String,
+    val babyId       : String,
+    val babyName     : String,
+    val benchId      : String,
+    val benchNameEn  : String,
+    val benchNameAr  : String,
+    val governorate  : String,
+    val isActive     : Boolean = true
 )
 
+/**
+ * Presentation-layer vaccination schedule UI model.
+ * [statusUi] is derived from the raw [status] string via [toScheduleStatusUi].
+ */
 data class VaccinationScheduleUi(
-    val scheduleId: String,
-    val babyId: String,
-    val vaccineId: Int,
-    val vaccineName: String,
-    val vaccineNameAr: String?,
-    val vaccineNameKu: String?,
-    val vaccineNameCkb: String?,
-    val description: String?,
-    val descriptionAr: String?,
-    val descriptionKu: String?,
-    val descriptionCkb: String?,
-    val doseNumber: Int,
-    val recommendedAgeMonths: Int,
-    val idealDate: String,
-    val scheduledDate: String,
-    val shiftReason: String,
-    val shiftDays: Int,
-    val status: String,
-    val completedDate: String?,
-    val benchNameEn: String,
-    val isVisibleToParent: Boolean
+    val scheduleId           : String,
+    val babyId               : String,
+    val vaccineId            : Int,
+    val vaccineName          : String,
+    val vaccineNameAr        : String?  = null,
+    val vaccineNameKu        : String?  = null,
+    val vaccineNameCkb       : String?  = null,
+    val description          : String?  = null,
+    val descriptionAr        : String?  = null,
+    val descriptionKu        : String?  = null,
+    val descriptionCkb       : String?  = null,
+    val doseNumber           : Int,
+    val recommendedAgeMonths : Int,
+    /** Original date the vaccine was supposed to be given */
+    val idealDate            : String,
+    /** May differ from idealDate after a reschedule */
+    val scheduledDate        : String,
+    val shiftReason          : String   = "NONE",
+    val shiftDays            : Int      = 0,
+    /** Raw backend status string, e.g. "OVERDUE", "COMPLETED" */
+    val status               : String,
+    /** Derived from [status] — use this in UI code */
+    val statusUi             : ScheduleStatusUi,
+    val completedDate        : String?  = null,
+    val benchNameEn          : String,
+    val isVisibleToParent    : Boolean  = true
 )
 
 enum class VaccinationFilter { ALL, UPCOMING, COMPLETED, OVERDUE }
 
+/**
+ * Result of a bulk reschedule operation.
+ * [items] is empty when the backend doesn't return per-item details.
+ */
 data class RescheduleResultUi(
-    val totalProcessed: Int,
-    val rescheduled: Int,
-    val skipped: Int,
-    val markedMissed: Int,
-    val message: String
+    val totalProcessed   : Int,
+    val rescheduledCount : Int,
+    val skippedCount     : Int,
+    val tooLateCount     : Int,
+    val message          : String,
+    val items            : List<RescheduleItemUi> = emptyList()
+)
+
+data class RescheduleItemUi(
+    val scheduleId          : String,
+    val vaccineName         : String,
+    val doseNumber          : Int,
+    val recommendedAgeMonths: Int,
+    val oldDate             : String,
+    val newDate             : String?  = null,
+    val rescheduled         : Boolean  = false,
+    val tooLate             : Boolean  = false,
+    val skipReason          : String?  = null
 )
 
 data class HealthIssueUi(
-    val issueId: String,
-    val babyId: String,
-    val title: String,
-    val description: String?,
-    val issueDate: String,
-    val severity: String?,
-    val isResolved: Boolean,
-    val resolutionDate: String?,
-    val resolvedNotes: String?
+    val issueId        : String,
+    val babyId         : String,
+    val title          : String,
+    val description    : String?  = null,
+    val issueDate      : String,
+    val severity       : String?  = null,
+    val isResolved     : Boolean  = false,
+    val resolutionDate : String?  = null,
+    val resolvedNotes  : String?  = null
 )
 
 data class AppointmentUi(
-    val appointmentId: String,
-    val babyId: String,
-    val babyName: String,
-    val appointmentType: String,
-    val scheduledDate: String,
-    val scheduledTime: String?,
-    val durationMinutes: Int,
-    val status: String,
-    val doctorName: String?,
-    val location: String?,
-    val notes: String?
+    val appointmentId   : String,
+    val babyId          : String,
+    val babyName        : String,
+    val appointmentType : String,
+    val scheduledDate   : String,
+    val scheduledTime   : String?  = null,
+    val durationMinutes : Int      = 30,
+    val status          : String,
+    val doctorName      : String?  = null,
+    val location        : String?  = null,
+    val notes           : String?  = null
 )
 
 // =============================================================================
 // Net → UI mappers
 // =============================================================================
 
-fun VaccinationBenchNet.toUi() = VaccinationBenchUi(
-    benchId = benchId,
-    nameEn = nameEn,
-    nameAr = nameAr,
-    governorate = governorate,
-    district = district,
-    addressEn = addressEn,
-    addressAr = addressAr,
-    latitude = latitude,
-    longitude = longitude,
-    phone = phone,
-    workingDays = workingDays,
+fun VaccinationBenchNet.toUi(distanceKm: Double? = null) = VaccinationBenchUi(
+    benchId           = benchId,
+    nameEn            = nameEn,
+    nameAr            = nameAr,
+    governorate       = governorate,
+    district          = district,
+    addressEn         = addressEn,
+    addressAr         = addressAr,
+    latitude          = latitude,
+    longitude         = longitude,
+    phone             = phone,
+    workingDays       = workingDays,
     workingHoursStart = workingHoursStart,
-    workingHoursEnd = workingHoursEnd,
-    vaccinationDays = vaccinationDays,
-    type = type,
+    workingHoursEnd   = workingHoursEnd,
+    vaccinationDays   = vaccinationDays,
+    type              = type,
     vaccinesAvailable = vaccinesAvailable,
-    isActive = isActive,
-    teamMemberId = teamMemberId,
-    teamMemberName = teamMemberName,
-    teamMemberEmail = teamMemberEmail
+    isActive          = isActive,
+    teamMemberId      = teamMemberId,
+    teamMemberName    = teamMemberName,
+    teamMemberEmail   = teamMemberEmail,
+    distanceKm        = distanceKm
 )
 
 fun BabyBenchAssignmentNet.toUi() = BabyBenchAssignmentUi(
     assignmentId = assignmentId,
-    babyId = babyId,
-    babyName = babyName,
-    benchId = benchId,
-    benchNameEn = benchNameEn,
-    benchNameAr = benchNameAr,
-    governorate = governorate,
-    isActive = isActive
+    babyId       = babyId,
+    babyName     = babyName,
+    benchId      = benchId,
+    benchNameEn  = benchNameEn,
+    benchNameAr  = benchNameAr,
+    governorate  = governorate,
+    isActive     = isActive
 )
 
 fun BenchRequestNet.toUi() = BenchRequestUi(
-    requestId = requestId,
-    babyId = babyId,
-    babyName = babyName,
-    benchId = benchId,
-    benchNameEn = benchNameEn,
-    benchNameAr = benchNameAr,
-    governorate = governorate,
-    status = when (status.uppercase()) {
-        "ACCEPTED" -> BenchRequestStatusUi.ACCEPTED; "REJECTED" -> BenchRequestStatusUi.REJECTED; "CANCELLED" -> BenchRequestStatusUi.CANCELLED; else -> BenchRequestStatusUi.PENDING
+    requestId      = requestId,
+    babyId         = babyId,
+    babyName       = babyName,
+    benchId        = benchId,
+    benchNameEn    = benchNameEn,
+    benchNameAr    = benchNameAr,
+    governorate    = governorate,
+    status         = when (status.uppercase()) {
+        "ACCEPTED"  -> BenchRequestStatusUi.ACCEPTED
+        "REJECTED"  -> BenchRequestStatusUi.REJECTED
+        "CANCELLED" -> BenchRequestStatusUi.CANCELLED
+        else        -> BenchRequestStatusUi.PENDING
     },
-    rejectReason = rejectReason,
-    notes = notes,
+    rejectReason   = rejectReason,
+    notes          = notes,
     reviewedByName = reviewedByName,
-    reviewedAt = reviewedAt,
-    createdAt = createdAt,
-    teamMemberId = teamMemberId,
+    reviewedAt     = reviewedAt,
+    createdAt      = createdAt,
+    teamMemberId   = teamMemberId,
     teamMemberName = teamMemberName
 )
 
 fun VaccinationScheduleNet.toUi() = VaccinationScheduleUi(
-    scheduleId = scheduleId,
-    babyId = babyId,
-    vaccineId = vaccineId,
-    vaccineName = vaccineName,
-    vaccineNameAr = vaccineNameAr,
-    vaccineNameKu = vaccineNameKu,
-    vaccineNameCkb = vaccineNameCkb,
-    description = description,
-    descriptionAr = descriptionAr,
-    descriptionKu = descriptionKu,
-    descriptionCkb = descriptionCkb,
-    doseNumber = doseNumber,
+    scheduleId           = scheduleId,
+    babyId               = babyId,
+    vaccineId            = vaccineId,
+    vaccineName          = vaccineName,
+    vaccineNameAr        = vaccineNameAr,
+    vaccineNameKu        = vaccineNameKu,
+    vaccineNameCkb       = vaccineNameCkb,
+    description          = description,
+    descriptionAr        = descriptionAr,
+    descriptionKu        = descriptionKu,
+    descriptionCkb       = descriptionCkb,
+    doseNumber           = doseNumber,
     recommendedAgeMonths = recommendedAgeMonths,
-    idealDate = idealDate,
-    scheduledDate = scheduledDate,
-    shiftReason = shiftReason,
-    shiftDays = shiftDays,
-    status = status,
-    completedDate = completedDate,
-    benchNameEn = benchNameEn,
-    isVisibleToParent = isVisibleToParent
+    idealDate            = idealDate,
+    scheduledDate        = scheduledDate,
+    shiftReason          = shiftReason,
+    shiftDays            = shiftDays,
+    status               = status,
+    statusUi             = status.toScheduleStatusUi(),
+    completedDate        = completedDate,
+    benchNameEn          = benchNameEn,
+    isVisibleToParent    = isVisibleToParent
 )
 
 fun HealthIssueNet.toUi() = HealthIssueUi(
-    issueId = issueId,
-    babyId = babyId,
-    title = title,
-    description = description,
-    issueDate = issueDate,
-    severity = severity,
-    isResolved = isResolved,
+    issueId        = issueId,
+    babyId         = babyId,
+    title          = title,
+    description    = description,
+    issueDate      = issueDate,
+    severity       = severity,
+    isResolved     = isResolved,
     resolutionDate = resolutionDate,
-    resolvedNotes = resolvedNotes
+    resolvedNotes  = resolvedNotes
 )
 
 fun AppointmentNet.toUi() = AppointmentUi(
-    appointmentId = appointmentId,
-    babyId = babyId,
-    babyName = babyName,
+    appointmentId   = appointmentId,
+    babyId          = babyId,
+    babyName        = babyName,
     appointmentType = appointmentType,
-    scheduledDate = scheduledDate,
-    scheduledTime = scheduledTime,
+    scheduledDate   = scheduledDate,
+    scheduledTime   = scheduledTime,
     durationMinutes = durationMinutes,
-    status = status,
-    doctorName = doctorName,
-    location = location,
-    notes = notes
+    status          = status,
+    doctorName      = doctorName,
+    location        = location,
+    notes           = notes
 )

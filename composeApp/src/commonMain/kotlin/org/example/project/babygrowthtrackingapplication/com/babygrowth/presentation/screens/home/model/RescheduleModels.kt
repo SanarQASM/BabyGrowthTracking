@@ -35,19 +35,6 @@ data class RescheduleItemResultNet(
     val skipReason           : String? = null
 )
 
-/** Full reschedule response from the backend. */
-@Serializable
-data class RescheduleResponseNet(
-    val babyId          : String,
-    val babyName        : String,
-    val totalVaccines   : Int,
-    val rescheduledCount: Int,
-    val skippedCount    : Int,
-    val tooLateCount    : Int,
-    val results         : List<RescheduleItemResultNet>,
-    val message         : String
-)
-
 /** UI-layer model for a single vaccine reschedule outcome (shown in dialog). */
 data class RescheduleItemUi(
     val scheduleId          : String,
@@ -59,16 +46,6 @@ data class RescheduleItemUi(
     val rescheduled         : Boolean,
     val tooLate             : Boolean,       // window exceeded → marked Missed
     val skipReason          : String?
-)
-
-/** Aggregated UI state after a reschedule operation. */
-data class RescheduleResultUi(
-    val totalVaccines   : Int,
-    val rescheduledCount: Int,
-    val skippedCount    : Int,
-    val tooLateCount    : Int,
-    val items           : List<RescheduleItemUi>,
-    val message         : String
 )
 
 fun RescheduleItemResultNet.toUi() = RescheduleItemUi(
@@ -83,13 +60,4 @@ fun RescheduleItemResultNet.toUi() = RescheduleItemUi(
             || status.equals("MISSED", ignoreCase = true) && newScheduledDate == null
             && skipReason?.contains("window exceeded", ignoreCase = true) == true,
     skipReason           = skipReason
-)
-
-fun RescheduleResponseNet.toUi() = RescheduleResultUi(
-    totalVaccines    = totalVaccines,
-    rescheduledCount = rescheduledCount,
-    skippedCount     = skippedCount,
-    tooLateCount     = tooLateCount,
-    items            = results.map { it.toUi() },
-    message          = message
 )

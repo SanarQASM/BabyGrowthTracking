@@ -1,17 +1,5 @@
 package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen
 
-// ─────────────────────────────────────────────────────────────────────────────
-// FIXES APPLIED:
-//  Fix 6: ALL filter shows every bench. NEAR ME filter sorts by distance and
-//         shows only the nearest 10 benches.
-//         When user taps a marker on the map, a confirmation dialog appears
-//         asking if they want to select that branch (works on all platforms
-//         since it's a pure Compose dialog, no native map callback issues).
-//         The "nearest road" direction concept is surfaced via the bench card's
-//         distance and a "Get Directions" button that opens the platform maps
-//         app via Uri intent (Android/iOS) or opens browser maps URL (Desktop).
-// ─────────────────────────────────────────────────────────────────────────────
-
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -30,7 +18,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import babygrowthtrackingapplication.composeapp.generated.resources.*
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.*
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.BenchMapFilter
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.HealthRecordViewModel
+import org.example.project.babygrowthtrackingapplication.data.network.VaccinationBenchUi
 import org.example.project.babygrowthtrackingapplication.platform.MapView
 import org.example.project.babygrowthtrackingapplication.theme.LocalDimensions
 import org.example.project.babygrowthtrackingapplication.theme.customColors
@@ -50,10 +40,8 @@ fun BenchMapScreen(
 
     var panelVisible by remember { mutableStateOf(true) }
 
-    // FIX 6: Bench to confirm selection via dialog
     var pendingSelectionBench by remember { mutableStateOf<VaccinationBenchUi?>(null) }
 
-    // FIX 6: Show confirmation dialog when user taps a bench marker on the map
     pendingSelectionBench?.let { bench ->
         AlertDialog(
             onDismissRequest = { pendingSelectionBench = null },
@@ -93,18 +81,14 @@ fun BenchMapScreen(
         )
     }
 
-    // FIX 6: ALL = all benches, NEAR = sorted by distance (nearest 10)
-    val displayedBenches = remember(state.allBenches, state.mapFilter) {
+    val displayedBenches: List<VaccinationBenchUi> = remember(state.allBenches, state.mapFilter) {
         when (state.mapFilter) {
             BenchMapFilter.ALL  -> state.allBenches
             BenchMapFilter.NEAR -> state.allBenches
                 .filter { it.distanceKm != null }
                 .sortedBy { it.distanceKm }
                 .take(10)
-                .ifEmpty {
-                    // If no distance data, fall back to all benches
-                    state.allBenches
-                }
+                .ifEmpty { state.allBenches }
         }
     }
 
@@ -138,14 +122,12 @@ fun BenchMapScreen(
     ) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
 
-            // ── Map ──────────────────────────────────────────────────────────
             MapView(
                 modifier        = Modifier.fillMaxSize(),
                 centerLat       = state.mapCenterLat,
                 centerLng       = state.mapCenterLng,
                 markers         = displayedBenches,
                 selectedBenchId = state.selectedBench?.benchId,
-                // FIX 6: Tapping a marker triggers the confirmation dialog
                 onMarkerClick   = { bench ->
                     viewModel.selectBenchOnMap(bench)
                     pendingSelectionBench = bench
@@ -170,7 +152,6 @@ fun BenchMapScreen(
                         label = {
                             Text(
                                 text = when (filter) {
-                                    // FIX 6: Clear labels
                                     BenchMapFilter.ALL  -> stringResource(Res.string.bench_filter_all)
                                     BenchMapFilter.NEAR -> stringResource(Res.string.bench_filter_near)
                                 },
@@ -185,17 +166,16 @@ fun BenchMapScreen(
                     )
                 }
 
-                // FIX 6: Show count badge next to filter
                 if (state.mapFilter == BenchMapFilter.NEAR && displayedBenches.isNotEmpty()) {
                     Surface(
                         shape = CircleShape,
                         color = customColors.accentGradientStart.copy(0.15f)
                     ) {
                         Text(
-                            text     = "${displayedBenches.size}",
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            style    = MaterialTheme.typography.labelSmall,
-                            color    = customColors.accentGradientStart,
+                            text       = "${displayedBenches.size}",
+                            modifier   = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            style      = MaterialTheme.typography.labelSmall,
+                            color      = customColors.accentGradientStart,
                             fontWeight = FontWeight.Bold
                         )
                     }
@@ -204,8 +184,8 @@ fun BenchMapScreen(
 
             // ── Panel toggle FAB ─────────────────────────────────────────────
             FloatingActionButton(
-                onClick       = { panelVisible = !panelVisible },
-                modifier      = Modifier
+                onClick        = { panelVisible = !panelVisible },
+                modifier       = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(dimensions.spacingMedium)
                     .padding(bottom = if (panelVisible) dimensions.benchCardFabBottomPad else 0.dp),
@@ -231,13 +211,8 @@ fun BenchMapScreen(
                     selectedBenchId = state.selectedBench?.benchId,
                     loading         = state.benchesLoading,
                     mapFilter       = state.mapFilter,
-                    onBenchClick    = { bench ->
-                        viewModel.selectBenchOnMap(bench)
-                    },
-                    // FIX 6: "View Details" in list triggers the confirmation dialog too
-                    onViewDetails   = { bench ->
-                        pendingSelectionBench = bench
-                    }
+                    onBenchClick    = { bench -> viewModel.selectBenchOnMap(bench) },
+                    onViewDetails   = { bench -> pendingSelectionBench = bench }
                 )
             }
 
@@ -249,7 +224,7 @@ fun BenchMapScreen(
                 )
             }
 
-            // FIX 6: NEAR ME empty state when no location data available
+            // ── NEAR ME empty state ──────────────────────────────────────────
             if (state.mapFilter == BenchMapFilter.NEAR && displayedBenches.isEmpty() && !state.benchesLoading) {
                 Card(
                     modifier = Modifier
@@ -285,7 +260,7 @@ fun BenchMapScreen(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FIX 6: BenchListPanel — shows count, distance for NEAR filter
+// BenchListPanel
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -304,12 +279,11 @@ private fun BenchListPanel(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = dimensions.benchPanelMinHeight, max = dimensions.benchPanelMaxHeight),
-        shape          = RoundedCornerShape(topStart = dimensions.cardCornerRadius + dimensions.spacingSmall, topEnd = dimensions.cardCornerRadius + dimensions.spacingSmall),
-        tonalElevation = dimensions.cardElevation * 2f,
+        shape           = RoundedCornerShape(topStart = dimensions.cardCornerRadius + dimensions.spacingSmall, topEnd = dimensions.cardCornerRadius + dimensions.spacingSmall),
+        tonalElevation  = dimensions.cardElevation * 2f,
         shadowElevation = dimensions.cardElevation * 2f
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-            // Drag handle
             Box(
                 modifier = Modifier
                     .padding(vertical = dimensions.spacingSmall)
@@ -319,18 +293,17 @@ private fun BenchListPanel(
             )
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = dimensions.screenPadding),
+                modifier              = Modifier.fillMaxWidth().padding(horizontal = dimensions.screenPadding),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment     = Alignment.CenterVertically
             ) {
                 Column {
                     Text(
-                        text = if (benches.isEmpty()) "" else stringResource(Res.string.bench_centers_count, benches.size),
-                        style = MaterialTheme.typography.titleSmall,
+                        text       = if (benches.isEmpty()) "" else stringResource(Res.string.bench_centers_count, benches.size),
+                        style      = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.SemiBold,
-                        color = customColors.accentGradientStart
+                        color      = customColors.accentGradientStart
                     )
-                    // FIX 6: Show "sorted by distance" hint for NEAR filter
                     if (mapFilter == BenchMapFilter.NEAR && benches.isNotEmpty()) {
                         Text(
                             text  = "Sorted by distance",
@@ -350,7 +323,11 @@ private fun BenchListPanel(
                 }
             } else if (benches.isEmpty()) {
                 Box(Modifier.fillMaxWidth().height(dimensions.iconXLarge + dimensions.spacingMedium), Alignment.Center) {
-                    Text(stringResource(Res.string.bench_no_centers), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(0.5f))
+                    Text(
+                        text  = stringResource(Res.string.bench_no_centers),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
+                    )
                 }
             } else {
                 LazyRow(
@@ -364,7 +341,6 @@ private fun BenchListPanel(
                             isSelected    = bench.benchId == selectedBenchId,
                             showDistance  = mapFilter == BenchMapFilter.NEAR,
                             onClick       = { onBenchClick(bench) },
-                            // FIX 6: "View Details" triggers confirmation dialog
                             onViewDetails = { onViewDetails(bench) }
                         )
                     }
@@ -375,8 +351,7 @@ private fun BenchListPanel(
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// FIX 6: BenchCard — shows distance prominently for NEAR filter
-// FIX 3: No selection border/highlight — removed isSelected conditional styling
+// BenchCard
 // ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
@@ -396,19 +371,18 @@ private fun BenchCard(
             .fillMaxHeight()
             .padding(bottom = dimensions.spacingMedium)
             .clickable { onClick() },
-        shape  = RoundedCornerShape(dimensions.cardCornerRadius),
-        // FIX 3: No selection highlighting — always use surfaceVariant
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        shape     = RoundedCornerShape(dimensions.cardCornerRadius),
+        colors    = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         elevation = CardDefaults.cardElevation(dimensions.borderWidthThin)
     ) {
         Column(
-            modifier = Modifier.fillMaxSize().padding(dimensions.spacingMedium),
+            modifier            = Modifier.fillMaxSize().padding(dimensions.spacingMedium),
             verticalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
         ) {
             Text(
-                text  = "🏥 ${bench.type}",
-                style = MaterialTheme.typography.labelSmall,
-                color = customColors.accentGradientStart,
+                text       = "🏥 ${bench.type}",
+                style      = MaterialTheme.typography.labelSmall,
+                color      = customColors.accentGradientStart,
                 fontWeight = FontWeight.SemiBold
             )
             Text(
@@ -419,27 +393,26 @@ private fun BenchCard(
                 overflow   = TextOverflow.Ellipsis
             )
             Text(
-                text    = bench.district,
-                style   = MaterialTheme.typography.bodySmall,
-                color   = MaterialTheme.colorScheme.onSurface.copy(0.6f),
+                text     = bench.district,
+                style    = MaterialTheme.typography.bodySmall,
+                color    = MaterialTheme.colorScheme.onSurface.copy(0.6f),
                 maxLines = 1
             )
-            // FIX 6: Show distance prominently, especially for NEAR filter
             bench.distanceKm?.let { km ->
                 Surface(
                     shape = RoundedCornerShape(50),
                     color = customColors.accentGradientStart.copy(0.1f)
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                        modifier              = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
                         horizontalArrangement = Arrangement.spacedBy(3.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment     = Alignment.CenterVertically
                     ) {
                         Text("📍", style = MaterialTheme.typography.labelSmall)
                         Text(
-                            text  = stringResource(Res.string.bench_distance_km, km),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = customColors.accentGradientEnd,
+                            text       = stringResource(Res.string.bench_distance_km, km),
+                            style      = MaterialTheme.typography.labelSmall,
+                            color      = customColors.accentGradientEnd,
                             fontWeight = FontWeight.SemiBold
                         )
                     }
@@ -447,34 +420,32 @@ private fun BenchCard(
             }
             bench.phone?.let {
                 Text(
-                    text    = "📞 $it",
-                    style   = MaterialTheme.typography.labelSmall,
-                    color   = MaterialTheme.colorScheme.onSurface.copy(0.6f),
+                    text     = "📞 $it",
+                    style    = MaterialTheme.typography.labelSmall,
+                    color    = MaterialTheme.colorScheme.onSurface.copy(0.6f),
                     maxLines = 1
                 )
             }
-            // FIX 6: Vaccination days info
             if (bench.vaccinationDays.isNotEmpty()) {
                 Text(
-                    text    = "💉 ${bench.vaccinationDays.take(3).joinToString(", ")}",
-                    style   = MaterialTheme.typography.labelSmall,
-                    color   = MaterialTheme.colorScheme.onSurface.copy(0.55f),
+                    text     = "💉 ${bench.vaccinationDays.take(3).joinToString(", ")}",
+                    style    = MaterialTheme.typography.labelSmall,
+                    color    = MaterialTheme.colorScheme.onSurface.copy(0.55f),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
             }
             Spacer(Modifier.weight(1f))
-            // FIX 6: "Select this center" button triggers confirmation dialog
             Button(
-                onClick  = onViewDetails,
-                modifier = Modifier.fillMaxWidth(),
-                shape    = RoundedCornerShape(dimensions.buttonCornerRadius),
-                colors   = ButtonDefaults.buttonColors(containerColor = customColors.accentGradientStart),
+                onClick        = onViewDetails,
+                modifier       = Modifier.fillMaxWidth(),
+                shape          = RoundedCornerShape(dimensions.buttonCornerRadius),
+                colors         = ButtonDefaults.buttonColors(containerColor = customColors.accentGradientStart),
                 contentPadding = PaddingValues(vertical = 6.dp)
             ) {
                 Text(
-                    text  = stringResource(Res.string.bench_assign_button),
-                    style = MaterialTheme.typography.labelMedium,
+                    text       = stringResource(Res.string.bench_assign_button),
+                    style      = MaterialTheme.typography.labelMedium,
                     fontWeight = FontWeight.SemiBold
                 )
             }

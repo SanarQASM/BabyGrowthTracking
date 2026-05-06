@@ -1,17 +1,5 @@
 package org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen
 
-// ─────────────────────────────────────────────────────────────────────────────
-// FIXES APPLIED:
-//  Fix 1: LazyColumn replaced with Column — parent verticalScroll drives all
-//         scrolling, eliminating nested-scroll conflict.
-//  Fix 3 (Q3): After rescheduling, the card now shows BOTH the new scheduled
-//         date AND the original ideal date ("Was due: …") so the parent always
-//         sees when the vaccination was originally supposed to happen.
-//  Fix 4: Reschedule banner only shown when reschedulable overdue items exist.
-//         CannotRescheduleBanner shown when all overdue items are past window.
-//  No hardcoded strings, colours, sizes, or dp values.
-// ─────────────────────────────────────────────────────────────────────────────
-
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -31,7 +19,12 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.todayIn
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.*
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.VaccinationFilter
+import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.RescheduleReason
+import org.example.project.babygrowthtrackingapplication.data.network.RescheduleResultUi
+import org.example.project.babygrowthtrackingapplication.data.network.RescheduleItemUi
+import org.example.project.babygrowthtrackingapplication.data.network.ScheduleStatusUi
+import org.example.project.babygrowthtrackingapplication.data.network.VaccinationScheduleUi
 import org.example.project.babygrowthtrackingapplication.theme.LocalDimensions
 import org.example.project.babygrowthtrackingapplication.theme.customColors
 import org.jetbrains.compose.resources.stringResource

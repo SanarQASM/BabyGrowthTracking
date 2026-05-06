@@ -356,6 +356,12 @@ class SettingsViewModel(
         uiState = uiState.copy(successMessage = null, errorMessage = null)
     }
 
+    fun clearState() {
+        // Reset to defaults — prevents previous user's name/email/phone
+        // from appearing briefly when a new user reaches the settings tab
+        uiState = SettingsUiState()
+    }
+
     fun onDestroy() {
         scope.coroutineContext[kotlinx.coroutines.Job]?.cancel()
     }

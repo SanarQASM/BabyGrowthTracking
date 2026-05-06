@@ -13,11 +13,6 @@ import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
 
-// ── Max allowed overshoot in months beyond ideal date ─────────────────────────
-// If a vaccine's ideal date has passed by more than this threshold the
-// vaccination is considered "too late" and will not be rescheduled.
-// Example: BCG at birth → max late = 2 months → if baby is 3 months old,
-// it's too late to give BCG.
 private const val MAX_OVERSHOOT_MONTHS = 2
 
 private val DAY_NAME_MAP_RS = mapOf(
@@ -30,29 +25,13 @@ private val DAY_NAME_MAP_RS = mapOf(
     "Saturday"  to DayOfWeek.SATURDAY
 )
 
-// ============================================================
-// RESCHEDULE SERVICE INTERFACE
-// ============================================================
-
 interface VaccinationRescheduleService {
-    /**
-     * Reschedule all vaccines for a baby in one operation.
-     * - COMPLETED / MISSED vaccines are never touched.
-     * - OVERDUE vaccines are checked: if the ideal date is within
-     *   [MAX_OVERSHOOT_MONTHS] months, they are rescheduled; otherwise
-     *   they are marked as MISSED and included in [tooLateCount].
-     * - UPCOMING / DUE_SOON vaccines are always rescheduled.
-     */
     fun rescheduleAll(
-        babyId : String,
-        request: VaccinationRescheduleRequest,
+        babyId      : String,
+        request     : VaccinationRescheduleRequest,
         doneByUserId: String? = null
     ): VaccinationRescheduleResponse
 }
-
-// ============================================================
-// RESCHEDULE SERVICE IMPLEMENTATION
-// ============================================================
 
 @Service
 @Transactional
@@ -81,14 +60,13 @@ class VaccinationRescheduleServiceImpl(
         val allSchedules = scheduleRepository
             .findByBaby_BabyIdOrderByScheduledDateAsc(babyId)
 
-        // We need the bench from any existing schedule
         val activeBench = allSchedules.firstOrNull()?.bench
             ?: throw ResourceNotFoundException(
                 "No vaccination schedule found for baby $babyId. " +
                         "Please assign a health center first."
             )
 
-        val vaccinationDays = activeBench.getVaccinationDaysList()
+        val vaccinationDays = activeBench.vaccinationDaysList  // ✅ was activeBench.getVaccinationDaysList()
             .mapNotNull { DAY_NAME_MAP_RS[it] }
             .toSet()
 
@@ -109,7 +87,6 @@ class VaccinationRescheduleServiceImpl(
             val vaccineType = schedule.vaccineType ?: continue
             val vaccineName = vaccineType.vaccineName
 
-            // ── 1. Already COMPLETED or MISSED → always skip ──────────────
             if (schedule.status == ScheduleStatus.COMPLETED ||
                 schedule.status == ScheduleStatus.MISSED) {
                 results.add(
@@ -132,7 +109,6 @@ class VaccinationRescheduleServiceImpl(
                 continue
             }
 
-            // ── 2. OVERDUE → validate if still within safe window ─────────
             if (schedule.status == ScheduleStatus.OVERDUE) {
                 if (!request.rescheduleOverdue) {
                     results.add(
@@ -155,25 +131,22 @@ class VaccinationRescheduleServiceImpl(
                     continue
                 }
 
-                // Check if the vaccine's ideal date is too far in the past
-                val idealDate        = schedule.idealDate
-                val monthsOverdue    = Period.between(idealDate, today).toTotalMonths().toInt()
-                val isTooLate        = monthsOverdue > MAX_OVERSHOOT_MONTHS
+                val idealDate     = schedule.idealDate
+                val monthsOverdue = Period.between(idealDate, today).toTotalMonths().toInt()
+                val isTooLate     = monthsOverdue > MAX_OVERSHOOT_MONTHS
 
                 if (isTooLate) {
-                    // Mark the schedule as MISSED so team knows it can't be given
                     val oldDate = schedule.scheduledDate
                     schedule.status = ScheduleStatus.MISSED
                     scheduleRepository.save(schedule)
 
-                    // Log the status change
                     adjustmentLogRepository.save(
                         ScheduleAdjustmentLog(
                             logId      = UUID.randomUUID().toString(),
                             schedule   = schedule,
                             baby       = baby,
                             oldDate    = oldDate,
-                            newDate    = oldDate,  // date unchanged
+                            newDate    = oldDate,
                             reason     = AdjustmentReason.PARENT_MISSED,
                             notes      = "Vaccination window exceeded — ideal date was $idealDate, " +
                                     "$monthsOverdue months overdue (max allowed $MAX_OVERSHOOT_MONTHS months). " +
@@ -203,10 +176,8 @@ class VaccinationRescheduleServiceImpl(
                     tooLateCount++
                     continue
                 }
-                // Fall through — overdue but still within safe window → reschedule
             }
 
-            // ── 3. UPCOMING / DUE_SOON / (within-window OVERDUE) → reschedule ──
             val startFrom = maxOf(today, schedule.idealDate)
             val (newDate, shiftReason, shiftDays) = findNextValidDate(
                 from            = startFrom,
@@ -216,15 +187,12 @@ class VaccinationRescheduleServiceImpl(
 
             val oldDate = schedule.scheduledDate
 
-            // Persist the new date
             schedule.scheduledDate = newDate
             schedule.shiftReason   = mapAdjustmentToShiftReason(request.shiftReason)
-            schedule.shiftDays     = Period.between(schedule.idealDate, newDate).days
-                .coerceAtLeast(0)
+            schedule.shiftDays     = Period.between(schedule.idealDate, newDate).days.coerceAtLeast(0)
             schedule.status        = computeStatus(newDate)
             scheduleRepository.save(schedule)
 
-            // Adjustment log
             adjustmentLogRepository.save(
                 ScheduleAdjustmentLog(
                     logId      = UUID.randomUUID().toString(),
@@ -260,8 +228,8 @@ class VaccinationRescheduleServiceImpl(
 
         val message = buildString {
             append("Rescheduled $rescheduledCount vaccination(s).")
-            if (tooLateCount  > 0) append(" $tooLateCount vaccination(s) are too late and marked as Missed.")
-            if (skippedCount  > 0) append(" $skippedCount vaccination(s) were skipped (completed/missed).")
+            if (tooLateCount > 0) append(" $tooLateCount vaccination(s) are too late and marked as Missed.")
+            if (skippedCount > 0) append(" $skippedCount vaccination(s) were skipped (completed/missed).")
         }
 
         logger.info { "Reschedule complete for baby $babyId — $message" }
@@ -277,8 +245,6 @@ class VaccinationRescheduleServiceImpl(
             message          = message
         )
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────────
 
     private fun computeStatus(scheduledDate: LocalDate): ScheduleStatus {
         val today = LocalDate.now()
@@ -306,7 +272,6 @@ class VaccinationRescheduleServiceImpl(
             candidate = candidate.plusDays(1)
             shift++
         }
-        // Safety fallback — use today if no valid day found within a year
         return Triple(from, ShiftReason.NONE, 0)
     }
 

@@ -2,8 +2,7 @@ package org.example.project.babygrowthtrackingapplication.platform
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.model.VaccinationBenchUi
-
+import org.example.project.babygrowthtrackingapplication.data.network.VaccinationBenchUi
 /**
  * Platform-agnostic map composable.
  * Renders an interactive map centered at [centerLat]/[centerLng].

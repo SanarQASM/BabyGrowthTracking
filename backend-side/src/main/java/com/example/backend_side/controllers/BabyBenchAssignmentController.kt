@@ -38,18 +38,33 @@ class BabyBenchAssignmentController(
 
     @GetMapping("/baby/{babyId}/active")
     @Operation(summary = "Get the currently active bench assignment for a baby")
-    fun getActiveAssignment(@PathVariable babyId: String): ResponseEntity<ApiResponse<BabyBenchAssignmentResponse?>> =
-        ResponseEntity.ok(ApiResponse(true, "Active assignment retrieved", assignmentService.getActiveAssignmentForBaby(babyId)))
+    fun getActiveAssignment(
+        @PathVariable babyId: String
+    ): ResponseEntity<ApiResponse<BabyBenchAssignmentResponse?>> =
+        ResponseEntity.ok(
+            ApiResponse(true, "Active assignment retrieved",
+                assignmentService.getActiveAssignmentForBaby(babyId))
+        )
 
     @GetMapping("/baby/{babyId}/history")
     @Operation(summary = "Get full bench assignment history for a baby")
-    fun getAssignmentHistory(@PathVariable babyId: String): ResponseEntity<ApiResponse<List<BabyBenchAssignmentResponse>>> =
-        ResponseEntity.ok(ApiResponse(true, "History retrieved", assignmentService.getAssignmentHistoryForBaby(babyId)))
+    fun getAssignmentHistory(
+        @PathVariable babyId: String
+    ): ResponseEntity<ApiResponse<List<BabyBenchAssignmentResponse>>> =
+        ResponseEntity.ok(
+            ApiResponse(true, "History retrieved",
+                assignmentService.getAssignmentHistoryForBaby(babyId))
+        )
 
     @GetMapping("/bench/{benchId}/babies")
     @Operation(summary = "Get all babies assigned to a bench — Team view")
-    fun getBabiesForBench(@PathVariable benchId: String): ResponseEntity<ApiResponse<List<BabyBenchAssignmentResponse>>> =
-        ResponseEntity.ok(ApiResponse(true, "Babies retrieved", assignmentService.getActiveBabiesForBench(benchId)))
+    fun getBabiesForBench(
+        @PathVariable benchId: String
+    ): ResponseEntity<ApiResponse<List<BabyBenchAssignmentResponse>>> =
+        ResponseEntity.ok(
+            ApiResponse(true, "Babies retrieved",
+                assignmentService.getActiveBabiesForBench(benchId))
+        )
 
     @PutMapping("/baby/{babyId}/change-bench")
     @Operation(summary = "Change a baby's bench — deactivates old, creates new, regenerates schedule")
