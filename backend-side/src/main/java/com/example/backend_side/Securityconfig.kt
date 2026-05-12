@@ -19,7 +19,6 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @EnableWebSecurity
 class SecurityConfig(
     private val jwtAuthFilter: JwtAuthFilter
-    // ✅ Removed: UserDetailsService — Spring auto-detects CustomUserDetailsService
 ) {
 
     @Bean
@@ -42,6 +41,15 @@ class SecurityConfig(
                         "/webjars/**"
                     ).permitAll()
                     .requestMatchers("/v1/admin-setup/**").permitAll()
+
+                    // ── Chat: PARENT and ADMIN only ───────────────────────
+                    // VACCINATION_TEAM is also blocked here at the Security
+                    // layer; the controller layer returns HTTP 403 for a
+                    // meaningful error message if needed.
+                    // Role names are stored WITHOUT "ROLE_" prefix in
+                    // hasAnyRole() — CustomUserDetailsService wraps them as
+                    // "ROLE_${user.role.name}" so this matches correctly.
+                    .requestMatchers("/v1/chat/**").hasAnyRole("PARENT", "ADMIN")
 
                     // ── Protected endpoints ───────────────────────────────
                     .requestMatchers("/v1/**").authenticated()

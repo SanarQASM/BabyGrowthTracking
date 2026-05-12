@@ -37,11 +37,11 @@ import org.example.project.babygrowthtrackingapplication.platform.ImagePickerBut
 
 @Composable
 fun MemoryScreen(
-    viewModel      : MemoryViewModel,
-    babies         : List<BabyResponse>,
-    selectedBabyId : String?           = null,
-    language       : Language          = Language.ENGLISH,
-    onBack         : () -> Unit        = {}
+    viewModel: MemoryViewModel,
+    babies: List<BabyResponse>,
+    selectedBabyId: String? = null,
+    language: Language = Language.ENGLISH,
+    onBack: () -> Unit = {}
 ) {
     // Use a stable key: join of babyIds so list-reference churn doesn't retrigger
     val babiesKey = remember(babies) { babies.joinToString(",") { it.babyId } }
@@ -50,16 +50,16 @@ fun MemoryScreen(
         viewModel.load(babies, selectedBabyId)
     }
 
-    val state      = viewModel.uiState
+    val state = viewModel.uiState
     val dimensions = LocalDimensions.current
     val isLandscape = LocalIsLandscape.current
 
     // Full-screen image viewer overlay
     state.viewingImage?.let { img ->
         ImageViewerOverlay(
-            image        = img,
-            memoryTitle  = state.viewingMemoryTitle,
-            onClose      = { viewModel.closeImageViewer() }
+            image = img,
+            memoryTitle = state.viewingMemoryTitle,
+            onClose = { viewModel.closeImageViewer() }
         )
         return
     }
@@ -67,19 +67,19 @@ fun MemoryScreen(
     // Add-memory sheet
     if (state.showAddForm) {
         AddMemorySheet(
-            formState      = state.addForm,
-            babies         = state.babies,
+            formState = state.addForm,
+            babies = state.babies,
             selectedBabyId = state.selectedBabyId,
-            onBabySelect   = { viewModel.selectBaby(it) },
-            onTitleChange  = viewModel::onTitleChange,
-            onDescChange   = viewModel::onDescriptionChange,
-            onDateChange   = viewModel::onDateChange,
-            onAddImages    = { viewModel.onImagesSelected(it) },
-            onRemoveImage  = viewModel::removeImage,
+            onBabySelect = { viewModel.selectBaby(it) },
+            onTitleChange = viewModel::onTitleChange,
+            onDescChange = viewModel::onDescriptionChange,
+            onDateChange = viewModel::onDateChange,
+            onAddImages = { viewModel.onImagesSelected(it) },
+            onRemoveImage = viewModel::removeImage,
             onCaptionChange = viewModel::onCaptionChange,
-            onSave         = viewModel::saveMemory,
-            onCancel       = viewModel::closeAddForm,
-            dimensions     = dimensions
+            onSave = viewModel::saveMemory,
+            onCancel = viewModel::closeAddForm,
+            dimensions = dimensions
         )
         return
     }
@@ -109,14 +109,14 @@ fun MemoryScreen(
         ) {
             if (isLandscape) {
                 MemoryLandscapeLayout(
-                    state      = state,
-                    viewModel  = viewModel,
+                    state = state,
+                    viewModel = viewModel,
                     dimensions = dimensions
                 )
             } else {
                 MemoryPortraitLayout(
-                    state      = state,
-                    viewModel  = viewModel,
+                    state = state,
+                    viewModel = viewModel,
                     dimensions = dimensions
                 )
             }
@@ -151,10 +151,10 @@ private fun MemoryTopBar(onBack: () -> Unit) {
     TopAppBar(
         title = {
             Text(
-                text       = stringResource(Res.string.memory_screen_title),
+                text = stringResource(Res.string.memory_screen_title),
                 fontWeight = FontWeight.Bold,
-                style      = MaterialTheme.typography.titleMedium,
-                color      = customColors.accentGradientStart
+                style = MaterialTheme.typography.titleMedium,
+                color = customColors.accentGradientStart
             )
         },
         navigationIcon = {
@@ -179,12 +179,12 @@ private fun MemoryTopBar(onBack: () -> Unit) {
 @Composable
 private fun AddMemoryFab(onClick: () -> Unit) {
     val customColors = MaterialTheme.customColors
-    val dimensions   = LocalDimensions.current
+    val dimensions = LocalDimensions.current
     ExtendedFloatingActionButton(
-        onClick           = onClick,
-        containerColor    = customColors.accentGradientStart,
-        contentColor      = MaterialTheme.colorScheme.onPrimary,
-        shape             = RoundedCornerShape(dimensions.buttonCornerRadius),
+        onClick = onClick,
+        containerColor = customColors.accentGradientStart,
+        contentColor = MaterialTheme.colorScheme.onPrimary,
+        shape = RoundedCornerShape(dimensions.buttonCornerRadius),
         icon = { Icon(Icons.Default.Add, contentDescription = null) },
         text = {
             Text(
@@ -201,16 +201,16 @@ private fun AddMemoryFab(onClick: () -> Unit) {
 
 @Composable
 private fun MemoryPortraitLayout(
-    state      : MemoryUiState,
-    viewModel  : MemoryViewModel,
-    dimensions : Dimensions
+    state: MemoryUiState,
+    viewModel: MemoryViewModel,
+    dimensions: Dimensions
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         BabySelectorHeader(
-            babies         = state.babies,
+            babies = state.babies,
             selectedBabyId = state.selectedBabyId,
-            onSelect       = viewModel::selectBaby,
-            dimensions     = dimensions
+            onSelect = viewModel::selectBaby,
+            dimensions = dimensions
         )
 
         if (state.hasAnyMissingImages) {
@@ -223,11 +223,12 @@ private fun MemoryPortraitLayout(
                 dimensions = dimensions,
                 onAddFirst = viewModel::openAddForm
             )
+
             else -> MemoryList(
-                memories    = state.filteredMemories,
-                dimensions  = dimensions,
+                memories = state.filteredMemories,
+                dimensions = dimensions,
                 onViewImage = { img, title -> viewModel.viewImage(img, title) },
-                onDelete    = { id -> viewModel.confirmDeleteMemory(id) }
+                onDelete = { id -> viewModel.confirmDeleteMemory(id) }
             )
         }
     }
@@ -239,9 +240,9 @@ private fun MemoryPortraitLayout(
 
 @Composable
 private fun MemoryLandscapeLayout(
-    state      : MemoryUiState,
-    viewModel  : MemoryViewModel,
-    dimensions : Dimensions
+    state: MemoryUiState,
+    viewModel: MemoryViewModel,
+    dimensions: Dimensions
 ) {
     Row(modifier = Modifier.fillMaxSize()) {
         // Left pane — baby selector + stats
@@ -254,16 +255,16 @@ private fun MemoryLandscapeLayout(
                 .padding(dimensions.spacingMedium)
         ) {
             Text(
-                text       = stringResource(Res.string.memory_select_child),
-                style      = MaterialTheme.typography.labelMedium,
-                color      = MaterialTheme.colorScheme.onSurface.copy(0.6f),
+                text = stringResource(Res.string.memory_select_child),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurface.copy(0.6f),
                 fontWeight = FontWeight.SemiBold
             )
             Spacer(Modifier.height(dimensions.spacingSmall))
             BabyChip(
-                name       = stringResource(Res.string.memory_all_children),
-                selected   = state.selectedBabyId == null,
-                onClick    = { viewModel.selectBaby(null) },
+                name = stringResource(Res.string.memory_all_children),
+                selected = state.selectedBabyId == null,
+                onClick = { viewModel.selectBaby(null) },
                 dimensions = dimensions
             )
             state.babies.forEach { baby ->
@@ -271,15 +272,15 @@ private fun MemoryLandscapeLayout(
                 val isFemale = baby.gender.equals("GIRL", ignoreCase = true) ||
                         baby.gender.equals("FEMALE", ignoreCase = true)
                 BabyChip(
-                    name       = "${if (isFemale) "👧" else "👦"} ${baby.fullName}",
-                    selected   = state.selectedBabyId == baby.babyId,
-                    onClick    = { viewModel.selectBaby(baby.babyId) },
+                    name = "${if (isFemale) "👧" else "👦"} ${baby.fullName}",
+                    selected = state.selectedBabyId == baby.babyId,
+                    onClick = { viewModel.selectBaby(baby.babyId) },
                     dimensions = dimensions
                 )
             }
             Spacer(Modifier.height(dimensions.spacingMedium))
             Text(
-                text  = "${state.filteredMemories.size} ${stringResource(Res.string.memory_count)}",
+                text = "${state.filteredMemories.size} ${stringResource(Res.string.memory_count)}",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
             )
@@ -303,11 +304,12 @@ private fun MemoryLandscapeLayout(
                     dimensions = dimensions,
                     onAddFirst = viewModel::openAddForm
                 )
+
                 else -> MemoryList(
-                    memories    = state.filteredMemories,
-                    dimensions  = dimensions,
+                    memories = state.filteredMemories,
+                    dimensions = dimensions,
                     onViewImage = { img, title -> viewModel.viewImage(img, title) },
-                    onDelete    = { id -> viewModel.confirmDeleteMemory(id) }
+                    onDelete = { id -> viewModel.confirmDeleteMemory(id) }
                 )
             }
         }
@@ -320,12 +322,12 @@ private fun MemoryLandscapeLayout(
 
 @Composable
 private fun BabySelectorHeader(
-    babies         : List<BabyResponse>,
-    selectedBabyId : String?,
-    onSelect       : (String?) -> Unit,
-    dimensions     : Dimensions
+    babies: List<BabyResponse>,
+    selectedBabyId: String?,
+    onSelect: (String?) -> Unit,
+    dimensions: Dimensions
 ) {
-    val customColors  = MaterialTheme.customColors
+    val customColors = MaterialTheme.customColors
     val allChildrenLabel = stringResource(Res.string.memory_all_children)
 
     Column(
@@ -335,9 +337,9 @@ private fun BabySelectorHeader(
             .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingSmall)
     ) {
         Text(
-            text       = stringResource(Res.string.memory_select_child),
-            style      = MaterialTheme.typography.labelMedium,
-            color      = MaterialTheme.colorScheme.onSurface.copy(0.6f),
+            text = stringResource(Res.string.memory_select_child),
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurface.copy(0.6f),
             fontWeight = FontWeight.SemiBold
         )
         Spacer(Modifier.height(dimensions.spacingXSmall))
@@ -362,34 +364,34 @@ private fun BabySelectorHeader(
                 .padding(horizontal = dimensions.spacingMedium, vertical = dimensions.spacingSmall)
         ) {
             Row(
-                verticalAlignment     = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween,
-                modifier              = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
                     selectedName,
-                    style    = MaterialTheme.typography.bodyMedium,
-                    color    = MaterialTheme.colorScheme.onSurface,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.weight(1f)
                 )
                 Icon(
                     imageVector = if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                     contentDescription = null,
-                    tint     = customColors.accentGradientStart,
+                    tint = customColors.accentGradientStart,
                     modifier = Modifier.size(dimensions.iconMedium)
                 )
             }
 
             DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 DropdownMenuItem(
-                    text    = { Text("📸 $allChildrenLabel") },
+                    text = { Text("📸 $allChildrenLabel") },
                     onClick = { onSelect(null); expanded = false }
                 )
                 babies.forEach { baby ->
                     val isFemale = baby.gender.equals("GIRL", ignoreCase = true) ||
                             baby.gender.equals("FEMALE", ignoreCase = true)
                     DropdownMenuItem(
-                        text    = {
+                        text = {
                             Text("${if (isFemale) "👧" else "👦"} ${baby.fullName}")
                         },
                         onClick = { onSelect(baby.babyId); expanded = false }
@@ -411,14 +413,14 @@ private fun MissingImagesBanner(dimensions: Dimensions) {
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.errorContainer.copy(0.7f))
             .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingSmall),
-        verticalAlignment     = Alignment.Top,
+        verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
     ) {
         Text("⚠️", fontSize = dimensions.iconSmall.value.sp)
         Text(
-            text     = stringResource(Res.string.memory_images_not_available),
-            style    = MaterialTheme.typography.labelSmall,
-            color    = MaterialTheme.colorScheme.onErrorContainer,
+            text = stringResource(Res.string.memory_images_not_available),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onErrorContainer,
             modifier = Modifier.weight(1f)
         )
     }
@@ -430,25 +432,25 @@ private fun MissingImagesBanner(dimensions: Dimensions) {
 
 @Composable
 private fun MemoryList(
-    memories    : List<MemoryUiItem>,
-    dimensions  : Dimensions,
-    onViewImage : (MemoryUiImage, String) -> Unit,
-    onDelete    : (String) -> Unit
+    memories: List<MemoryUiItem>,
+    dimensions: Dimensions,
+    onViewImage: (MemoryUiImage, String) -> Unit,
+    onDelete: (String) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             horizontal = dimensions.screenPadding,
-            vertical   = dimensions.spacingMedium
+            vertical = dimensions.spacingMedium
         ),
         verticalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)
     ) {
         items(memories, key = { it.memoryId }) { memory ->
             MemoryCard(
-                memory      = memory,
-                dimensions  = dimensions,
+                memory = memory,
+                dimensions = dimensions,
                 onViewImage = onViewImage,
-                onDelete    = onDelete
+                onDelete = onDelete
             )
         }
         item { Spacer(Modifier.height(dimensions.spacingXLarge + dimensions.buttonHeight)) }
@@ -461,45 +463,45 @@ private fun MemoryList(
 
 @Composable
 private fun MemoryCard(
-    memory      : MemoryUiItem,
-    dimensions  : Dimensions,
-    onViewImage : (MemoryUiImage, String) -> Unit,
-    onDelete    : (String) -> Unit
+    memory: MemoryUiItem,
+    dimensions: Dimensions,
+    onViewImage: (MemoryUiImage, String) -> Unit,
+    onDelete: (String) -> Unit
 ) {
     val customColors = MaterialTheme.customColors
 
     Card(
-        shape     = RoundedCornerShape(dimensions.chartCardCornerRadius),
-        colors    = CardDefaults.cardColors(
+        shape = RoundedCornerShape(dimensions.chartCardCornerRadius),
+        colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = dimensions.cardElevation / 2),
-        modifier  = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(dimensions.spacingMedium)) {
 
             // ── Header row ────────────────────────────────────────────────────
             Row(
-                modifier              = Modifier.fillMaxWidth(),
-                verticalAlignment     = Alignment.Top,
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text       = memory.title,
-                        style      = MaterialTheme.typography.titleSmall,
+                        text = memory.title,
+                        style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
-                        color      = MaterialTheme.colorScheme.onSurface,
-                        maxLines   = 2,
-                        overflow   = TextOverflow.Ellipsis
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Spacer(Modifier.height(dimensions.spacingXSmall))
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall),
-                        verticalAlignment     = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text  = formatMemoryDate(memory.memoryDate),
+                            text = formatMemoryDate(memory.memoryDate),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurface.copy(0.55f)
                         )
@@ -510,7 +512,7 @@ private fun MemoryCard(
                                 style = MaterialTheme.typography.bodySmall
                             )
                             Text(
-                                text  = formatAge(memory.ageInMonths),
+                                text = formatAge(memory.ageInMonths),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = customColors.accentGradientStart.copy(0.85f)
                             )
@@ -519,13 +521,13 @@ private fun MemoryCard(
                 }
 
                 IconButton(
-                    onClick  = { onDelete(memory.memoryId) },
+                    onClick = { onDelete(memory.memoryId) },
                     modifier = Modifier.size(dimensions.addButtonSize)
                 ) {
                     Icon(
                         Icons.Default.Delete,
                         contentDescription = stringResource(Res.string.memory_delete),
-                        tint     = MaterialTheme.colorScheme.error.copy(0.7f),
+                        tint = MaterialTheme.colorScheme.error.copy(0.7f),
                         modifier = Modifier.size(dimensions.iconMedium - 4.dp)
                     )
                 }
@@ -535,11 +537,11 @@ private fun MemoryCard(
             if (!memory.description.isNullOrBlank()) {
                 Spacer(Modifier.height(dimensions.spacingXSmall))
                 Text(
-                    text      = "\"${memory.description}\"",
-                    style     = MaterialTheme.typography.bodySmall,
-                    color     = MaterialTheme.colorScheme.onSurface.copy(0.65f),
-                    maxLines  = 3,
-                    overflow  = TextOverflow.Ellipsis,
+                    text = "\"${memory.description}\"",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(0.65f),
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis,
                     fontStyle = FontStyle.Italic
                 )
             }
@@ -549,19 +551,19 @@ private fun MemoryCard(
                 Spacer(Modifier.height(dimensions.spacingXSmall))
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall),
-                    verticalAlignment     = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(dimensions.spacingSmall))
                         .background(MaterialTheme.colorScheme.errorContainer.copy(0.4f))
                         .padding(
                             horizontal = dimensions.spacingSmall,
-                            vertical   = dimensions.spacingXSmall
+                            vertical = dimensions.spacingXSmall
                         )
                 ) {
                     Text("⚠️", style = MaterialTheme.typography.labelSmall)
                     Text(
-                        text  = stringResource(Res.string.memory_images_missing_card),
+                        text = stringResource(Res.string.memory_images_missing_card),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onErrorContainer
                     )
@@ -573,13 +575,13 @@ private fun MemoryCard(
                 Spacer(Modifier.height(dimensions.spacingSmall))
                 HorizontalDivider(
                     thickness = dimensions.hairlineDividerThickness,
-                    color     = MaterialTheme.colorScheme.outlineVariant
+                    color = MaterialTheme.colorScheme.outlineVariant
                 )
                 Spacer(Modifier.height(dimensions.spacingSmall))
                 MemoryImageGallery(
-                    images      = memory.images,
+                    images = memory.images,
                     memoryTitle = memory.title,
-                    dimensions  = dimensions,
+                    dimensions = dimensions,
                     onViewImage = onViewImage
                 )
             }
@@ -589,7 +591,7 @@ private fun MemoryCard(
                 Spacer(Modifier.height(dimensions.spacingSmall))
                 Row(
                     horizontalArrangement = Arrangement.Center,
-                    verticalAlignment     = Alignment.CenterVertically,
+                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(dimensions.spacingSmall))
@@ -615,23 +617,23 @@ private fun MemoryCard(
 
 @Composable
 private fun MemoryImageGallery(
-    images      : List<MemoryUiImage>,
-    memoryTitle : String,
-    dimensions  : Dimensions,
-    onViewImage : (MemoryUiImage, String) -> Unit
+    images: List<MemoryUiImage>,
+    memoryTitle: String,
+    dimensions: Dimensions,
+    onViewImage: (MemoryUiImage, String) -> Unit
 ) {
     val imageHeight = dimensions.avatarLarge * 2f
 
     LazyRow(
         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall),
-        contentPadding        = PaddingValues(horizontal = dimensions.spacingXSmall)
+        contentPadding = PaddingValues(horizontal = dimensions.spacingXSmall)
     ) {
         items(images, key = { it.localKey }) { img ->
             MemoryImageThumb(
-                image       = img,
-                height      = imageHeight,
-                dimensions  = dimensions,
-                onClick     = { onViewImage(img, memoryTitle) }
+                image = img,
+                height = imageHeight,
+                dimensions = dimensions,
+                onClick = { onViewImage(img, memoryTitle) }
             )
         }
     }
@@ -643,10 +645,10 @@ private fun MemoryImageGallery(
 
 @Composable
 private fun MemoryImageThumb(
-    image      : MemoryUiImage,
-    height     : Dp,
-    dimensions : Dimensions,
-    onClick    : () -> Unit
+    image: MemoryUiImage,
+    height: Dp,
+    dimensions: Dimensions,
+    onClick: () -> Unit
 ) {
     val customColors = MaterialTheme.customColors
     val width = height * 0.85f
@@ -660,8 +662,8 @@ private fun MemoryImageThumb(
     ) {
         if (image.isAvailable && image.bytes != null) {
             ByteArrayImage(
-                bytes        = image.bytes,
-                modifier     = Modifier.fillMaxSize(),
+                bytes = image.bytes,
+                modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop
             )
 
@@ -678,7 +680,7 @@ private fun MemoryImageThumb(
             Icon(
                 Icons.Default.ZoomIn,
                 contentDescription = null,
-                tint     = Color.White.copy(0.7f),
+                tint = Color.White.copy(0.7f),
                 modifier = Modifier
                     .size(dimensions.iconSmall)
                     .align(Alignment.BottomEnd)
@@ -694,9 +696,9 @@ private fun MemoryImageThumb(
                         .padding(horizontal = 4.dp, vertical = 2.dp)
                 ) {
                     Text(
-                        text     = image.caption,
-                        style    = MaterialTheme.typography.labelSmall,
-                        color    = Color.White,
+                        text = image.caption,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         fontSize = 9.sp
@@ -705,19 +707,19 @@ private fun MemoryImageThumb(
             }
         } else {
             Column(
-                modifier            = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
                 Text("🖼️", fontSize = dimensions.iconMedium.value.sp)
                 Spacer(Modifier.height(dimensions.spacingXSmall))
                 Text(
-                    text      = stringResource(Res.string.memory_image_unavailable),
-                    style     = MaterialTheme.typography.labelSmall,
-                    color     = MaterialTheme.colorScheme.onSurface.copy(0.4f),
+                    text = stringResource(Res.string.memory_image_unavailable),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(0.4f),
                     textAlign = TextAlign.Center,
-                    fontSize  = 9.sp,
-                    modifier  = Modifier.padding(horizontal = 4.dp)
+                    fontSize = 9.sp,
+                    modifier = Modifier.padding(horizontal = 4.dp)
                 )
             }
         }
@@ -730,14 +732,14 @@ private fun MemoryImageThumb(
 
 @Composable
 private fun ImageViewerOverlay(
-    image       : MemoryUiImage,
-    memoryTitle : String,
-    onClose     : () -> Unit
+    image: MemoryUiImage,
+    memoryTitle: String,
+    onClose: () -> Unit
 ) {
     val dimensions = LocalDimensions.current
 
-    var scale    by remember { mutableStateOf(1f) }
-    var offset   by remember { mutableStateOf(Offset.Zero) }
+    var scale by remember { mutableStateOf(1f) }
+    var offset by remember { mutableStateOf(Offset.Zero) }
     val minScale = 1f
     val maxScale = 5f
 
@@ -747,7 +749,7 @@ private fun ImageViewerOverlay(
             .background(Color.Black.copy(0.95f))
             .pointerInput(Unit) {
                 detectTapGestures(onDoubleTap = {
-                    scale  = if (scale > 1.5f) 1f else 2.5f
+                    scale = if (scale > 1.5f) 1f else 2.5f
                     offset = Offset.Zero
                 })
             }
@@ -757,20 +759,20 @@ private fun ImageViewerOverlay(
                 .fillMaxSize()
                 .pointerInput(Unit) {
                     detectTransformGestures { _, pan, zoom, _ ->
-                        scale  = (scale * zoom).coerceIn(minScale, maxScale)
+                        scale = (scale * zoom).coerceIn(minScale, maxScale)
                         offset = if (scale > 1f) offset + pan else Offset.Zero
                     }
                 }
         ) {
             if (image.bytes != null) {
                 ByteArrayImage(
-                    bytes        = image.bytes,
+                    bytes = image.bytes,
                     contentScale = ContentScale.Fit,
-                    modifier     = Modifier
+                    modifier = Modifier
                         .fillMaxSize()
                         .graphicsLayer(
-                            scaleX       = scale,
-                            scaleY       = scale,
+                            scaleX = scale,
+                            scaleY = scale,
                             translationX = offset.x,
                             translationY = offset.y
                         )
@@ -785,7 +787,7 @@ private fun ImageViewerOverlay(
                 .background(Color.Black.copy(0.5f))
                 .padding(
                     horizontal = dimensions.spacingSmall,
-                    vertical   = dimensions.spacingXSmall
+                    vertical = dimensions.spacingXSmall
                 )
                 .align(Alignment.TopCenter),
             verticalAlignment = Alignment.CenterVertically
@@ -795,15 +797,15 @@ private fun ImageViewerOverlay(
             }
             Spacer(Modifier.width(dimensions.spacingSmall))
             Text(
-                text     = memoryTitle,
-                style    = MaterialTheme.typography.titleSmall,
-                color    = Color.White,
+                text = memoryTitle,
+                style = MaterialTheme.typography.titleSmall,
+                color = Color.White,
                 modifier = Modifier.weight(1f),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
             Text(
-                text  = "✕2 tap to zoom",
+                text = "✕2 tap to zoom",
                 style = MaterialTheme.typography.labelSmall,
                 color = Color.White.copy(0.5f)
             )
@@ -819,11 +821,11 @@ private fun ImageViewerOverlay(
                     .padding(dimensions.spacingMedium)
             ) {
                 Text(
-                    text      = image.caption,
-                    style     = MaterialTheme.typography.bodySmall,
-                    color     = Color.White,
+                    text = image.caption,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White,
                     textAlign = TextAlign.Center,
-                    modifier  = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
@@ -836,19 +838,19 @@ private fun ImageViewerOverlay(
 
 @Composable
 private fun AddMemorySheet(
-    formState       : AddMemoryFormState,
-    babies          : List<BabyResponse>,
-    selectedBabyId  : String?,
-    onBabySelect    : (String?) -> Unit,
-    onTitleChange   : (String) -> Unit,
-    onDescChange    : (String) -> Unit,
-    onDateChange    : (String) -> Unit,
-    onAddImages     : (List<ByteArray>) -> Unit,
-    onRemoveImage   : (Int) -> Unit,
-    onCaptionChange : (Int, String) -> Unit,
-    onSave          : () -> Unit,
-    onCancel        : () -> Unit,
-    dimensions      : Dimensions
+    formState: AddMemoryFormState,
+    babies: List<BabyResponse>,
+    selectedBabyId: String?,
+    onBabySelect: (String?) -> Unit,
+    onTitleChange: (String) -> Unit,
+    onDescChange: (String) -> Unit,
+    onDateChange: (String) -> Unit,
+    onAddImages: (List<ByteArray>) -> Unit,
+    onRemoveImage: (Int) -> Unit,
+    onCaptionChange: (Int, String) -> Unit,
+    onSave: () -> Unit,
+    onCancel: () -> Unit,
+    dimensions: Dimensions
 ) {
     val customColors = MaterialTheme.customColors
 
@@ -859,9 +861,9 @@ private fun AddMemorySheet(
                 title = {
                     Text(
                         stringResource(Res.string.memory_add_title),
-                        style      = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
-                        color      = customColors.accentGradientStart
+                        color = customColors.accentGradientStart
                     )
                 },
                 navigationIcon = {
@@ -895,20 +897,20 @@ private fun AddMemorySheet(
                     ?: stringResource(Res.string.home_select_child_hint)
                 Box {
                     OutlinedButton(
-                        onClick  = { expanded = true },
+                        onClick = { expanded = true },
                         modifier = Modifier.fillMaxWidth(),
-                        shape    = RoundedCornerShape(dimensions.buttonCornerRadius)
+                        shape = RoundedCornerShape(dimensions.buttonCornerRadius)
                     ) {
                         Text(selectedName, modifier = Modifier.weight(1f))
                         Icon(Icons.Default.ExpandMore, contentDescription = null)
                     }
                     DropdownMenu(
-                        expanded          = expanded,
-                        onDismissRequest  = { expanded = false }
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
                     ) {
                         babies.forEach { baby ->
                             DropdownMenuItem(
-                                text    = { Text(baby.fullName) },
+                                text = { Text(baby.fullName) },
                                 onClick = { onBabySelect(baby.babyId); expanded = false }
                             )
                         }
@@ -919,29 +921,29 @@ private fun AddMemorySheet(
             // Title field
             FormSection(title = stringResource(Res.string.memory_title_label)) {
                 MemoryTextField(
-                    value         = formState.title,
+                    value = formState.title,
                     onValueChange = onTitleChange,
-                    placeholder   = stringResource(Res.string.memory_title_placeholder),
-                    isError       = formState.titleError != null,
-                    errorMessage  = formState.titleError,
-                    dimensions    = dimensions
+                    placeholder = stringResource(Res.string.memory_title_placeholder),
+                    isError = formState.titleError != null,
+                    errorMessage = formState.titleError,
+                    dimensions = dimensions
                 )
             }
 
             // Date field
             FormSection(title = stringResource(Res.string.memory_date_label)) {
                 MemoryTextField(
-                    value         = formState.memoryDate,
+                    value = formState.memoryDate,
                     onValueChange = onDateChange,
-                    placeholder   = "YYYY-MM-DD",
-                    isError       = formState.dateError != null,
-                    errorMessage  = formState.dateError,
-                    dimensions    = dimensions,
-                    trailingIcon  = {
+                    placeholder = "YYYY-MM-DD",
+                    isError = formState.dateError != null,
+                    errorMessage = formState.dateError,
+                    dimensions = dimensions,
+                    trailingIcon = {
                         Icon(
                             Icons.Default.DateRange,
                             contentDescription = null,
-                            tint     = customColors.accentGradientStart,
+                            tint = customColors.accentGradientStart,
                             modifier = Modifier.size(dimensions.iconMedium)
                         )
                     }
@@ -951,13 +953,13 @@ private fun AddMemorySheet(
             // Description field
             FormSection(title = stringResource(Res.string.memory_desc_label)) {
                 MemoryTextField(
-                    value         = formState.description,
+                    value = formState.description,
                     onValueChange = onDescChange,
-                    placeholder   = stringResource(Res.string.memory_desc_placeholder),
-                    singleLine    = false,
-                    minLines      = 3,
-                    maxLines      = 6,
-                    dimensions    = dimensions
+                    placeholder = stringResource(Res.string.memory_desc_placeholder),
+                    singleLine = false,
+                    minLines = 3,
+                    maxLines = 6,
+                    dimensions = dimensions
                 )
             }
 
@@ -971,14 +973,14 @@ private fun AddMemorySheet(
                 if (formState.selectedBytes.isNotEmpty()) {
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall),
-                        modifier              = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         itemsIndexed(formState.selectedBytes) { index, bytes ->
                             AddImageThumb(
-                                bytes     = bytes,
-                                index     = index,
-                                caption   = formState.captions.getOrNull(index) ?: "",
-                                onRemove  = { onRemoveImage(index) },
+                                bytes = bytes,
+                                index = index,
+                                caption = formState.captions.getOrNull(index) ?: "",
+                                onRemove = { onRemoveImage(index) },
                                 onCaption = { onCaptionChange(index, it) },
                                 dimensions = dimensions
                             )
@@ -989,13 +991,13 @@ private fun AddMemorySheet(
 
                 if (formState.canAddMore) {
                     ImagePickerButton(
-                        remaining  = AddMemoryFormState.MAX_IMAGES - formState.imageCount,
+                        remaining = AddMemoryFormState.MAX_IMAGES - formState.imageCount,
                         dimensions = dimensions,
-                        onPicked   = onAddImages
+                        onPicked = onAddImages
                     )
                 } else {
                     Text(
-                        text  = stringResource(Res.string.memory_max_images_reached),
+                        text = stringResource(Res.string.memory_max_images_reached),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
                     )
@@ -1005,7 +1007,7 @@ private fun AddMemorySheet(
             // Error
             formState.errorMessage?.let { err ->
                 Text(
-                    text  = err,
+                    text = err,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error
                 )
@@ -1014,20 +1016,20 @@ private fun AddMemorySheet(
             // Save button
             Spacer(Modifier.height(dimensions.spacingSmall))
             Button(
-                onClick  = onSave,
-                enabled  = !formState.isLoading,
+                onClick = onSave,
+                enabled = !formState.isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(dimensions.buttonHeight),
-                shape  = RoundedCornerShape(dimensions.buttonCornerRadius),
+                shape = RoundedCornerShape(dimensions.buttonCornerRadius),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = customColors.accentGradientStart
                 )
             ) {
                 if (formState.isLoading) {
                     CircularProgressIndicator(
-                        modifier    = Modifier.size(dimensions.iconMedium),
-                        color       = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(dimensions.iconMedium),
+                        color = MaterialTheme.colorScheme.onPrimary,
                         strokeWidth = 2.dp
                     )
                 } else {
@@ -1046,7 +1048,7 @@ private fun AddMemorySheet(
 
             // Cancel
             OutlinedButton(
-                onClick  = onCancel,
+                onClick = onCancel,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(dimensions.buttonHeight),
@@ -1066,12 +1068,12 @@ private fun AddMemorySheet(
 
 @Composable
 private fun AddImageThumb(
-    bytes      : ByteArray,
-    index      : Int,
-    caption    : String,
-    onRemove   : () -> Unit,
-    onCaption  : (String) -> Unit,
-    dimensions : Dimensions
+    bytes: ByteArray,
+    index: Int,
+    caption: String,
+    onRemove: () -> Unit,
+    onCaption: (String) -> Unit,
+    dimensions: Dimensions
 ) {
     val size = dimensions.avatarLarge + dimensions.spacingLarge
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -1081,12 +1083,12 @@ private fun AddImageThumb(
                 .clip(RoundedCornerShape(dimensions.cardCornerRadius - 4.dp))
         ) {
             ByteArrayImage(
-                bytes        = bytes,
+                bytes = bytes,
                 contentScale = ContentScale.Crop,
-                modifier     = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize()
             )
             IconButton(
-                onClick  = onRemove,
+                onClick = onRemove,
                 modifier = Modifier
                     .size(dimensions.iconMedium + dimensions.spacingXSmall)
                     .align(Alignment.TopEnd)
@@ -1095,14 +1097,13 @@ private fun AddImageThumb(
                 Icon(
                     Icons.Default.Close,
                     null,
-                    tint     = Color.White,
+                    tint = Color.White,
                     modifier = Modifier.size(dimensions.iconSmall)
                 )
             }
         }
     }
 }
-
 
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1118,13 +1119,13 @@ private fun LocalStorageWarning(dimensions: Dimensions) {
             .background(MaterialTheme.colorScheme.tertiaryContainer.copy(0.5f))
             .padding(dimensions.spacingSmall),
         horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall),
-        verticalAlignment     = Alignment.Top
+        verticalAlignment = Alignment.Top
     ) {
         Text("💾", style = MaterialTheme.typography.bodySmall)
         Text(
-            text     = stringResource(Res.string.memory_local_storage_warning),
-            style    = MaterialTheme.typography.labelSmall,
-            color    = MaterialTheme.colorScheme.onTertiaryContainer,
+            text = stringResource(Res.string.memory_local_storage_warning),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onTertiaryContainer,
             modifier = Modifier.weight(1f)
         )
     }
@@ -1136,8 +1137,8 @@ private fun LocalStorageWarning(dimensions: Dimensions) {
 
 @Composable
 private fun EmptyMemoriesSection(
-    dimensions : Dimensions,
-    onAddFirst : () -> Unit
+    dimensions: Dimensions,
+    onAddFirst: () -> Unit
 ) {
     val customColors = MaterialTheme.customColors
     Column(
@@ -1150,26 +1151,26 @@ private fun EmptyMemoriesSection(
         Text("📸", fontSize = dimensions.noBabiesEmojiSize)
         Spacer(Modifier.height(dimensions.spacingMedium))
         Text(
-            text       = stringResource(Res.string.memory_no_memories_title),
-            style      = MaterialTheme.typography.titleMedium,
+            text = stringResource(Res.string.memory_no_memories_title),
+            style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
-            textAlign  = TextAlign.Center,
-            color      = MaterialTheme.colorScheme.onBackground
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(Modifier.height(dimensions.spacingSmall))
         Text(
-            text      = stringResource(Res.string.memory_no_memories_desc),
-            style     = MaterialTheme.typography.bodyMedium,
+            text = stringResource(Res.string.memory_no_memories_desc),
+            style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center,
-            color     = MaterialTheme.colorScheme.onBackground.copy(0.55f)
+            color = MaterialTheme.colorScheme.onBackground.copy(0.55f)
         )
         Spacer(Modifier.height(dimensions.spacingSmall))
         LocalStorageWarning(dimensions = dimensions)
         Spacer(Modifier.height(dimensions.spacingLarge))
         Button(
             onClick = onAddFirst,
-            shape   = RoundedCornerShape(dimensions.buttonCornerRadius),
-            colors  = ButtonDefaults.buttonColors(
+            shape = RoundedCornerShape(dimensions.buttonCornerRadius),
+            colors = ButtonDefaults.buttonColors(
                 containerColor = customColors.accentGradientStart
             )
         ) {
@@ -1209,11 +1210,11 @@ private fun FormSection(title: String, content: @Composable ColumnScope.() -> Un
     val dimensions = LocalDimensions.current
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text       = title,
-            style      = MaterialTheme.typography.labelLarge,
+            text = title,
+            style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
-            color      = MaterialTheme.colorScheme.onSurface.copy(0.7f),
-            modifier   = Modifier.padding(bottom = dimensions.spacingXSmall)
+            color = MaterialTheme.colorScheme.onSurface.copy(0.7f),
+            modifier = Modifier.padding(bottom = dimensions.spacingXSmall)
         )
         content()
     }
@@ -1225,47 +1226,47 @@ private fun FormSection(title: String, content: @Composable ColumnScope.() -> Un
 
 @Composable
 private fun MemoryTextField(
-    value         : String,
-    onValueChange : (String) -> Unit,
-    placeholder   : String,
-    modifier      : Modifier = Modifier,
-    isError       : Boolean  = false,
-    errorMessage  : String?  = null,
-    singleLine    : Boolean  = true,
-    minLines      : Int      = 1,
-    maxLines      : Int      = 1,
-    trailingIcon  : (@Composable () -> Unit)? = null,
-    dimensions    : Dimensions
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    modifier: Modifier = Modifier,
+    isError: Boolean = false,
+    errorMessage: String? = null,
+    singleLine: Boolean = true,
+    minLines: Int = 1,
+    maxLines: Int = 1,
+    trailingIcon: (@Composable () -> Unit)? = null,
+    dimensions: Dimensions
 ) {
     val customColors = MaterialTheme.customColors
     Column(modifier = modifier.fillMaxWidth()) {
         OutlinedTextField(
-            value         = value,
+            value = value,
             onValueChange = onValueChange,
-            modifier      = Modifier.fillMaxWidth(),
-            placeholder   = {
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = {
                 Text(placeholder, color = MaterialTheme.colorScheme.onSurface.copy(0.4f))
             },
-            singleLine    = singleLine,
-            minLines      = minLines,
-            maxLines      = maxLines,
-            isError       = isError,
-            trailingIcon  = trailingIcon,
-            shape         = RoundedCornerShape(dimensions.textFieldCornerRadius),
-            colors        = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor   = customColors.accentGradientStart.copy(0.7f),
+            singleLine = singleLine,
+            minLines = minLines,
+            maxLines = maxLines,
+            isError = isError,
+            trailingIcon = trailingIcon,
+            shape = RoundedCornerShape(dimensions.textFieldCornerRadius),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = customColors.accentGradientStart.copy(0.7f),
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(0.4f),
-                cursorColor          = customColors.accentGradientStart
+                cursorColor = customColors.accentGradientStart
             )
         )
         if (isError && errorMessage != null) {
             Text(
                 errorMessage,
-                style    = MaterialTheme.typography.labelSmall,
-                color    = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.padding(
                     start = dimensions.spacingXSmall,
-                    top   = dimensions.spacingXSmall
+                    top = dimensions.spacingXSmall
                 )
             )
         }
@@ -1278,22 +1279,22 @@ private fun MemoryTextField(
 
 @Composable
 private fun BabyChip(
-    name       : String,
-    selected   : Boolean,
-    onClick    : () -> Unit,
-    dimensions : Dimensions
+    name: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    dimensions: Dimensions
 ) {
     val customColors = MaterialTheme.customColors
     FilterChip(
         selected = selected,
-        onClick  = onClick,
-        label    = { Text(name, style = MaterialTheme.typography.labelMedium) },
+        onClick = onClick,
+        label = { Text(name, style = MaterialTheme.typography.labelMedium) },
         modifier = Modifier.fillMaxWidth(),
-        colors   = FilterChipDefaults.filterChipColors(
+        colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = customColors.accentGradientStart.copy(0.85f),
-            selectedLabelColor     = MaterialTheme.colorScheme.onPrimary,
-            containerColor         = MaterialTheme.colorScheme.surface,
-            labelColor             = MaterialTheme.colorScheme.onSurface.copy(0.7f)
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
+            containerColor = MaterialTheme.colorScheme.surface,
+            labelColor = MaterialTheme.colorScheme.onSurface.copy(0.7f)
         ),
         shape = RoundedCornerShape(dimensions.buttonCornerRadius / 2)
     )
@@ -1305,48 +1306,48 @@ private fun BabyChip(
 
 @Composable
 private fun ConfirmDeleteDialog(
-    onConfirm : () -> Unit,
-    onDismiss : () -> Unit
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     val dimensions = LocalDimensions.current
     AlertDialog(
         onDismissRequest = onDismiss,
-        icon  = { Text("🗑️", fontSize = MaterialTheme.typography.displaySmall.fontSize) },
+        icon = { Text("🗑️", fontSize = MaterialTheme.typography.displaySmall.fontSize) },
         title = {
             Text(
                 stringResource(Res.string.memory_delete_confirm_title),
                 fontWeight = FontWeight.Bold,
-                textAlign  = TextAlign.Center
+                textAlign = TextAlign.Center
             )
         },
         text = {
             Text(
                 stringResource(Res.string.memory_delete_confirm_message),
                 textAlign = TextAlign.Center,
-                style     = MaterialTheme.typography.bodyMedium,
-                color     = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         },
         confirmButton = {
             Button(
-                onClick  = onConfirm,
-                colors   = ButtonDefaults.buttonColors(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.error
                 ),
-                shape    = RoundedCornerShape(dimensions.buttonCornerRadius),
+                shape = RoundedCornerShape(dimensions.buttonCornerRadius),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
                     stringResource(Res.string.memory_delete_confirm_action),
                     fontWeight = FontWeight.SemiBold,
-                    color      = MaterialTheme.colorScheme.onError
+                    color = MaterialTheme.colorScheme.onError
                 )
             }
         },
         dismissButton = {
             OutlinedButton(
-                onClick  = onDismiss,
-                shape    = RoundedCornerShape(dimensions.buttonCornerRadius),
+                onClick = onDismiss,
+                shape = RoundedCornerShape(dimensions.buttonCornerRadius),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(Res.string.btn_cancel))

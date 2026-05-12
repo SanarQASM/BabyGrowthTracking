@@ -53,6 +53,7 @@ fun HomeScreen(
     onNavigateToFeedingGuide           : () -> Unit = {},
     onNavigateToMemory                 : () -> Unit = {},
     onNavigateToNotifications          : () -> Unit = {},
+    onNavigateToChat                   : () -> Unit = {},   // ← NEW
 ) {
     val state       = viewModel.uiState
     val useSideRail = rememberUseSideRail()
@@ -112,6 +113,7 @@ fun HomeScreen(
                     onNavigateToFeedingGuide          = onNavigateToFeedingGuide,
                     onNavigateToMemory                = onNavigateToMemory,
                     onNavigateToNotifications         = onNavigateToNotifications,
+                    onNavigateToChat                  = onNavigateToChat,   // ← NEW
                     bottomPadding                     = 0.dp
                 )
             }
@@ -166,6 +168,7 @@ fun HomeScreen(
                     onNavigateToFeedingGuide          = onNavigateToFeedingGuide,
                     onNavigateToMemory                = onNavigateToMemory,
                     onNavigateToNotifications         = onNavigateToNotifications,
+                    onNavigateToChat                  = onNavigateToChat,   // ← NEW
                     bottomPadding                     = paddingValues.calculateBottomPadding()
                 )
             }
@@ -212,6 +215,7 @@ private fun TabContent(
     onNavigateToFeedingGuide          : () -> Unit,
     onNavigateToMemory                : () -> Unit,
     onNavigateToNotifications         : () -> Unit,
+    onNavigateToChat                  : () -> Unit,   // ← NEW
     bottomPadding                     : androidx.compose.ui.unit.Dp,
 ) {
     when (selectedTab) {
@@ -224,6 +228,7 @@ private fun TabContent(
                 onFeedingGuide        = onNavigateToFeedingGuide,
                 onMemory              = onNavigateToMemory,
                 onNotifications       = onNavigateToNotifications,
+                onNavigateToChat      = onNavigateToChat,   // ← NEW
             )
 
         NavigationTab.BABY ->

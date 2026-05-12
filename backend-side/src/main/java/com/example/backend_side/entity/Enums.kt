@@ -99,13 +99,16 @@ enum class BenchType(override val dbValue: String) : HasDbValue {
     override fun toString() = dbValue
 }
 
+// UPDATED: added 'skipped' status so team vaccination can skip a dose
+// without marking it as missed (missed = parent missed, skipped = team decision)
 enum class ScheduleStatus(override val dbValue: String) : HasDbValue {
     UPCOMING("upcoming"),
     DUE_SOON("due_soon"),
     OVERDUE("overdue"),
     COMPLETED("completed"),
     MISSED("missed"),
-    RESCHEDULED("rescheduled");
+    RESCHEDULED("rescheduled"),
+    SKIPPED("skipped");      // ← NEW: team-initiated skip
     override fun toString() = dbValue
 }
 

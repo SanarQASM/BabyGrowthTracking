@@ -119,6 +119,26 @@ data class VaccinationScheduleUpdateRequest @JsonCreator constructor(
     val vaccinationId: String? = null
 )
 
+// ── NEW: Team-restricted status update request ────────────────────────────────
+//
+// Only COMPLETED and SKIPPED are valid values for `status`.
+// The service layer enforces:
+//   - Current status must not be MISSED  (locked — cannot be changed)
+//   - Current status must not be COMPLETED (already done — locked)
+//   - `status` field must be exactly "COMPLETED" or "SKIPPED"
+//
+data class TeamStatusUpdateRequest @JsonCreator constructor(
+    @JsonProperty("status")
+    @field:NotBlank(message = "Status is required")
+    val status: String,          // "COMPLETED" or "SKIPPED"
+
+    @JsonProperty("completedDate")
+    val completedDate: LocalDate? = null,
+
+    @JsonProperty("notes")
+    val notes: String? = null
+)
+
 data class ScheduleAdjustmentRequest @JsonCreator constructor(
     @JsonProperty("scheduleId")
     val scheduleId: String = "",

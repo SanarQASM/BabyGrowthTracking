@@ -785,6 +785,7 @@ Last updated: 2025.</string>
     <string name="schedule_status_due_soon_label">Due Soon</string>
     <string name="schedule_status_rescheduled_label">Rescheduled</string>
     <string name="schedule_status_upcoming_label">Upcoming</string>
+    <string name="schedule_status_skipped_label">Skipped</string>
     <string name="schedule_completed_prefix">Completed: %1$s</string>
     <string name="schedule_scheduled_prefix">Scheduled: %1$s</string>
     <string name="schedule_reschedule_reason_why">Why are you rescheduling?</string>
@@ -1356,6 +1357,14 @@ Last updated: 2025.</string>
     <string name="team_action_missed">Missed</string>
     <string name="team_action_complete_confirm">Complete ✅</string>
     <string name="team_action_mark_completed">Mark Completed ✅</string>
+    <!-- TeamVaccinationScheduleView — filter chip labels -->
+    <string name="team_filter_all">All</string>
+    <string name="team_filter_upcoming">Upcoming</string>
+    <string name="team_filter_completed">Done</string>
+    <string name="team_filter_overdue">Overdue</string>
+
+    <!-- TeamVaccinationScheduleView — skip action button -->
+    <string name="team_action_skip">Skip</string>
 
     <!-- ── Growth tab ────────────────────────────────────────────────────────────── -->
     <string name="team_add_measurement">Add Measurement</string>

@@ -571,6 +571,17 @@ interface VaccinationScheduleService {
     fun updateScheduleStatus(scheduleId: String, request: VaccinationScheduleUpdateRequest): VaccinationScheduleResponse
     fun adjustScheduleDate(adjustedByUserId: String, request: ScheduleAdjustmentRequest): VaccinationScheduleResponse
     fun getAdjustmentHistory(scheduleId: String): List<ScheduleAdjustmentLogResponse>
+
+    // ── NEW ──────────────────────────────────────────────────────────────────
+    // Team-restricted update: only COMPLETED or SKIPPED allowed.
+    // MISSED and COMPLETED records are locked (cannot be changed).
+    fun updateTeamScheduleStatus(
+        scheduleId      : String,
+        newStatus       : String,
+        completedByUser : String,
+        completedDate   : LocalDate?,
+        notes           : String?
+    ): VaccinationScheduleResponse
 }
 
 @Service
@@ -627,6 +638,68 @@ class VaccinationScheduleServiceImpl(
         request.completedByUserId?.let { schedule.completedBy   = userRepository.findById(it).orElse(null) }
         request.vaccinationId?.let     { schedule.vaccination   = vaccinationRepository.findById(it).orElse(null) }
         return scheduleRepository.save(schedule).toResponse()
+    }
+
+    // ── NEW: Team-restricted status update ────────────────────────────────────
+    //
+    // Business rules (enforced here, not just in controller):
+    //   1. MISSED status → permanently locked. Team cannot touch it.
+    //      (MISSED = recorded by system or parent; belongs to parent's history)
+    //   2. COMPLETED status → permanently locked. Cannot un-complete.
+    //   3. Only COMPLETED or SKIPPED are valid target values.
+    //      SKIPPED = team decided to skip this dose (e.g. child sick that day).
+    //
+    override fun updateTeamScheduleStatus(
+        scheduleId      : String,
+        newStatus       : String,
+        completedByUser : String,
+        completedDate   : LocalDate?,
+        notes           : String?
+    ): VaccinationScheduleResponse {
+
+        val schedule = scheduleRepository.findById(scheduleId)
+            .orElseThrow { ResourceNotFoundException("Schedule not found: $scheduleId") }
+
+        // Rule 1 — MISSED is permanently locked
+        if (schedule.status == ScheduleStatus.MISSED) {
+            throw BadRequestException(
+                "Vaccination is MISSED and cannot be updated by the team. " +
+                        "Missed vaccinations are locked — only the parent can request a reschedule."
+            )
+        }
+
+        // Rule 2 — COMPLETED is permanently locked
+        if (schedule.status == ScheduleStatus.COMPLETED) {
+            throw BadRequestException(
+                "Vaccination is already COMPLETED and cannot be changed."
+            )
+        }
+
+        // Rule 3 — only COMPLETED or SKIPPED accepted
+        val targetStatus = when (newStatus.uppercase().trim()) {
+            "COMPLETED" -> ScheduleStatus.COMPLETED
+            "SKIPPED"   -> ScheduleStatus.SKIPPED
+            else -> throw BadRequestException(
+                "Invalid status '$newStatus'. Team members may only set COMPLETED or SKIPPED."
+            )
+        }
+
+        val completedBy = userRepository.findById(completedByUser).orElse(null)
+
+        schedule.status      = targetStatus
+        schedule.completedBy = completedBy
+
+        // Only set completedDate when actually completing, not when skipping
+        schedule.completedDate = when (targetStatus) {
+            ScheduleStatus.COMPLETED -> completedDate ?: LocalDate.now()
+            else                     -> null
+        }
+
+        val saved = scheduleRepository.save(schedule)
+        logger.info {
+            "Team member $completedByUser set schedule $scheduleId to $targetStatus"
+        }
+        return saved.toResponse()
     }
 
     override fun adjustScheduleDate(

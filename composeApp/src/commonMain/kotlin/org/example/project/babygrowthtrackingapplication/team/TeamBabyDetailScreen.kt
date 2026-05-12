@@ -22,11 +22,6 @@ import babygrowthtrackingapplication.composeapp.generated.resources.*
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.number
 import kotlinx.datetime.toLocalDateTime
-// FIX: REMOVED the home model VaccinationFilter import — it was the root cause of both errors:
-// 1. "Comparison of incompatible enums 'TeamVaccinationFilter' and 'VaccinationFilter'"
-// 2. "Argument type mismatch: actual type is 'VaccinationFilter', expected 'TeamVaccinationFilter'"
-// The wildcard import below (data.network.*) already brings in VaccinationScheduleUi.
-// TeamVaccinationFilter is defined in the same package so needs no import.
 import org.example.project.babygrowthtrackingapplication.data.network.*
 import org.example.project.babygrowthtrackingapplication.theme.*
 import org.jetbrains.compose.resources.stringResource
@@ -34,7 +29,7 @@ import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.math.roundToInt
 
-// KMP-compatible helper — String.format("%.1f") is JVM-only
+// KMP-compatible helper
 private fun Double.toOneDecimal(): String {
     val rounded = (this * 10.0).roundToInt()
     val intPart = rounded / 10
@@ -71,18 +66,21 @@ fun TeamBabyDetailScreen(
         containerColor = MaterialTheme.colorScheme.background
     ) { innerPadding ->
         Column(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+
             TeamDetailHeader(
                 baby = baby,
                 onBack = onBack,
                 customColors = customColors,
                 dimensions = dimensions
             )
+
             TeamDetailTabRow(
                 selectedTab = selectedTab,
                 onSelect = { selectedTab = it },
                 customColors = customColors,
                 dimensions = dimensions
             )
+
             AnimatedContent(
                 targetState = selectedTab,
                 transitionSpec = { fadeIn(tween(200)) togetherWith fadeOut(tween(200)) },
@@ -109,6 +107,7 @@ fun TeamBabyDetailScreen(
         }
     }
 
+    // Complete dialog
     state.completeForm?.let { form ->
         TeamCompleteDialogForDetail(
             form = form,
@@ -120,6 +119,7 @@ fun TeamBabyDetailScreen(
         )
     }
 
+    // Add measurement dialog
     if (state.showAddMeasurement) {
         TeamAddMeasurementDialog(
             babyId = baby.babyId,
@@ -131,6 +131,10 @@ fun TeamBabyDetailScreen(
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Header
+// ─────────────────────────────────────────────────────────────────────────────
+
 @Composable
 private fun TeamDetailHeader(
     baby: TeamBabyItem,
@@ -139,8 +143,8 @@ private fun TeamDetailHeader(
     dimensions: Dimensions
 ) {
     val isFemale = baby.gender.equals("GIRL", ignoreCase = true)
-    val genderEmoji = if (isFemale) stringResource(Res.string.team_emoji_girl)
-    else stringResource(Res.string.team_emoji_boy)
+    val genderEmoji =
+        if (isFemale) stringResource(Res.string.team_emoji_girl) else stringResource(Res.string.team_emoji_boy)
     val gradientStart =
         if (isFemale) customColors.accentGradientStart else customColors.accentGradientEnd
     val gradientEnd =
@@ -174,7 +178,6 @@ private fun TeamDetailHeader(
                     color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f)
                 )
             }
-
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -190,9 +193,7 @@ private fun TeamDetailHeader(
                         .size(dimensions.avatarLarge)
                         .background(customColors.glassOverlay, CircleShape),
                     contentAlignment = Alignment.Center
-                ) {
-                    Text(genderEmoji, style = MaterialTheme.typography.displaySmall)
-                }
+                ) { Text(genderEmoji, style = MaterialTheme.typography.displaySmall) }
 
                 Spacer(Modifier.width(dimensions.spacingMedium))
 
@@ -207,8 +208,9 @@ private fun TeamDetailHeader(
                         text = stringResource(
                             Res.string.team_baby_age_gender,
                             baby.ageInMonths,
-                            if (isFemale) stringResource(Res.string.gender_female)
-                            else stringResource(Res.string.gender_male)
+                            if (isFemale) stringResource(Res.string.gender_female) else stringResource(
+                                Res.string.gender_male
+                            )
                         ),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.85f)
@@ -225,6 +227,10 @@ private fun TeamDetailHeader(
         }
     }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Tab Row
+// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun TeamDetailTabRow(
@@ -260,16 +266,15 @@ private fun TeamDetailTabRow(
             tabs.forEach { info ->
                 val selected = selectedTab == info.tab
                 val bgColor by animateColorAsState(
-                    targetValue = if (selected) customColors.accentGradientStart.copy(alpha = 0.12f)
-                    else Color.Transparent,
+                    targetValue = if (selected) customColors.accentGradientStart.copy(alpha = 0.12f) else Color.Transparent,
                     label = "detail_tab_bg"
                 )
                 val fgColor by animateColorAsState(
-                    targetValue = if (selected) customColors.accentGradientStart
-                    else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                    targetValue = if (selected) customColors.accentGradientStart else MaterialTheme.colorScheme.onSurface.copy(
+                        alpha = 0.5f
+                    ),
                     label = "detail_tab_fg"
                 )
-
                 Box(
                     modifier = Modifier
                         .weight(1f)
@@ -297,6 +302,10 @@ private fun TeamDetailTabRow(
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Profile Tab  (unchanged from original)
+// ─────────────────────────────────────────────────────────────────────────────
+
 @Composable
 private fun TeamProfileTab(
     baby: TeamBabyItem,
@@ -304,8 +313,8 @@ private fun TeamProfileTab(
     customColors: CustomColors
 ) {
     val isFemale = baby.gender.equals("GIRL", ignoreCase = true)
-    val genderLabel = if (isFemale) stringResource(Res.string.team_gender_girl)
-    else stringResource(Res.string.team_gender_boy)
+    val genderLabel =
+        if (isFemale) stringResource(Res.string.team_gender_girl) else stringResource(Res.string.team_gender_boy)
 
     Column(
         modifier = Modifier
@@ -398,8 +407,8 @@ private fun TeamProfileTab(
 
         val statusColor = when (baby.vaccineStatus) {
             TeamVaccineStatus.OVERDUE -> MaterialTheme.colorScheme.error
-            TeamVaccineStatus.DUE_SOON -> customColors.warning
-            TeamVaccineStatus.UP_TO_DATE -> customColors.success
+            TeamVaccineStatus.DUE_SOON -> MaterialTheme.customColors.warning
+            TeamVaccineStatus.UP_TO_DATE -> MaterialTheme.customColors.success
             TeamVaccineStatus.NO_SCHEDULE -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
         }
         val statusLabel = when (baby.vaccineStatus) {
@@ -408,7 +417,6 @@ private fun TeamProfileTab(
             TeamVaccineStatus.UP_TO_DATE -> stringResource(Res.string.team_status_up_to_date_desc)
             TeamVaccineStatus.NO_SCHEDULE -> stringResource(Res.string.team_status_no_schedule_desc)
         }
-
         Surface(
             shape = RoundedCornerShape(dimensions.cardCornerRadius),
             color = statusColor.copy(alpha = 0.08f),
@@ -423,88 +431,19 @@ private fun TeamProfileTab(
                 modifier = Modifier.padding(dimensions.spacingMedium)
             )
         }
-
         Spacer(Modifier.height(dimensions.spacingXXLarge))
     }
 }
 
-@Composable
-private fun DetailSectionCard(
-    title: String,
-    emoji: String,
-    dimensions: Dimensions,
-    customColors: CustomColors,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(dimensions.cardCornerRadius),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(dimensions.cardElevationSmall)
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(customColors.accentGradientStart.copy(alpha = 0.06f))
-                    .padding(dimensions.spacingMedium),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
-            ) {
-                Text(emoji, style = MaterialTheme.typography.bodyMedium)
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    color = customColors.accentGradientStart
-                )
-            }
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = dimensions.spacingXSmall),
-                content = content
-            )
-        }
-    }
-}
-
-@Composable
-private fun DetailRow(
-    label: String,
-    value: String,
-    emoji: String,
-    dimensions: Dimensions
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                horizontal = dimensions.spacingMedium,
-                vertical = dimensions.profileInfoRowVerticalPadding
-            ),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            emoji,
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier.width(dimensions.profileInfoIconWidth)
-        )
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
-            modifier = Modifier.weight(0.4f)
-        )
-        Text(
-            text = value,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Medium,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(0.6f)
-        )
-    }
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// Vaccinations Tab  — uses TeamVaccinationScheduleView
+//
+// CHANGE from original: replaced the old TeamVaccineCard list with the new
+// TeamVaccinationScheduleView which enforces:
+//   • MISSED  → locked (no buttons shown)
+//   • COMPLETED → locked (no buttons shown)
+//   • Others → shows Complete + Skip buttons (NOT Missed button for team)
+// ─────────────────────────────────────────────────────────────────────────────
 
 @Composable
 private fun TeamVaccinationsTab(
@@ -515,295 +454,28 @@ private fun TeamVaccinationsTab(
     val dimensions = LocalDimensions.current
     val customColors = MaterialTheme.customColors
 
-    // FIX 1: Use TeamVaccinationFilter (same package, no import needed) instead of
-    // VaccinationFilter from home.model. This makes the Pair type
-    // List<Pair<TeamVaccinationFilter, String>>, which matches state.detailVacFilter.
-    // FIX 2: Explicit type annotation prevents the compiler from inferring
-    // VaccinationFilter via any lingering import.
-    val filters: List<Pair<TeamVaccinationFilter, String>> = listOf(
-        TeamVaccinationFilter.ALL to stringResource(Res.string.admin_vax_tab_all),
-        TeamVaccinationFilter.UPCOMING to stringResource(Res.string.admin_vax_tab_upcoming),
-        TeamVaccinationFilter.COMPLETED to stringResource(Res.string.admin_vax_tab_completed),
-        TeamVaccinationFilter.OVERDUE to stringResource(Res.string.admin_vax_tab_overdue)
-    )
-
-    Column(modifier = Modifier.fillMaxSize()) {
-        LazyRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingSmall),
-            horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
-        ) {
-            // FIX 3: 'filter' is now TeamVaccinationFilter — comparison with
-            // state.detailVacFilter (also TeamVaccinationFilter) is valid.
-            // 'viewModel.setDetailVacFilter(filter)' accepts TeamVaccinationFilter — valid.
-            items(filters) { (filter: TeamVaccinationFilter, label: String) ->
-                FilterChip(
-                    selected = state.detailVacFilter == filter,
-                    onClick = { viewModel.setDetailVacFilter(filter) },
-                    label = { Text(label, style = MaterialTheme.typography.labelSmall) },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = customColors.accentGradientStart,
-                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary,
-                        containerColor = customColors.accentGradientStart.copy(alpha = 0.06f),
-                        labelColor = customColors.accentGradientStart
-                    )
-                )
-            }
+    Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
+        if (state.detailSchedulesLoading) {
+            Box(
+                modifier = Modifier.fillMaxWidth().padding(vertical = dimensions.spacingXLarge),
+                contentAlignment = Alignment.Center
+            ) { CircularProgressIndicator(color = customColors.accentGradientStart) }
+        } else {
+            TeamVaccinationScheduleView(
+                schedules = state.detailSchedules,
+                filter = state.detailVacFilter,
+                loading = state.detailSchedulesLoading,
+                onFilterChange = { viewModel.setDetailVacFilter(it) },
+                onComplete = { scheduleId ->
+                    viewModel.openCompleteDialog(scheduleId)
+                },
+                onSkip = { scheduleId ->
+                    viewModel.skipVaccination(scheduleId, babyId)
+                },
+                onItemClick = { /* detail view optional */ }
+            )
         }
-
-        when {
-            state.detailSchedulesLoading -> {
-                Box(Modifier.fillMaxSize(), Alignment.Center) {
-                    CircularProgressIndicator(color = customColors.accentGradientStart)
-                }
-            }
-
-            else -> {
-                // FIX 4: when branches now use TeamVaccinationFilter — matches
-                // state.detailVacFilter and returns Boolean as filter{} requires.
-                val filtered = state.detailSchedules.filter { schedule: VaccinationScheduleUi ->
-                    when (state.detailVacFilter) {
-                        TeamVaccinationFilter.ALL -> true
-                        TeamVaccinationFilter.UPCOMING -> schedule.status == "UPCOMING" || schedule.status == "DUE_SOON"
-                        TeamVaccinationFilter.COMPLETED -> schedule.status == "COMPLETED"
-                        TeamVaccinationFilter.OVERDUE -> schedule.status == "OVERDUE"
-                    }
-                }
-
-                if (filtered.isEmpty()) {
-                    TeamEmptyState(
-                        emoji = stringResource(Res.string.team_emoji_vaccine),
-                        title = stringResource(Res.string.team_empty_vac_title),
-                        subtitle = stringResource(Res.string.team_empty_vac_subtitle),
-                        dimensions = dimensions
-                    )
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(
-                            horizontal = dimensions.screenPadding,
-                            vertical = dimensions.spacingSmall
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
-                    ) {
-                        items(
-                            items = filtered,
-                            key = { schedule: VaccinationScheduleUi -> schedule.scheduleId }
-                        ) { schedule: VaccinationScheduleUi ->
-                            TeamVaccineCard(
-                                schedule = schedule,
-                                onComplete = { viewModel.openCompleteDialog(schedule.scheduleId) },
-                                onMissed = { viewModel.markAsMissed(schedule.scheduleId, babyId) },
-                                onReschedule = { },
-                                customColors = customColors,
-                                dimensions = dimensions
-                            )
-                        }
-                        item { Spacer(Modifier.height(dimensions.spacingXXLarge)) }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun TeamVaccineCard(
-    schedule: VaccinationScheduleUi,
-    onComplete: () -> Unit,
-    onMissed: () -> Unit,
-    onReschedule: () -> Unit,
-    customColors: CustomColors,
-    dimensions: Dimensions
-) {
-    val isCompleted = schedule.status == "COMPLETED"
-    val isMissed = schedule.status == "MISSED"
-    val isOverdue = schedule.status == "OVERDUE"
-    val isDone = isCompleted || isMissed
-
-    val statusColor = when (schedule.status) {
-        "COMPLETED" -> customColors.success
-        "MISSED" -> MaterialTheme.colorScheme.error
-        "OVERDUE" -> customColors.warning
-        "DUE_SOON" -> customColors.info
-        "RESCHEDULED" -> MaterialTheme.colorScheme.tertiary
-        else -> customColors.accentGradientStart
-    }
-    val statusEmoji = when (schedule.status) {
-        "COMPLETED" -> stringResource(Res.string.team_emoji_completed)
-        "MISSED" -> stringResource(Res.string.team_emoji_missed)
-        "OVERDUE" -> stringResource(Res.string.team_emoji_overdue)
-        "DUE_SOON" -> stringResource(Res.string.team_emoji_due_soon)
-        "RESCHEDULED" -> stringResource(Res.string.team_emoji_rescheduled)
-        else -> stringResource(Res.string.team_emoji_scheduled)
-    }
-
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(dimensions.cardCornerRadius),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isDone) MaterialTheme.colorScheme.surface.copy(alpha = 0.7f)
-            else MaterialTheme.colorScheme.surface
-        ),
-        elevation = CardDefaults.cardElevation(
-            if (isDone) dimensions.cardElevationSmall * 0f else dimensions.cardElevationSmall
-        )
-    ) {
-        Column(modifier = Modifier.fillMaxWidth().padding(dimensions.spacingMedium)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(dimensions.vaccinationCardIconSize)
-                        .background(statusColor.copy(alpha = 0.12f), CircleShape)
-                        .border(
-                            dimensions.borderWidthThin,
-                            statusColor.copy(alpha = 0.3f),
-                            CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(statusEmoji, style = MaterialTheme.typography.bodySmall)
-                        Text(
-                            text = stringResource(Res.string.team_dose_label, schedule.doseNumber),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = statusColor
-                        )
-                    }
-                }
-
-                Spacer(Modifier.width(dimensions.spacingSmall))
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = schedule.vaccineName,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = if (isDone) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f)
-                        else MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = stringResource(
-                            Res.string.team_age_recommended_months,
-                            schedule.recommendedAgeMonths
-                        ),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.45f)
-                    )
-                }
-
-                Surface(
-                    shape = RoundedCornerShape(dimensions.filterTabCorner),
-                    color = statusColor.copy(alpha = 0.1f)
-                ) {
-                    Text(
-                        text = schedule.status.replace("_", " "),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = statusColor,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.padding(
-                            horizontal = dimensions.spacingXSmall * 2,
-                            vertical = dimensions.spacingXSmall / 2
-                        )
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(dimensions.spacingXSmall))
-
-            Row(horizontalArrangement = Arrangement.spacedBy(dimensions.spacingMedium)) {
-                Text(
-                    text = stringResource(
-                        Res.string.team_scheduled_date_prefix,
-                        schedule.scheduledDate
-                    ),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                )
-                schedule.completedDate?.let {
-                    Text(
-                        text = stringResource(Res.string.team_completed_date_prefix, it),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = customColors.success
-                    )
-                }
-            }
-
-            if (!isDone) {
-                Spacer(Modifier.height(dimensions.spacingSmall))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
-                ) {
-                    Button(
-                        onClick = onComplete,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(dimensions.buttonCornerRadius),
-                        colors = ButtonDefaults.buttonColors(containerColor = customColors.success),
-                        contentPadding = PaddingValues(vertical = dimensions.spacingXSmall)
-                    ) {
-                        Icon(
-                            Icons.Default.Check,
-                            null,
-                            modifier = Modifier.size(dimensions.iconSmall)
-                        )
-                        Spacer(Modifier.width(dimensions.spacingXSmall))
-                        Text(
-                            stringResource(Res.string.team_action_complete),
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    }
-
-                    OutlinedButton(
-                        onClick = onMissed,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(dimensions.buttonCornerRadius),
-                        border = BorderStroke(
-                            dimensions.borderWidthThin,
-                            MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
-                        ),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
-                        contentPadding = PaddingValues(vertical = dimensions.spacingXSmall)
-                    ) {
-                        Icon(
-                            Icons.Default.Close,
-                            null,
-                            modifier = Modifier.size(dimensions.iconSmall)
-                        )
-                        Spacer(Modifier.width(dimensions.spacingXSmall))
-                        Text(
-                            stringResource(Res.string.team_action_missed),
-                            style = MaterialTheme.typography.labelSmall
-                        )
-                    }
-
-                    if (isOverdue) {
-                        IconButton(
-                            onClick = onReschedule,
-                            modifier = Modifier
-                                .size(dimensions.addButtonSize + dimensions.spacingXSmall)
-                                .background(
-                                    customColors.accentGradientStart.copy(alpha = 0.1f),
-                                    RoundedCornerShape(dimensions.buttonCornerRadius)
-                                )
-                        ) {
-                            Icon(
-                                Icons.Default.Refresh, null,
-                                tint = customColors.accentGradientStart,
-                                modifier = Modifier.size(dimensions.iconSmall)
-                            )
-                        }
-                    }
-                }
-            }
-        }
+        Spacer(Modifier.height(dimensions.spacingXXLarge))
     }
 }
 
@@ -817,12 +489,28 @@ private fun TeamGrowthTab(
     val customColors = MaterialTheme.customColors
 
     Column(modifier = Modifier.fillMaxSize()) {
+
+        // ── Header row with Add button ────────────────────────────────────────
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = dimensions.screenPadding, vertical = dimensions.spacingSmall),
-            horizontalArrangement = Arrangement.End
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            Column {
+                Text(
+                    text = "Team Measurements",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+                Text(
+                    text = "Records added by this health center",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onBackground.copy(0.5f)
+                )
+            }
             Button(
                 onClick = { viewModel.openAddMeasurement(baby.babyId) },
                 shape = RoundedCornerShape(dimensions.buttonCornerRadius),
@@ -841,122 +529,68 @@ private fun TeamGrowthTab(
             }
         }
 
+        // ── Team-only scope banner ─────────────────────────────────────────────
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = dimensions.screenPadding),
+            shape = RoundedCornerShape(dimensions.cardCornerRadius),
+            color = customColors.accentGradientStart.copy(alpha = 0.08f),
+            border = BorderStroke(
+                dimensions.borderWidthThin,
+                customColors.accentGradientStart.copy(0.2f)
+            )
+        ) {
+            Row(
+                modifier = Modifier.padding(
+                    horizontal = dimensions.spacingMedium,
+                    vertical = dimensions.spacingSmall
+                ),
+                horizontalArrangement = Arrangement.spacedBy(dimensions.spacingSmall),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("🏥", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = "Showing only measurements recorded by your health center. " +
+                            "The parent can see all measurements including their own.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = customColors.accentGradientStart
+                )
+            }
+        }
+
+        Spacer(Modifier.height(dimensions.spacingSmall))
+
         when {
             state.detailGrowthLoading -> {
-                Box(Modifier.fillMaxSize(), Alignment.Center) {
-                    CircularProgressIndicator(color = customColors.accentGradientStart)
-                }
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) { CircularProgressIndicator(color = customColors.accentGradientStart) }
             }
 
-            state.detailGrowthRecords.isEmpty() -> {
+            state.detailTeamGrowthRecords.isEmpty() -> {
                 TeamEmptyState(
                     emoji = stringResource(Res.string.team_emoji_growth),
-                    title = stringResource(Res.string.team_empty_growth_title),
-                    subtitle = stringResource(Res.string.team_empty_growth_subtitle),
+                    title = "No Team Measurements Yet",
+                    subtitle = "Tap the Add button to record ${baby.fullName}'s first measurement from this health center.",
                     dimensions = dimensions
                 )
             }
 
             else -> {
-                state.detailGrowthRecords.firstOrNull()?.let { latest ->
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = dimensions.screenPadding),
-                        shape = RoundedCornerShape(dimensions.cardCornerRadius),
-                        colors = CardDefaults.cardColors(
-                            containerColor = customColors.accentGradientStart.copy(alpha = 0.06f)
-                        ),
-                        border = BorderStroke(
-                            dimensions.borderWidthThin,
-                            customColors.accentGradientStart.copy(alpha = 0.2f)
-                        )
-                    ) {
-                        Column(modifier = Modifier.padding(dimensions.spacingMedium)) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    stringResource(Res.string.team_emoji_chart),
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                                Spacer(Modifier.width(dimensions.spacingXSmall))
-                                Text(
-                                    text = stringResource(Res.string.team_latest_measurement),
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = customColors.accentGradientStart
-                                )
-                                Spacer(Modifier.weight(1f))
-                                Text(
-                                    text = latest.measurementDate,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                                )
-                            }
-                            Spacer(Modifier.height(dimensions.spacingSmall))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceEvenly
-                            ) {
-                                latest.weight?.let {
-                                    GrowthMetric(
-                                        emoji = stringResource(Res.string.team_emoji_weight),
-                                        label = stringResource(Res.string.team_metric_weight),
-                                        value = stringResource(
-                                            Res.string.team_weight_value,
-                                            it.toOneDecimal()
-                                        ),
-                                        color = customColors.accentGradientStart
-                                    )
-                                }
-                                latest.height?.let {
-                                    GrowthMetric(
-                                        emoji = stringResource(Res.string.team_emoji_height),
-                                        label = stringResource(Res.string.team_metric_height),
-                                        value = stringResource(
-                                            Res.string.team_height_value,
-                                            it.toOneDecimal()
-                                        ),
-                                        color = customColors.accentGradientEnd
-                                    )
-                                }
-                                latest.headCircumference?.let {
-                                    GrowthMetric(
-                                        emoji = stringResource(Res.string.team_emoji_head),
-                                        label = stringResource(Res.string.team_metric_head),
-                                        value = stringResource(
-                                            Res.string.team_head_value,
-                                            it.toOneDecimal()
-                                        ),
-                                        color = customColors.info
-                                    )
-                                }
-                            }
-                            if (latest.addedByTeam) {
-                                Spacer(Modifier.height(dimensions.spacingXSmall))
-                                Surface(
-                                    shape = RoundedCornerShape(dimensions.filterTabCorner),
-                                    color = customColors.info.copy(alpha = 0.1f)
-                                ) {
-                                    Text(
-                                        text = stringResource(Res.string.team_recorded_by_team),
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = customColors.info,
-                                        modifier = Modifier.padding(
-                                            horizontal = dimensions.spacingSmall,
-                                            vertical = dimensions.spacingXSmall / 2
-                                        )
-                                    )
-                                }
-                            }
-                        }
-                    }
+                // Latest summary card
+                state.detailTeamGrowthRecords.firstOrNull()?.let { latest ->
+                    TeamLatestGrowthCard(
+                        latest = latest,
+                        customColors = customColors,
+                        dimensions = dimensions
+                    )
                 }
 
                 Spacer(Modifier.height(dimensions.spacingSmall))
 
+                // Full list
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(
@@ -965,8 +599,8 @@ private fun TeamGrowthTab(
                     ),
                     verticalArrangement = Arrangement.spacedBy(dimensions.spacingSmall)
                 ) {
-                    items(state.detailGrowthRecords, key = { it.recordId }) { record ->
-                        GrowthRecordRow(
+                    items(state.detailTeamGrowthRecords, key = { it.recordId }) { record ->
+                        TeamGrowthRecordRow(
                             record = record,
                             customColors = customColors,
                             dimensions = dimensions
@@ -979,8 +613,110 @@ private fun TeamGrowthTab(
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Latest growth summary card
+// ─────────────────────────────────────────────────────────────────────────────
+
 @Composable
-private fun GrowthMetric(emoji: String, label: String, value: String, color: Color) {
+private fun TeamLatestGrowthCard(
+    latest: GrowthRecordResponse,
+    customColors: CustomColors,
+    dimensions: Dimensions
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = dimensions.screenPadding),
+        shape = RoundedCornerShape(dimensions.cardCornerRadius),
+        colors = CardDefaults.cardColors(
+            containerColor = customColors.accentGradientStart.copy(alpha = 0.06f)
+        ),
+        border = BorderStroke(
+            dimensions.borderWidthThin,
+            customColors.accentGradientStart.copy(alpha = 0.2f)
+        )
+    ) {
+        Column(modifier = Modifier.padding(dimensions.spacingMedium)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    stringResource(Res.string.team_emoji_chart),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(Modifier.width(dimensions.spacingXSmall))
+                Text(
+                    text = stringResource(Res.string.team_latest_measurement),
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = customColors.accentGradientStart
+                )
+                Spacer(Modifier.weight(1f))
+                Text(
+                    text = latest.measurementDate,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
+                )
+            }
+            Spacer(Modifier.height(dimensions.spacingSmall))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                latest.weight?.let {
+                    TeamGrowthMetric(
+                        emoji = stringResource(Res.string.team_emoji_weight),
+                        label = stringResource(Res.string.team_metric_weight),
+                        value = stringResource(Res.string.team_weight_value, it.toOneDecimal()),
+                        color = customColors.accentGradientStart
+                    )
+                }
+                latest.height?.let {
+                    TeamGrowthMetric(
+                        emoji = stringResource(Res.string.team_emoji_height),
+                        label = stringResource(Res.string.team_metric_height),
+                        value = stringResource(Res.string.team_height_value, it.toOneDecimal()),
+                        color = customColors.accentGradientEnd
+                    )
+                }
+                latest.headCircumference?.let {
+                    TeamGrowthMetric(
+                        emoji = stringResource(Res.string.team_emoji_head),
+                        label = stringResource(Res.string.team_metric_head),
+                        value = stringResource(Res.string.team_head_value, it.toOneDecimal()),
+                        color = customColors.info
+                    )
+                }
+            }
+            // Measurer badge — always team since this is team-only view
+            Spacer(Modifier.height(dimensions.spacingXSmall))
+            Surface(
+                shape = RoundedCornerShape(dimensions.filterTabCorner),
+                color = customColors.accentGradientStart.copy(alpha = 0.1f)
+            ) {
+                Row(
+                    modifier = Modifier.padding(
+                        horizontal = dimensions.spacingSmall,
+                        vertical = dimensions.spacingXSmall / 2
+                    ),
+                    horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("🏥", style = MaterialTheme.typography.labelSmall)
+                    Text(
+                        text = latest.measuredByName ?: "Health Center Team",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = customColors.accentGradientStart
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TeamGrowthMetric(emoji: String, label: String, value: String, color: Color) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Text(emoji, style = MaterialTheme.typography.bodyMedium)
         Text(
@@ -992,13 +728,17 @@ private fun GrowthMetric(emoji: String, label: String, value: String, color: Col
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+            color = MaterialTheme.colorScheme.onSurface.copy(0.5f)
         )
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Individual growth record row
+// ─────────────────────────────────────────────────────────────────────────────
+
 @Composable
-private fun GrowthRecordRow(
+private fun TeamGrowthRecordRow(
     record: GrowthRecordResponse,
     customColors: CustomColors,
     dimensions: Dimensions
@@ -1014,9 +754,7 @@ private fun GrowthRecordRow(
         )
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(dimensions.spacingSmall),
+            modifier = Modifier.fillMaxWidth().padding(dimensions.spacingSmall),
             verticalAlignment = Alignment.CenterVertically
         ) {
             val parts = record.measurementDate.split("-")
@@ -1075,13 +813,93 @@ private fun GrowthRecordRow(
                 }
             }
 
-            if (record.addedByTeam) {
+            // Measurer name
+            record.measuredByName?.let { name ->
                 Text(
-                    stringResource(Res.string.team_hospital_emoji),
-                    style = MaterialTheme.typography.bodySmall
+                    text = name,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = customColors.accentGradientStart.copy(0.7f),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.widthIn(max = 80.dp)
                 )
             }
         }
+    }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared helpers (DetailSectionCard, DetailRow, dialogs)
+// ─────────────────────────────────────────────────────────────────────────────
+
+@Composable
+private fun DetailSectionCard(
+    title: String,
+    emoji: String,
+    dimensions: Dimensions,
+    customColors: CustomColors,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(dimensions.cardCornerRadius),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(dimensions.cardElevationSmall)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(customColors.accentGradientStart.copy(alpha = 0.06f))
+                    .padding(dimensions.spacingMedium),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
+            ) {
+                Text(emoji, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                    color = customColors.accentGradientStart
+                )
+            }
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(vertical = dimensions.spacingXSmall),
+                content = content
+            )
+        }
+    }
+}
+
+@Composable
+private fun DetailRow(label: String, value: String, emoji: String, dimensions: Dimensions) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                horizontal = dimensions.spacingMedium,
+                vertical = dimensions.profileInfoRowVerticalPadding
+            ),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            emoji,
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.width(dimensions.profileInfoIconWidth)
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
+            modifier = Modifier.weight(0.4f)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Medium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(0.6f)
+        )
     }
 }
 
@@ -1138,8 +956,7 @@ private fun TeamCompleteDialogForDetail(
                     value = form.notes,
                     onValueChange = { v -> onChange { f -> f.copy(notes = v) } },
                     label = { Text(stringResource(Res.string.team_field_notes)) },
-                    singleLine = false,
-                    maxLines = 3,
+                    singleLine = false, maxLines = 3,
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = customColors.accentGradientStart)
                 )
@@ -1151,15 +968,12 @@ private fun TeamCompleteDialogForDetail(
                 enabled = !form.isLoading,
                 colors = ButtonDefaults.buttonColors(containerColor = customColors.success)
             ) {
-                if (form.isLoading) {
-                    CircularProgressIndicator(
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.size(dimensions.iconSmall),
-                        strokeWidth = dimensions.borderWidthMedium
-                    )
-                } else {
-                    Text(stringResource(Res.string.team_action_complete_confirm))
-                }
+                if (form.isLoading) CircularProgressIndicator(
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.size(dimensions.iconSmall),
+                    strokeWidth = dimensions.borderWidthMedium
+                )
+                else Text(stringResource(Res.string.team_action_complete_confirm))
             }
         },
         dismissButton = {
@@ -1177,24 +991,15 @@ private fun TeamAddMeasurementDialog(
     dimensions: Dimensions,
     customColors: CustomColors
 ) {
-    val labelDate = stringResource(Res.string.team_field_date_hint)
-    val labelWeight = stringResource(Res.string.team_field_weight)
-    val labelHeight = stringResource(Res.string.team_field_height)
-    val labelHead = stringResource(Res.string.team_field_head)
-    val labelTitle = stringResource(Res.string.team_add_measurement)
-    val labelSave = stringResource(Res.string.team_save_measurement)
-    val labelCancel = stringResource(Res.string.btn_cancel)
-    val emojiGrowth = stringResource(Res.string.team_emoji_growth)
-
     var weight by remember { mutableStateOf("") }
     var height by remember { mutableStateOf("") }
     var headCirc by remember { mutableStateOf("") }
     var date by remember {
         val now = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
         mutableStateOf(
-            "${now.year}-${now.month.number.toString().padStart(2, '0')}-${
-                now.day.toString().padStart(2, '0')
-            }"
+            "${now.year}-${
+                now.month.number.toString().padStart(2, '0')
+            }-${now.day.toString().padStart(2, '0')}"
         )
     }
 
@@ -1205,8 +1010,8 @@ private fun TeamAddMeasurementDialog(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(dimensions.spacingXSmall)
             ) {
-                Text(emojiGrowth)
-                Text(labelTitle, fontWeight = FontWeight.Bold)
+                Text(stringResource(Res.string.team_emoji_growth))
+                Text(stringResource(Res.string.team_add_measurement), fontWeight = FontWeight.Bold)
             }
         },
         text = {
@@ -1214,7 +1019,7 @@ private fun TeamAddMeasurementDialog(
                 OutlinedTextField(
                     value = date,
                     onValueChange = { date = it },
-                    label = { Text(labelDate) },
+                    label = { Text(stringResource(Res.string.team_field_date_hint)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = customColors.accentGradientStart)
@@ -1225,7 +1030,7 @@ private fun TeamAddMeasurementDialog(
                         if (it.isEmpty() || it.matches(Regex("^\\d{0,3}(\\.\\d{0,2})?\$"))) weight =
                             it
                     },
-                    label = { Text(labelWeight) },
+                    label = { Text(stringResource(Res.string.team_field_weight)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = customColors.accentGradientStart)
@@ -1236,7 +1041,7 @@ private fun TeamAddMeasurementDialog(
                         if (it.isEmpty() || it.matches(Regex("^\\d{0,3}(\\.\\d{0,2})?\$"))) height =
                             it
                     },
-                    label = { Text(labelHeight) },
+                    label = { Text(stringResource(Res.string.team_field_height)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = customColors.accentGradientStart)
@@ -1247,7 +1052,7 @@ private fun TeamAddMeasurementDialog(
                         if (it.isEmpty() || it.matches(Regex("^\\d{0,3}(\\.\\d{0,2})?\$"))) headCirc =
                             it
                     },
-                    label = { Text(labelHead) },
+                    label = { Text(stringResource(Res.string.team_field_head)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth(),
                     colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = customColors.accentGradientStart)
@@ -1267,10 +1072,8 @@ private fun TeamAddMeasurementDialog(
                 },
                 enabled = (weight.isNotBlank() || height.isNotBlank() || headCirc.isNotBlank()) && date.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(containerColor = customColors.accentGradientStart)
-            ) { Text(labelSave) }
+            ) { Text(stringResource(Res.string.team_save_measurement)) }
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(labelCancel) }
-        }
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(Res.string.btn_cancel)) } }
     )
 }

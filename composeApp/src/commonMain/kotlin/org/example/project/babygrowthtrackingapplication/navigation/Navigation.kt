@@ -7,6 +7,9 @@ import org.example.project.babygrowthtrackingapplication.admin.AdminHomeScreen
 import org.example.project.babygrowthtrackingapplication.admin.AdminLoginScreen
 import org.example.project.babygrowthtrackingapplication.admin.AdminLoginViewModel
 import org.example.project.babygrowthtrackingapplication.admin.AdminViewModel
+import org.example.project.babygrowthtrackingapplication.chat.ChatRepository
+import org.example.project.babygrowthtrackingapplication.chat.ChatScreen
+import org.example.project.babygrowthtrackingapplication.chat.ChatViewModel
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.splash.CompleteSplashScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.HomeScreen
 import org.example.project.babygrowthtrackingapplication.com.babygrowth.presentation.screens.home.screen.AddBabyScreen
@@ -80,6 +83,7 @@ private val RESTORABLE_SCREENS = setOf(
     Screen.AllMeasurements,
     Screen.AdminHome,
     Screen.TeamHome,
+    Screen.Chat,            // ← NEW
 )
 
 enum class Screen {
@@ -107,6 +111,7 @@ enum class Screen {
     FeedingGuide,
     Memory,
     Notifications,
+    Chat,                   // ← NEW
 
     AdminLogin,
     AdminHome,
@@ -161,38 +166,6 @@ private fun deepLinkRouteToScreen(route: String): Screen? = when (route) {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // AppNavigation
-//
-// BUG FIXES SUMMARY:
-//
-// Bug 1 — Admin "request failed" on first login:
-//   AdminViewModel.onEnterAdminHome() is called via a LaunchedEffect that fires
-//   only when currentScreen becomes Screen.AdminHome, guaranteeing the auth token
-//   is already persisted before any API call is made.
-//
-// Bug 2 — Login loop after logout (THE MAIN FIX):
-//   Root cause: repository.isLoggedIn() is a plain function call used as a
-//   LaunchedEffect key. Compose captures its value at composition time, so when
-//   the user logs in after a logout the LaunchedEffect sees the flag flip and
-//   re-runs, triggering recomposition race conditions that bounce screens.
-//
-//   Fix:
-//   a) Replace LaunchedEffect(repository.isLoggedIn()) with an explicit
-//      `isLoggedIn` mutableStateOf that is set precisely at login and logout.
-//      This makes the reactive dependency deterministic — Compose only re-runs
-//      effects when you explicitly change the value, not on every recomposition.
-//
-//   b) Introduce a single performLogout() function that atomically clears ALL
-//      state (auth token, preferences, ViewModels, polling) and bumps loginKey
-//      before switching screens. This prevents any window where isLoggedIn is
-//      still true while the UI is already on Screen.Welcome/Login.
-//
-//   c) LoginViewModel stays scoped inside the Screen.Login branch with
-//      key(loginKey) so a fresh instance (empty fields) is created every time
-//      the user reaches login after logout.
-//
-//   d) All stale shared ViewModels (homeViewModel, settingsViewModel) are reset
-//      during logout so they don't hold leftover state that can cause spurious
-//      recompositions after a fresh login.
 // ─────────────────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalSharedTransitionApi::class)
@@ -206,16 +179,8 @@ fun AppNavigation(
 ) {
     val preferencesManager = rememberPreferencesManager()
 
-    // ── FIX Bug 2a: explicit isLoggedIn state ─────────────────────────────────
-    // Using mutableStateOf instead of calling repository.isLoggedIn() as a
-    // LaunchedEffect key eliminates the recomposition race that caused the loop.
-    // We initialise it to false here; it is set to the real value once the
-    // repository is available (inside the Splash complete callback and on login).
     var isLoggedIn by remember { mutableStateOf(false) }
-
     var currentScreen by remember { mutableStateOf(Screen.Splash) }
-
-    // ── FIX Bug 2c: loginKey forces a brand-new LoginViewModel on every logout
     var loginKey by remember { mutableStateOf(0) }
 
     var resetEmail by remember { mutableStateOf("") }
@@ -312,8 +277,23 @@ fun AppNavigation(
         )
     }
 
-    // NOTE: SignupViewModel is kept at AppNavigation scope because
-    // VerifyAccountScreen needs the email/phone from the signup flow.
+    // ── NEW: Chat ─────────────────────────────────────────────────────────────
+    val chatRepository = remember {
+        ChatRepository(
+            client   = apiService.httpClient,
+            baseUrl  = apiService.baseUrl,
+            getToken = { preferencesManager.getAuthToken() }
+        )
+    }
+    val chatViewModel = remember {
+        ChatViewModel(
+            repository  = chatRepository,
+            getUserId   = { preferencesManager.getUserId() },
+            getUserRole = { preferencesManager.getString("user_role", "PARENT") }
+        )
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     val signupViewModel = remember {
         SignupViewModel(
             repository        = repository,
@@ -332,34 +312,16 @@ fun AppNavigation(
         EnterNewPasswordViewModel(authRepository = repository)
     }
 
-    // ── FIX Bug 2b: single performLogout() that atomically resets everything ──
-    //
-    // All logout call-sites (HomeScreen, AdminHome, TeamHome) call this one
-    // function. By setting isLoggedIn = false FIRST and clearing all state
-    // before changing the screen, there is no window where the app is on the
-    // Welcome/Login screen but isLoggedIn is still true — which was the
-    // condition that caused the LaunchedEffect to misbehave and loop.
     val performLogout: () -> Unit = remember {
         {
-            // 1. Mark as logged out immediately so no LaunchedEffect can
-            //    re-trigger anything that needs auth.
             isLoggedIn = false
-
-            // 2. Clear persisted session data.
-            repository.logout()                      // clears token + session flag
+            repository.logout()
             preferencesManager.clearLastScreen()
             preferencesManager.remove("user_role")
-
-            // 3. Stop background work.
             notificationViewModel.stopPolling()
-
-            // 4. Reset shared ViewModels so they don't hold stale data that
-            //    causes spurious recompositions when a new user logs in.
+            chatViewModel.onExit()          // ← NEW: stop chat polling on logout
             homeViewModel.clearState()
             settingsViewModel.clearState()
-
-            // 5. Clear baby selection state so no screen can accidentally
-            //    navigate away from Login to a baby-specific screen.
             selectedBaby              = null
             measurementBaby           = null
             allMeasurementsBaby       = null
@@ -369,26 +331,17 @@ fun AppNavigation(
             preCheckInvestigationBaby = null
             selectedTab               = NavigationTab.HOME
             originTab                 = NavigationTab.HOME
-
-            // 6. Bump loginKey so the Login screen composable is fully
-            //    re-created with an empty-field ViewModel on next visit.
             loginKey++
-
-            // 7. Navigate last — everything is clean before the screen changes.
             currentScreen = Screen.Welcome
         }
     }
 
-    // ── FIX Bug 1: trigger admin data load ONLY after screen is AdminHome ─────
     LaunchedEffect(currentScreen) {
         if (currentScreen == Screen.AdminHome) {
             adminViewModel.onEnterAdminHome()
         }
     }
 
-    // ── FIX Bug 2a: use isLoggedIn state instead of repository.isLoggedIn() ──
-    // This effect now only re-runs when isLoggedIn changes explicitly via
-    // performLogout() or the login success callbacks — not on every recomposition.
     LaunchedEffect(isLoggedIn) {
         if (isLoggedIn) {
             notificationViewModel.startUnreadPolling()
@@ -397,14 +350,12 @@ fun AppNavigation(
         }
     }
 
-    // ── FIX Bug 2a: deeplink effect also uses stable isLoggedIn state ─────────
     LaunchedEffect(startRoute, isLoggedIn) {
         if (startRoute != null && isLoggedIn) {
             notificationViewModel.onDeepLinkReceived(startRoute)
         }
     }
 
-    // Save last screen so the app can restore position on next launch.
     LaunchedEffect(currentScreen, selectedTab) {
         if (currentScreen in RESTORABLE_SCREENS && isLoggedIn) {
             preferencesManager.saveLastScreen(currentScreen.name, selectedTab.name)
@@ -489,6 +440,7 @@ fun AppNavigation(
             notificationViewModel.onDestroy()
             adminViewModel.onDestroy()
             teamViewModel.onDestroy()
+            chatViewModel.onDestroy()       // ← NEW
             cleanupSocialAuth(socialAuthManager)
         }
     }
@@ -564,15 +516,11 @@ fun AppNavigation(
 
             when (screen) {
 
-                // ── Splash ────────────────────────────────────────────────────
                 Screen.Splash -> {
                     CompleteSplashScreen(
                         onSplashComplete = {
-                            // Read the real login state once from the repository
-                            // at splash time and store it in our explicit state var.
                             val loggedIn = repository.isLoggedIn()
                             isLoggedIn = loggedIn
-
                             if (!loggedIn) {
                                 currentScreen = if (!preferencesManager.isOnboardingComplete())
                                     Screen.Onboarding else Screen.Welcome
@@ -605,7 +553,6 @@ fun AppNavigation(
                     )
                 }
 
-                // ── Welcome ───────────────────────────────────────────────────
                 Screen.Welcome -> {
                     WelcomeScreen(
                         onLoginClick  = { currentScreen = Screen.Login },
@@ -615,12 +562,6 @@ fun AppNavigation(
                     )
                 }
 
-                // ── Login ─────────────────────────────────────────────────────
-                //
-                // FIX Bug 2c: LoginViewModel lives INSIDE this branch.
-                // key(loginKey) ensures Compose tears down the old remembered
-                // value and builds a brand-new ViewModel (empty fields) every
-                // time loginKey changes — which happens on every logout.
                 Screen.Login -> {
                     key(loginKey) {
                         val viewModel = remember {
@@ -634,19 +575,10 @@ fun AppNavigation(
                             viewModel             = viewModel,
                             onBackClick           = { currentScreen = Screen.Welcome },
                             onLoginSuccess        = {
-                                // Set isLoggedIn = true BEFORE switching screens.
-                                // This is the symmetric counterpart to performLogout()
-                                // setting it to false — the explicit state change
-                                // prevents any race between LaunchedEffects.
                                 isLoggedIn = true
-
                                 val role = preferencesManager.getString("user_role", "")
                                 when {
                                     role.equals("ADMIN", ignoreCase = true) -> {
-                                        // FIX Bug 1: navigate first; the
-                                        // LaunchedEffect(currentScreen) calls
-                                        // onEnterAdminHome() only after the token
-                                        // is already persisted.
                                         currentScreen = Screen.AdminHome
                                     }
                                     role.equals("VACCINATION_TEAM", ignoreCase = true) -> {
@@ -656,7 +588,6 @@ fun AppNavigation(
                                         homeViewModel.loadHomeData()
                                         settingsViewModel.refreshProfile()
                                         currentScreen = Screen.Home
-                                        // Polling is started by LaunchedEffect(isLoggedIn).
                                     }
                                 }
                             },
@@ -667,13 +598,11 @@ fun AppNavigation(
                     }
                 }
 
-                // ── Admin Login ───────────────────────────────────────────────
                 Screen.AdminLogin -> {
                     AdminLoginScreen(
                         viewModel      = adminLoginViewModel,
                         onLoginSuccess = {
                             isLoggedIn    = true
-                            // FIX Bug 1: navigate; LaunchedEffect fires onEnterAdminHome
                             currentScreen = Screen.AdminHome
                         },
                         onBackToLogin  = {
@@ -683,31 +612,21 @@ fun AppNavigation(
                     )
                 }
 
-                // ── Admin Home ────────────────────────────────────────────────
                 Screen.AdminHome -> {
                     AdminHomeScreen(
                         viewModel         = adminViewModel,
                         apiService        = apiService,
-                        onNavigateToLogin = {
-                            // FIX Bug 2b: use the single performLogout() so all
-                            // state is atomically cleared before screen changes.
-                            performLogout()
-                        }
+                        onNavigateToLogin = { performLogout() }
                     )
                 }
 
-                // ── Team Home ─────────────────────────────────────────────────
                 Screen.TeamHome -> {
                     TeamVaccinationScreen(
                         viewModel           = teamViewModel,
-                        onNavigateToWelcome = {
-                            // FIX Bug 2b: use the single performLogout().
-                            performLogout()
-                        }
+                        onNavigateToWelcome = { performLogout() }
                     )
                 }
 
-                // ── Signup ────────────────────────────────────────────────────
                 Screen.Signup -> {
                     SignupScreen(
                         viewModel              = signupViewModel,
@@ -717,21 +636,18 @@ fun AppNavigation(
                             homeViewModel.loadHomeData()
                             settingsViewModel.refreshProfile()
                             currentScreen = Screen.Home
-                            // Polling started by LaunchedEffect(isLoggedIn).
                         },
                         onSocialSignupSuccess  = {
                             isLoggedIn = true
                             homeViewModel.loadHomeData()
                             settingsViewModel.refreshProfile()
                             currentScreen = Screen.Home
-                            // Polling started by LaunchedEffect(isLoggedIn).
                         },
                         sharedTransitionScope  = this@SharedTransitionLayout,
                         animatedContentScope   = this@AnimatedContent
                     )
                 }
 
-                // ── Forgot Password ───────────────────────────────────────────
                 Screen.ForgotPassword -> {
                     val viewModel = remember { ForgotPasswordViewModel(repository) }
                     ForgotPasswordScreen(
@@ -743,7 +659,6 @@ fun AppNavigation(
                     )
                 }
 
-                // ── Enter Code ────────────────────────────────────────────────
                 Screen.EnterCode -> {
                     val viewModel = remember { EnterCodeViewModel(repository, resetEmail) }
                     EnterCodeScreen(
@@ -758,7 +673,6 @@ fun AppNavigation(
                     )
                 }
 
-                // ── Enter New Password ────────────────────────────────────────
                 Screen.EnterNewPassword -> {
                     EnterNewPasswordScreen(
                         viewModel              = enterNewPasswordViewModel,
@@ -773,7 +687,6 @@ fun AppNavigation(
                     )
                 }
 
-                // ── Verify Account ────────────────────────────────────────────
                 Screen.VerifyAccount -> {
                     VerifyAccountScreen(
                         viewModel             = verifyAccountViewModel,
@@ -784,14 +697,12 @@ fun AppNavigation(
                             homeViewModel.loadHomeData()
                             settingsViewModel.refreshProfile()
                             currentScreen = Screen.Home
-                            // Polling started by LaunchedEffect(isLoggedIn).
                         },
                         sharedTransitionScope = this@SharedTransitionLayout,
                         animatedContentScope  = this@AnimatedContent
                     )
                 }
 
-                // ── Onboarding ────────────────────────────────────────────────
                 Screen.Onboarding -> {
                     OnboardingScreen(
                         onFinish = {
@@ -801,7 +712,6 @@ fun AppNavigation(
                     )
                 }
 
-                // ── Home ──────────────────────────────────────────────────────
                 Screen.Home -> {
                     HomeScreen(
                         viewModel                       = homeViewModel,
@@ -860,10 +770,7 @@ fun AppNavigation(
                                 currentScreen       = Screen.AllMeasurements
                             }
                         },
-                        onNavigateToWelcome             = {
-                            // FIX Bug 2b: single atomic logout function.
-                            performLogout()
-                        },
+                        onNavigateToWelcome             = { performLogout() },
                         onNavigateToFamilyHistory       = { babyId, _ ->
                             val baby = homeViewModel.uiState.babies.firstOrNull { it.babyId == babyId }
                             if (baby != null) {
@@ -921,10 +828,14 @@ fun AppNavigation(
                             notificationViewModel.loadNotifications(refresh = true)
                             currentScreen = Screen.Notifications
                         },
+                        // ── NEW ───────────────────────────────────────────────
+                        onNavigateToChat                = {
+                            originTab     = selectedTab
+                            currentScreen = Screen.Chat
+                        },
                     )
                 }
 
-                // ── Add Baby ──────────────────────────────────────────────────
                 Screen.AddBaby -> {
                     AddBabyScreen(
                         viewModel = addBabyViewModel,
@@ -937,7 +848,6 @@ fun AppNavigation(
                     )
                 }
 
-                // ── Edit Baby ─────────────────────────────────────────────────
                 Screen.EditBaby -> {
                     AddBabyScreen(
                         viewModel = addBabyViewModel,
@@ -959,7 +869,6 @@ fun AppNavigation(
                     )
                 }
 
-                // ── Baby Profile ──────────────────────────────────────────────
                 Screen.BabyProfile -> {
                     val baby = selectedBaby
                     if (baby == null) {
@@ -997,7 +906,6 @@ fun AppNavigation(
                     }
                 }
 
-                // ── Add Measurement ───────────────────────────────────────────
                 Screen.AddMeasurement -> {
                     val baby = measurementBaby
                     if (baby == null) {
@@ -1023,7 +931,6 @@ fun AppNavigation(
                     }
                 }
 
-                // ── All Measurements ──────────────────────────────────────────
                 Screen.AllMeasurements -> {
                     val baby = allMeasurementsBaby
                     if (baby == null) {
@@ -1045,7 +952,6 @@ fun AppNavigation(
                     }
                 }
 
-                // ── Family History ────────────────────────────────────────────
                 Screen.FamilyHistory -> {
                     val baby = familyHistoryBaby
                     if (baby == null) currentScreen = Screen.Home
@@ -1057,7 +963,6 @@ fun AppNavigation(
                     )
                 }
 
-                // ── Child Illnesses ───────────────────────────────────────────
                 Screen.ChildIllnesses -> {
                     val baby = childIllnessesBaby
                     if (baby == null) currentScreen = Screen.Home
@@ -1069,7 +974,6 @@ fun AppNavigation(
                     )
                 }
 
-                // ── Child Dev: Vision + Motor ─────────────────────────────────
                 Screen.ChildDevVisionMotor -> {
                     val baby = childDevBaby
                     if (baby == null) currentScreen = Screen.Home
@@ -1082,7 +986,6 @@ fun AppNavigation(
                     )
                 }
 
-                // ── Child Dev: Hearing + Speech ───────────────────────────────
                 Screen.ChildDevHearingSpeech -> {
                     val baby = childDevBaby
                     if (baby == null) currentScreen = Screen.Home
@@ -1095,7 +998,6 @@ fun AppNavigation(
                     )
                 }
 
-                // ── Pre-Check Investigation ───────────────────────────────────
                 Screen.PreCheckInvestigation -> {
                     val baby = preCheckInvestigationBaby
                     if (baby == null) currentScreen = Screen.Home
@@ -1107,43 +1009,49 @@ fun AppNavigation(
                     )
                 }
 
-                // ── Sleep Guide ───────────────────────────────────────────────
+                // ── Sleep Guide — now includes chat entry card ─────────────────
                 Screen.SleepGuide -> {
                     SleepGuideScreen(
-                        babies    = homeViewModel.uiState.babies,
-                        viewModel = guideViewModel,
-                        language  = currentLanguage.code,
-                        onBack    = { selectedTab = originTab; currentScreen = Screen.Home }
+                        babies           = homeViewModel.uiState.babies,
+                        viewModel        = guideViewModel,
+                        language         = currentLanguage.code,
+                        onBack           = { selectedTab = originTab; currentScreen = Screen.Home },
                     )
                 }
 
-                // ── Feeding Guide ─────────────────────────────────────────────
+                // ── Feeding Guide — now includes chat entry card ───────────────
                 Screen.FeedingGuide -> {
                     FeedingGuideScreen(
-                        babies    = homeViewModel.uiState.babies,
-                        viewModel = guideViewModel,
-                        language  = currentLanguage.code,
-                        onBack    = { selectedTab = originTab; currentScreen = Screen.Home }
+                        babies           = homeViewModel.uiState.babies,
+                        viewModel        = guideViewModel,
+                        language         = currentLanguage.code,
+                        onBack           = { selectedTab = originTab; currentScreen = Screen.Home },
                     )
                 }
 
-                // ── Memory ────────────────────────────────────────────────────
                 Screen.Memory -> {
                     MemoryScreen(
-                        viewModel      = memoryViewModel,
-                        babies         = homeViewModel.uiState.babies,
-                        selectedBabyId = homeViewModel.uiState.selectedBaby?.babyId,
-                        language       = currentLanguage,
-                        onBack         = { selectedTab = originTab; currentScreen = Screen.Home }
+                        viewModel        = memoryViewModel,
+                        babies           = homeViewModel.uiState.babies,
+                        selectedBabyId   = homeViewModel.uiState.selectedBaby?.babyId,
+                        language         = currentLanguage,
+                        onBack           = { selectedTab = originTab; currentScreen = Screen.Home },
                     )
                 }
 
-                // ── Notifications ─────────────────────────────────────────────
                 Screen.Notifications -> {
                     NotificationScreen(
                         viewModel  = notificationViewModel,
                         onBack     = { selectedTab = originTab; currentScreen = Screen.Home },
                         onNavigate = { /* handled by LaunchedEffect */ }
+                    )
+                }
+
+                // ── NEW: Group Chat ───────────────────────────────────────────
+                Screen.Chat -> {
+                    ChatScreen(
+                        viewModel = chatViewModel,
+                        onBack    = { selectedTab = originTab; currentScreen = Screen.Home }
                     )
                 }
 

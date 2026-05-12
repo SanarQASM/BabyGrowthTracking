@@ -404,6 +404,7 @@ fun VaccinationScheduleCard(item: VaccinationScheduleUi, onClick: () -> Unit) {
     val colorDueSoon     = Color(0xFFF59E0B)
     val colorMissed      = Color(0xFFEF4444)
     val colorRescheduled = Color(0xFF8B5CF6)
+    val colorSkipped     = Color(0xFF607D8B)
 
     val (statusColor, statusIcon, statusLabel) = when (item.statusUi) {
         ScheduleStatusUi.COMPLETED   ->
@@ -421,6 +422,9 @@ fun VaccinationScheduleCard(item: VaccinationScheduleUi, onClick: () -> Unit) {
         ScheduleStatusUi.UPCOMING    ->
             Triple(customColors.accentGradientStart, "💉",
                 stringResource(Res.string.schedule_status_upcoming_label))
+        ScheduleStatusUi.SKIPPED     ->
+            Triple(colorSkipped, "⏭️",
+                stringResource(Res.string.schedule_status_skipped_label))
     }
 
     // FIX (Q3): Determine whether to show the "Was due" row.
@@ -1031,6 +1035,7 @@ fun VaccinationDetailScreen(
     val colorDueSoon     = Color(0xFFF59E0B)
     val colorMissed      = Color(0xFFEF4444)
     val colorRescheduled = Color(0xFF8B5CF6)
+    val colorSkipped     = Color(0xFF607D8B)
 
     val (statusColor, statusIcon) = when (item.statusUi) {
         ScheduleStatusUi.COMPLETED   -> Pair(colorCompleted, "✅")
@@ -1039,6 +1044,7 @@ fun VaccinationDetailScreen(
         ScheduleStatusUi.DUE_SOON    -> Pair(colorDueSoon, "⏰")
         ScheduleStatusUi.RESCHEDULED -> Pair(colorRescheduled, "🔄")
         ScheduleStatusUi.UPCOMING    -> Pair(customColors.accentGradientStart, "💉")
+        ScheduleStatusUi.SKIPPED     -> Pair(colorSkipped, "⏭️")
     }
 
     Scaffold(

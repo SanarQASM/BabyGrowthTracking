@@ -1,6 +1,8 @@
 package com.example.backend_side.controllers
 
 import com.example.backend_side.*
+import com.example.backend_side.entity.ScheduleStatus
+import com.example.backend_side.entity.UserRole
 import com.example.backend_side.repositories.UserRepository
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
@@ -14,15 +16,13 @@ import java.time.LocalDate
 
 // ============================================================
 // VACCINATION SCHEDULE CONTROLLER
-// ============================================================
 //
-// FIX: updateStatus was @PutMapping("/{scheduleId}/status") but the client
-// calls it with HTTP PATCH (client.patch(...) in ApiService.kt).
-// Changed to @PatchMapping so the HTTP method matches the client call.
-// A PUT/PATCH mismatch returns 405 Method Not Allowed.
-//
-// VaccinationRescheduleController also shares /v1/vaccination-schedules base
-// path — Spring disambiguates by method-level mappings, no conflict.
+// UPDATED:
+//  1. @PatchMapping on updateStatus (was @PutMapping — HTTP method fix kept)
+//  2. New endpoint: PATCH /v1/vaccination-schedules/{scheduleId}/team-status
+//     → Only for VACCINATION_TEAM role
+//     → Only allows COMPLETED or SKIPPED
+//     → Rejects if current status is MISSED (locked)
 // ============================================================
 
 @RestController
@@ -85,9 +85,8 @@ class VaccinationScheduleController(
         )
 
     // FIX: was @PutMapping — client sends PATCH, so this must be @PatchMapping.
-    // HTTP method mismatch caused 405 Method Not Allowed on every status update.
     @PatchMapping("/{scheduleId}/status")
-    @Operation(summary = "Update schedule status — mark completed, missed, etc.")
+    @Operation(summary = "Update schedule status — general (admin / internal)")
     fun updateStatus(
         @PathVariable scheduleId: String,
         @Valid @RequestBody request: VaccinationScheduleUpdateRequest
@@ -96,6 +95,47 @@ class VaccinationScheduleController(
             ApiResponse(true, "Status updated",
                 scheduleService.updateScheduleStatus(scheduleId, request))
         )
+
+    // ── NEW: Team-restricted status update ────────────────────────────────────
+    //
+    // PATCH /v1/vaccination-schedules/{scheduleId}/team-status
+    //
+    // Rules enforced SERVER-SIDE:
+    //   1. Caller must be VACCINATION_TEAM role
+    //   2. Allowed target statuses: COMPLETED, SKIPPED only
+    //   3. Current status MUST NOT be MISSED — missed vaccinations are locked
+    //      and cannot be changed by the team (they are system/parent records)
+    //   4. Current status MUST NOT be COMPLETED — once completed, locked
+    //
+    // The UI also enforces these rules, but the server is the source of truth.
+    // ─────────────────────────────────────────────────────────────────────────
+
+    @PatchMapping("/{scheduleId}/team-status")
+    @Operation(summary = "Team vaccination updates schedule status — only COMPLETED or SKIPPED allowed; MISSED is locked")
+    fun updateTeamStatus(
+        @PathVariable scheduleId: String,
+        @Valid @RequestBody request: TeamStatusUpdateRequest,
+        @AuthenticationPrincipal userDetails: UserDetails
+    ): ResponseEntity<ApiResponse<VaccinationScheduleResponse>> {
+
+        val user = userRepository.findByEmail(userDetails.username)
+            .orElseThrow { ResourceNotFoundException("Authenticated user not found") }
+
+        // Rule 1: only VACCINATION_TEAM members may call this endpoint
+        if (user.role != UserRole.VACCINATION_TEAM) {
+            throw ForbiddenException("Only vaccination team members can update schedule status via this endpoint")
+        }
+
+        val result = scheduleService.updateTeamScheduleStatus(
+            scheduleId     = scheduleId,
+            newStatus      = request.status,
+            completedByUser = user.userId,
+            completedDate  = request.completedDate,
+            notes          = request.notes
+        )
+
+        return ResponseEntity.ok(ApiResponse(true, "Status updated by team", result))
+    }
 
     @PutMapping("/{scheduleId}/adjust")
     @Operation(summary = "Manually adjust a scheduled date — parent or team member")
@@ -123,3 +163,15 @@ class VaccinationScheduleController(
                 scheduleService.getAdjustmentHistory(scheduleId))
         )
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Team status update request DTO
+// Only COMPLETED and SKIPPED are accepted — anything else is rejected by the
+// service layer before touching the database.
+// ─────────────────────────────────────────────────────────────────────────────
+
+data class TeamStatusUpdateRequest(
+    val status       : String,        // "COMPLETED" or "SKIPPED"
+    val completedDate: LocalDate? = null,
+    val notes        : String?    = null
+)
