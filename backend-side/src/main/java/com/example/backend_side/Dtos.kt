@@ -144,7 +144,7 @@ data class GrowthRecordCreateRequest @com.fasterxml.jackson.annotation.JsonCreat
     val height: java.math.BigDecimal? = null,
 
     @com.fasterxml.jackson.annotation.JsonProperty("headCircumference")
-    @field:jakarta.validation.constraints.DecimalMin(value = "20.0", message = "Head circumference must be at least 20 cm")
+    @field:jakarta.validation.constraints.DecimalMin(value = "10.0", message = "Head circumference must be at least 10 cm")
     val headCircumference: java.math.BigDecimal? = null,
 
     @com.fasterxml.jackson.annotation.JsonProperty("weightPercentile")            val weightPercentile           : Byte?   = null,

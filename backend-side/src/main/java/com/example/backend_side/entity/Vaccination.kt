@@ -8,7 +8,12 @@ import java.time.LocalDateTime
 @Table(name = "vaccinations")
 data class Vaccination(
     @Id
-    @Column(name = "vaccination_id", columnDefinition = "VARCHAR(36)", updatable = false, nullable = false)
+    @Column(
+        name = "vaccination_id",
+        columnDefinition = "VARCHAR(36)",
+        updatable = false,
+        nullable = false
+    )
     var vaccinationId: String = "",
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -25,8 +30,10 @@ data class Vaccination(
     @Column(name = "administered_date")
     var administeredDate: LocalDate? = null,
 
-    @Column(name = "status", columnDefinition = "ENUM('scheduled','completed','missed','rescheduled')")
-    var status: VaccinationStatus = VaccinationStatus.SCHEDULED,
+    @Column(
+        name = "status",
+        columnDefinition = "ENUM('upcoming','due_soon','overdue','completed','missed','rescheduled','skipped')"
+    )
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "administered_by")
@@ -46,5 +53,7 @@ data class Vaccination(
 
     ) : BaseEntity() {
     @PreUpdate
-    fun preUpdate() { updatedAt = LocalDateTime.now() }
+    fun preUpdate() {
+        updatedAt = LocalDateTime.now()
+    }
 }
